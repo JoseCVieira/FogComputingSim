@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.apache.commons.math3.util.Pair;
 import org.cloudbus.cloudsim.UtilizationModelFull;
+import org.fog.application.selectivity.FractionalSelectivity;
 import org.fog.application.selectivity.SelectivityModel;
 import org.fog.entities.Tuple;
 import org.fog.scheduler.TupleScheduler;
@@ -73,8 +74,16 @@ public class Application {
 		String vmm = "Xen";
 		
 		AppModule module = new AppModule(FogUtils.generateEntityId(), moduleName, appId, userId, 
-			mips, ram, bw, size, vmm, new TupleScheduler(mips, 1), new HashMap<Pair<String, String>, SelectivityModel>());
+			mips, ram, bw, size, vmm, new TupleScheduler(mips, 1),
+			new HashMap<Pair<String, String>, SelectivityModel>());
 		
+		getModules().add(module);
+	}
+	
+	public void addAppModule(AppModule m){ //ADDED
+		AppModule module = new AppModule(FogUtils.generateEntityId(), m.getName(), appId, userId, 
+			m.getMips(), m.getRam(), m.getBw(), m.getSize(), m.getVmm(), new TupleScheduler(m.getMips(), 1),
+			new HashMap<Pair<String, String>, SelectivityModel>());
 		getModules().add(module);
 	}
 	
@@ -90,7 +99,23 @@ public class Application {
 	 */
 	public void addAppEdge(String source, String destination, double tupleCpuLength, 
 			double tupleNwLength, String tupleType, int direction, int edgeType){
-		AppEdge edge = new AppEdge(source, destination, tupleCpuLength, tupleNwLength, tupleType, direction, edgeType);
+		AppEdge edge = new AppEdge(source, destination, tupleCpuLength, tupleNwLength,
+				tupleType, direction, edgeType);
+		getEdges().add(edge);
+		getEdgeMap().put(edge.getTupleType(), edge);
+	}
+	
+	public void addAppEdge(AppEdge e){ //ADDED
+		AppEdge edge = null;
+		
+		if(!e.isPeriodic())
+			edge = new AppEdge(e.getSource(), e.getDestination(), e.getTupleCpuLength(),
+				e.getTupleNwLength(), e.getTupleType(), e.getDirection(), e.getEdgeType());
+		else
+			edge = new AppEdge(e.getSource(), e.getDestination(), e.getPeriodicity(),
+					e.getTupleCpuLength(), e.getTupleNwLength(), e.getTupleType(),
+					e.getDirection(), e.getEdgeType());
+		
 		getEdges().add(edge);
 		getEdgeMap().put(edge.getTupleType(), edge);
 	}
@@ -120,9 +145,16 @@ public class Application {
 	 * @param outputTupleType Type of tuples carried by the output edge
 	 * @param selectivityModel Selectivity model governing the relation between the incoming and outgoing edge
 	 */
-	public void addTupleMapping(String moduleName, String inputTupleType, String outputTupleType, SelectivityModel selectivityModel){
+	public void addTupleMapping(String moduleName, String inputTupleType,
+			String outputTupleType, SelectivityModel selectivityModel){
 		AppModule module = getModuleByName(moduleName);
 		module.getSelectivityMap().put(new Pair<String, String>(inputTupleType, outputTupleType), selectivityModel);
+	}
+	
+	public void addTupleMapping(String moduleName, Pair<String, String> pair, double value){  //ADDED
+		AppModule module = getModuleByName(moduleName);
+		module.getSelectivityMap().put(new Pair<String, String>(pair.getFirst(), pair.getSecond()),
+				new FractionalSelectivity(value));
 	}
 	
 	/**

@@ -15,7 +15,6 @@ import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.entities.Tuple;
-import org.fog.test.MyApp;
 import org.fog.utils.Logger;
 
 public class MyModulePlacement extends ModulePlacement{
@@ -67,9 +66,8 @@ public class MyModulePlacement extends ModulePlacement{
 			}
 		}
 
-		getApplication().setPaths( MyApp.MY_PLACEMENT ? MygetLeafToRootPaths() : getLeafToRootPaths());
+		getApplication().setPaths(MygetLeafToRootPaths());
 		System.out.println(getApplication().getPaths());
-		
 		
 		for(List<Integer> path : getApplication().getPaths())
 			placeModulesInPath(path);
@@ -466,7 +464,7 @@ public class MyModulePlacement extends ModulePlacement{
 		// All paths without brothers
 		FogDevice cloud=null;
 		for(FogDevice device : getFogDevices())
-			if(device.getName().equals("cloud"))
+			if(device.getName().equalsIgnoreCase("cloud"))
 				cloud = device;
 		List<List<Integer>> pathList = getPaths(cloud.getId());
 		
@@ -505,7 +503,7 @@ public class MyModulePlacement extends ModulePlacement{
 	protected List<List<Integer>> getLeafToRootPaths(){
 		FogDevice cloud=null;
 		for(FogDevice device : getFogDevices())
-			if(device.getName().equals("cloud"))
+			if(device.getName().equalsIgnoreCase("cloud"))
 				cloud = device;
 		return getPaths(cloud.getId());
 	}

@@ -26,7 +26,6 @@ import org.fog.entities.Sensor;
 import org.fog.entities.Tuple;
 import org.fog.placement.Controller;
 import org.fog.placement.ModuleMapping;
-import org.fog.placement.ModulePlacementEdgewards;
 import org.fog.placement.MyModulePlacement;
 import org.fog.policy.AppModuleAllocationPolicy;
 import org.fog.scheduler.StreamOperatorScheduler;
@@ -46,7 +45,6 @@ public class MyApp {
 	private static final String APP_ID = "MyApp";
 	private static final int NDEPTS = 2;
 	
-	public static final boolean MY_PLACEMENT = true;
 	private static final boolean DEBUG_MODE = false;
 	
 	public static final String END_DEVICE_NAME = "end-device";
@@ -68,20 +66,15 @@ public class MyApp {
 			createFogDevices(broker.getId(), APP_ID);
 			
 			ModuleMapping moduleMapping = ModuleMapping.createModuleMapping(); // initializing a module mapping
-			moduleMapping.addModuleToDevice("connector", "cloud"); // fixing all instances of the Connector module to the Cloud
+			//moduleMapping.addModuleToDevice("connector", "cloud"); // fixing all instances of the Connector module to the Cloud
 			
 			Controller controller = new Controller("master-controller", fogDevices, sensors, actuators);
 			
 			for(FogDevice fogDevice : fogDevices)
 				fogDevice.setController(controller);
 			
-			if(MY_PLACEMENT)
-				controller.submitApplication(application, 0, new MyModulePlacement(fogDevices, sensors, actuators,
-						application, moduleMapping));
-			else
-				controller.submitApplication(application, 0, new ModulePlacementEdgewards(fogDevices, sensors, actuators,
-						application, moduleMapping));
-			
+			controller.submitApplication(application, 0, new MyModulePlacement(fogDevices, sensors, actuators,
+					application, moduleMapping));
 			System.out.println(fogDevices);
 			
 			TimeKeeper.getInstance().setSimulationStartTime(Calendar.getInstance().getTimeInMillis());
@@ -175,15 +168,13 @@ public class MyApp {
 			
 			for(int brotherId : brotherIds)
 				if(brotherId != fogDevices[i].getId())
-					fogDevices[i].getUpStreamLatencyMap().put(brotherId, 3.0);
+					fogDevices[i].getUpStreamLatencyMap().put(brotherId, 2.0);
 		}
 	}
 	
 	private static FogDevice addGw(String id, int userId, String appId, int parentId){
 		List<Integer> parentsIds = new ArrayList<Integer>();
 		FogDevice dept;
-		System.out.println(id);
-		System.out.println(Integer.parseInt(id)== 0);
 		
 		if(Integer.parseInt(id) == 1)
 			dept = createFogDevice("fog-device-"+id, 2800, 4000, 10000, 10000, 1, 0.0, 107.339, 83.4333);

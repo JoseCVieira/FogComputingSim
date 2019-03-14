@@ -231,4 +231,12 @@ public class Sensor extends SimEntity{
 		this.latency = latency;
 	}
 
+	@Override
+	public String toString() {
+		return "Sensor [gatewayDeviceId=" + gatewayDeviceId + ", geoLocation=" + geoLocation + ", outputSize="
+				+ outputSize + ", appId=" + appId + ", userId=" + userId + ", tupleType=" + tupleType + ", sensorName="
+				+ sensorName + ", destModuleName=" + destModuleName + ", transmitDistribution=" + transmitDistribution
+				+ ", controllerId=" + controllerId + ", app=" + app + ", latency=" + latency + "]";
+	}
+
 }

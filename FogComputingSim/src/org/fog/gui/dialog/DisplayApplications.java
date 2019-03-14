@@ -157,5 +157,4 @@ public class DisplayApplications extends JDialog {
 		jtable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
 	}
 	
-	
 }

@@ -21,10 +21,11 @@ public class FogDeviceGui extends Node {
 	private double rateStorage;
 	private double rateBwUp;
 	private double rateBwDown;
+	private String application;
 
 	public FogDeviceGui(String name, int level, double mips, long ram, long storage, double upBw,
 			double downBw, double rateMips, double rateRam, double rateStorage, double rateBwUp,
-			double rateBwDown) {
+			double rateBwDown, String appId) {
 		super(name, Config.FOG_TYPE);
 		
 		this.setName(name);
@@ -39,12 +40,12 @@ public class FogDeviceGui extends Node {
 		this.setRateStorage(rateStorage);
 		this.setRateBwUp(rateBwUp);
 		this.setRateBwDown(rateBwDown);
+		this.setApplication(appId);
 	}
 	
 	public void setValues(String name, int level, double mips, long ram, long storage, double upBw,
 			double downBw, double rateMips, double rateRam, double rateStorage, double rateBwUp,
-			double rateBwDown) {
-		
+			double rateBwDown, String appId) {
 		this.setName(name);
 		this.setLevel(level);
 		this.setMips(mips);
@@ -57,6 +58,7 @@ public class FogDeviceGui extends Node {
 		this.setRateStorage(rateStorage);
 		this.setRateBwUp(rateBwUp);
 		this.setRateBwDown(rateBwDown);
+		this.setApplication(appId);
 	}
 	
 	public String getName() {
@@ -153,6 +155,14 @@ public class FogDeviceGui extends Node {
 
 	public void setRateBwDown(double rateBwDown) {
 		this.rateBwDown = rateBwDown;
+	}
+
+	public String getApplication() {
+		return application;
+	}
+
+	public void setApplication(String application) {
+		this.application = application;
 	}
 	
 	@Override

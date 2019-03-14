@@ -15,6 +15,11 @@ import org.fog.application.AppModule;
 import org.fog.gui.core.Node;
 
 public class Util {
+	
+	public Util() {
+		
+	}
+	
 	public String centerString(int width, String s) {
 	    return String.format("%-" + width  + "s", String.format("%" + (s.length() + (width - s.length()) / 2) + "s", s));
 	}

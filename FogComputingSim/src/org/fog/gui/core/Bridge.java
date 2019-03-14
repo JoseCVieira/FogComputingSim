@@ -47,6 +47,7 @@ public class Bridge {
 				JSONObject node = iter.next();
 				String nodeType = (String) node.get("type");
 				String nodeName = (String) node.get("name");
+				String application = (String) node.get("application");
 				
 				if(nodeType.equals(Config.FOG_TYPE)){
 					int level = new BigDecimal((Long)node.get("level")).intValue();
@@ -62,7 +63,7 @@ public class Bridge {
 					double rateBwDown = (Double) node.get("ratePerBwDown");
 						
 					Node fogDevice = new FogDeviceGui(nodeName, level, mips, ram, mem, upBw, downBw, rateMips, rateRam,
-							rateStorage, rateBwUp, rateBwDown);
+							rateStorage, rateBwUp, rateBwDown, application);
 					graph.addNode(fogDevice);
 				} else if(nodeType.equals(Config.SENSOR_TYPE)){
 					int distType = new BigDecimal((Long)node.get("distribution")).intValue();
@@ -244,6 +245,7 @@ public class Bridge {
 					jobj.put("ratePerMem", fogDevice.getRateStorage());
 					jobj.put("ratePerBwUp", fogDevice.getRateBwUp());
 					jobj.put("ratePerBwDown", fogDevice.getRateBwDown());
+					jobj.put("application", fogDevice.getApplication());
 					break;
 			}
 			nodes.add(jobj);

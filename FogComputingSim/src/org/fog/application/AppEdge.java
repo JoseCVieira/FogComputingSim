@@ -161,8 +161,9 @@ public class AppEdge {
 
 	@Override
 	public String toString() {
-		return "AppEdge [source=" + source + ", destination=" + destination
-				+ ", tupleType=" + tupleType + "]";
+		return "AppEdge [source=" + source + ", destination=" + destination + ", tupleCpuLength=" + tupleCpuLength
+				+ ", tupleNwLength=" + tupleNwLength + ", tupleType=" + tupleType + ", direction=" + direction
+				+ ", edgeType=" + edgeType + ", periodicity=" + periodicity + ", isPeriodic=" + isPeriodic + "]";
 	}
-	
+
 }

@@ -12,18 +12,23 @@ import java.awt.Toolkit;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-
+import java.util.ArrayList;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.fog.gui.core.Bridge;
+import org.fog.gui.core.Edge;
+import org.fog.gui.core.FogDeviceGui;
 import org.fog.gui.core.Graph;
 import org.fog.gui.core.GraphView;
+import org.fog.gui.core.Node;
 import org.fog.gui.dialog.About;
 import org.fog.gui.dialog.AddActuator;
 import org.fog.gui.dialog.DisplayApplications;
+import org.fog.gui.dialog.RunSim;
+import org.fog.utils.Config;
 import org.fog.utils.Util;
 import org.fog.gui.dialog.AddFogDevice;
 import org.fog.gui.dialog.AddLink;
@@ -69,7 +74,7 @@ public class Gui extends JFrame {
 		Toolkit.getDefaultToolkit().addAWTEventListener(new Listener(Gui.this), AWTEvent.MOUSE_EVENT_MASK);
 	}
 	
-	public final void initUI() {		
+	private final void initUI() {
 		setUIFont (new javax.swing.plaf.FontUIResource("Serif",Font.BOLD,18));
 
         panel = new JPanel();
@@ -89,16 +94,18 @@ public class Gui extends JFrame {
 		contentPane.add(graph, BorderLayout.CENTER);
     }
 	
-    private final void initBar() {		
+    private final void initBar() {
 		ActionListener addFogDeviceListener = new ActionListener() {
 		    public void actionPerformed(ActionEvent e) {
 		    	openAddFogDeviceDialog();
+		    	verifyRun();
 		    }
 		};
 		
 		ActionListener addLinkListener = new ActionListener() {
 		    public void actionPerformed(ActionEvent e) {
 		    	openAddLinkDialog();
+		    	verifyRun();
 		    }
 		};
 		
@@ -111,30 +118,32 @@ public class Gui extends JFrame {
 		ActionListener addActuatorListener = new ActionListener() {
 		    public void actionPerformed(ActionEvent e) {
 		    	openAddActuatorDialog();
+		    	verifyRun();
 		    }
 		};
 		
 		ActionListener addSensorListener = new ActionListener() {
 		    public void actionPerformed(ActionEvent e) {
 		    	openAddSensorDialog();
+		    	verifyRun();
 		    }
 		};
 		
 		ActionListener importPhyTopoListener = new ActionListener() {
-		    public void actionPerformed(ActionEvent e) {		    	
-		    	String fileName = importFile("josn");
+		    public void actionPerformed(ActionEvent e) {
+		    	String fileName = importFile("json");
 		    	
 		    	if(fileName != null && fileName.length() != 0) {
-		    		
-		    		//try {
+		    		try {
 		    			Graph phyGraph= Bridge.jsonToGraph(fileName);
 				    	physicalGraph = phyGraph;
 				    	physicalCanvas.setGraph(physicalGraph);
 				    	physicalCanvas.repaint();
-					/*} catch (Exception e2) {
+					} catch (Exception e1) {
 						Util.prompt(Gui.this, "Invalid File", "Error");
-					}*/
+					}
 		    	}
+		    	verifyRun();
 		    }
 		};
 		
@@ -150,13 +159,13 @@ public class Gui extends JFrame {
 		
 		ActionListener runListener = new ActionListener() {
             public void actionPerformed(ActionEvent event) {
-        		//new SDNRun(physicalTopologyFile, applicationFile, workloads_background, workloads, Gui.this);
+        		new RunSim(physicalGraph, Gui.this);
             }
         };
         
         ActionListener helpListener = new ActionListener() {
             public void actionPerformed(ActionEvent event) {
-            	openAboutActuatorDialog();
+            	openAboutDialog();
             }
         };
 		
@@ -235,32 +244,32 @@ public class Gui extends JFrame {
     	btnRun.setEnabled(false);
     }
 
-	protected void openAddActuatorDialog() {
+    private void openAddActuatorDialog() {
 		new AddActuator(physicalGraph, Gui.this, null);
 		physicalCanvas.repaint();
 	}
 	
-	protected void openAddSensorDialog() {
+	private void openAddSensorDialog() {
 		new AddSensor(physicalGraph, Gui.this, null);
 		physicalCanvas.repaint();
 	}
 
-	protected void openAddFogDeviceDialog() {
+	private void openAddFogDeviceDialog() {
 		new AddFogDevice(physicalGraph, Gui.this, null);
     	physicalCanvas.repaint();
 	}
 	
-	protected void openAddLinkDialog() {
+	private void openAddLinkDialog() {
 		new AddLink(physicalGraph, Gui.this);
     	physicalCanvas.repaint();
 	}
 
-	protected void openAddAppDialog() {
+	private void openAddAppDialog() {
 		new DisplayApplications(physicalGraph, Gui.this);
     	physicalCanvas.repaint();
 	}
 	
-	protected void openAboutActuatorDialog() {
+	private void openAboutDialog() {
 		new About(Gui.this);
     	physicalCanvas.repaint();
 	}
@@ -323,11 +332,62 @@ public class Gui extends JFrame {
 		}
     }
     
+    private void verifyRun() {
+    	btnRun.setEnabled(false);
+    	
+    	ArrayList<Node> list = new ArrayList<Node>();
+    	for(Node node : physicalGraph.getDevicesList().keySet())
+    		if(node.getType().equals(Config.FOG_TYPE))
+    			if(((FogDeviceGui)node).getApplication().length() > 0)
+    				list.add(node);
+    	
+    	if(list.size() > 0)
+    		btnRun.setEnabled(true);
+    	else
+    		return;
+    	
+    	for(Node fogNode : list) {
+    		boolean sensor = false, actuator = false;
+    		
+    		for(Node node : physicalGraph.getDevicesList().keySet()) {
+    			if(fogNode.equals(node)) {
+    				for(Edge edge : physicalGraph.getDevicesList().get(node)) {
+    	    			if(!sensor && edge.getNode().getType().equals(Config.SENSOR_TYPE))
+    	    				sensor = true;
+    	    			
+    	    			if(!actuator && edge.getNode().getType().equals(Config.ACTUATOR_TYPE))
+    	    				actuator = true;
+    	    			
+    	    			if(actuator && sensor)
+    	    				break;
+    	    		}
+    			}else if(node.getType().equals(Config.SENSOR_TYPE) || node.getType().equals(Config.ACTUATOR_TYPE)) {
+    				for(Edge edge : physicalGraph.getDevicesList().get(node)) {    					
+    					if(!sensor && edge.getNode().equals(fogNode) && node.getType().equals(Config.SENSOR_TYPE))
+    	    				sensor = true;
+    				
+    					if(!actuator && edge.getNode().equals(fogNode) && node.getType().equals(Config.ACTUATOR_TYPE))
+    						actuator = true;
+    				
+    					if(actuator && sensor)
+    	    				break;
+    				}
+    			}
+    		}
+    		
+			if(!actuator || !sensor) {
+				btnRun.setEnabled(false);
+    			return;
+			}
+    	}
+    }
+    
 	public static void main(String args[]) throws InterruptedException {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
             	try {
                     UIManager.setLookAndFeel("com.jtattoo.plaf.hifi.HiFiLookAndFeel");
+                    //UIManager.setLookAndFeel("com.jtattoo.plaf.mint.MintLookAndFeel");
                     Gui sdn = new Gui();
                     sdn.setVisible(true);
                     sdn.setResizable(true);
@@ -339,4 +399,5 @@ public class Gui extends JFrame {
             }
         });
 	}
+	
 }

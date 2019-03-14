@@ -10,6 +10,8 @@ import java.util.Vector;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ComboBoxModel;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -19,8 +21,10 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SpringLayout;
 
+import org.fog.gui.core.ApplicationGui;
 import org.fog.gui.core.FogDeviceGui;
 import org.fog.gui.core.Graph;
+import org.fog.gui.core.Node;
 import org.fog.gui.core.SpringUtilities;
 import org.fog.utils.Config;
 import org.fog.utils.Util;
@@ -56,6 +60,8 @@ public class AddFogDevice extends JDialog {
 	private JTextField rateBwUp;
 	private JTextField rateBwDown;
 	private JComboBox<String> level;
+	
+	private JComboBox<String> application;
 
 	public AddFogDevice(final Graph graph, final JFrame frame, final FogDeviceGui fog) {
 		this.graph = graph;
@@ -67,7 +73,7 @@ public class AddFogDevice extends JDialog {
 		
 		setTitle(fog == null ? "  Add Fog Device" : "  Edit Fog Device");
 		setModal(true);
-		setPreferredSize(new Dimension(500, 500));
+		setPreferredSize(new Dimension(700, 700));
 		setResizable(false);
 		pack();
 		setLocationRelativeTo(frame);
@@ -138,12 +144,14 @@ public class AddFogDevice extends JDialog {
 				if((rateBwDown_ = Util.stringToDouble(rateBwDown.getText())) < 0) error_msg += "\nRate/BwDown should be a positive number";
 				level_ = level.getSelectedIndex();
 
+				String appId = (String)application.getSelectedItem();
 				if(error_msg == "") {
 					if(fog != null)
-						fog.setValues(name_, level_, mips_, ram_, storage_, upBw_, downBw_, rateMips_, rateRam_, rateStorage_, rateBwUp_, rateBwDown_);
+						fog.setValues(name_, level_, mips_, ram_, storage_, upBw_, downBw_, rateMips_, rateRam_,
+								rateStorage_, rateBwUp_, rateBwDown_, appId);
 					else {
-						FogDeviceGui fogDevice = new FogDeviceGui(name_, level_, mips_, ram_, storage_, upBw_, downBw_, rateMips_, rateRam_, rateStorage_,
-								rateBwUp_, rateBwDown_);
+						FogDeviceGui fogDevice = new FogDeviceGui(name_, level_, mips_, ram_, storage_, upBw_,
+								downBw_, rateMips_, rateRam_, rateStorage_, rateBwUp_, rateBwDown_, appId);
 						graph.addNode(fogDevice);
 					}
 					setVisible(false);								
@@ -171,7 +179,13 @@ public class AddFogDevice extends JDialog {
 		deviceNameLabel = new JLabel("Name: ");
 		springPanel.add(deviceNameLabel);
 		deviceName = new JTextField();
-		deviceName.setText(fog == null ? Config.FOG_NAME + graph.getDevicesList().size() : fog.getName());
+		
+		int aux = 0;
+		for(Node node : graph.getDevicesList().keySet())
+			if(node.getType().equals(Config.FOG_TYPE))
+				aux++;
+		
+		deviceName.setText(fog == null ? Config.FOG_NAME + aux : fog.getName());
 		deviceNameLabel.setLabelFor(deviceName);
 		springPanel.add(deviceName);
 		
@@ -255,9 +269,29 @@ public class AddFogDevice extends JDialog {
 		rateBwDown.setText(fog == null ? Double.toString(Config.RATE_BW_DOWN) : Double.toString(fog.getRateBwDown()));
 		rateBwDownLabel.setLabelFor(rateBwDown);
 		springPanel.add(rateBwDown);
+		
+		ArrayList<String> applicationIds = new ArrayList<String>();
+		for(ApplicationGui applicationGui : graph.getAppList())
+			applicationIds.add(applicationGui.getAppId());
+		applicationIds.add("");
+		
+		@SuppressWarnings({ "rawtypes", "unchecked" })
+		ComboBoxModel<String> applicationModel = new DefaultComboBoxModel(applicationIds.toArray());
+		application = new JComboBox<>(applicationModel);
+		
+		JLabel lapplication = new JLabel("Application: ");
+		springPanel.add(lapplication);
+		lapplication.setLabelFor(application);
+		
+		String appId = "";
+		if(fog != null && fog.getApplication() != null && fog.getApplication().length() > 0)
+			appId = fog.getApplication();
+		
+		application.setSelectedItem(appId);
+		springPanel.add(application);
 
 		//rows, cols, initX, initY, xPad, yPad
-        SpringUtilities.makeCompactGrid(springPanel, 12, 2, 6, 6, 6, 6);
+        SpringUtilities.makeCompactGrid(springPanel, 13, 2, 6, 6, 6, 6);
 		return springPanel;
 	}
 }

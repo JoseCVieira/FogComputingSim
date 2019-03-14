@@ -254,9 +254,7 @@ public class ModulePlacementEdgewards extends ModulePlacement{
 			
 				modulesToPlace.remove(moduleName);
 			}
-			
 		}
-		
 	}
 
 	/**

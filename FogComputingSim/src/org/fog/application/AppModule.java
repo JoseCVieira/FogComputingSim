@@ -144,4 +144,12 @@ public class AppModule extends PowerVm{
 	public void setNumInstances(int numInstances) {
 		this.numInstances = numInstances;
 	}
+
+	@Override
+	public String toString() {
+		return "AppModule [name=" + name + ", appId=" + appId + ", selectivityMap=" + selectivityMap
+				+ ", downInstanceIdsMaps=" + downInstanceIdsMaps + ", numInstances=" + numInstances
+				+ ", actuatorSubscriptions=" + actuatorSubscriptions + "]";
+	}
+	
 }

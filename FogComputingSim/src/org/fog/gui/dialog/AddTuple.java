@@ -119,7 +119,7 @@ public class AddTuple extends JDialog {
 		
 		JLabel lprob = new JLabel("Probability: ");
 		springPanel.add(lprob);
-		probability = new JTextField();		
+		probability = new JTextField();
 		probability.setText(module == null ? "" :
 			Double.toString(((FractionalSelectivity)module.getSelectivityMap().get(pair)).getSelectivity()));
 		lprob.setLabelFor(probability);

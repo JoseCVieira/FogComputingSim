@@ -39,6 +39,7 @@ public class Controller extends SimEntity{
 	
 	public Controller(String name, List<FogDevice> fogDevices, List<Sensor> sensors, List<Actuator> actuators) {
 		super(name);
+		this.u = new Util();
 		this.applications = new HashMap<String, Application>();
 		setAppLaunchDelays(new HashMap<String, Integer>());
 		setAppModulePlacementPolicy(new HashMap<String, ModulePlacement>());
@@ -209,9 +210,10 @@ public class Controller extends SimEntity{
 		newDetailsField(2, '=');
 		System.out.println("|" + u.centerString((MAX_COLUMN_SIZE*2+1), "APPLICATION LOOP DELAYS") + "|");
 		newDetailsField(2, '-');
-		for(Integer loopId : TimeKeeper.getInstance().getLoopIdToTupleIds().keySet())
+		for(Integer loopId : TimeKeeper.getInstance().getLoopIdToTupleIds().keySet()) {
 			System.out.println("|" + u.centerString((MAX_COLUMN_SIZE*2+1), getStringForLoopId(loopId) + " ---> "+
 					df.format(TimeKeeper.getInstance().getLoopIdToCurrentAverage().get(loopId)).toString()) + "|");
+		}
 		newDetailsField(2, '=');
 
 		System.out.println("\n");

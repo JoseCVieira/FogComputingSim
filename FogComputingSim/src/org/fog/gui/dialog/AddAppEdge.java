@@ -7,6 +7,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -84,50 +85,21 @@ public class AddAppEdge extends JDialog {
 
 		@SuppressWarnings({ "rawtypes" })
 		ComboBoxModel<String> sourceModel = new DefaultComboBoxModel(app.getModules().toArray());
+		
+		@SuppressWarnings({ "rawtypes" })
+		ComboBoxModel<String> targetModel = new DefaultComboBoxModel(app.getModules().toArray());
 
-		List<AppModule> nodesToDisplay = new ArrayList<AppModule>();
-		if(edge != null) {
-			AppModule selectSourceModel = null;
-			for(AppModule appModule : app.getModules())
-				if(appModule.getName().equals(edge.getSource()))
-					selectSourceModel = appModule;
-			
-			if(edge.getEdgeType() != AppEdge.SENSOR)
-				sourceModel.setSelectedItem(selectSourceModel);
-
-			for(AppModule appModule : app.getModules())
-				if((edge.getEdgeType() != AppEdge.SENSOR && !appModule.getName().equals(selectSourceModel.getName())) ||
-						edge.getEdgeType() == AppEdge.SENSOR)
-					nodesToDisplay.add(appModule);
-		}else
-			sourceModel.setSelectedItem(null);
+		@SuppressWarnings({ "rawtypes" })
+		ComboBoxModel<String> directionModel =
+		new DefaultComboBoxModel(Arrays.asList("UP", "DOWN").toArray());
 		
 		@SuppressWarnings({ "rawtypes" })
-		ComboBoxModel<String> targetModel = new DefaultComboBoxModel(nodesToDisplay.toArray());
+		ComboBoxModel<String> edgeTypeModel =
+		new DefaultComboBoxModel(Arrays.asList("SENSOR", "ACTUATOR", "MODULE").toArray());
 		
-		if(edge != null && edge.getEdgeType() != AppEdge.ACTUATOR)
-			for(AppModule appModule : app.getModules())
-				if(appModule.getName().equals(edge.getDestination()))
-					targetModel.setSelectedItem(appModule);
-		
-		ArrayList<String> aux = new ArrayList<String>();
-		aux.add("UP");
-		aux.add("DOWN");
 		@SuppressWarnings({ "rawtypes" })
-		ComboBoxModel<String> directionModel = new DefaultComboBoxModel(aux.toArray());
-		
-		aux = new ArrayList<String>();
-		aux.add("SENSOR");
-		aux.add("ACTUATOR");
-		aux.add("MODULE");
-		@SuppressWarnings({ "rawtypes" })
-		ComboBoxModel<String> edgeTypeModel = new DefaultComboBoxModel(aux.toArray());
-		
-		aux = new ArrayList<String>();
-		aux.add("YES");
-		aux.add("NO");
-		@SuppressWarnings({ "rawtypes" })
-		ComboBoxModel<String> periodicModel = new DefaultComboBoxModel(aux.toArray());
+		ComboBoxModel<String> periodicModel =
+		new DefaultComboBoxModel(Arrays.asList("YES", "NO").toArray());
 		
 		sourceNode = new JComboBox<>(sourceModel);
 		targetNode = new JComboBox<>(targetModel);
@@ -139,6 +111,21 @@ public class AddAppEdge extends JDialog {
 		sourceNode.setRenderer(renderer);
 		targetNode.setRenderer(renderer);
 		
+		JLabel ledgeType = new JLabel("Edge Type: ");
+		springPanel.add(ledgeType);
+
+		String eType = "MODULE";
+		if(edge != null) {
+			if(edge.getEdgeType() == AppEdge.ACTUATOR)
+				eType = "ACTUATOR";
+			else if(edge.getEdgeType() == AppEdge.SENSOR)
+				eType = "SENSOR";
+		}
+		
+		ledgeType.setLabelFor(edgeType);		
+		edgeTypeModel.setSelectedItem(edge == null ? null : eType);
+		springPanel.add(edgeType);
+		
 		lsourceNode = new JLabel("From: ");
 		springPanel.add(lsourceNode);
 		lsourceNode.setLabelFor(sourceNode);
@@ -149,8 +136,15 @@ public class AddAppEdge extends JDialog {
 		springPanel.add(lsensor);
 		lsensor.setLabelFor(sensorName);
 		springPanel.add(sensorName);
-		sensorName.setVisible(false);
-		lsensor.setVisible(false);
+		
+		if(edge != null && edge.getEdgeType() == AppEdge.SENSOR) {
+			sensorName.setText(edge.getSource());
+			lsourceNode.setVisible(false);
+			sourceNode.setVisible(false);
+		}else if(edge != null) {
+			sensorName.setVisible(false);
+			lsensor.setVisible(false);
+		}
 		
 		ltargetNode = new JLabel("To: ");
 		springPanel.add(ltargetNode);
@@ -162,8 +156,15 @@ public class AddAppEdge extends JDialog {
 		springPanel.add(lactuator);
 		lactuator.setLabelFor(actuatorName);
 		springPanel.add(actuatorName);
-		actuatorName.setVisible(false);
-		lactuator.setVisible(false);
+		
+		if(edge != null && edge.getEdgeType() == AppEdge.ACTUATOR) {
+			actuatorName.setText(edge.getDestination());
+			ltargetNode.setVisible(false);
+			targetNode.setVisible(false);
+		}else if(edge != null) {
+			actuatorName.setVisible(false);
+			lactuator.setVisible(false);
+		}
 		
 		JLabel ldirection = new JLabel("Direction: ");
 		springPanel.add(ldirection);
@@ -171,50 +172,28 @@ public class AddAppEdge extends JDialog {
 		directionModel.setSelectedItem(edge == null ? null : edge.getDirection() == Tuple.UP ? "UP" : "DOWN");
 		springPanel.add(direction);
 		
-		JLabel ledgeType = new JLabel("Edge Type: ");
-		springPanel.add(ledgeType);
-
-		String eType = "MODULE";
-		if(edge != null) {
-			if(edge.getEdgeType() == AppEdge.ACTUATOR) {
-				eType = "ACTUATOR";
-				changeDirection("DOWN");
-				sensorName.setVisible(false);
-				lsensor.setVisible(false);
-				actuatorName.setVisible(true);
-				lactuator.setVisible(true);
-				targetNode.setVisible(false);
-				ltargetNode.setVisible(false);
-				sourceNode.setVisible(true);
-				lsourceNode.setVisible(true);
-				actuatorName.setText(edge.getDestination());
-			}else if(edge.getEdgeType() == AppEdge.SENSOR) {
-				eType = "MODULE";
-				changeDirection("UP");
-				sensorName.setVisible(true);
-				lsensor.setVisible(true);
-				actuatorName.setVisible(false);
-				lactuator.setVisible(false);
-				targetNode.setVisible(true);
-				ltargetNode.setVisible(true);
-				sourceNode.setVisible(false);
-				lsourceNode.setVisible(false);
-				sensorName.setText(edge.getSource());
-			}else {
-				
-			}
-		}
-		ledgeType.setLabelFor(edgeType);		
-		edgeTypeModel.setSelectedItem(edge == null ? null : eType);
-		springPanel.add(edgeType);
-		
 		JLabel lperiodic = new JLabel("Periodic: ");
 		springPanel.add(lperiodic);
 		lperiodic.setLabelFor(periodic);
-		periodicModel.setSelectedItem(null); 
-		if(edge != null)
-			periodicModel.setSelectedItem(edge.isPeriodic() ? "YES" : "NO");
+		periodicModel.setSelectedItem(null);
 		springPanel.add(periodic);
+		
+		lperiodicity = new JLabel("Periodicity: ");
+		springPanel.add(lperiodicity);
+		periodicity = new JTextField();
+		periodicity.setText(edge == null ? Double.toString(Config.EDGE_PERIODICITY) :
+			Double.toString(edge.getPeriodicity()));
+		lperiodicity.setLabelFor(periodicity);
+		springPanel.add(periodicity);
+		
+		if(edge != null) {
+			periodicModel.setSelectedItem(edge.isPeriodic() ? "YES" : "NO");
+			
+			if(!edge.isPeriodic()) {
+				periodicity.setVisible(false);
+				lperiodicity.setVisible(false);
+			}
+		}
 		
 		JLabel ltupleCpuLength = new JLabel("Tuple CPU Length: ");
 		springPanel.add(ltupleCpuLength);
@@ -239,27 +218,13 @@ public class AddAppEdge extends JDialog {
 		ltupleType.setLabelFor(tupleType);
 		springPanel.add(tupleType);
 		
-		lperiodicity = new JLabel("Periodicity: ");
-		springPanel.add(lperiodicity);
-		periodicity = new JTextField();
-		periodicity.setText(edge == null ? Double.toString(Config.EDGE_PERIODICITY) :
-			Double.toString(edge.getPeriodicity()));
-		lperiodicity.setLabelFor(periodicity);
-		springPanel.add(periodicity);
-		
-		if(edge != null && !edge.isPeriodic()) {
-			periodicity.setVisible(false);
-			lperiodicity.setVisible(false);
-		}
-		
 		sourceNode.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				targetNode.removeAllItems();
 				AppModule selectedNode = (AppModule) sourceNode.getSelectedItem();
-
 				if (selectedNode == null) return;
 				
+				targetNode.removeAllItems();
 				List<AppModule> nodesToDisplay = new ArrayList<AppModule>();
 				
 				for(AppModule appModule : app.getModules())
@@ -269,6 +234,19 @@ public class AddAppEdge extends JDialog {
 				@SuppressWarnings("rawtypes")
 				ComboBoxModel<String> targetModel = new DefaultComboBoxModel(nodesToDisplay.toArray());
 				targetNode.setModel(targetModel);
+			}
+		});
+		
+		targetNode.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				AppModule selectedSourceNode = (AppModule) sourceNode.getSelectedItem();
+				AppModule selectedTargetNode = (AppModule) targetNode.getSelectedItem();
+				String eType = (String) edgeType.getSelectedItem();
+				
+				if(selectedSourceNode != null && eType != null && eType.equals("MODULE") &&
+						selectedSourceNode.equals(selectedTargetNode))
+					targetModel.setSelectedItem(null);
 			}
 		});
 		
@@ -291,40 +269,42 @@ public class AddAppEdge extends JDialog {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if((String) edgeType.getSelectedItem() == null) return;
+				String eType = (String) edgeType.getSelectedItem();
 				
-				if(((String) edgeType.getSelectedItem()).equals("SENSOR")) {
-					sensorName.setVisible(true);
-					lsensor.setVisible(true);
-					actuatorName.setVisible(false);
-					lactuator.setVisible(false);
-					targetNode.setVisible(true);
-					ltargetNode.setVisible(true);
-					sourceNode.setVisible(false);
-					lsourceNode.setVisible(false);
-					changeDirection("UP");
-				}else if(((String) edgeType.getSelectedItem()).equals("ACTUATOR")) {
-					sensorName.setVisible(false);
-					lsensor.setVisible(false);
-					actuatorName.setVisible(true);
-					lactuator.setVisible(true);
-					targetNode.setVisible(false);
-					ltargetNode.setVisible(false);
-					sourceNode.setVisible(true);
-					lsourceNode.setVisible(true);
-					changeDirection("DOWN");
-				}else {
-					sensorName.setVisible(false);
-					lsensor.setVisible(false);
-					actuatorName.setVisible(false);
-					lactuator.setVisible(false);
-					targetNode.setVisible(true);
-					ltargetNode.setVisible(true);
-					sourceNode.setVisible(true);
-					lsourceNode.setVisible(true);
-					changeDirection("");
+				changeEdgeType(eType);
+				
+				if(eType.equals("SENSOR")) {
+					@SuppressWarnings({ "rawtypes" })
+					ComboBoxModel<String> targetModel = new DefaultComboBoxModel(app.getModules().toArray());
+					targetNode.setModel(targetModel);
+				}else if(eType.equals("ACTUATOR")) {
+					@SuppressWarnings({ "rawtypes" })
+					ComboBoxModel<String> sourceModel = new DefaultComboBoxModel(app.getModules().toArray());
+					sourceNode.setModel(sourceModel);
 				}
 			}
 		});
+		
+		if(edge != null && edge.getEdgeType() != AppEdge.SENSOR) {
+			for(AppModule appModule : app.getModules()) {
+				if(appModule.getName().equals(edge.getSource())) {
+					sourceModel.setSelectedItem(appModule);
+					break;
+				}
+			}
+		}else if(edge == null) {
+			sourceModel.setSelectedItem(null);
+			targetModel.setSelectedItem(null);
+		}
+		
+		if(edge != null && edge.getEdgeType() != AppEdge.ACTUATOR) {
+			for(AppModule appModule : app.getModules()) {
+				if(appModule.getName().equals(edge.getDestination())) {
+					targetModel.setSelectedItem(appModule);
+					break;
+				}
+			}
+		}
 		
 		SpringUtilities.makeCompactGrid(springPanel, 11, 2, 6, 6, 6, 6);
 		return springPanel;
@@ -374,7 +354,7 @@ public class AddAppEdge extends JDialog {
 				}else if (!Util.validString(sensorName.getText()))
 					error_msg += "Missing Sensor Name\n";
 				else
-					srcName_ = sensorName.getName();
+					srcName_ = sensorName.getText();
 				
 				if(!actuatorName.isVisible()) {
 					AppModule dst = (AppModule)targetNode.getSelectedItem();
@@ -385,6 +365,7 @@ public class AddAppEdge extends JDialog {
 				else
 					dstName_ = actuatorName.getText();
 				
+				if(srcName_.equals(dstName_)) error_msg += "Source equals to Destination\n";
 				if (!Util.validString(tupleCpuLength.getText())) error_msg += "Missing Tuple CPU Length\n";
 				if (!Util.validString(tupleNwLength.getText())) error_msg += "Missing Tuple NW Length\n";
 				if (!Util.validString(tupleType.getText())) error_msg += "Missing Tuple Type\n";
@@ -458,5 +439,39 @@ public class AddAppEdge extends JDialog {
 		@SuppressWarnings({ "rawtypes", "unchecked" })
 		ComboBoxModel<String> directionModel = new DefaultComboBoxModel(directions.toArray());
 		direction.setModel(directionModel);
+	}
+	
+	private void changeEdgeType(String value) {
+		if(value.equals("SENSOR")) {
+			sensorName.setVisible(true);
+			lsensor.setVisible(true);
+			actuatorName.setVisible(false);
+			lactuator.setVisible(false);
+			targetNode.setVisible(true);
+			ltargetNode.setVisible(true);
+			sourceNode.setVisible(false);
+			lsourceNode.setVisible(false);
+			changeDirection("UP");
+		}else if(value.equals("ACTUATOR")) {
+			sensorName.setVisible(false);
+			lsensor.setVisible(false);
+			actuatorName.setVisible(true);
+			lactuator.setVisible(true);
+			targetNode.setVisible(false);
+			ltargetNode.setVisible(false);
+			sourceNode.setVisible(true);
+			lsourceNode.setVisible(true);
+			changeDirection("DOWN");					
+		}else {
+			sensorName.setVisible(false);
+			lsensor.setVisible(false);
+			actuatorName.setVisible(false);
+			lactuator.setVisible(false);
+			targetNode.setVisible(true);
+			ltargetNode.setVisible(true);
+			sourceNode.setVisible(true);
+			lsourceNode.setVisible(true);
+			changeDirection("");
+		}
 	}
 }
