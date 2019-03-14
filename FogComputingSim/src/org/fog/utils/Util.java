@@ -6,7 +6,9 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.ListCellRenderer;
 import javax.swing.UIManager;
 import javax.swing.table.TableCellRenderer;
@@ -87,6 +89,17 @@ public class Util {
 	
 	public static int confirm(Component parentComponent, String msg){
 		return JOptionPane.showConfirmDialog(parentComponent, msg);
+	}
+	
+	public static JTextField createInput(JPanel jPanel, JTextField jTextField, String label, String value) {
+		JLabel jLabel = new JLabel(label);
+		jPanel.add(jLabel);
+		jTextField = new JTextField();
+		jTextField.setText(value);
+		jLabel.setLabelFor(jTextField);
+		jPanel.add(jTextField);
+		
+		return jTextField;
 	}
 	
 	public static class ButtonRenderer extends JButton implements TableCellRenderer {

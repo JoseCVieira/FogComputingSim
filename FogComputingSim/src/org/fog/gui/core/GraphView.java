@@ -19,6 +19,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
+import org.fog.gui.Gui;
 import org.fog.gui.dialog.AddActuator;
 import org.fog.gui.dialog.AddFogDevice;
 import org.fog.gui.dialog.AddSensor;
@@ -254,5 +255,6 @@ public class GraphView extends JPanel {
 				}
 			}
 		}
+		Gui.verifyRun();
 	}
 }

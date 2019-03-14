@@ -30,6 +30,7 @@ import org.apache.commons.math3.util.Pair;
 import org.fog.application.AppEdge;
 import org.fog.application.AppModule;
 import org.fog.application.selectivity.FractionalSelectivity;
+import org.fog.entities.Tuple;
 import org.fog.gui.core.ApplicationGui;
 import org.fog.gui.core.Graph;
 import org.fog.utils.Util;
@@ -334,14 +335,20 @@ public class AddApplication extends JDialog {
 		
 		for(AppEdge appEdge : app.getEdges()) {
 			String[] list = new String[8];
+			
+			String eType = "SENSOR";
+			if(appEdge.getEdgeType() == AppEdge.ACTUATOR)
+				eType = "ACTUATOR";
+			else if(appEdge.getEdgeType() == AppEdge.MODULE)
+				eType = "MODULE";
 
 			list[0] = appEdge.getSource();
 			list[1] = appEdge.getDestination();
 			list[2] = Double.toString(appEdge.getTupleCpuLength());
 			list[3] = Double.toString(appEdge.getTupleNwLength());
 			list[4] = appEdge.getTupleType();
-			list[5] = Integer.toString(appEdge.getDirection());
-			list[6] = Integer.toString(appEdge.getEdgeType());
+			list[5] = appEdge.getDirection() == Tuple.UP ? "UP" : "Down";
+			list[6] = eType;
 			list[7] = "✎";
 			lists[index++] = list;
 		}

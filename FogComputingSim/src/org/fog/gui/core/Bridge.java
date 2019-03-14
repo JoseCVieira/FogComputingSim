@@ -61,9 +61,12 @@ public class Bridge {
 					double rateStorage = (Double) node.get("ratePerMem");
 					double rateBwUp = (Double) node.get("ratePerBwUp");
 					double rateBwDown = (Double) node.get("ratePerBwDown");
-						
+					double idlePower = (Double) node.get("idlePower");
+					double busyPower = (Double) node.get("busyPower");
+					double cost = (Double) node.get("cost");
+
 					Node fogDevice = new FogDeviceGui(nodeName, level, mips, ram, mem, upBw, downBw, rateMips, rateRam,
-							rateStorage, rateBwUp, rateBwDown, application);
+							rateStorage, rateBwUp, rateBwDown, idlePower, busyPower, cost, application);
 					graph.addNode(fogDevice);
 				} else if(nodeType.equals(Config.SENSOR_TYPE)){
 					int distType = new BigDecimal((Long)node.get("distribution")).intValue();
@@ -245,6 +248,9 @@ public class Bridge {
 					jobj.put("ratePerMem", fogDevice.getRateStorage());
 					jobj.put("ratePerBwUp", fogDevice.getRateBwUp());
 					jobj.put("ratePerBwDown", fogDevice.getRateBwDown());
+					jobj.put("idlePower", fogDevice.getIdlePower());
+					jobj.put("busyPower", fogDevice.getBusyPower());
+					jobj.put("cost", fogDevice.getCostPerSec());
 					jobj.put("application", fogDevice.getApplication());
 					break;
 			}

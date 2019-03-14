@@ -139,6 +139,7 @@ public class AddAppEdge extends JDialog {
 		
 		if(edge != null && edge.getEdgeType() == AppEdge.SENSOR) {
 			sensorName.setText(edge.getSource());
+			sensorName.setEditable(false);
 			lsourceNode.setVisible(false);
 			sourceNode.setVisible(false);
 		}else if(edge != null) {
@@ -159,6 +160,7 @@ public class AddAppEdge extends JDialog {
 		
 		if(edge != null && edge.getEdgeType() == AppEdge.ACTUATOR) {
 			actuatorName.setText(edge.getDestination());
+			actuatorName.setEditable(false);
 			ltargetNode.setVisible(false);
 			targetNode.setVisible(false);
 		}else if(edge != null) {
@@ -452,6 +454,13 @@ public class AddAppEdge extends JDialog {
 			sourceNode.setVisible(false);
 			lsourceNode.setVisible(false);
 			changeDirection("UP");
+			for(AppEdge appEdge : app.getEdges()) {
+				if(appEdge.getEdgeType() == AppEdge.SENSOR) {
+					sensorName.setText(appEdge.getSource());
+					sensorName.setEditable(false);
+					break;
+				}
+			}
 		}else if(value.equals("ACTUATOR")) {
 			sensorName.setVisible(false);
 			lsensor.setVisible(false);
@@ -461,7 +470,14 @@ public class AddAppEdge extends JDialog {
 			ltargetNode.setVisible(false);
 			sourceNode.setVisible(true);
 			lsourceNode.setVisible(true);
-			changeDirection("DOWN");					
+			changeDirection("DOWN");
+			for(AppEdge appEdge : app.getEdges()) {
+				if(appEdge.getEdgeType() == AppEdge.ACTUATOR) {
+					actuatorName.setText(appEdge.getDestination());
+					actuatorName.setEditable(false);
+					break;
+				}
+			}
 		}else {
 			sensorName.setVisible(false);
 			lsensor.setVisible(false);

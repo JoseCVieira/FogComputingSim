@@ -36,17 +36,7 @@ public class AddFogDevice extends JDialog {
 	private final FogDeviceGui fog;
 	
 	private JLabel deviceNameLabel;
-	private JLabel upBwLabel;
-	private JLabel downBwLabel;
-	private JLabel mipsLabel;
-	private JLabel ramLabel;
-	private JLabel storageLabel;
 	private JLabel levelLabel;
-	private JLabel rateMipsLabel;
-	private JLabel rateRamLabel;
-	private JLabel rateStorageLabel;
-	private JLabel rateBwUpLabel;
-	private JLabel rateBwDownLabel;
 	
 	private JTextField deviceName;
 	private JTextField upBw;
@@ -59,8 +49,11 @@ public class AddFogDevice extends JDialog {
 	private JTextField rateStorage;
 	private JTextField rateBwUp;
 	private JTextField rateBwDown;
-	private JComboBox<String> level;
+	private JTextField idlePower;
+	private JTextField busyPower;
+	private JTextField cost;
 	
+	private JComboBox<String> level;
 	private JComboBox<String> application;
 
 	public AddFogDevice(final Graph graph, final JFrame frame, final FogDeviceGui fog) {
@@ -73,7 +66,7 @@ public class AddFogDevice extends JDialog {
 		
 		setTitle(fog == null ? "  Add Fog Device" : "  Edit Fog Device");
 		setModal(true);
-		setPreferredSize(new Dimension(700, 700));
+		setPreferredSize(new Dimension(700, 800));
 		setResizable(false);
 		pack();
 		setLocationRelativeTo(frame);
@@ -97,8 +90,11 @@ public class AddFogDevice extends JDialog {
 		if(fog != null) {
 			delBtn.addActionListener(new ActionListener() {
 	            public void actionPerformed(ActionEvent event) {
-	            	graph.removeNode(fog);
-	                setVisible(false);
+	            	if(graph.getMaxLevel() == fog.getLevel()) {
+		            	graph.removeNode(fog);
+		                setVisible(false);
+	            	}else
+	            		Util.prompt(AddFogDevice.this, "Cannot delete because there are fog nodes below this one.", "Error");
 	            }
 	        });
 		}
@@ -109,14 +105,12 @@ public class AddFogDevice extends JDialog {
 				int level_= -1;
 				long ram_= -1, storage_ = -1;
 				double mips_= -1, upBw_= -1, downBw_= -1, rateMips_ = -1, rateRam_ = -1, rateStorage_ = -1,
-						rateBwUp_ = -1, rateBwDown_ = -1;
+						rateBwUp_ = -1, rateBwDown_ = -1, idlePower_ = -1, busyPower_ = -1, cost_ = -1;
 				
 				if (Util.validString(deviceName.getText())) {
-					if(fog == null || (fog != null && !fog.getName().equals(deviceName.getText()))) {
-						if(graph.isRepeatedName(deviceName.getText())) {
+					if(fog == null || (fog != null && !fog.getName().equals(deviceName.getText())))
+						if(graph.isRepeatedName(deviceName.getText()))
 							error_msg += "\nName already exists";
-						}
-					}
 				}else
 					error_msg += "Missing name\n";
 				if (!Util.validString(upBw.getText())) error_msg += "Missing uplink BW\n";
@@ -129,7 +123,9 @@ public class AddFogDevice extends JDialog {
 				if (!Util.validString(rateStorage.getText())) error_msg += "Missing rate/Mem\n";
 				if (!Util.validString(rateBwUp.getText())) error_msg += "Missing rate/BwUp\n";
 				if (!Util.validString(rateBwDown.getText())) error_msg += "Missing rate/BwDown\n";
-				
+				if (!Util.validString(idlePower.getText())) error_msg += "Missing Idle Power\n";
+				if (!Util.validString(busyPower.getText())) error_msg += "Missing Busy Power\n";
+				if (!Util.validString(cost.getText())) error_msg += "Missing Cost Per Second\n";
 
 				name_ = deviceName.getText();
 				if((upBw_ = Util.stringToDouble(upBw.getText())) < 0) error_msg += "\nUplink bandwidth be a positive number";
@@ -142,16 +138,21 @@ public class AddFogDevice extends JDialog {
 				if((rateStorage_ = Util.stringToDouble(rateStorage.getText())) < 0) error_msg += "\nRate/Mem should be a positive number";
 				if((rateBwUp_ = Util.stringToDouble(rateBwUp.getText())) < 0) error_msg += "\nRate/BwUp should be a positive number";
 				if((rateBwDown_ = Util.stringToDouble(rateBwDown.getText())) < 0) error_msg += "\nRate/BwDown should be a positive number";
+				if((idlePower_ = Util.stringToDouble(idlePower.getText())) < 0) error_msg += "\nIdle Power should be a positive number";
+				if((busyPower_ = Util.stringToDouble(busyPower.getText())) < 0) error_msg += "\nBusy Power should be a positive number";
+				if((cost_ = Util.stringToDouble(cost.getText())) < 0) error_msg += "\nCost Per Second should be a positive number";
+				
 				level_ = level.getSelectedIndex();
 
 				String appId = (String)application.getSelectedItem();
 				if(error_msg == "") {
 					if(fog != null)
 						fog.setValues(name_, level_, mips_, ram_, storage_, upBw_, downBw_, rateMips_, rateRam_,
-								rateStorage_, rateBwUp_, rateBwDown_, appId);
+								rateStorage_, rateBwUp_, rateBwDown_, idlePower_, busyPower_, cost_, appId);
 					else {
 						FogDeviceGui fogDevice = new FogDeviceGui(name_, level_, mips_, ram_, storage_, upBw_,
-								downBw_, rateMips_, rateRam_, rateStorage_, rateBwUp_, rateBwDown_, appId);
+								downBw_, rateMips_, rateRam_, rateStorage_, rateBwUp_, rateBwDown_, idlePower_,
+								busyPower_, cost_, appId);
 						graph.addNode(fogDevice);
 					}
 					setVisible(false);								
@@ -200,75 +201,19 @@ public class AddFogDevice extends JDialog {
 		level.setSelectedIndex(fog == null ? maxLevel+1 : fog.getLevel());
 		springPanel.add(level);
 		
-		upBwLabel = new JLabel("Uplink BW (MB/s): ");
-		springPanel.add(upBwLabel);
-		upBw = new JTextField();
-		upBw.setText(fog == null ? Double.toString(Config.BW_UP) : Double.toString(fog.getUpBw()));
-		upBwLabel.setLabelFor(upBw);
-		springPanel.add(upBw);
-		
-		downBwLabel = new JLabel("Downlink BW (MB/s): ");
-		springPanel.add(downBwLabel);
-		downBw = new JTextField();
-		downBw.setText(fog == null ? Double.toString(Config.BW_DOWN) : Double.toString(fog.getDownBw()));
-		downBwLabel.setLabelFor(downBw);
-		springPanel.add(downBw);
-		
-		mipsLabel = new JLabel("MIPS: ");
-		springPanel.add(mipsLabel);	
-		mips = new JTextField();
-		mips.setText(fog == null ? Double.toString(Config.MIPS) : Double.toString(fog.getMips()));
-		mipsLabel.setLabelFor(mips);
-		springPanel.add(mips);
-		
-		ramLabel = new JLabel("RAM (MB): ");
-		springPanel.add(ramLabel);
-		ram = new JTextField();
-		ram.setText(fog == null ? Long.toString(Config.RAM) : Long.toString(fog.getRam()));
-		ramLabel.setLabelFor(ram);
-		springPanel.add(ram);
-		
-		storageLabel = new JLabel("MEM (MB): ");
-		springPanel.add(storageLabel);
-		storage = new JTextField();
-		storage.setText(fog == null ? Long.toString(Config.MEM) : Long.toString(fog.getStorage()));
-		storageLabel.setLabelFor(storage);
-		springPanel.add(storage);
-		
-		rateMipsLabel = new JLabel("Rate/MIPS (€): ");
-		springPanel.add(rateMipsLabel);
-		rateMips = new JTextField();
-		rateMips.setText(fog == null ? Double.toString(Config.RATE_MIPS) : Double.toString(fog.getRateMips()));
-		rateMipsLabel.setLabelFor(rateMips);
-		springPanel.add(rateMips);
-		
-		rateRamLabel = new JLabel("Rate/RAM (€/sec for 1 MB): ");
-		springPanel.add(rateRamLabel);
-		rateRam = new JTextField();
-		rateRam.setText(fog == null ? Double.toString(Config.RATE_RAM) : Double.toString(fog.getRateRam()));
-		rateRamLabel.setLabelFor(rateRam);
-		springPanel.add(rateRam);
-		
-		rateStorageLabel = new JLabel("Rate/MEM (€/sec for 1 MB): ");
-		springPanel.add(rateStorageLabel);
-		rateStorage = new JTextField();
-		rateStorage.setText(fog == null ? Double.toString(Config.RATE_MEM) : Double.toString(fog.getRateStorage()));
-		rateStorageLabel.setLabelFor(rateStorage);
-		springPanel.add(rateStorage);
-		
-		rateBwUpLabel = new JLabel("Rate/BwUp (€/1 MB): ");
-		springPanel.add(rateBwUpLabel);
-		rateBwUp = new JTextField();
-		rateBwUp.setText(fog == null ? Double.toString(Config.RATE_BW_UP) : Double.toString(fog.getRateBwUp()));
-		rateBwUpLabel.setLabelFor(rateBwUp);
-		springPanel.add(rateBwUp);
-		
-		rateBwDownLabel = new JLabel("Rate/BwDown (€/1 MB): ");
-		springPanel.add(rateBwDownLabel);
-		rateBwDown = new JTextField();
-		rateBwDown.setText(fog == null ? Double.toString(Config.RATE_BW_DOWN) : Double.toString(fog.getRateBwDown()));
-		rateBwDownLabel.setLabelFor(rateBwDown);
-		springPanel.add(rateBwDown);
+		upBw = Util.createInput(springPanel, upBw, "Uplink BW (MB/s): ", fog == null ? Double.toString(Config.BW_UP) : Double.toString(fog.getUpBw()));
+		downBw = Util.createInput(springPanel, downBw, "Downlink BW (MB/s): ", fog == null ? Double.toString(Config.BW_DOWN) : Double.toString(fog.getDownBw()));
+		mips = Util.createInput(springPanel, mips, "MIPS: ", fog == null ? Double.toString(Config.MIPS) : Double.toString(fog.getMips()));
+		ram = Util.createInput(springPanel, ram, "RAM (MB): ", fog == null ? Long.toString(Config.RAM) : Long.toString(fog.getRam()));
+		storage = Util.createInput(springPanel, storage, "MEM (MB): ", fog == null ? Long.toString(Config.MEM) : Long.toString(fog.getStorage()));
+		rateMips = Util.createInput(springPanel, rateMips, "Rate/MIPS (€): ", fog == null ? Double.toString(Config.RATE_MIPS) : Double.toString(fog.getRateMips()));
+		rateRam = Util.createInput(springPanel, rateRam, "Rate/RAM (€/sec for 1 MB): ", fog == null ? Double.toString(Config.RATE_RAM) : Double.toString(fog.getRateRam()));
+		rateStorage = Util.createInput(springPanel, rateStorage, "Rate/MEM (€/sec for 1 MB): ", fog == null ? Double.toString(Config.RATE_MEM) : Double.toString(fog.getRateStorage()));
+		rateBwUp = Util.createInput(springPanel, rateBwUp, "Rate/BwUp (€/1 MB): ", fog == null ? Double.toString(Config.RATE_BW_UP) : Double.toString(fog.getRateBwUp()));
+		rateBwDown = Util.createInput(springPanel, rateBwDown, "Rate/BwDown (€/1 MB): ", fog == null ? Double.toString(Config.RATE_BW_DOWN) : Double.toString(fog.getRateBwDown()));
+		idlePower = Util.createInput(springPanel, idlePower, "Idle Power (W): ", fog == null ? Double.toString(Config.IDLE_POWER) : Double.toString(fog.getIdlePower()));
+		busyPower = Util.createInput(springPanel, busyPower, "Busy Power (W): ", fog == null ? Double.toString(Config.BUSY_POWER) : Double.toString(fog.getBusyPower()));
+		cost = Util.createInput(springPanel, cost, "Cost Per Second: ", fog == null ? Double.toString(Config.COST_PER_SEC) : Double.toString(fog.getCostPerSec()));
 		
 		ArrayList<String> applicationIds = new ArrayList<String>();
 		for(ApplicationGui applicationGui : graph.getAppList())
@@ -291,7 +236,8 @@ public class AddFogDevice extends JDialog {
 		springPanel.add(application);
 
 		//rows, cols, initX, initY, xPad, yPad
-        SpringUtilities.makeCompactGrid(springPanel, 13, 2, 6, 6, 6, 6);
+        SpringUtilities.makeCompactGrid(springPanel, 16, 2, 6, 6, 6, 6);
 		return springPanel;
 	}
+	
 }

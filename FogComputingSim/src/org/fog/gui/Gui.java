@@ -44,7 +44,7 @@ public class Gui extends JFrame {
 	private static Graph physicalGraph;
 	private static GraphView physicalCanvas;
 	
-	private JButton btnRun;
+	private static JButton btnRun;
 	private DisplayMode dm;
 	
 	public Gui() {
@@ -332,14 +332,24 @@ public class Gui extends JFrame {
 		}
     }
     
-    private void verifyRun() {
+    public static void verifyRun() {
     	btnRun.setEnabled(false);
     	
     	ArrayList<Node> list = new ArrayList<Node>();
-    	for(Node node : physicalGraph.getDevicesList().keySet())
+    	for(Node node : physicalGraph.getDevicesList().keySet()) {
     		if(node.getType().equals(Config.FOG_TYPE))
     			if(((FogDeviceGui)node).getApplication().length() > 0)
     				list.add(node);
+    		
+    		boolean isConnected = false;
+    		for(Node node1 : physicalGraph.getDevicesList().keySet())
+				for(Edge edge : physicalGraph.getDevicesList().get(node1))
+					if(edge.getNode().getName().equals(node.getName()) || node1.getName().equals(node.getName()))
+						isConnected =  true;
+    		
+			if(!isConnected)
+				return;
+    	}
     	
     	if(list.size() > 0)
     		btnRun.setEnabled(true);

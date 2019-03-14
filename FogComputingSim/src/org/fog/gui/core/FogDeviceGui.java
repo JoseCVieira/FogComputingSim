@@ -21,11 +21,14 @@ public class FogDeviceGui extends Node {
 	private double rateStorage;
 	private double rateBwUp;
 	private double rateBwDown;
+	private double idlePower;
+	private double busyPower;
+	private double costPerSec;
 	private String application;
 
 	public FogDeviceGui(String name, int level, double mips, long ram, long storage, double upBw,
 			double downBw, double rateMips, double rateRam, double rateStorage, double rateBwUp,
-			double rateBwDown, String appId) {
+			double rateBwDown, double idlePower, double busyPower, double costPerSec, String appId) {
 		super(name, Config.FOG_TYPE);
 		
 		this.setName(name);
@@ -40,12 +43,15 @@ public class FogDeviceGui extends Node {
 		this.setRateStorage(rateStorage);
 		this.setRateBwUp(rateBwUp);
 		this.setRateBwDown(rateBwDown);
+		this.setIdlePower(idlePower);
+		this.setBusyPower(busyPower);
+		this.setCostPerSec(costPerSec);
 		this.setApplication(appId);
 	}
 	
 	public void setValues(String name, int level, double mips, long ram, long storage, double upBw,
 			double downBw, double rateMips, double rateRam, double rateStorage, double rateBwUp,
-			double rateBwDown, String appId) {
+			double rateBwDown, double idlePower, double busyPower, double costPerSec, String appId) {
 		this.setName(name);
 		this.setLevel(level);
 		this.setMips(mips);
@@ -58,6 +64,9 @@ public class FogDeviceGui extends Node {
 		this.setRateStorage(rateStorage);
 		this.setRateBwUp(rateBwUp);
 		this.setRateBwDown(rateBwDown);
+		this.setIdlePower(idlePower);
+		this.setBusyPower(busyPower);
+		this.setCostPerSec(costPerSec);
 		this.setApplication(appId);
 	}
 	
@@ -164,9 +173,38 @@ public class FogDeviceGui extends Node {
 	public void setApplication(String application) {
 		this.application = application;
 	}
+
+	public double getIdlePower() {
+		return idlePower;
+	}
+
+	public void setIdlePower(double idlePower) {
+		this.idlePower = idlePower;
+	}
+
+	public double getBusyPower() {
+		return busyPower;
+	}
+
+	public void setBusyPower(double busyPower) {
+		this.busyPower = busyPower;
+	}
 	
+	public double getCostPerSec() {
+		return costPerSec;
+	}
+
+	public void setCostPerSec(double costPerSec) {
+		this.costPerSec = costPerSec;
+	}
+
 	@Override
 	public String toString() {
-		return "FogDevice [name= " + name + "]";
+		return "FogDeviceGui [name=" + name + ", level=" + level + ", mips=" + mips + ", ram=" + ram + ", storage="
+				+ storage + ", upBw=" + upBw + ", downBw=" + downBw + ", rateMips=" + rateMips + ", rateRam=" + rateRam
+				+ ", rateStorage=" + rateStorage + ", rateBwUp=" + rateBwUp + ", rateBwDown=" + rateBwDown
+				+ ", idlePower=" + idlePower + ", busyPower=" + busyPower + ", costPerSec=" + costPerSec
+				+ ", application=" + application + "]";
 	}
+	
 }

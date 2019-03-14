@@ -121,7 +121,7 @@ public class RunSim extends JDialog {
 	
 	private void run(){
 		//try {
-			Log.disable();
+			//Log.disable();
 			CloudSim.init(1, Calendar.getInstance(), false);
 			
 			for(Node node : graph.getDevicesList().keySet()) {
@@ -146,7 +146,7 @@ public class RunSim extends JDialog {
 	    				createSensorActuator(graph, fog.getName(), broker.getId(), fog.getApplication());
 	    				
 	    				printDetails(application);
-	    				System.exit(0);
+	    				//System.exit(0);
 	    				
 	    				ModuleMapping moduleMapping = ModuleMapping.createModuleMapping();
 	    				
@@ -332,18 +332,18 @@ public class RunSim extends JDialog {
 			fog.getStorage(),
 			peList,
 			new StreamOperatorScheduler(peList),
-			new FogLinearPowerModel(87.53, 82.44/*busyPower, idlePower*/)
+			new FogLinearPowerModel(fog.getBusyPower(), fog.getIdlePower())
 		);
 
 		List<Host> hostList = new ArrayList<Host>();
 		hostList.add(host);
 
 		double time_zone = 10.0; // time zone this resource located
-		double cost = 3.0; // the cost of using processing in this resource
-		double costPerMem = 0.05; // the cost of using memory in this resource
-		double costPerStorage = 0.001; // the cost of using storage in this resource
-		double costPerBw = 0.1; // the cost of using bw in this resource
-		LinkedList<Storage> storageList = new LinkedList<Storage>(); // we are not adding SAN devices by now
+		double cost = fog.getCostPerSec();
+		double costPerMem = fog.getRateRam();
+		double costPerStorage = fog.getRateStorage();
+		double costPerBw = fog.getRateBwUp();
+		LinkedList<Storage> storageList = new LinkedList<Storage>();
 
 		FogDeviceCharacteristics characteristics = new FogDeviceCharacteristics(
 				"x86", "Linux", "Xen", host, time_zone, cost, costPerMem, costPerStorage, costPerBw);

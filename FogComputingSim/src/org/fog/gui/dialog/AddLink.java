@@ -45,6 +45,8 @@ public class AddLink extends JDialog {
 	private static final long serialVersionUID = 4794808969864918000L;
 	private static final int WIDTH = 1000;
 	private static final int HEIGHT = 1000;
+	private static final int SENSOR = 0;
+	private static final int ACTUATOR = 1;
 	
 	private final Graph graph;
 	
@@ -76,8 +78,7 @@ public class AddLink extends JDialog {
 		JPanel inputPanelWrapper = new JPanel();
 		inputPanelWrapper.setLayout(new BoxLayout(inputPanelWrapper, BoxLayout.PAGE_AXIS));
 
-		ComboBoxModel<String> sourceNodeModel = new DefaultComboBoxModel(graph.getDevicesList().keySet().toArray());
-
+		ComboBoxModel<String> sourceNodeModel = new DefaultComboBoxModel(sourceNodesToDisplay().toArray());
 		sourceNodeModel.setSelectedItem(null);
 
 		sourceNode = new JComboBox<>(sourceNodeModel);
@@ -117,14 +118,33 @@ public class AddLink extends JDialog {
 						if(edge.getNode().equals(selectedNode) && !nodesInEdges.contains(node))
 							nodesInEdges.add(node);
 
-				if(!(selectedNode.getType().equals(Config.SENSOR_TYPE) || selectedNode.getType().equals(Config.ACTUATOR_TYPE)) ||
-						edgesForSelectedNode.size()==0){
+				if(selectedNode.getType().equals(Config.FOG_TYPE) || edgesForSelectedNode.size() == 0){
 					for (Node node : allNodes) {
-						if((selectedNode.getType().equals(Config.SENSOR_TYPE) || selectedNode.getType().equals(Config.ACTUATOR_TYPE)) &&
-								!node.getType().equals(Config.FOG_TYPE))
+						if(!selectedNode.getType().equals(Config.FOG_TYPE) && !node.getType().equals(Config.FOG_TYPE))
 							continue;
-						if (!node.equals(selectedNode) && !nodesInEdges.contains(node))
-							nodesToDisplay.add(node);
+						
+						if(selectedNode.getType().equals(Config.FOG_TYPE) && node.getType().equals(Config.SENSOR_TYPE) &&
+								hasSensorActuator(selectedNode.getName())[SENSOR])
+							continue;
+						
+						if(selectedNode.getType().equals(Config.FOG_TYPE) && node.getType().equals(Config.ACTUATOR_TYPE) &&
+								hasSensorActuator(selectedNode.getName())[ACTUATOR])
+							continue;
+						
+						if(selectedNode.getType().equals(Config.SENSOR_TYPE) && node.getType().equals(Config.FOG_TYPE) &&
+								hasSensorActuator(node.getName())[SENSOR])
+							continue;
+						
+						if(selectedNode.getType().equals(Config.ACTUATOR_TYPE) && node.getType().equals(Config.FOG_TYPE) &&
+								hasSensorActuator(node.getName())[ACTUATOR])
+							continue;
+						
+						if (!node.equals(selectedNode) && !nodesInEdges.contains(node)) {
+							if(!node.getType().equals(Config.FOG_TYPE) && !isConnected(node.getName()))
+								nodesToDisplay.add(node);
+							else if(node.getType().equals(Config.FOG_TYPE))
+								nodesToDisplay.add(node);
+						}
 					}						
 				}
 				
@@ -182,6 +202,11 @@ public class AddLink extends JDialog {
 						graph.addEdge(source, edge);
 						
 						dtm.addRow(new String[] {source.getName(), target.getName(), Double.toString(latency), "✘"});
+						
+						ComboBoxModel<String> sourceNodeModel = new DefaultComboBoxModel(sourceNodesToDisplay().toArray());
+						sourceNode.setModel(sourceNodeModel);
+						sourceNodeModel.setSelectedItem(null);
+						tfLatency.setText("");
 					}
 				}
 			}
@@ -218,7 +243,7 @@ public class AddLink extends JDialog {
 			    int rowAtPoint = table.rowAtPoint(e.getPoint());
 			    int columnAtPoint = table.columnAtPoint(e.getPoint());
 			    
-			    if(columnAtPoint == 3) {			    	
+			    if(columnAtPoint == 3) {
 			    	if(Util.confirm(AddLink.this, "Do you realy want to remove the edge [ " + table.getValueAt(rowAtPoint, 0) +
 			    			" ] <---> [ " + table.getValueAt(rowAtPoint, 1) + " ] ?") == JOptionPane.YES_OPTION) {
 			    		
@@ -235,6 +260,10 @@ public class AddLink extends JDialog {
 			    				break;
 			    			}
 			    		}
+			    		
+			    		ComboBoxModel<String> sourceNodeModel = new DefaultComboBoxModel(sourceNodesToDisplay().toArray());
+						sourceNode.setModel(sourceNodeModel);
+						sourceNodeModel.setSelectedItem(null);
 			    	}	
 			    }
 			}
@@ -299,5 +328,51 @@ public class AddLink extends JDialog {
 			}
 		}
 		return lists;
+	}
+	
+	private boolean isConnected(String name) {
+		for(Node node : graph.getDevicesList().keySet())
+			for(Edge edge : graph.getDevicesList().get(node))
+				if(edge.getNode().getName().equals(name) || node.getName().equals(name))
+					return true;
+		return false;
+	}
+	
+	private List<Node> sourceNodesToDisplay(){
+		List<Node> nodesToDisplay = new ArrayList<Node>();
+		for(Node node : graph.getDevicesList().keySet()) {
+			if(node.getType().equals(Config.FOG_TYPE))
+				nodesToDisplay.add(node);
+			else if((node.getType().equals(Config.SENSOR_TYPE) || node.getType().equals(Config.ACTUATOR_TYPE)) && !isConnected(node.getName()))
+				nodesToDisplay.add(node);
+		}
+		return nodesToDisplay;
+	}
+	
+	private Boolean[] hasSensorActuator(String name){
+		Boolean[] sa = new Boolean[2];
+		sa[SENSOR] = false;
+		sa[ACTUATOR] = false;
+		
+		for(Node node : graph.getDevicesList().keySet()) {
+			for(Edge edge : graph.getDevicesList().get(node)) {
+				if(node.getName().equals(name)) {
+					if(edge.getNode().getType().equals(Config.SENSOR_TYPE))
+						sa[SENSOR] = true;
+					else if(edge.getNode().getType().equals(Config.ACTUATOR_TYPE))
+						sa[ACTUATOR] = true;
+				}else if(edge.getNode().getName().equals(name)) {
+					if(node.getType().equals(Config.SENSOR_TYPE))
+						sa[SENSOR] = true;
+					else if(node.getType().equals(Config.ACTUATOR_TYPE))
+						sa[ACTUATOR] = true;
+				}
+				
+				if(sa[SENSOR] && sa[ACTUATOR])
+					return sa;
+			}
+		}
+		
+		return sa;
 	}
 }
