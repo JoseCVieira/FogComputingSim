@@ -69,14 +69,13 @@ public class AddLink extends JDialog {
 		setVisible(true);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private JPanel createInputPanel() {
 		Box.createRigidArea(new Dimension(10, 0));
 
 		JPanel inputPanelWrapper = new JPanel();
 		inputPanelWrapper.setLayout(new BoxLayout(inputPanelWrapper, BoxLayout.PAGE_AXIS));
 
-		@SuppressWarnings("rawtypes")
 		ComboBoxModel<String> sourceNodeModel = new DefaultComboBoxModel(graph.getDevicesList().keySet().toArray());
 
 		sourceNodeModel.setSelectedItem(null);
@@ -129,7 +128,6 @@ public class AddLink extends JDialog {
 					}						
 				}
 				
-				@SuppressWarnings("rawtypes")
 				ComboBoxModel<String> targetNodeModel = new DefaultComboBoxModel(nodesToDisplay.toArray());
 				targetNode.setModel(targetNodeModel);
 			}
