@@ -48,28 +48,26 @@ import org.fog.gui.core.Node;
 import org.fog.gui.core.SensorGui;
 import org.fog.placement.Controller;
 import org.fog.placement.ModuleMapping;
-import org.fog.placement.ModulePlacementEdgewards;
 import org.fog.placement.MyModulePlacement;
 import org.fog.policy.AppModuleAllocationPolicy;
 import org.fog.scheduler.StreamOperatorScheduler;
 import org.fog.utils.Config;
 import org.fog.utils.FogLinearPowerModel;
 import org.fog.utils.FogUtils;
+import org.fog.utils.Logger;
 import org.fog.utils.TimeKeeper;
+import org.fog.utils.distribution.DeterministicDistribution;
 
 public class RunSim extends JDialog {
 	private static final long serialVersionUID = -8313194085507492462L;
-	public static final boolean MY_PLACEMENT = true;
+	private static final boolean DEBUG_MODE = false;
 	
-	static List<FogDevice> fogDevices = new ArrayList<FogDevice>();
-	static List<Actuator> actuators = new ArrayList<Actuator>();
-	static List<Sensor> sensors = new ArrayList<Sensor>();
+	private static List<FogBroker> fogBrokers = new ArrayList<FogBroker>();
+	private static List<FogDevice> fogDevices = new ArrayList<FogDevice>();
+	private static List<Actuator> actuators = new ArrayList<Actuator>();
+	private static List<Sensor> sensors = new ArrayList<Sensor>();
 	
 	private JTextArea outputArea;
-	private JLabel imageLabel;
-	private JComponent space;
-	private JScrollPane pane;
-	private JLabel msgLabel;
 	private JPanel panel;
 	private Graph graph;
 
@@ -77,108 +75,103 @@ public class RunSim extends JDialog {
 		this.graph = graph;
 		setLayout(new BorderLayout());
 		
-        //initUI();
-        run();
+		panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         
-        //add(panel, BorderLayout.CENTER);
-		
+        initUI();
+        
+        add(panel, BorderLayout.CENTER);
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		setTitle(" Run Simulation");
 		setModal(true);
 		setPreferredSize(new Dimension(900, 600));
 		setResizable(false);
 		pack();
-		setLocationRelativeTo(frame);
+		setLocationRelativeTo(frame);		
 		setVisible(true);
+		
+		run();
+		setVisible(false);
 	}
 	
 	private void initUI(){
-		imageLabel = new JLabel(new ImageIcon(this.getClass().getResource("/images/run.gif")));
-		imageLabel.setAlignmentX(CENTER_ALIGNMENT);
-		msgLabel = new JLabel("Simulation is executing");
-		msgLabel.setAlignmentX(CENTER_ALIGNMENT);
-		space = (JComponent)Box.createRigidArea(new Dimension(0, 200));
+		panel.add((JComponent)Box.createRigidArea(new Dimension(0, 200)));
 		
-		panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-		panel.add(space);
+		JLabel msgLabel = new JLabel(" Simulation is executing");
+		msgLabel.setAlignmentX(CENTER_ALIGNMENT);
 		panel.add(msgLabel);
+		
+		JLabel imageLabel = new JLabel(new ImageIcon(this.getClass().getResource("/images/run.gif")));
+		imageLabel.setAlignmentX(CENTER_ALIGNMENT);
         panel.add(imageLabel);
-
-        pane = new JScrollPane();
-        outputArea = new JTextArea();
-
+        
+        JTextArea outputArea = new JTextArea();
         outputArea.setLineWrap(true);
         outputArea.setWrapStyleWord(true);
         outputArea.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
         outputArea.setEditable(false);
 
+        JScrollPane pane = new JScrollPane();
         pane.getViewport().add(outputArea);
         panel.add(pane);
         pane.setVisible(false);
 	}
 	
 	private void run(){
-		//try {
-			//Log.disable();
+		try {
+			if(DEBUG_MODE) {
+				Logger.setLogLevel(Logger.DEBUG);
+				Logger.setEnabled(true);
+			}else
+				Log.disable();
+			
 			CloudSim.init(1, Calendar.getInstance(), false);
+			createFogDevices(graph);
 			
 			for(Node node : graph.getDevicesList().keySet()) {
 				if(node.getType().equals(Config.FOG_TYPE)) {
 					FogDeviceGui fog = (FogDeviceGui)node;
 					
 	    			if(fog.getApplication().length() > 0) {
-	    				FogBroker broker = null;
-						try {
-							broker = new FogBroker(fog.getName());
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-	    				Application application = createApplication(graph,
-	    						fog.getApplication(), broker.getId());
-	    				
-	    				if(application == null) continue;
-	    				
-	    				application.setUserId(broker.getId());
-	    				
-	    				createFogDevices(graph);
+	    				FogBroker broker = new FogBroker(fog.getName());
 	    				createSensorActuator(graph, fog.getName(), broker.getId(), fog.getApplication());
-	    				
-	    				printDetails(application);
-	    				//System.exit(0);
-	    				
-	    				ModuleMapping moduleMapping = ModuleMapping.createModuleMapping();
-	    				
-	    				Controller controller = new Controller("master-controller",
-	    						fogDevices, sensors, actuators);
-	    				
-	    				for(FogDevice fogDevice : fogDevices)
-	    					fogDevice.setController(controller);
-	    				
-	    				if(MY_PLACEMENT)
-	    					controller.submitApplication(application, 0,
-	    							new MyModulePlacement(fogDevices, sensors, actuators,
-	    							application, moduleMapping));
-	    				else
-	    					controller.submitApplication(application, 0,
-	    							new ModulePlacementEdgewards(fogDevices, sensors, actuators,
-	    							application, moduleMapping));
+	    				fogBrokers.add(broker);
 	    			}
 				}
 			}
 			
-			System.exit(0);
+			Controller controller = new Controller("master-controller", fogDevices, sensors, actuators);
+			
+			for(FogDevice fogDevice : fogDevices)
+				fogDevice.setController(controller);
+			
+			for(Node node : graph.getDevicesList().keySet()) {
+				if(node.getType().equals(Config.FOG_TYPE)) {
+					FogDeviceGui fog = (FogDeviceGui)node;
+					
+	    			if(fog.getApplication().length() > 0) {
+	    				FogBroker broker = getFogBrokerByName(fog.getName());
+	    				Application application = createApplication(graph, fog.getApplication(), broker.getId());
+	    				application.setUserId(broker.getId());
+	    				
+						controller.submitApplication(application, 0, new MyModulePlacement(fogDevices, sensors,
+								actuators, application, ModuleMapping.createModuleMapping()));
+	    				
+	    				printDetails(application);
+	    			}
+				}
+			}
 			
 			TimeKeeper.getInstance().setSimulationStartTime(Calendar.getInstance().getTimeInMillis());
 			CloudSim.startSimulation();
 			CloudSim.stopSimulation();
 			
 			Log.printLine("MyApp finished!");
-	}
-	
-	private void append(String content){
-		outputArea.append(content+"\n");
+		} catch (Exception e) {
+			e.printStackTrace();
+			Log.printLine("Unwanted errors happen");
+		}
 	}
 
 	@SuppressWarnings({"serial"})
@@ -193,21 +186,22 @@ public class RunSim extends JDialog {
 		
 		Application application = Application.createApplication(appId, userId);
 		
-		for(AppModule appModule : applicationGui.getModules()) {
+		for(AppModule appModule : applicationGui.getModules())
 			application.addAppModule(appModule);
-			
+		
+		for(AppEdge appEdge : applicationGui.getEdges())
+			application.addAppEdge(appEdge);
+		
+		for(AppModule appModule : applicationGui.getModules()) {
 			for(Pair<String, String> pair : appModule.getSelectivityMap().keySet())
 				application.addTupleMapping(appModule.getName(), pair,
 						((FractionalSelectivity)appModule.getSelectivityMap().get(pair)).getSelectivity());
 		}
 		
-		for(AppEdge appEdge : applicationGui.getEdges())
-			application.addAppEdge(appEdge);
-		
 		final AppLoop loop1 = new AppLoop(new ArrayList<String>(){{
 			add("EEG");
 			add("client");
-			add("c_calculator");
+			add("concentration_calculator");
 			add("client");
 			add("DISPLAY");
 		}});
@@ -217,7 +211,6 @@ public class RunSim extends JDialog {
 		}};
 		
 		application.setLoops(loops);
-		application.setLoops(null);
 		return application;
 	}
 	
@@ -307,7 +300,7 @@ public class RunSim extends JDialog {
 			}
 		}
 		
-		Sensor newSensor = new Sensor(sensor.getName(), tupleType, userId, appId, sensor.getDistribution());
+		Sensor newSensor = new Sensor(sensor.getName(), tupleType, userId, appId, new DeterministicDistribution(5.1)/*sensor.getDistribution()*/);
 		sensors.add(newSensor);
 		newSensor.setGatewayDeviceId(getFogDeviceByName(clientName).getId());
 		newSensor.setLatency(sensorLat);
@@ -316,15 +309,13 @@ public class RunSim extends JDialog {
 		actuators.add(display);
 		display.setGatewayDeviceId(getFogDeviceByName(clientName).getId());
 		display.setLatency(actuatorLat);
-		
 	}
 	
 	private static FogDevice createFogDevice(FogDeviceGui fog) {
 		List<Pe> peList = new ArrayList<Pe>();
-
-		// Create PEs and add these into a list.
-		peList.add(new Pe(0, new PeProvisionerOverbooking(fog.getMips()))); // need to store Pe id and MIPS Rating
-
+		peList.add(new Pe(0, new PeProvisionerOverbooking(fog.getMips())));
+		
+		/*
 		PowerHost host = new PowerHost(
 			FogUtils.generateEntityId(),
 			new RamProvisionerSimple((int)fog.getRam()),
@@ -347,7 +338,31 @@ public class RunSim extends JDialog {
 
 		FogDeviceCharacteristics characteristics = new FogDeviceCharacteristics(
 				"x86", "Linux", "Xen", host, time_zone, cost, costPerMem, costPerStorage, costPerBw);
+		*/
+		
+		PowerHost host = new PowerHost(
+				FogUtils.generateEntityId(), //hostId
+				new RamProvisionerSimple(10240),
+				new BwProvisionerOverbooking(10000), //bw
+				1000000, // host storage
+				peList,
+				new StreamOperatorScheduler(peList),
+				new FogLinearPowerModel(107.339, 83.4333)
+			);
 
+			List<Host> hostList = new ArrayList<Host>();
+			hostList.add(host);
+
+			double time_zone = 10.0; // time zone this resource located
+			double cost = 3.0; // the cost of using processing in this resource
+			double costPerMem = 0.05; // the cost of using memory in this resource
+			double costPerStorage = 0.001; // the cost of using storage in this resource
+			double costPerBw = 0.1; // the cost of using bw in this resource
+			LinkedList<Storage> storageList = new LinkedList<Storage>(); // we are not adding SAN devices by now
+
+			FogDeviceCharacteristics characteristics = new FogDeviceCharacteristics(
+					"x86", "Linux", "Xen", host, time_zone, cost, costPerMem, costPerStorage, costPerBw);
+		
 		FogDevice fogdevice = null;
 		try {
 			fogdevice = new FogDevice(fog.getName(), characteristics, 
@@ -367,6 +382,13 @@ public class RunSim extends JDialog {
 		return null;
 	}
 	
+	private static FogBroker getFogBrokerByName(String name) {
+		for(FogBroker fogBroker : fogBrokers)
+			if(fogBroker.getName().equals(name))
+				return fogBroker;
+		return null;
+	}
+	
 	private static void printDetails(Application application) {
 		System.out.println("Fog Devices: " + fogDevices + "\n\n");
 		System.out.println("Actuators: " + actuators + "\n\n");
@@ -376,8 +398,13 @@ public class RunSim extends JDialog {
 			System.out.println("AppEdge: " + appEdge + "\n");
 		
 		for(AppModule appModule : application.getModules()) {
-			System.out.println("AppModule" + appModule);
-			System.out.println("SelectivityMap" + appModule.getSelectivityMap() + "\n\n\n");
+			System.out.println("AppModule: " + appModule);
+			System.out.println("SelectivityMap: " + appModule.getSelectivityMap() + "\n\n\n");
 		}
 	}
+	
+	public void append(String content){
+		outputArea.append(content+"\n");
+	}
+	
 }

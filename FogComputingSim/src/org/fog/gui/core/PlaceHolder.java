@@ -44,4 +44,5 @@ public class PlaceHolder {
 	public void setCoordinates(Coordinates coordinates) {
 		this.coordinates = coordinates;
 	}
+	
 }

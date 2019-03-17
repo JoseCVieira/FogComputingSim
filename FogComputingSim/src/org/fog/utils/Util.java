@@ -2,7 +2,9 @@ package org.fog.utils;
 
 import java.awt.Component;
 
+import javax.swing.ComboBoxModel;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -100,6 +102,15 @@ public class Util {
 		jPanel.add(jTextField);
 		
 		return jTextField;
+	}
+	
+	public static JComboBox<String> createDropDown(JPanel jPanel, JComboBox<String> jComboBox, String label, ComboBoxModel<String> periodicModel, String option) {
+		JLabel jLabel = new JLabel(label);
+		jPanel.add(jLabel);
+		jLabel.setLabelFor(jComboBox);
+		periodicModel.setSelectedItem(option);
+		jPanel.add(jComboBox);
+		return jComboBox;
 	}
 	
 	public static class ButtonRenderer extends JButton implements TableCellRenderer {

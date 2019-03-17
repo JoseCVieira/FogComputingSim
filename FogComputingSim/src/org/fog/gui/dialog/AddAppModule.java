@@ -12,7 +12,6 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SpringLayout;
@@ -147,40 +146,11 @@ public class AddAppModule extends JDialog {
         JPanel springPanel = new JPanel(new SpringLayout());
         springPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 		
-		JLabel lName = new JLabel("Name: ");
-		springPanel.add(lName);
-		moduleName = new JTextField();
-		moduleName.setText(module == null ? "" : module.getName());
-		lName.setLabelFor(moduleName);
-		springPanel.add(moduleName);
-		
-		JLabel lMips = new JLabel("Mips: ");
-		springPanel.add(lMips);
-		moduleMips = new JTextField();
-		moduleMips.setText(module == null ? Double.toString(Config.MODULE_MIPS) : Double.toString(module.getMips()));
-		lMips.setLabelFor(moduleMips);
-		springPanel.add(moduleMips);
-		
-		JLabel lRam = new JLabel("Ram: ");
-		springPanel.add(lRam);
-		moduleRam = new JTextField();
-		moduleRam.setText(module == null ? Integer.toString(Config.MODULE_RAM) : Integer.toString(module.getRam()));
-		lRam.setLabelFor(moduleRam);
-		springPanel.add(moduleRam);
-		
-		JLabel lSize = new JLabel("Mem: ");
-		springPanel.add(lSize);
-		moduleSize = new JTextField();
-		moduleSize.setText(module == null ? Long.toString(Config.MODULE_SIZE) : Long.toString(module.getSize()));
-		lSize.setLabelFor(moduleSize);
-		springPanel.add(moduleSize);
-		
-		JLabel lBw = new JLabel("Bw: ");
-		springPanel.add(lBw);
-		moduleBw = new JTextField();
-		moduleBw.setText(module == null ? Long.toString(Config.MODUEL_BW) : Long.toString(module.getBw()));
-		lBw.setLabelFor(moduleBw);
-		springPanel.add(moduleBw);
+        moduleName = Util.createInput(springPanel, moduleName, "Name: ", module == null ? "" : module.getName());
+        moduleMips = Util.createInput(springPanel, moduleMips, "Mips: ", module == null ? Double.toString(Config.MODULE_MIPS) : Double.toString(module.getMips()));
+        moduleRam = Util.createInput(springPanel, moduleRam, "Ram: ", module == null ? Integer.toString(Config.MODULE_RAM) : Integer.toString(module.getRam()));
+        moduleSize = Util.createInput(springPanel, moduleSize, "Mem: ", module == null ? Long.toString(Config.MODULE_SIZE) : Long.toString(module.getSize()));
+        moduleBw = Util.createInput(springPanel, moduleBw, "Bw: ", module == null ? Long.toString(Config.MODUEL_BW) : Long.toString(module.getBw()));
 
 		//rows, cols, initX, initY, xPad, yPad
         SpringUtilities.makeCompactGrid(springPanel, 5, 2, 6, 6, 6, 6);

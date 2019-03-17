@@ -135,4 +135,5 @@ public class AddActuator extends JDialog {
         SpringUtilities.makeCompactGrid(springPanel, 1, 2, 6, 6, 6, 6);
 		return springPanel;
 	}
+	
 }

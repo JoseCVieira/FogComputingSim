@@ -308,6 +308,7 @@ public class AddLink extends JDialog {
 		return buttonPanel;
 	}
 	
+	/* Miscellaneous methods */
 	private String[][] getConnections() {
 		int total = 0;		
 		for(Node node : graph.getDevicesList().keySet())

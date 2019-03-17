@@ -153,8 +153,7 @@ public class Application {
 	
 	public void addTupleMapping(String moduleName, Pair<String, String> pair, double value){  //ADDED
 		AppModule module = getModuleByName(moduleName);
-		module.getSelectivityMap().put(new Pair<String, String>(pair.getFirst(), pair.getSecond()),
-				new FractionalSelectivity(value));
+		module.getSelectivityMap().put(pair, new FractionalSelectivity(value));
 	}
 	
 	/**

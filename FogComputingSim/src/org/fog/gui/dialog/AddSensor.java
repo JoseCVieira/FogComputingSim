@@ -36,7 +36,6 @@ public class AddSensor extends JDialog {
 	
 	private final Graph graph;
 	private final SensorGui sensor;
-	
 	private JTextField sensorName;
 	private JComboBox distribution;
 	private JTextField uniformLowerBound;
@@ -237,62 +236,13 @@ public class AddSensor extends JDialog {
 			}
 		});
 		
-		springPanel.add(distribution);		
+		springPanel.add(distribution);
 		
-		JLabel normalMeanLabel = new JLabel("Mean: ");
-		springPanel.add(normalMeanLabel);	
-		normalMean = new JTextField();
-		if(sensor != null) {
-			Distribution distribution = sensor.getDistribution();
-			if(distribution instanceof NormalDistribution)
-				normalMean.setText(Double.toString(((NormalDistribution) distribution).getMean()));
-		}
-		normalMeanLabel.setLabelFor(normalMean);
-		springPanel.add(normalMean);
-		
-		JLabel normalStdDevLabel = new JLabel("StdDev: ");
-		springPanel.add(normalStdDevLabel);	
-		normalStdDev = new JTextField();
-		if(sensor != null) {
-			Distribution distribution = sensor.getDistribution();
-			if(distribution instanceof NormalDistribution)
-				normalStdDev.setText(Double.toString(((NormalDistribution) distribution).getStdDev()));
-		}
-		normalStdDevLabel.setLabelFor(normalStdDev);
-		springPanel.add(normalStdDev);
-		
-		JLabel uniformLowLabel = new JLabel("Min: ");
-		springPanel.add(uniformLowLabel);	
-		uniformLowerBound = new JTextField();
-		if(sensor != null) {
-			Distribution distribution = sensor.getDistribution();
-			if(distribution instanceof UniformDistribution)
-				uniformLowerBound.setText(Double.toString(((UniformDistribution) distribution).getMin()));
-		}
-		uniformLowLabel.setLabelFor(uniformLowerBound);
-		springPanel.add(uniformLowerBound);
-		
-		JLabel uniformUpLabel = new JLabel("Max: ");
-		springPanel.add(uniformUpLabel);	
-		uniformUpperBound = new JTextField();
-		if(sensor != null) {
-			Distribution distribution = sensor.getDistribution();
-			if(distribution instanceof UniformDistribution)
-				uniformUpperBound.setText(Double.toString(((UniformDistribution) distribution).getMax()));
-		}
-		uniformUpLabel.setLabelFor(uniformUpperBound);
-		springPanel.add(uniformUpperBound);
-		
-		JLabel deterministicValueLabel = new JLabel("Value: ");
-		springPanel.add(deterministicValueLabel);	
-		deterministicValue = new JTextField();
-		if(sensor != null) {
-			Distribution distribution = sensor.getDistribution();
-			if(distribution instanceof DeterministicDistribution)
-				deterministicValue.setText(Double.toString(((DeterministicDistribution) distribution).getValue()));
-		}
-		uniformLowLabel.setLabelFor(deterministicValue);
-		springPanel.add(deterministicValue);
+		normalMean = Util.createInput(springPanel, normalMean, "Mean: ", (sensor != null && sensor.getDistribution() instanceof NormalDistribution) ? Double.toString(((NormalDistribution) sensor.getDistribution()).getMean()) : "");
+		normalStdDev = Util.createInput(springPanel, normalStdDev, "StdDev: ", (sensor != null && sensor.getDistribution() instanceof NormalDistribution) ? Double.toString(((NormalDistribution) sensor.getDistribution()).getStdDev()) : "");
+		uniformLowerBound = Util.createInput(springPanel, uniformLowerBound, "Min: ", (sensor != null && sensor.getDistribution() instanceof UniformDistribution) ? Double.toString(((UniformDistribution) sensor.getDistribution()).getMin()) : "");
+		uniformUpperBound = Util.createInput(springPanel, uniformUpperBound, "Max: ", (sensor != null && sensor.getDistribution() instanceof UniformDistribution) ? Double.toString(((UniformDistribution) sensor.getDistribution()).getMax()) : "");
+		deterministicValue = Util.createInput(springPanel, deterministicValue, "Value: ", (sensor != null && sensor.getDistribution() instanceof DeterministicDistribution) ? Double.toString(((DeterministicDistribution) sensor.getDistribution()).getValue()) : "");
 
 		if(sensor != null) {
 			String item = "";
@@ -315,6 +265,7 @@ public class AddSensor extends JDialog {
 		return springPanel;
 	}
 	
+	/* Miscellaneous methods */
     protected void updatePanel(String item) {
 		switch(item){
 		case "Normal":

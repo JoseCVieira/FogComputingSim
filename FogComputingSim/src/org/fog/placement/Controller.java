@@ -16,7 +16,6 @@ import org.fog.application.Application;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
-import org.fog.test.MyApp;
 import org.fog.utils.Config;
 import org.fog.utils.FogEvents;
 import org.fog.utils.FogUtils;
@@ -227,12 +226,6 @@ public class Controller extends SimEntity{
 		newDetailsField(2, '=');
 	}
 	
-	private static void newDetailsField(int nrColumn, char character) {
-		for (int i=0; i<MAX_COLUMN_SIZE*nrColumn+(nrColumn); i++)
-		    System.out.print(character);
-		System.out.println(character);
-	}
-	
 	private void printNetworkUsageDetails() {
 		System.out.println("\n");
 		newDetailsField(2, '=');
@@ -256,12 +249,10 @@ public class Controller extends SimEntity{
 				u.centerString(MAX_COLUMN_SIZE, "VALUE") + "|\n");
 		newDetailsField(2, '-');
 		for(FogDevice fogDevice : getFogDevices()) {
-			if(!fogDevice.getName().contains(MyApp.END_DEVICE_NAME)) {
-				aux += fogDevice.getTotalCost();
-				System.out.print("|" + u.centerString(MAX_COLUMN_SIZE/5-1, String.valueOf(fogDevice.getId())) + "|" +
-						u.centerString(MAX_COLUMN_SIZE-MAX_COLUMN_SIZE/5, fogDevice.getName()) + "|" +
-						u.centerString(MAX_COLUMN_SIZE, String.valueOf(df.format(fogDevice.getTotalCost()))) + "|\n");
-			}
+			aux += fogDevice.getTotalCost();
+			System.out.print("|" + u.centerString(MAX_COLUMN_SIZE/5-1, String.valueOf(fogDevice.getId())) + "|" +
+					u.centerString(MAX_COLUMN_SIZE-MAX_COLUMN_SIZE/5, fogDevice.getName()) + "|" +
+					u.centerString(MAX_COLUMN_SIZE, String.valueOf(df.format(fogDevice.getTotalCost()))) + "|\n");
 		}
 		newDetailsField(2, '-');
 		System.out.println("|" + u.centerString((MAX_COLUMN_SIZE*2+1), "TOTAL = " + df.format(aux)) + "|");
@@ -281,16 +272,20 @@ public class Controller extends SimEntity{
 				u.centerString(MAX_COLUMN_SIZE, "VALUE") + "|\n");
 		newDetailsField(2, '-');
 		for(FogDevice fogDevice : getFogDevices()) {
-			if(!fogDevice.getName().contains(MyApp.END_DEVICE_NAME)) {
-				aux += fogDevice.getEnergyConsumption();
-				System.out.print("|" + u.centerString(MAX_COLUMN_SIZE/5-1, String.valueOf(fogDevice.getId())) + "|" +
-						u.centerString(MAX_COLUMN_SIZE-MAX_COLUMN_SIZE/5, fogDevice.getName()) + "|" +
-						u.centerString(MAX_COLUMN_SIZE, String.valueOf(df.format(fogDevice.getEnergyConsumption()))) + "|\n");
-			}
+			aux += fogDevice.getEnergyConsumption();
+			System.out.print("|" + u.centerString(MAX_COLUMN_SIZE/5-1, String.valueOf(fogDevice.getId())) + "|" +
+					u.centerString(MAX_COLUMN_SIZE-MAX_COLUMN_SIZE/5, fogDevice.getName()) + "|" +
+					u.centerString(MAX_COLUMN_SIZE, String.valueOf(df.format(fogDevice.getEnergyConsumption()))) + "|\n");
 		}
 		newDetailsField(2, '-');
 		System.out.println("|" + u.centerString((MAX_COLUMN_SIZE*2+1), "TOTAL = " + df.format(aux)) + "|");
 		newDetailsField(2, '=');
+	}
+	
+	private static void newDetailsField(int nrColumn, char character) {
+		for (int i=0; i<MAX_COLUMN_SIZE*nrColumn+(nrColumn); i++)
+		    System.out.print(character);
+		System.out.println(character);
 	}
 	
 	public List<FogDevice> getFogDevices() {

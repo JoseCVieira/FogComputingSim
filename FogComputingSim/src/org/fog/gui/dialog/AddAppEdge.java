@@ -49,7 +49,6 @@ public class AddAppEdge extends JDialog {
 	private JTextField actuatorName;
 	private JTextField sensorName;
 	
-	private JLabel lperiodicity;
 	private JLabel lsensor;
 	private JLabel lactuator;
 	private JLabel lsourceNode;
@@ -122,7 +121,7 @@ public class AddAppEdge extends JDialog {
 				eType = "SENSOR";
 		}
 		
-		ledgeType.setLabelFor(edgeType);		
+		ledgeType.setLabelFor(edgeType);
 		edgeTypeModel.setSelectedItem(edge == null ? null : eType);
 		springPanel.add(edgeType);
 		
@@ -137,16 +136,6 @@ public class AddAppEdge extends JDialog {
 		lsensor.setLabelFor(sensorName);
 		springPanel.add(sensorName);
 		
-		if(edge != null && edge.getEdgeType() == AppEdge.SENSOR) {
-			sensorName.setText(edge.getSource());
-			sensorName.setEditable(false);
-			lsourceNode.setVisible(false);
-			sourceNode.setVisible(false);
-		}else if(edge != null) {
-			sensorName.setVisible(false);
-			lsensor.setVisible(false);
-		}
-		
 		ltargetNode = new JLabel("To: ");
 		springPanel.add(ltargetNode);
 		ltargetNode.setLabelFor(targetNode);
@@ -158,6 +147,23 @@ public class AddAppEdge extends JDialog {
 		lactuator.setLabelFor(actuatorName);
 		springPanel.add(actuatorName);
 		
+		direction = Util.createDropDown(springPanel, direction, "Direction: ", directionModel, edge.getDirection() == Tuple.UP ? "UP" : "DOWN");
+		periodic = Util.createDropDown(springPanel, periodic, "Periodic: ", periodicModel, null);
+		periodicity = Util.createInput(springPanel, periodicity, "Periodicity: ", edge == null ? Double.toString(Config.EDGE_PERIODICITY) : Double.toString(edge.getPeriodicity()));		
+		tupleCpuLength = Util.createInput(springPanel, tupleCpuLength, "Tuple CPU Length: ", edge == null ? Double.toString(Config.EDGE_CPU_LENGTH) : Double.toString(edge.getTupleCpuLength()));
+		tupleNwLength = Util.createInput(springPanel, tupleNwLength, "Tuple NW Length: ", edge == null ? Double.toString(Config.EDGE_NW_LENGTH) : Double.toString(edge.getTupleNwLength()));
+		tupleType = Util.createInput(springPanel, tupleType, "Tuple Type: ", edge == null ? "" : edge.getTupleType());
+		
+		if(edge != null && edge.getEdgeType() == AppEdge.SENSOR) {
+			sensorName.setText(edge.getSource());
+			sensorName.setEditable(false);
+			lsourceNode.setVisible(false);
+			sourceNode.setVisible(false);
+		}else if(edge != null) {
+			sensorName.setVisible(false);
+			lsensor.setVisible(false);
+		}
+		
 		if(edge != null && edge.getEdgeType() == AppEdge.ACTUATOR) {
 			actuatorName.setText(edge.getDestination());
 			actuatorName.setEditable(false);
@@ -168,57 +174,10 @@ public class AddAppEdge extends JDialog {
 			lactuator.setVisible(false);
 		}
 		
-		JLabel ldirection = new JLabel("Direction: ");
-		springPanel.add(ldirection);
-		ldirection.setLabelFor(direction);
-		directionModel.setSelectedItem(edge == null ? null : edge.getDirection() == Tuple.UP ? "UP" : "DOWN");
-		springPanel.add(direction);
-		
-		JLabel lperiodic = new JLabel("Periodic: ");
-		springPanel.add(lperiodic);
-		lperiodic.setLabelFor(periodic);
-		periodicModel.setSelectedItem(null);
-		springPanel.add(periodic);
-		
-		lperiodicity = new JLabel("Periodicity: ");
-		springPanel.add(lperiodicity);
-		periodicity = new JTextField();
-		periodicity.setText(edge == null ? Double.toString(Config.EDGE_PERIODICITY) :
-			Double.toString(edge.getPeriodicity()));
-		lperiodicity.setLabelFor(periodicity);
-		springPanel.add(periodicity);
-		
 		if(edge != null) {
 			periodicModel.setSelectedItem(edge.isPeriodic() ? "YES" : "NO");
-			
-			if(!edge.isPeriodic()) {
-				periodicity.setVisible(false);
-				lperiodicity.setVisible(false);
-			}
+			if(!edge.isPeriodic()) periodicity.setVisible(false);
 		}
-		
-		JLabel ltupleCpuLength = new JLabel("Tuple CPU Length: ");
-		springPanel.add(ltupleCpuLength);
-		tupleCpuLength = new JTextField();
-		tupleCpuLength.setText(edge == null ? Double.toString(Config.EDGE_CPU_LENGTH) :
-			Double.toString(edge.getTupleCpuLength()));
-		ltupleCpuLength.setLabelFor(tupleCpuLength);
-		springPanel.add(tupleCpuLength);		
-		
-		JLabel ltupleNwLength = new JLabel("Tuple NW Length: ");
-		springPanel.add(ltupleNwLength);
-		tupleNwLength = new JTextField();
-		tupleNwLength.setText(edge == null ? Double.toString(Config.EDGE_NW_LENGTH) :
-			Double.toString(edge.getTupleNwLength()));
-		ltupleNwLength.setLabelFor(tupleNwLength);
-		springPanel.add(tupleNwLength);
-		
-		JLabel ltupleType = new JLabel("Tuple Type: ");
-		springPanel.add(ltupleType);
-		tupleType = new JTextField();
-		tupleType.setText(edge == null ? "" : edge.getTupleType());
-		ltupleType.setLabelFor(tupleType);
-		springPanel.add(tupleType);
 		
 		sourceNode.addItemListener(new ItemListener() {
 			@Override
@@ -257,13 +216,10 @@ public class AddAppEdge extends JDialog {
 			public void itemStateChanged(ItemEvent e) {
 				if((String) periodic.getSelectedItem() == null) return;
 				
-				if(((String) periodic.getSelectedItem()).equals("YES")) {
+				if(((String) periodic.getSelectedItem()).equals("YES"))
 					periodicity.setVisible(true);
-					lperiodicity.setVisible(true);
-				}else {
+				else
 					periodicity.setVisible(false);
-					lperiodicity.setVisible(false);
-				}
 			}
 		});
 		
@@ -427,6 +383,7 @@ public class AddAppEdge extends JDialog {
 		return buttonPanel;
 	}
 	
+	/* Miscellaneous methods */
 	private void changeDirection(String value) {
 		direction.removeAllItems();
 		ArrayList<String> directions = new ArrayList<String>();

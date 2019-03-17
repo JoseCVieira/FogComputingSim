@@ -133,6 +133,7 @@ public class DisplayApplications extends JDialog {
 		return buttonPanel;
 	}
 	
+	/* Miscellaneous methods */
 	private String[][] getApplications() {
 		if(graph.getAppList() == null)
 			return null;
