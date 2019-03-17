@@ -66,36 +66,31 @@ public class RunSim extends JDialog {
 	private static List<FogDevice> fogDevices = new ArrayList<FogDevice>();
 	private static List<Actuator> actuators = new ArrayList<Actuator>();
 	private static List<Sensor> sensors = new ArrayList<Sensor>();
-	
-	private JTextArea outputArea;
-	private JPanel panel;
-	private Graph graph;
+	private static Graph graph;
 
 	public RunSim(final Graph graph, final JFrame frame){
-		this.graph = graph;
+		RunSim.graph = graph;
 		setLayout(new BorderLayout());
 		
-		panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        add(initUI(), BorderLayout.CENTER);
         
-        initUI();
-        
-        add(panel, BorderLayout.CENTER);
-		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        Thread thread = new Run();
+        thread.start();
+
 		setTitle(" Run Simulation");
 		setModal(true);
 		setPreferredSize(new Dimension(900, 600));
 		setResizable(false);
 		pack();
-		setLocationRelativeTo(frame);		
+		setLocationRelativeTo(frame);
 		setVisible(true);
-		
-		run();
-		setVisible(false);
 	}
 	
-	private void initUI(){
+	private JPanel initUI(){
+		JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        
 		panel.add((JComponent)Box.createRigidArea(new Dimension(0, 200)));
 		
 		JLabel msgLabel = new JLabel(" Simulation is executing");
@@ -116,295 +111,268 @@ public class RunSim extends JDialog {
         pane.getViewport().add(outputArea);
         panel.add(pane);
         pane.setVisible(false);
+        return panel;
 	}
 	
-	private void run(){
-		try {
-			if(DEBUG_MODE) {
-				Logger.setLogLevel(Logger.DEBUG);
-				Logger.setEnabled(true);
-			}else
-				Log.disable();
+	public class Run extends Thread {
+		public Run(){
 			
-			CloudSim.init(1, Calendar.getInstance(), false);
-			createFogDevices(graph);
-			
-			for(Node node : graph.getDevicesList().keySet()) {
-				if(node.getType().equals(Config.FOG_TYPE)) {
-					FogDeviceGui fog = (FogDeviceGui)node;
-					
-	    			if(fog.getApplication().length() > 0) {
-	    				FogBroker broker = new FogBroker(fog.getName());
-	    				createSensorActuator(graph, fog.getName(), broker.getId(), fog.getApplication());
-	    				fogBrokers.add(broker);
-	    			}
-				}
-			}
-			
-			Controller controller = new Controller("master-controller", fogDevices, sensors, actuators);
-			
-			for(FogDevice fogDevice : fogDevices)
-				fogDevice.setController(controller);
-			
-			for(Node node : graph.getDevicesList().keySet()) {
-				if(node.getType().equals(Config.FOG_TYPE)) {
-					FogDeviceGui fog = (FogDeviceGui)node;
-					
-	    			if(fog.getApplication().length() > 0) {
-	    				FogBroker broker = getFogBrokerByName(fog.getName());
-	    				Application application = createApplication(graph, fog.getApplication(), broker.getId());
-	    				application.setUserId(broker.getId());
-	    				
-						controller.submitApplication(application, 0, new MyModulePlacement(fogDevices, sensors,
-								actuators, application, ModuleMapping.createModuleMapping()));
-	    				
-	    				printDetails(application);
-	    			}
-				}
-			}
-			
-			TimeKeeper.getInstance().setSimulationStartTime(Calendar.getInstance().getTimeInMillis());
-			CloudSim.startSimulation();
-			CloudSim.stopSimulation();
-			
-			Log.printLine("MyApp finished!");
-		} catch (Exception e) {
-			e.printStackTrace();
-			Log.printLine("Unwanted errors happen");
-		}
-	}
-
-	@SuppressWarnings({"serial"})
-	private static Application createApplication(Graph graph, String appId, int userId){
-		ApplicationGui applicationGui = null;
-		
-		for(ApplicationGui app : graph.getAppList())
-			if(app.getAppId().equals(appId))
-				applicationGui = app;
-		
-		if(applicationGui == null) return null;
-		
-		Application application = Application.createApplication(appId, userId);
-		
-		for(AppModule appModule : applicationGui.getModules())
-			application.addAppModule(appModule);
-		
-		for(AppEdge appEdge : applicationGui.getEdges())
-			application.addAppEdge(appEdge);
-		
-		for(AppModule appModule : applicationGui.getModules()) {
-			for(Pair<String, String> pair : appModule.getSelectivityMap().keySet())
-				application.addTupleMapping(appModule.getName(), pair,
-						((FractionalSelectivity)appModule.getSelectivityMap().get(pair)).getSelectivity());
 		}
 		
-		final AppLoop loop1 = new AppLoop(new ArrayList<String>(){{
-			add("EEG");
-			add("client");
-			add("concentration_calculator");
-			add("client");
-			add("DISPLAY");
-		}});
+		public void run(){
+			try {
+    			if(DEBUG_MODE) {
+    				Logger.setLogLevel(Logger.DEBUG);
+    				Logger.setEnabled(true);
+    			}else
+    				Log.disable();
+    			
+    			CloudSim.init(1, Calendar.getInstance(), false);
+    			createFogDevices(RunSim.graph);
+    			
+    			ArrayList<FogDeviceGui> clients = getClients();
+    			
+    			for(FogDeviceGui fog : clients) {
+    				FogBroker broker = new FogBroker(fog.getName());
+    				createSensorActuator(graph, fog.getName(), broker.getId(), fog.getApplication());
+    				fogBrokers.add(broker);
+    			}
+    			
+    			Controller controller = new Controller("master-controller", fogDevices, sensors, actuators);
+    			
+    			for(FogDevice fogDevice : fogDevices)
+    				fogDevice.setController(controller);
+    			
+    			for(FogDeviceGui fog : clients) {
+    				FogBroker broker = getFogBrokerByName(fog.getName());
+    				Application application = createApplication(graph, fog.getApplication(), broker.getId());
+    				application.setUserId(broker.getId());
+    				
+					controller.submitApplication(application, 0, new MyModulePlacement(fogDevices, sensors,
+							actuators, application, ModuleMapping.createModuleMapping()));
+    				
+    				printDetails(application);
+    			}
+    			
+    			TimeKeeper.getInstance().setSimulationStartTime(Calendar.getInstance().getTimeInMillis());
+    			CloudSim.startSimulation();
+    			CloudSim.stopSimulation();
+    		} catch (Exception e) {
+    			e.printStackTrace();
+    			Log.printLine("Unwanted errors happen");
+    		}
+		}
 		
-		List<AppLoop> loops = new ArrayList<AppLoop>(){{
-			add(loop1);
-		}};
+		private ArrayList<FogDeviceGui> getClients(){
+			ArrayList<FogDeviceGui> clients = new ArrayList<FogDeviceGui>();
+			
+			for(Node node : graph.getDevicesList().keySet())
+				if(node.getType().equals(Config.FOG_TYPE))
+	    			if(((FogDeviceGui)node).getApplication().length() > 0)
+	    				clients.add((FogDeviceGui)node);
+			
+			return clients;
+		}
 		
-		application.setLoops(loops);
-		return application;
-	}
-	
-	private static void createFogDevices(Graph graph) {
-		for(Node node : graph.getDevicesList().keySet())
-			if(node.getType().equals(Config.FOG_TYPE))
-				fogDevices.add(createFogDevice((FogDeviceGui)node));
-		
-		for (Entry<Node, List<Edge>> entry : graph.getDevicesList().entrySet()) {
-			if(entry.getKey().getType().equals(Config.FOG_TYPE)) {
-				FogDeviceGui fog1 = (FogDeviceGui)entry.getKey();
-				FogDevice f1 = getFogDeviceByName(fog1.getName());
-				
-				for (Edge edge : entry.getValue()) {
-					if(edge.getNode().getType().equals(Config.FOG_TYPE)){
-						FogDeviceGui fog2 = (FogDeviceGui)edge.getNode();
-						FogDevice f2 = getFogDeviceByName(fog2.getName());
-						
-						if(fog1.getLevel() > fog2.getLevel()) {
-							f1.getParentsIds().add(f2.getId());
-							f1.getUpStreamLatencyMap().put(f2.getId(), edge.getLatency());
-						}else if(fog1.getLevel() < fog2.getLevel()) {
-							f2.getParentsIds().add(f1.getId());
-							f2.getUpStreamLatencyMap().put(f1.getId(), edge.getLatency());
-						}else {
-							f2.getBrothersIds().add(f1.getId());
-							f2.getUpStreamLatencyMap().put(f1.getId(), edge.getLatency());
-							f1.getBrothersIds().add(f2.getId());
-							f1.getUpStreamLatencyMap().put(f2.getId(), edge.getLatency());
+		private void createFogDevices(Graph graph) {
+			for(Node node : graph.getDevicesList().keySet())
+				if(node.getType().equals(Config.FOG_TYPE))
+					fogDevices.add(createFogDevice((FogDeviceGui)node));
+			
+			for (Entry<Node, List<Edge>> entry : graph.getDevicesList().entrySet()) {
+				if(entry.getKey().getType().equals(Config.FOG_TYPE)) {
+					FogDeviceGui fog1 = (FogDeviceGui)entry.getKey();
+					FogDevice f1 = getFogDeviceByName(fog1.getName());
+					
+					for (Edge edge : entry.getValue()) {
+						if(edge.getNode().getType().equals(Config.FOG_TYPE)){
+							FogDeviceGui fog2 = (FogDeviceGui)edge.getNode();
+							FogDevice f2 = getFogDeviceByName(fog2.getName());
+							
+							if(fog1.getLevel() > fog2.getLevel()) {
+								f1.getParentsIds().add(f2.getId());
+								f1.getUpStreamLatencyMap().put(f2.getId(), edge.getLatency());
+							}else if(fog1.getLevel() < fog2.getLevel()) {
+								f2.getParentsIds().add(f1.getId());
+								f2.getUpStreamLatencyMap().put(f1.getId(), edge.getLatency());
+							}else {
+								f2.getBrothersIds().add(f1.getId());
+								f2.getUpStreamLatencyMap().put(f1.getId(), edge.getLatency());
+								f1.getBrothersIds().add(f2.getId());
+								f1.getUpStreamLatencyMap().put(f2.getId(), edge.getLatency());
+							}
 						}
 					}
 				}
 			}
+			
+			for(FogDevice fogDevice : fogDevices)
+				if(fogDevice.getParentsIds().size() == 0)
+					fogDevice.getParentsIds().add(-1);
 		}
 		
-		for(FogDevice fogDevice : fogDevices)
-			if(fogDevice.getParentsIds().size() == 0)
-				fogDevice.getParentsIds().add(-1);
-	}
-	
-	private static void createSensorActuator(Graph graph, String clientName, int userId, String appId) {
-		FogDeviceGui client = null;
-		SensorGui sensor = null;
-		ActuatorGui actuator = null;
-		String tupleType = "";
-		String actuatorType = "";
-		double sensorLat = -1;
-		double actuatorLat = -1;
+		private FogDevice createFogDevice(FogDeviceGui fog) {
+			List<Pe> peList = new ArrayList<Pe>();
+			peList.add(new Pe(0, new PeProvisionerOverbooking(fog.getMips())));
+
+			PowerHost host = new PowerHost(
+					FogUtils.generateEntityId(),
+					new RamProvisionerSimple((int)fog.getRam()),
+					new BwProvisionerOverbooking((long)fog.getUpBw()*1024),
+					fog.getStorage(),
+					peList,
+					new StreamOperatorScheduler(peList),
+					new FogLinearPowerModel(fog.getBusyPower(), fog.getIdlePower())
+				);
+
+				List<Host> hostList = new ArrayList<Host>();
+				hostList.add(host);
+
+				double time_zone = 10.0;
+				LinkedList<Storage> storageList = new LinkedList<Storage>();
+
+				FogDeviceCharacteristics characteristics = new FogDeviceCharacteristics(
+						"x86", "Linux", "Xen", host, time_zone, fog.getCostPerSec(), fog.getRateRam(), fog.getRateStorage(), fog.getRateBwUp());
+			
+			FogDevice fogdevice = null;
+			try {
+				fogdevice = new FogDevice(fog.getName(), characteristics, 
+						new AppModuleAllocationPolicy(hostList), storageList, 10, fog.getUpBw(),
+						fog.getDownBw(), fog.getRateMips());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			return fogdevice;
+		}
 		
-		for(Node node : graph.getDevicesList().keySet())
-			if(node.getName().equals(clientName))
-				client = (FogDeviceGui) node;
+		@SuppressWarnings({"serial"})
+		private Application createApplication(Graph graph, String appId, int userId){
+			ApplicationGui applicationGui = null;
+			
+			for(ApplicationGui app : graph.getAppList())
+				if(app.getAppId().equals(appId))
+					applicationGui = app;
+			
+			if(applicationGui == null) return null;
+			
+			Application application = Application.createApplication(appId, userId);
+			
+			for(AppModule appModule : applicationGui.getModules())
+				application.addAppModule(appModule);
+			
+			for(AppEdge appEdge : applicationGui.getEdges())
+				application.addAppEdge(appEdge);
+			
+			for(AppModule appModule : applicationGui.getModules()) {
+				for(Pair<String, String> pair : appModule.getSelectivityMap().keySet())
+					application.addTupleMapping(appModule.getName(), pair,
+							((FractionalSelectivity)appModule.getSelectivityMap().get(pair)).getSelectivity());
+			}
+			
+			final AppLoop loop1 = new AppLoop(new ArrayList<String>(){{
+				add("EEG");
+				add("client");
+				add("concentration_calculator");
+				add("client");
+				add("DISPLAY");
+			}});
+			
+			List<AppLoop> loops = new ArrayList<AppLoop>(){{
+				add(loop1);
+			}};
+			
+			application.setLoops(loops);
+			return application;
+		}
 		
-		for (Entry<Node, List<Edge>> entry : graph.getDevicesList().entrySet()) {
-			for (Edge edge : entry.getValue()) {
-				if(entry.getKey().equals(client)){
-					if(edge.getNode().getType().equals(Config.SENSOR_TYPE)) {
-						sensor = (SensorGui)edge.getNode();
+		private void createSensorActuator(Graph graph, String clientName, int userId, String appId) {
+			FogDeviceGui client = null;
+			SensorGui sensor = null;
+			ActuatorGui actuator = null;
+			String tupleType = "";
+			String actuatorType = "";
+			double sensorLat = -1;
+			double actuatorLat = -1;
+			
+			for(Node node : graph.getDevicesList().keySet())
+				if(node.getName().equals(clientName))
+					client = (FogDeviceGui) node;
+			
+			for (Entry<Node, List<Edge>> entry : graph.getDevicesList().entrySet()) {
+				for (Edge edge : entry.getValue()) {
+					if(entry.getKey().equals(client)){
+						if(edge.getNode().getType().equals(Config.SENSOR_TYPE)) {
+							sensor = (SensorGui)edge.getNode();
+							sensorLat = edge.getLatency();
+						}else if(edge.getNode().getType().equals(Config.ACTUATOR_TYPE)) {
+							actuator = (ActuatorGui)edge.getNode();
+							actuatorLat = edge.getLatency();
+						}
+					}else if(entry.getKey().getType().equals(Config.SENSOR_TYPE) && edge.getNode().equals(client)) {
+						sensor = (SensorGui)entry.getKey();
 						sensorLat = edge.getLatency();
-					}else if(edge.getNode().getType().equals(Config.ACTUATOR_TYPE)) {
-						actuator = (ActuatorGui)edge.getNode();
+					}else if(entry.getKey().getType().equals(Config.ACTUATOR_TYPE) && edge.getNode().equals(client)) {
+						actuator = (ActuatorGui)entry.getKey();
 						actuatorLat = edge.getLatency();
 					}
-				}else if(entry.getKey().getType().equals(Config.SENSOR_TYPE) && edge.getNode().equals(client)) {
-					sensor = (SensorGui)entry.getKey();
-					sensorLat = edge.getLatency();
-				}else if(entry.getKey().getType().equals(Config.ACTUATOR_TYPE) && edge.getNode().equals(client)) {
-					actuator = (ActuatorGui)entry.getKey();
-					actuatorLat = edge.getLatency();
+					
+					if(sensor != null && actuator != null)
+						break;
 				}
-				
 				if(sensor != null && actuator != null)
 					break;
 			}
-			if(sensor != null && actuator != null)
-				break;
-		}
-		
-		for(ApplicationGui applicationGui : graph.getAppList()) {
-			if(applicationGui.getAppId().equals(appId)) {
-				for(AppEdge appEdge : applicationGui.getEdges()) {
-					if(appEdge.getEdgeType() == AppEdge.SENSOR)
-						tupleType = appEdge.getSource();
-					else if(appEdge.getEdgeType() == AppEdge.ACTUATOR)
-						actuatorType = appEdge.getDestination();
+			
+			for(ApplicationGui applicationGui : graph.getAppList()) {
+				if(applicationGui.getAppId().equals(appId)) {
+					for(AppEdge appEdge : applicationGui.getEdges()) {
+						if(appEdge.getEdgeType() == AppEdge.SENSOR)
+							tupleType = appEdge.getSource();
+						else if(appEdge.getEdgeType() == AppEdge.ACTUATOR)
+							actuatorType = appEdge.getDestination();
+					}
 				}
 			}
+			
+			Sensor newSensor = new Sensor(sensor.getName(), tupleType, userId, appId, new DeterministicDistribution(5.1)/*sensor.getDistribution()*/);
+			sensors.add(newSensor);
+			newSensor.setGatewayDeviceId(getFogDeviceByName(clientName).getId());
+			newSensor.setLatency(sensorLat);
+
+			Actuator display = new Actuator(actuator.getName(), userId, appId, actuatorType);
+			actuators.add(display);
+			display.setGatewayDeviceId(getFogDeviceByName(clientName).getId());
+			display.setLatency(actuatorLat);
 		}
 		
-		Sensor newSensor = new Sensor(sensor.getName(), tupleType, userId, appId, new DeterministicDistribution(5.1)/*sensor.getDistribution()*/);
-		sensors.add(newSensor);
-		newSensor.setGatewayDeviceId(getFogDeviceByName(clientName).getId());
-		newSensor.setLatency(sensorLat);
-
-		Actuator display = new Actuator(actuator.getName(), userId, appId, actuatorType);
-		actuators.add(display);
-		display.setGatewayDeviceId(getFogDeviceByName(clientName).getId());
-		display.setLatency(actuatorLat);
-	}
-	
-	private static FogDevice createFogDevice(FogDeviceGui fog) {
-		List<Pe> peList = new ArrayList<Pe>();
-		peList.add(new Pe(0, new PeProvisionerOverbooking(fog.getMips())));
-		
-		/*
-		PowerHost host = new PowerHost(
-			FogUtils.generateEntityId(),
-			new RamProvisionerSimple((int)fog.getRam()),
-			new BwProvisionerOverbooking((long)fog.getDownBw()),
-			fog.getStorage(),
-			peList,
-			new StreamOperatorScheduler(peList),
-			new FogLinearPowerModel(fog.getBusyPower(), fog.getIdlePower())
-		);
-
-		List<Host> hostList = new ArrayList<Host>();
-		hostList.add(host);
-
-		double time_zone = 10.0; // time zone this resource located
-		double cost = fog.getCostPerSec();
-		double costPerMem = fog.getRateRam();
-		double costPerStorage = fog.getRateStorage();
-		double costPerBw = fog.getRateBwUp();
-		LinkedList<Storage> storageList = new LinkedList<Storage>();
-
-		FogDeviceCharacteristics characteristics = new FogDeviceCharacteristics(
-				"x86", "Linux", "Xen", host, time_zone, cost, costPerMem, costPerStorage, costPerBw);
-		*/
-		
-		PowerHost host = new PowerHost(
-				FogUtils.generateEntityId(), //hostId
-				new RamProvisionerSimple(10240),
-				new BwProvisionerOverbooking(10000), //bw
-				1000000, // host storage
-				peList,
-				new StreamOperatorScheduler(peList),
-				new FogLinearPowerModel(107.339, 83.4333)
-			);
-
-			List<Host> hostList = new ArrayList<Host>();
-			hostList.add(host);
-
-			double time_zone = 10.0; // time zone this resource located
-			double cost = 3.0; // the cost of using processing in this resource
-			double costPerMem = 0.05; // the cost of using memory in this resource
-			double costPerStorage = 0.001; // the cost of using storage in this resource
-			double costPerBw = 0.1; // the cost of using bw in this resource
-			LinkedList<Storage> storageList = new LinkedList<Storage>(); // we are not adding SAN devices by now
-
-			FogDeviceCharacteristics characteristics = new FogDeviceCharacteristics(
-					"x86", "Linux", "Xen", host, time_zone, cost, costPerMem, costPerStorage, costPerBw);
-		
-		FogDevice fogdevice = null;
-		try {
-			fogdevice = new FogDevice(fog.getName(), characteristics, 
-					new AppModuleAllocationPolicy(hostList), storageList, 10, fog.getUpBw(),
-					fog.getDownBw(), fog.getRateMips());
-		} catch (Exception e) {
-			e.printStackTrace();
+		private FogDevice getFogDeviceByName(String name) {
+			for(FogDevice fogDevice : fogDevices)
+				if(fogDevice.getName().equals(name))
+					return fogDevice;
+			return null;
 		}
 		
-		return fogdevice;
-	}
-	
-	private static FogDevice getFogDeviceByName(String name) {
-		for(FogDevice fogDevice : fogDevices)
-			if(fogDevice.getName().equals(name))
-				return fogDevice;
-		return null;
-	}
-	
-	private static FogBroker getFogBrokerByName(String name) {
-		for(FogBroker fogBroker : fogBrokers)
-			if(fogBroker.getName().equals(name))
-				return fogBroker;
-		return null;
-	}
-	
-	private static void printDetails(Application application) {
-		System.out.println("Fog Devices: " + fogDevices + "\n\n");
-		System.out.println("Actuators: " + actuators + "\n\n");
-		System.out.println("Sensors: " + sensors + "\n\n");
-		
-		for(AppEdge appEdge : application.getEdges())
-			System.out.println("AppEdge: " + appEdge + "\n");
-		
-		for(AppModule appModule : application.getModules()) {
-			System.out.println("AppModule: " + appModule);
-			System.out.println("SelectivityMap: " + appModule.getSelectivityMap() + "\n\n\n");
+		private FogBroker getFogBrokerByName(String name) {
+			for(FogBroker fogBroker : fogBrokers)
+				if(fogBroker.getName().equals(name))
+					return fogBroker;
+			return null;
 		}
-	}
-	
-	public void append(String content){
-		outputArea.append(content+"\n");
+		
+		private void printDetails(Application application) {
+			System.out.println("Fog Devices: " + fogDevices + "\n\n");
+			System.out.println("Actuators: " + actuators + "\n\n");
+			System.out.println("Sensors: " + sensors + "\n\n");
+			
+			for(AppEdge appEdge : application.getEdges())
+				System.out.println("AppEdge: " + appEdge + "\n");
+			
+			for(AppModule appModule : application.getModules()) {
+				System.out.println("AppModule: " + appModule);
+				System.out.println("SelectivityMap: " + appModule.getSelectivityMap() + "\n\n\n");
+			}
+		}
 	}
 	
 }

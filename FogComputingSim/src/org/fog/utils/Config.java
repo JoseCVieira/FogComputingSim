@@ -27,8 +27,8 @@ public class Config {
 	public static final double RATE_MEM = 5E-11;
 	public static final double RATE_BW_UP = 3.9E-05;
 	public static final double RATE_BW_DOWN = 3.9E-05;
-	public static final double IDLE_POWER = 2;
-	public static final double BUSY_POWER = 13.5;
+	public static final double IDLE_POWER = 83.4333;
+	public static final double BUSY_POWER = 107.339;
 	public static final double COST_PER_SEC = 3.0;
 	
 	public static final double MODULE_MIPS = 1000.0;

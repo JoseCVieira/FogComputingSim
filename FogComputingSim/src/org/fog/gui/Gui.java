@@ -276,6 +276,9 @@ public class Gui extends JFrame {
     
     private String importFile(String type){
         JFileChooser fileopen = new JFileChooser();
+        File workingDirectory = new File(System.getProperty("user.dir"));
+        fileopen.setCurrentDirectory(workingDirectory);
+        
         FileFilter filter = new FileNameExtensionFilter(type.toUpperCase() + " Files", type);
         fileopen.addChoosableFileFilter(filter);
 
@@ -290,6 +293,9 @@ public class Gui extends JFrame {
     
     private void saveFile(String type, Graph graph) throws IOException{
     	JFileChooser fileopen = new JFileChooser();
+    	File workingDirectory = new File(System.getProperty("user.dir"));
+        fileopen.setCurrentDirectory(workingDirectory);
+        
         FileFilter filter = new FileNameExtensionFilter(type.toUpperCase()+" Files", type);
         fileopen.addChoosableFileFilter(filter);
 
