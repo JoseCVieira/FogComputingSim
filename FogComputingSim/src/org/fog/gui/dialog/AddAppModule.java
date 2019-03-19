@@ -107,6 +107,10 @@ public class AddAppModule extends JDialog {
 					}
 				}else
 					error_msg += "Missing name\n";
+				
+				if(moduleName.getText().contains(" "))
+					error_msg += "Name cannot contain spaces\n";
+				
 				if (!Util.validString(moduleMips.getText())) error_msg += "Missing Mips\n";
 				if (!Util.validString(moduleRam.getText())) error_msg += "Missing Ram\n";
 				if (!Util.validString(moduleSize.getText())) error_msg += "Missing Mem\n";

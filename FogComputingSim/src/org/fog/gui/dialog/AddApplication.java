@@ -135,27 +135,29 @@ public class AddApplication extends JDialog {
 				String name = tfName.getText();
 				boolean canBeChanged = true;
 				
-				if(graph.getAppList().size() != 0) {
-					for(ApplicationGui applicationGui : graph.getAppList()) {
-						if(app == null || (app != null && !app.equals(applicationGui))) {
-							if(name.equals(applicationGui.getAppId())) {
-								canBeChanged = false;
-								break;
-							}
+				for(ApplicationGui applicationGui : graph.getAppList()) {
+					if(app == null || (app != null && !app.equals(applicationGui))) {
+						if(name.equals(applicationGui.getAppId())) {
+							canBeChanged = false;
+							break;
 						}
 					}
 				}
 				
-				if(canBeChanged) {
-					if(app == null) {
-						tp.setEnabled(true);
-						addModuleBtn.setEnabled(true);
-						app = new ApplicationGui(name);
-						graph.getAppList().add(app);
+				if(tfName.getText().contains(" "))
+					Util.prompt(AddApplication.this, "Name cannot contain spaces", "Error");
+				else {
+					if(canBeChanged) {
+						if(app == null) {
+							tp.setEnabled(true);
+							addModuleBtn.setEnabled(true);
+							app = new ApplicationGui(name);
+							graph.getAppList().add(app);
+						}else
+							app.setAppId(name);
 					}else
-						app.setAppId(name);
-				}else
-					Util.prompt(AddApplication.this, name + " already exists", "Error");
+						Util.prompt(AddApplication.this, name + " already exists", "Error");
+				}
 			}
 		});
 

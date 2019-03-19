@@ -113,6 +113,10 @@ public class AddFogDevice extends JDialog {
 							error_msg += "\nName already exists";
 				}else
 					error_msg += "Missing name\n";
+				
+				if(deviceName.getText().contains(" "))
+					error_msg += "Name cannot contain spaces\n";
+				
 				if (!Util.validString(upBw.getText())) error_msg += "Missing uplink BW\n";
 				if (!Util.validString(downBw.getText())) error_msg += "Missing downlink BW\n";
 				if (!Util.validString(mips.getText())) error_msg += "Missing Mips\n";
@@ -128,7 +132,7 @@ public class AddFogDevice extends JDialog {
 				if (!Util.validString(cost.getText())) error_msg += "Missing Cost Per Second\n";
 
 				name_ = deviceName.getText();
-				if((upBw_ = Util.stringToDouble(upBw.getText())) < 0) error_msg += "\nUplink bandwidth be a positive number";
+				if((upBw_ = Util.stringToDouble(upBw.getText())) < 0) error_msg += "\nUplink bandwidth should be a positive number";
 				if((downBw_ = Util.stringToDouble(downBw.getText())) < 0) error_msg += "\nDownlink bandwidth should be a positive number";
 				if((mips_ = Util.stringToDouble(mips.getText())) < 0) error_msg += "\nMips should be a positive number";
 				if((ram_ = Util.stringToInt(ram.getText())) < 0) error_msg += "\nRam should be a positive number";

@@ -49,10 +49,10 @@ public class Controller extends SimEntity{
 	}
 
 	public FogDevice getFogDeviceById(int id){
-		for(FogDevice fogDevice : getFogDevices()){
+		for(FogDevice fogDevice : getFogDevices())
 			if(id==fogDevice.getId())
 				return fogDevice;
-		}
+
 		return null;
 	}
 	
@@ -148,22 +148,21 @@ public class Controller extends SimEntity{
 		getAppLaunchDelays().put(application.getAppId(), delay);
 		getAppModulePlacementPolicy().put(application.getAppId(), modulePlacement);
 		
-		for(Sensor sensor : sensors){
+		for(Sensor sensor : sensors)
 			sensor.setApp(getApplications().get(sensor.getAppId()));
-		}
-		for(Actuator ac : actuators){
+			
+		for(Actuator ac : actuators)
 			ac.setApp(getApplications().get(ac.getAppId()));
-		}
 		
 		for(AppEdge edge : application.getEdges()){
 			if(edge.getEdgeType() == AppEdge.ACTUATOR){
 				String moduleName = edge.getSource();
-				for(Actuator actuator : getActuators()){
+				
+				for(Actuator actuator : getActuators())
 					if(actuator.getActuatorType().equalsIgnoreCase(edge.getDestination()))
 						application.getModuleByName(moduleName).subscribeActuator(actuator.getId(), edge.getTupleType());
-				}
 			}
-		}	
+		}
 	}
 	
 	public void submitApplication(Application application, ModulePlacement modulePlacement){

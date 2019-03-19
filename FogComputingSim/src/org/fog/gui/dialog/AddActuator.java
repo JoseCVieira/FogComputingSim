@@ -87,6 +87,9 @@ public class AddActuator extends JDialog {
 					}
 				}else
 					error_msg += "Missing name\n";
+				
+				if(actuatorName.getText().contains(" "))
+					error_msg += "Name cannot contain spaces\n";
 
 				if(error_msg == ""){
 					if(actuator != null) {
@@ -124,7 +127,7 @@ public class AddActuator extends JDialog {
 		
 		int aux = 0;
 		for(Node node : graph.getDevicesList().keySet())
-			if(node.getType().equals(Config.SENSOR_TYPE))
+			if(node.getType().equals(Config.ACTUATOR_TYPE))
 				aux++;
 		
 		actuatorName.setText(actuator == null ? Config.ACTUATOR_NAME + aux : actuator.getName());

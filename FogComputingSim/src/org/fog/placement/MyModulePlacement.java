@@ -31,7 +31,8 @@ public class MyModulePlacement extends ModulePlacement{
 	protected Map<Integer, Map<String, Double>> currentModuleLoadMap;
 	protected Map<Integer, Map<String, Integer>> currentModuleInstanceNum;
 	
-	public MyModulePlacement(List<FogDevice> fogDevices, List<Sensor> sensors, List<Actuator> actuators, Application application, ModuleMapping moduleMapping){
+	public MyModulePlacement(List<FogDevice> fogDevices, List<Sensor> sensors, List<Actuator> actuators,
+			Application application, ModuleMapping moduleMapping){
 		this.setFogDevices(fogDevices);
 		this.setApplication(application);
 		this.setModuleMapping(moduleMapping);

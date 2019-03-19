@@ -148,10 +148,10 @@ public class RunSim extends JDialog {
     				Application application = createApplication(graph, fog.getApplication(), broker.getId());
     				application.setUserId(broker.getId());
     				
-					controller.submitApplication(application, 0, new MyModulePlacement(fogDevices, sensors,
+					controller.submitApplication(application, new MyModulePlacement(fogDevices, sensors,
 							actuators, application, ModuleMapping.createModuleMapping()));
-    				
-    				printDetails(application);
+					
+					//printDetails(application);
     			}
     			
     			TimeKeeper.getInstance().setSimulationStartTime(Calendar.getInstance().getTimeInMillis());

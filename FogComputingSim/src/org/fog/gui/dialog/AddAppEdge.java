@@ -147,7 +147,15 @@ public class AddAppEdge extends JDialog {
 		lactuator.setLabelFor(actuatorName);
 		springPanel.add(actuatorName);
 		
-		direction = Util.createDropDown(springPanel, direction, "Direction: ", directionModel, edge.getDirection() == Tuple.UP ? "UP" : "DOWN");
+		String dir = "";
+		if(edge != null) {
+			if(edge.getDirection() == Tuple.UP)
+				dir = "UP";
+			else
+				dir = "DOWN";
+		}
+		
+		direction = Util.createDropDown(springPanel, direction, "Direction: ", directionModel, dir);
 		periodic = Util.createDropDown(springPanel, periodic, "Periodic: ", periodicModel, null);
 		periodicity = Util.createInput(springPanel, periodicity, "Periodicity: ", edge == null ? Double.toString(Config.EDGE_PERIODICITY) : Double.toString(edge.getPeriodicity()));		
 		tupleCpuLength = Util.createInput(springPanel, tupleCpuLength, "Tuple CPU Length: ", edge == null ? Double.toString(Config.EDGE_CPU_LENGTH) : Double.toString(edge.getTupleCpuLength()));
@@ -311,8 +319,10 @@ public class AddAppEdge extends JDialog {
 					else error_msg += "Missing Source\n";
 				}else if (!Util.validString(sensorName.getText()))
 					error_msg += "Missing Sensor Name\n";
-				else
+				else if(!sensorName.getText().contains(" "))
 					srcName_ = sensorName.getText();
+				else
+					error_msg += "Sensor name cannot contain spaces\n";
 				
 				if(!actuatorName.isVisible()) {
 					AppModule dst = (AppModule)targetNode.getSelectedItem();
@@ -320,8 +330,10 @@ public class AddAppEdge extends JDialog {
 					else error_msg += "Missing Destination\n";
 				}else if (!Util.validString(actuatorName.getText()))
 					error_msg += "Missing Sensor Name\n";
-				else
+				else if(!actuatorName.getText().contains(" "))
 					dstName_ = actuatorName.getText();
+				else
+					error_msg += "Actuator name cannot contain spaces\n";
 				
 				if(srcName_.equals(dstName_)) error_msg += "Source equals to Destination\n";
 				if (!Util.validString(tupleCpuLength.getText())) error_msg += "Missing Tuple CPU Length\n";
@@ -334,6 +346,9 @@ public class AddAppEdge extends JDialog {
 				for(AppEdge appEdge : app.getEdges())
 					if(appEdge.getTupleType().equals(tupleType.getText()))
 						error_msg += "Repeated Tuple Type\n";
+				
+				if(tupleType.getText().contains(" "))
+					error_msg += "Tuple Type cannot contain spaces\n";
 
 				if((tupleCpuLength_ = Util.stringToDouble(tupleCpuLength.getText())) < 0) error_msg += "\nTuple CPU Length should be a positive number";
 				if((tupleNwLength_ = Util.stringToDouble(tupleNwLength.getText())) < 0) error_msg += "\nTuple NW Length should be a positive number";

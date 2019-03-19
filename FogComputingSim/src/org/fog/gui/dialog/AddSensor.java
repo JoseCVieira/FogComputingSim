@@ -91,11 +91,12 @@ public class AddSensor extends JDialog {
 		
 		okBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				boolean catchedError = false;
+				String error_msg = "";
+				
 				if (sensorName.getText() == null || sensorName.getText().length() < 1)
-					Util.prompt(AddSensor.this, "Please type Sensor name", "Error");
+					error_msg += "Please type Sensor name";
 				else if (distribution.getSelectedIndex() < 0)
-					Util.prompt(AddSensor.this, "Please select Emission time distribution", "Error");
+					error_msg += "Please select Emission time distribution";
 				else {
 					double normalMean_ = -1;
 					double normalStdDev_ = -1;
@@ -104,23 +105,20 @@ public class AddSensor extends JDialog {
 					double deterministicVal_ = -1;
 					String dist = (String)distribution.getSelectedItem();
 					
+					if(sensor == null || (sensor != null && !sensor.getName().equals(sensorName.getText())))
+						if(graph.isRepeatedName(sensorName.getText()))
+							error_msg += "Name already exists";
+					
+					if(sensorName.getText().contains(" "))
+						error_msg += "Name cannot contain spaces\n";
+					
 					if(dist.equals("Normal")){
-						try {
-							normalMean_ = Double.parseDouble(normalMean.getText());
-							normalStdDev_ = Double.parseDouble(normalStdDev.getText());
-						} catch (NumberFormatException e1) {
-							catchedError = true;
-							Util.prompt(AddSensor.this, "Input should be numerical character", "Error");
-						}
+						if (!Util.validString(normalMean.getText())) error_msg += "Missing Normal Mean\n";
+						if (!Util.validString(normalStdDev.getText())) error_msg += "Missing Standard Deviation\n";
+						if((normalMean_ = Util.stringToDouble(normalMean.getText())) < 0) error_msg += "\nNormal Mean should be a positive number";
+						if((normalStdDev_ = Util.stringToDouble(normalStdDev.getText())) < 0) error_msg += "\nStandard Deviation should be a positive number";
 						
-						if(sensor == null || (sensor != null && !sensor.getName().equals(sensorName.getText()))) {
-							if(graph.isRepeatedName(sensorName.getText())) {
-								catchedError = true;
-								Util.prompt(AddSensor.this, "Name already exists", "Error");
-							}
-						}
-						
-						if(!catchedError){
+						if(error_msg == "") {
 							if(sensor != null) {
 								sensor.setValues(sensorName.getText().toString(), (String)distribution.getSelectedItem(),
 										normalMean_, normalStdDev_, uniformLow_, uniformUp_, deterministicVal_);
@@ -129,25 +127,14 @@ public class AddSensor extends JDialog {
 										normalMean_, normalStdDev_, uniformLow_, uniformUp_, deterministicVal_);
 								graph.addNode(sensor);
 							}
-							setVisible(false);
 						}
-					} else if(dist.equals("Uniform")){
-						try {
-							uniformLow_ = Double.parseDouble(uniformLowerBound.getText());
-							uniformUp_ = Double.parseDouble(uniformUpperBound.getText());
-						} catch (NumberFormatException e1) {
-							catchedError = true;
-							Util.prompt(AddSensor.this, "Input should be numerical character", "Error");
-						}
+					}else if(dist.equals("Uniform")){
+						if (!Util.validString(uniformLowerBound.getText())) error_msg += "Missing Uniform Lower Bound\n";
+						if (!Util.validString(uniformUpperBound.getText())) error_msg += "Missing Uniform Upper Bound\n";
+						if((uniformLow_ = Util.stringToDouble(uniformLowerBound.getText())) < 0) error_msg += "\nUniform Lower Bound should be a positive number";
+						if((uniformUp_ = Util.stringToDouble(uniformUpperBound.getText())) < 0) error_msg += "\nUniform Upper Bound should be a positive number";
 						
-						if(sensor == null || (sensor != null && sensor.getName() != sensorName.getText())) {
-							if(graph.isRepeatedName(sensorName.getText())) {
-								catchedError = true;
-								Util.prompt(AddSensor.this, "Name already exists", "Error");
-							}
-						}
-						
-						if(!catchedError){
+						if(error_msg == "") {
 							if(sensor != null) {
 								sensor.setValues(sensorName.getText().toString(), (String)distribution.getSelectedItem(),
 										normalMean_, normalStdDev_, uniformLow_, uniformUp_, deterministicVal_);
@@ -156,35 +143,28 @@ public class AddSensor extends JDialog {
 										normalMean_, normalStdDev_, uniformLow_, uniformUp_, deterministicVal_);
 								graph.addNode(sensor);
 							}
-							setVisible(false);
 						}
-					} else if(dist.equals("Deterministic")){
-						try {
-							deterministicVal_ = Double.parseDouble(deterministicValue.getText());
-						} catch (NumberFormatException e1) {
-							catchedError = true;
-							Util.prompt(AddSensor.this, "Input should be numerical character", "Error");
-						}
+					}else if(dist.equals("Deterministic")){
+						if (!Util.validString(deterministicValue.getText())) error_msg += "Missing Deterministic Value\n";
+						if((deterministicVal_ = Util.stringToDouble(deterministicValue.getText())) < 0) error_msg += "\nDeterministic Value should be a positive number";
 						
-						if(sensor == null || (sensor != null && sensor.getName() != sensorName.getText())) {
-							if(graph.isRepeatedName(sensorName.getText())) {
-								catchedError = true;
-								Util.prompt(AddSensor.this, "Name already exists", "Error");
-							}
-						}
-						
-						if(!catchedError){
+						if(error_msg == "") {
 							if(sensor != null) {
 								sensor.setValues(sensorName.getText().toString(), (String)distribution.getSelectedItem(),
 										normalMean_, normalStdDev_, uniformLow_, uniformUp_, deterministicVal_);
 							}else {
+								System.out.println("AQUI3");
 								SensorGui sensor = new SensorGui(sensorName.getText().toString(), (String)distribution.getSelectedItem(),
 										normalMean_, normalStdDev_, uniformLow_, uniformUp_, deterministicVal_);
 								graph.addNode(sensor);
 							}
-							setVisible(false);
 						}
 					}
+					
+					if(error_msg == "")
+						setVisible(false);
+					else
+						Util.prompt(AddSensor.this, error_msg, "Error");
 				}
 			}
 		});
@@ -266,7 +246,7 @@ public class AddSensor extends JDialog {
 	}
 	
 	/* Miscellaneous methods */
-    protected void updatePanel(String item) {
+    private void updatePanel(String item) {
 		switch(item){
 		case "Normal":
 			normalMean.setVisible(true);
