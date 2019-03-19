@@ -35,7 +35,7 @@ import org.fog.utils.Logger;
 import org.fog.utils.TimeKeeper;
 import org.fog.utils.distribution.DeterministicDistribution;
 
-public class MyApp {
+public class OneApp {
 	static List<FogDevice> fogDevices = new ArrayList<FogDevice>();
 	static List<Actuator> actuators = new ArrayList<Actuator>();
 	static List<Sensor> sensors = new ArrayList<Sensor>();
@@ -46,8 +46,6 @@ public class MyApp {
 	private static final int NDEPTS = 2;
 	
 	private static final boolean DEBUG_MODE = false;
-	
-	public static final String END_DEVICE_NAME = "end-device";
 	
 	public static void main(String[] args) {
 		try {
@@ -133,21 +131,15 @@ public class MyApp {
 		return application;
 	}
 	
-	private static void createFogDevices(int userId, String appId) {
-		List<Integer> parentsIds;
-		
+	private static void createFogDevices(int userId, String appId) {		
 		// creates the fog device Cloud at the apex of the hierarchy with level=0
 		FogDevice cloud = createFogDevice("cloud", 44800, 40000, 100, 10000, 0, 0.01, 16*103, 16*83.25);
-		parentsIds = new ArrayList<Integer>();
-		parentsIds.add(-1);
-		cloud.setParentsIds(parentsIds);
+		cloud.getParentsIds().add(-1);
 		
 		// creates the fog device Proxy Server (level=1)
 		//FogDevice proxy = createFogDevice("proxy-server", 2800, 4000, 10000, 10000, 1, 0.0, 107.339, 83.4333);
 		FogDevice proxy = createFogDevice("proxy-server", 100, 100, 10000, 10000, 1, 0.0, 107.339, 83.4333);
-		parentsIds = new ArrayList<Integer>();
-		parentsIds.add(cloud.getId());
-		proxy.setParentsIds(parentsIds); // setting Cloud as parent of the Proxy Server
+		proxy.getParentsIds().add(cloud.getId()); // setting Cloud as parent of the Proxy Server
 		proxy.getUpStreamLatencyMap().put(cloud.getId(), 100.0); // latency of connection from Proxy Server to the Cloud is 100 ms
 		
 		fogDevices.add(cloud);
@@ -173,7 +165,6 @@ public class MyApp {
 	}
 	
 	private static FogDevice addGw(String id, int userId, String appId, int parentId){
-		List<Integer> parentsIds = new ArrayList<Integer>();
 		FogDevice dept;
 		
 		if(Integer.parseInt(id) == 1)
@@ -182,8 +173,7 @@ public class MyApp {
 			dept = createFogDevice("fog-device-"+id, 100, 100, 10000, 10000, 1, 0.0, 107.339, 83.4333);
 			
 		fogDevices.add(dept);
-		parentsIds.add(parentId);
-		dept.setParentsIds(parentsIds);
+		dept.getParentsIds().add(parentId);
 		dept.getUpStreamLatencyMap().put(parentId, 4.0); // latency of connection between gateways and proxy server is 4 ms
 
 		// Adding mobiles to the physical topology
@@ -197,12 +187,9 @@ public class MyApp {
 		return dept;
 	}
 	
-	private static FogDevice addMobile(String id, int userId, String appId, int parentId){
-		List<Integer> parentsIds = new ArrayList<Integer>();
-		
-		FogDevice mobile = createFogDevice(END_DEVICE_NAME + "-" + id, 1000, 1000, 10000, 270, 3, 0, 87.53, 82.44);
-		parentsIds.add(parentId);
-		mobile.setParentsIds(parentsIds);
+	private static FogDevice addMobile(String id, int userId, String appId, int parentId){		
+		FogDevice mobile = createFogDevice("end-device-" + id, 1000, 1000, 10000, 270, 3, 0, 87.53, 82.44);
+		mobile.getParentsIds().add(parentId);
 		
 		// Inter-transmission time of EEG sensor follows a deterministic distribution
 		Sensor eegSensor = new Sensor("SENSOR-"+id, "EEG", userId, appId, new DeterministicDistribution(EEG_TRANSMISSION_TIME));

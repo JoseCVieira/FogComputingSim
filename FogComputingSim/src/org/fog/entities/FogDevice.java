@@ -328,10 +328,10 @@ public class FogDevice extends PowerDatacenter {
 	}
 	
 	public String getOperatorName(int vmId){
-		for(Vm vm : this.getHost().getVmList()){
+		for(Vm vm : this.getHost().getVmList())
 			if(vm.getId() == vmId)
 				return ((AppModule)vm).getName();
-		}
+
 		return null;
 	}
 	
@@ -350,45 +350,31 @@ public class FogDevice extends PowerDatacenter {
 			Log.printLine();
 
 			double time = host.updateVmsProcessing(currentTime); // inform VMs to update processing
-			if (time < minTime) {
+			
+			if (time < minTime)
 				minTime = time;
-			}
 
-			Log.formatLine(
-					"%.2f: [Host #%d] utilization is %.2f%%",
-					currentTime,
-					host.getId(),
+			Log.formatLine("%.2f: [Host #%d] utilization is %.2f%%", currentTime, host.getId(),
 					host.getUtilizationOfCpu() * 100);
 		}
 
 		if (timeDiff > 0) {
-			Log.formatLine(
-					"\nEnergy consumption for the last time frame from %.2f to %.2f:",
-					getLastProcessTime(),
-					currentTime);
+			Log.formatLine("\nEnergy consumption for the last time frame from %.2f to %.2f:",
+					getLastProcessTime(), currentTime);
 
 			for (PowerHost host : this.<PowerHost> getHostList()) {
 				double previousUtilizationOfCpu = host.getPreviousUtilizationOfCpu();
 				double utilizationOfCpu = host.getUtilizationOfCpu();
 				double timeFrameHostEnergy = host.getEnergyLinearInterpolation(
-						previousUtilizationOfCpu,
-						utilizationOfCpu,
-						timeDiff);
+						previousUtilizationOfCpu, utilizationOfCpu, timeDiff);
 				timeFrameDatacenterEnergy += timeFrameHostEnergy;
 
 				Log.printLine();
-				Log.formatLine(
-						"%.2f: [Host #%d] utilization at %.2f was %.2f%%, now is %.2f%%",
-						currentTime,
-						host.getId(),
-						getLastProcessTime(),
-						previousUtilizationOfCpu * 100,
+				Log.formatLine("%.2f: [Host #%d] utilization at %.2f was %.2f%%, now is %.2f%%",
+						currentTime, host.getId(), getLastProcessTime(), previousUtilizationOfCpu * 100,
 						utilizationOfCpu * 100);
-				Log.formatLine(
-						"%.2f: [Host #%d] energy is %.2f W*sec",
-						currentTime,
-						host.getId(),
-						timeFrameHostEnergy);
+				Log.formatLine("%.2f: [Host #%d] energy is %.2f W*sec", currentTime,
+						host.getId(), timeFrameHostEnergy);
 			}
 
 			Log.formatLine(
@@ -414,20 +400,22 @@ public class FogDevice extends PowerDatacenter {
 			for (Vm vm : host.getVmList()) {
 				while (vm.getCloudletScheduler().isFinishedCloudlets()) {
 					Cloudlet cl = vm.getCloudletScheduler().getNextFinishedCloudlet();
+					
 					if (cl != null) {
-						
 						cloudletCompleted = true;
 						Tuple tuple = (Tuple)cl;
 						TimeKeeper.getInstance().tupleEndedExecution(tuple);
 						Application application = controller.getApplications().get(tuple.getAppId());
 						Logger.debug(getName(), "Completed execution of tuple "+tuple.getCloudletId()+"on "+tuple.getDestModuleName());
 						List<Tuple> resultantTuples = application.getResultantTuples(tuple.getDestModuleName(), tuple, getId(), vm.getId());
+						
 						for(Tuple resTuple : resultantTuples){
 							resTuple.setModuleCopyMap(new HashMap<String, Integer>(tuple.getModuleCopyMap()));
 							resTuple.getModuleCopyMap().put(((AppModule)vm).getName(), vm.getId());
 							updateTimingsOnSending(resTuple);
 							sendToSelf(resTuple);
 						}
+						
 						sendNow(cl.getUserId(), CloudSimTags.CLOUDLET_RETURN, cl);
 					}
 				}
@@ -544,6 +532,7 @@ public class FogDevice extends PowerDatacenter {
 		int time = (int)CloudSim.clock()/1000;
 		if(!cloudTrafficMap.containsKey(time))
 			cloudTrafficMap.put(time, 0);
+		
 		cloudTrafficMap.put(time, cloudTrafficMap.get(time)+1);
 	}
 	
@@ -598,39 +587,44 @@ public class FogDevice extends PowerDatacenter {
 		if(appToModulesMap.containsKey(tuple.getAppId())){
 			if(appToModulesMap.get(tuple.getAppId()).contains(tuple.getDestModuleName())){
 				int vmId = -1;
-				for(Vm vm : getHost().getVmList()){
+				
+				for(Vm vm : getHost().getVmList())
 					if(((AppModule)vm).getName().equals(tuple.getDestModuleName()))
 						vmId = vm.getId();
-				}
-				if(vmId < 0
-						|| (tuple.getModuleCopyMap().containsKey(tuple.getDestModuleName()) && 
-								tuple.getModuleCopyMap().get(tuple.getDestModuleName())!=vmId )){
+					
+				if(vmId < 0 || (tuple.getModuleCopyMap().containsKey(tuple.getDestModuleName()) && 
+						tuple.getModuleCopyMap().get(tuple.getDestModuleName())!=vmId ))
 					return;
-				}
+
 				tuple.setVmId(vmId);
-				
 				updateTimingsOnReceipt(tuple);
 				
+				/*
+				System.out.println(tuple + "\n\n");
+				System.out.println(tuple.getDestModuleName() + "\n\n");
+				System.out.println(ev + "\n\n");*/
+				
 				executeTuple(ev, tuple.getDestModuleName());
+				
 			}else if(tuple.getDestModuleName()!=null){
 				if(tuple.getDirection() == Tuple.UP) {
 					if(PRINT_COMMUNICATION_DETAILS) printCommunication(tuple, "UP");
-					sendUp(tuple, findNextHopCommunication(tuple));
+						sendUp(tuple, findNextHopCommunication(tuple));
 				}else if(tuple.getDirection() == Tuple.DOWN){
 					if(PRINT_COMMUNICATION_DETAILS) printCommunication(tuple, "DOWN");
-					sendDown(tuple, findNextHopCommunication(tuple));
+						sendDown(tuple, findNextHopCommunication(tuple));
 				}
 			}else{
 				if(PRINT_COMMUNICATION_DETAILS) printCommunication(tuple, "UP");
-				sendUp(tuple, findNextHopCommunication(tuple));
+					sendUp(tuple, findNextHopCommunication(tuple));
 			}
 		}else{
 			if(tuple.getDirection() == Tuple.UP) {
 				if(PRINT_COMMUNICATION_DETAILS) printCommunication(tuple, "UP");
-				sendUp(tuple, findNextHopCommunication(tuple));
+					sendUp(tuple, findNextHopCommunication(tuple));
 			}else if(tuple.getDirection() == Tuple.DOWN){
 				if(PRINT_COMMUNICATION_DETAILS) printCommunication(tuple, "DOWN");
-				sendDown(tuple, findNextHopCommunication(tuple));
+					sendDown(tuple, findNextHopCommunication(tuple));
 			}
 		}
 	}
@@ -641,14 +635,17 @@ public class FogDevice extends PowerDatacenter {
 		String destModule = tuple.getDestModuleName();
 		List<AppLoop> loops = app.getLoops();
 		for(AppLoop loop : loops){
-			if(loop.hasEdge(srcModule, destModule) && loop.isEndModule(destModule)){				
+			if(loop.hasEdge(srcModule, destModule) && loop.isEndModule(destModule)){
 				Double startTime = TimeKeeper.getInstance().getEmitTimes().get(tuple.getActualTupleId());
+				
 				if(startTime==null)
 					break;
+				
 				if(!TimeKeeper.getInstance().getLoopIdToCurrentAverage().containsKey(loop.getLoopId())){
 					TimeKeeper.getInstance().getLoopIdToCurrentAverage().put(loop.getLoopId(), 0.0);
 					TimeKeeper.getInstance().getLoopIdToCurrentNum().put(loop.getLoopId(), 0);
 				}
+				
 				double currentAverage = TimeKeeper.getInstance().getLoopIdToCurrentAverage().get(loop.getLoopId());
 				int currentCount = TimeKeeper.getInstance().getLoopIdToCurrentNum().get(loop.getLoopId());
 				double delay = CloudSim.clock()- TimeKeeper.getInstance().getEmitTimes().get(tuple.getActualTupleId());
@@ -694,28 +691,29 @@ public class FogDevice extends PowerDatacenter {
 	protected void processModuleArrival(SimEvent ev){
 		AppModule module = (AppModule)ev.getData();
 		String appId = module.getAppId();
-		if(!appToModulesMap.containsKey(appId)){
+		
+		if(!appToModulesMap.containsKey(appId))
 			appToModulesMap.put(appId, new ArrayList<String>());
-		}
+
 		appToModulesMap.get(appId).add(module.getName());
 		processVmCreate(ev, false);
-		if (module.isBeingInstantiated()) {
+		
+		if (module.isBeingInstantiated())
 			module.setBeingInstantiated(false);
-		}
 		
 		initializePeriodicTuples(module);
 		
-		module.updateVmProcessing(CloudSim.clock(), getVmAllocationPolicy().getHost(module).getVmScheduler()
-				.getAllocatedMipsForVm(module));
+		module.updateVmProcessing(CloudSim.clock(),
+				getVmAllocationPolicy().getHost(module).getVmScheduler().getAllocatedMipsForVm(module));
 	}
 	
 	private void initializePeriodicTuples(AppModule module) {
 		String appId = module.getAppId();
 		Application app = controller.getApplications().get(appId);
 		List<AppEdge> periodicEdges = app.getPeriodicEdges(module.getName());
-		for(AppEdge edge : periodicEdges){
+		
+		for(AppEdge edge : periodicEdges)
 			send(getId(), edge.getPeriodicity(), FogEvents.SEND_PERIODIC_TUPLE, edge);
-		}
 	}
 
 	protected void processOperatorRelease(SimEvent ev){
@@ -770,11 +768,10 @@ public class FogDevice extends PowerDatacenter {
 	
 	protected void sendDown(Tuple tuple, int childId){
 		if(getChildrenIds().contains(childId) || getBrothersIds().contains(childId)){
-			if(!isSouthLinkBusy()){
+			if(!isSouthLinkBusy())
 				sendDownFreeLink(tuple, childId);
-			}else{
+			else
 				southTupleQueue.add(new Pair<Tuple, Integer>(tuple, childId));
-			}
 		}
 	}
 	
@@ -1022,4 +1019,5 @@ public class FogDevice extends PowerDatacenter {
 		"RatePerMips: " + ratePerMips + "\n\n";
 		return str;
 	}
+	
 }
