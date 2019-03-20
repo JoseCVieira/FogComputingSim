@@ -81,12 +81,12 @@ public class Application {
 	}
 	
 	public void addAppModule(AppModule m){ //ADDED
-		AppModule module = new AppModule(FogUtils.generateEntityId(), m.getName(), appId, userId, 
+		AppModule module = new AppModule(FogUtils.generateEntityId(), m.getName() + "_" + userId, appId, userId, 
 			m.getMips(), m.getRam(), m.getBw(), m.getSize(), m.getVmm(), new TupleScheduler(m.getMips(), 1),
 			new HashMap<Pair<String, String>, SelectivityModel>());
 		getModules().add(module);
 	}
-	
+
 	/**
 	 * Adds a non-periodic edge to the application model.
 	 * @param source
@@ -109,8 +109,8 @@ public class Application {
 		AppEdge edge = null;
 		
 		if(!e.isPeriodic())
-			edge = new AppEdge(e.getSource(), e.getDestination(), e.getTupleCpuLength(),
-				e.getTupleNwLength(), e.getTupleType(), e.getDirection(), e.getEdgeType());
+			edge = new AppEdge(e.getSource() + "_" + userId, e.getDestination() + "_" + userId, e.getTupleCpuLength(),
+				e.getTupleNwLength(), e.getTupleType() + "_" + userId, e.getDirection(), e.getEdgeType());
 		else
 			edge = new AppEdge(e.getSource(), e.getDestination(), e.getPeriodicity(),
 					e.getTupleCpuLength(), e.getTupleNwLength(), e.getTupleType(),
@@ -148,12 +148,14 @@ public class Application {
 	public void addTupleMapping(String moduleName, String inputTupleType,
 			String outputTupleType, SelectivityModel selectivityModel){
 		AppModule module = getModuleByName(moduleName);
-		module.getSelectivityMap().put(new Pair<String, String>(inputTupleType, outputTupleType), selectivityModel);
+		module.getSelectivityMap().put(new Pair<String, String>(inputTupleType, outputTupleType),
+				selectivityModel);
 	}
 	
 	public void addTupleMapping(String moduleName, Pair<String, String> pair, double value){  //ADDED
-		AppModule module = getModuleByName(moduleName);
-		module.getSelectivityMap().put(pair, new FractionalSelectivity(value));
+		AppModule module = getModuleByName(moduleName + "_" + userId);
+		Pair<String, String> newPair = new Pair<String, String>(pair.getFirst() + "_" + userId, pair.getSecond() + "_" + userId);
+		module.getSelectivityMap().put(newPair, new FractionalSelectivity(value));
 	}
 	
 	/**
@@ -363,5 +365,11 @@ public class Application {
 
 	public void setEdgeMap(Map<String, AppEdge> edgeMap) {
 		this.edgeMap = edgeMap;
+	}
+	
+	@Override
+	public String toString() {
+		return "Application [edgeMap=" + edgeMap + ", geoCoverage=" + geoCoverage + ", modules=" + modules + ", edges="
+				+ edges + ", loops=" + loops + ", appId=" + appId + ", userId=" + userId + ", paths=" + paths + "]";
 	}
 }

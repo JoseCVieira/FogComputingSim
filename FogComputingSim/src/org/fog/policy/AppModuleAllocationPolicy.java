@@ -25,9 +25,8 @@ public class AppModuleAllocationPolicy extends VmAllocationPolicy{
 	public boolean allocateHostForVm(Vm vm) {
 		Host host = fogHost;
 		boolean result = host.vmCreate(vm);
-		if (result) { // if vm were succesfully created in the host
+		if (result) // if vm were succesfully created in the host
 			getAppModuleIdsIds().add(vm.getId());
-		}
 		
 		return result;
 	}
@@ -35,25 +34,21 @@ public class AppModuleAllocationPolicy extends VmAllocationPolicy{
 	@Override
 	public boolean allocateHostForVm(Vm vm, Host host) {
 		boolean result = host.vmCreate(vm);
-		if (result) { // if vm were succesfully created in the host
+		if (result) // if vm were succesfully created in the host
 			getAppModuleIdsIds().add(vm.getId());
-		}
 		
 		return result;
 	}
 
 	@Override
-	public List<Map<String, Object>> optimizeAllocation(
-			List<? extends Vm> vmList) {
-		// TODO Auto-generated method stub
+	public List<Map<String, Object>> optimizeAllocation(List<? extends Vm> vmList) {
 		return null;
 	}
 
 	@Override
 	public void deallocateHostForVm(Vm vm) {
-		if (fogHost != null) {
+		if (fogHost != null)
 			fogHost.vmDestroy(vm);
-		}
 	}
 
 	@Override
@@ -63,7 +58,7 @@ public class AppModuleAllocationPolicy extends VmAllocationPolicy{
 
 	@Override
 	public Host getHost(int vmId, int userId) {
-			return fogHost;
+		return fogHost;
 	}
 
 	public Host getFogHost() {

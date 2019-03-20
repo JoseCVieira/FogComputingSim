@@ -35,7 +35,7 @@ import org.fog.utils.Logger;
 import org.fog.utils.TimeKeeper;
 import org.fog.utils.distribution.DeterministicDistribution;
 
-public class OneApp {
+public class VRGame {
 	static List<FogDevice> fogDevices = new ArrayList<FogDevice>();
 	static List<Actuator> actuators = new ArrayList<Actuator>();
 	static List<Sensor> sensors = new ArrayList<Sensor>();

@@ -363,39 +363,45 @@ public class Gui extends JFrame {
     		return;
     	
     	for(Node fogNode : list) {
-    		boolean sensor = false, actuator = false;
-    		
-    		for(Node node : physicalGraph.getDevicesList().keySet()) {
-    			if(fogNode.equals(node)) {
-    				for(Edge edge : physicalGraph.getDevicesList().get(node)) {
-    	    			if(!sensor && edge.getNode().getType().equals(Config.SENSOR_TYPE))
-    	    				sensor = true;
-    	    			
-    	    			if(!actuator && edge.getNode().getType().equals(Config.ACTUATOR_TYPE))
-    	    				actuator = true;
-    	    			
-    	    			if(actuator && sensor)
-    	    				break;
-    	    		}
-    			}else if(node.getType().equals(Config.SENSOR_TYPE) || node.getType().equals(Config.ACTUATOR_TYPE)) {
-    				for(Edge edge : physicalGraph.getDevicesList().get(node)) {    					
-    					if(!sensor && edge.getNode().equals(fogNode) && node.getType().equals(Config.SENSOR_TYPE))
-    	    				sensor = true;
-    				
-    					if(!actuator && edge.getNode().equals(fogNode) && node.getType().equals(Config.ACTUATOR_TYPE))
-    						actuator = true;
-    				
-    					if(actuator && sensor)
-    	    				break;
-    				}
-    			}
-    		}
-    		
-			if(!actuator || !sensor) {
-				btnRun.setEnabled(false);
+    		if(!hasSensorActuator(fogNode)) {
+    			btnRun.setEnabled(false);
     			return;
-			}
+    		}
     	}
+    }
+    
+    public static boolean hasSensorActuator(Node fogNode) {
+    	boolean sensor = false, actuator = false;
+		
+		for(Node node : physicalGraph.getDevicesList().keySet()) {
+			if(fogNode.equals(node)) {
+				for(Edge edge : physicalGraph.getDevicesList().get(node)) {
+	    			if(!sensor && edge.getNode().getType().equals(Config.SENSOR_TYPE))
+	    				sensor = true;
+	    			
+	    			if(!actuator && edge.getNode().getType().equals(Config.ACTUATOR_TYPE))
+	    				actuator = true;
+	    			
+	    			if(actuator && sensor)
+	    				break;
+	    		}
+			}else if(node.getType().equals(Config.SENSOR_TYPE) || node.getType().equals(Config.ACTUATOR_TYPE)) {
+				for(Edge edge : physicalGraph.getDevicesList().get(node)) {    					
+					if(!sensor && edge.getNode().equals(fogNode) && node.getType().equals(Config.SENSOR_TYPE))
+	    				sensor = true;
+				
+					if(!actuator && edge.getNode().equals(fogNode) && node.getType().equals(Config.ACTUATOR_TYPE))
+						actuator = true;
+				
+					if(actuator && sensor)
+	    				break;
+				}
+			}
+		}
+		
+		if(!actuator || !sensor)
+			return false;
+		return true;
     }
     
 	public static void main(String args[]) throws InterruptedException {

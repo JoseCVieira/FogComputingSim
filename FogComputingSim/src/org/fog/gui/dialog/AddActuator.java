@@ -125,7 +125,7 @@ public class AddActuator extends JDialog {
 		springPanel.add(lName);
 		actuatorName = new JTextField();
 		
-		int aux = 0;
+		int aux = 1;
 		for(Node node : graph.getDevicesList().keySet())
 			if(node.getType().equals(Config.ACTUATOR_TYPE))
 				aux++;

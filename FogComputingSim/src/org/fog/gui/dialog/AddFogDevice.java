@@ -21,6 +21,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SpringLayout;
 
+import org.fog.gui.Gui;
 import org.fog.gui.core.ApplicationGui;
 import org.fog.gui.core.FogDeviceGui;
 import org.fog.gui.core.Graph;
@@ -185,7 +186,7 @@ public class AddFogDevice extends JDialog {
 		springPanel.add(deviceNameLabel);
 		deviceName = new JTextField();
 		
-		int aux = 0;
+		int aux = 1;
 		for(Node node : graph.getDevicesList().keySet())
 			if(node.getType().equals(Config.FOG_TYPE))
 				aux++;
@@ -227,6 +228,9 @@ public class AddFogDevice extends JDialog {
 		@SuppressWarnings({ "rawtypes", "unchecked" })
 		ComboBoxModel<String> applicationModel = new DefaultComboBoxModel(applicationIds.toArray());
 		application = new JComboBox<>(applicationModel);
+		
+		if(fog == null || (fog != null && !Gui.hasSensorActuator(fog)))
+			application.setVisible(false);
 		
 		JLabel lapplication = new JLabel("Application: ");
 		springPanel.add(lapplication);

@@ -27,10 +27,6 @@ public abstract class ModulePlacement {
 		return fogDevice.getVmAllocationPolicy().allocateHostForVm(module);
 	}
 	
-	protected int getParentDevice(int fogDeviceId){
-		return ((FogDevice)CloudSim.getEntity(fogDeviceId)).getParentsIds().get(0);//TODO
-	}
-	
 	protected FogDevice getFogDeviceById(int fogDeviceId){
 		return (FogDevice)CloudSim.getEntity(fogDeviceId);
 	}

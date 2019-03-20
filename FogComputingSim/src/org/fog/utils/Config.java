@@ -5,9 +5,9 @@ public class Config {
 	public static final String ADD = "ADD";
 	public static final String EDIT = "EDIT";
 	
-	public static final String FOG_NAME = "Fog Node ";
-	public static final String ACTUATOR_NAME = "Actuator ";
-	public static final String SENSOR_NAME = "Sensor ";
+	public static final String FOG_NAME = "FogNode";
+	public static final String ACTUATOR_NAME = "Actuator";
+	public static final String SENSOR_NAME = "Sensor";
 	
 	public static final String FOG_TYPE = "FOG_DEVICE";
 	public static final String SENSOR_TYPE = "SENSOR";

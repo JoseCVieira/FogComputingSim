@@ -26,7 +26,7 @@ import org.fog.entities.Sensor;
 import org.fog.entities.Tuple;
 import org.fog.placement.Controller;
 import org.fog.placement.ModuleMapping;
-import org.fog.placement.ModulePlacementMapping;
+import org.fog.placement.MyModulePlacement;
 import org.fog.policy.AppModuleAllocationPolicy;
 import org.fog.scheduler.StreamOperatorScheduler;
 import org.fog.utils.FogLinearPowerModel;
@@ -34,18 +34,23 @@ import org.fog.utils.FogUtils;
 import org.fog.utils.TimeKeeper;
 import org.fog.utils.distribution.DeterministicDistribution;
 
-public class TwoApps {
+public class VRGameTwoApps {
 	static List<FogDevice> fogDevices = new ArrayList<FogDevice>();
 	static List<FogDevice> mobiles = new ArrayList<FogDevice>();
-	static List<Sensor> sensors = new ArrayList<Sensor>();
-	static List<Actuator> actuators = new ArrayList<Actuator>();
 	
-	static int numOfDepts = 1;
-	static int numOfMobilesPerDept = 4;
-	static double EEG_TRANSMISSION_TIME = 5.1;
+	static List<Sensor> sensors_0 = new ArrayList<Sensor>();
+	static List<Actuator> actuators_0 = new ArrayList<Actuator>();
+	
+	static List<Sensor> sensors_1 = new ArrayList<Sensor>();
+	static List<Actuator> actuators_1 = new ArrayList<Actuator>();
+	
+	private static final int numOfDepts = 2;
+	private static final int numOfMobilesPerDept = 1;
+	private static final double EEG_TRANSMISSION_TIME = 5.1;
+	private static final String APP_ID_0 = "vr_game_0";
+	private static final String APP_ID_1 = "vr_game_1";
 	
 	public static void main(String[] args) {
-
 		Log.printLine("Starting TwoApps...");
 
 		try {
@@ -53,55 +58,44 @@ public class TwoApps {
 			int num_user = 1;
 			Calendar calendar = Calendar.getInstance();
 			boolean trace_flag = false;
-
+			
 			CloudSim.init(num_user, calendar, trace_flag);
-
-			String appId0 = "vr_game_0";
-			String appId1 = "vr_game_1";
 			
 			FogBroker broker0 = new FogBroker("broker_0");
 			FogBroker broker1 = new FogBroker("broker_1");
 			
-			
-			Application application0 = createApplication0(appId0, broker0.getId());
-			Application application1 = createApplication1(appId1, broker1.getId());
+			Application application0 = createApplication0(APP_ID_0, broker0.getId());
+			Application application1 = createApplication1(APP_ID_1, broker1.getId());
 			application0.setUserId(broker0.getId());
 			application1.setUserId(broker1.getId());
 			
 			createFogDevices();
 			
-			createEdgeDevices0(broker0.getId(), appId0);
-			createEdgeDevices1(broker1.getId(), appId1);
+			createEdgeDevices0(broker0.getId(), APP_ID_0);
+			createEdgeDevices1(broker1.getId(), APP_ID_1);
 			
-			ModuleMapping moduleMapping_0 = ModuleMapping.createModuleMapping();
-			ModuleMapping moduleMapping_1 = ModuleMapping.createModuleMapping();
+			List<Sensor> sensors = new ArrayList<Sensor>();
+			List<Actuator> actuators = new ArrayList<Actuator>();
 			
-			moduleMapping_0.addModuleToDevice("connector", "cloud");
-			moduleMapping_0.addModuleToDevice("concentration_calculator", "cloud");
-			moduleMapping_1.addModuleToDevice("connector_1", "cloud");
-			moduleMapping_1.addModuleToDevice("concentration_calculator_1", "cloud");
-			for(FogDevice device : fogDevices){
-				if(device.getName().startsWith("m")){
-					moduleMapping_0.addModuleToDevice("client", device.getName());
-					moduleMapping_1.addModuleToDevice("client_1", device.getName());
-				}
-			}
+			sensors.addAll(sensors_0);
+			sensors.addAll(sensors_1);
 			
-			Controller controller = new Controller("master-controller", fogDevices, sensors, 
-					actuators);
+			actuators.addAll(actuators_0);
+			actuators.addAll(actuators_1);
+			
+			Controller controller = new Controller("master-controller", fogDevices, sensors, actuators);
 			
 			for(FogDevice fogDevice : fogDevices)
 				fogDevice.setController(controller);
 			
-			controller.submitApplication(application0, new ModulePlacementMapping(fogDevices, application0, moduleMapping_0));
-			controller.submitApplication(application1, 1000, new ModulePlacementMapping(fogDevices, application1, moduleMapping_1));
-
+			controller.submitApplication(application0, new MyModulePlacement(fogDevices, sensors_0, actuators_0,
+					application0, ModuleMapping.createModuleMapping()));
+			controller.submitApplication(application1, new MyModulePlacement(fogDevices, sensors_1, actuators_1,
+					application1, ModuleMapping.createModuleMapping()));
+			
 			TimeKeeper.getInstance().setSimulationStartTime(Calendar.getInstance().getTimeInMillis());
-
 			CloudSim.startSimulation();
-
 			CloudSim.stopSimulation();
-
 			Log.printLine("VRGame finished!");
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -112,38 +106,38 @@ public class TwoApps {
 	private static void createEdgeDevices0(int userId, String appId) {
 		for(FogDevice mobile : mobiles){
 			String id = mobile.getName();
-			Sensor eegSensor = new Sensor("s-"+appId+"-"+id, "EEG", userId, appId, new DeterministicDistribution(EEG_TRANSMISSION_TIME));
-			sensors.add(eegSensor);
-			Actuator display = new Actuator("a-"+appId+"-"+id, userId, appId, "DISPLAY");
-			actuators.add(display);
-			eegSensor.setGatewayDeviceId(mobile.getId());
-			eegSensor.setLatency(6.0);
-			display.setGatewayDeviceId(mobile.getId());
-			display.setLatency(1.0);
+			if(id.equals("Client0-0")) {
+				Sensor eegSensor = new Sensor("s-"+appId+"-"+id, "EEG", userId, appId, new DeterministicDistribution(EEG_TRANSMISSION_TIME));
+				sensors_0.add(eegSensor);
+				Actuator display = new Actuator("a-"+appId+"-"+id, userId, appId, "DISPLAY");
+				actuators_0.add(display);
+				eegSensor.setGatewayDeviceId(mobile.getId());
+				eegSensor.setLatency(6.0);
+				display.setGatewayDeviceId(mobile.getId());
+				display.setLatency(1.0);
+			}
 		}
 	}
 	
 	private static void createEdgeDevices1(int userId, String appId) {
 		for(FogDevice mobile : mobiles){
 			String id = mobile.getName();
-			
-			Sensor eegSensor = new Sensor("s-"+appId+"-"+id, "EEG_1", userId, appId, new DeterministicDistribution(EEG_TRANSMISSION_TIME));
-			sensors.add(eegSensor);
-			
-			Actuator display = new Actuator("a-"+appId+"-"+id, userId, appId, "DISPLAY_1");
-			actuators.add(display);
-			
-			eegSensor.setGatewayDeviceId(mobile.getId());
-			eegSensor.setLatency(6.0);
-			display.setGatewayDeviceId(mobile.getId());
-			display.setLatency(1.0);
+			if(id.equals("Client1-0")) {
+				Sensor eegSensor = new Sensor("s-"+appId+"-"+id, "EEG_1", userId, appId, new DeterministicDistribution(EEG_TRANSMISSION_TIME));
+				sensors_1.add(eegSensor);
+				Actuator display = new Actuator("a-"+appId+"-"+id, userId, appId, "DISPLAY_1");
+				actuators_1.add(display);
+				eegSensor.setGatewayDeviceId(mobile.getId());
+				eegSensor.setLatency(6.0);
+				display.setGatewayDeviceId(mobile.getId());
+				display.setLatency(1.0);
+			}
 		}
 	}
 
 	private static void createFogDevices() {
 		FogDevice cloud = createFogDevice("cloud", 44800, 40000, 100, 10000, 0, 0.01, 16*103, 16*83.25);
 		cloud.getParentsIds().add(-1);
-		
 		FogDevice proxy = createFogDevice("proxy-server", 2800, 4000, 10000, 10000, 1, 0.0, 107.339, 83.4333);
 		proxy.getParentsIds().add(cloud.getId());
 		proxy.getUpStreamLatencyMap().put(cloud.getId(), 100.0);
@@ -153,6 +147,7 @@ public class TwoApps {
 		
 		for(int i=0;i<numOfDepts;i++)
 			addGw(i+"", proxy.getId());
+		
 	}
 
 	private static FogDevice addGw(String id, int parentId){
@@ -171,7 +166,7 @@ public class TwoApps {
 	}
 	
 	private static FogDevice addMobile(String id, int parentId){
-		FogDevice mobile = createFogDevice("m-"+id, 1000, 1000, 10000, 270, 3, 0, 87.53, 82.44);
+		FogDevice mobile = createFogDevice("Client"+id, 1000, 1000, 10000, 270, 3, 0, 87.53, 82.44);
 		mobile.getParentsIds().add(parentId);
 		mobiles.add(mobile);
 		return mobile;
@@ -181,7 +176,7 @@ public class TwoApps {
 			int ram, long upBw, long downBw, int level, double ratePerMips, double busyPower, double idlePower) {
 		
 		List<Pe> peList = new ArrayList<Pe>();
-
+		
 		peList.add(new Pe(0, new PeProvisionerOverbooking(mips)));
 
 		int hostId = FogUtils.generateEntityId();
@@ -219,6 +214,7 @@ public class TwoApps {
 		try {
 			fogdevice = new FogDevice(nodeName, characteristics, 
 					new AppModuleAllocationPolicy(hostList), storageList, 10, upBw, downBw, ratePerMips);
+			fogdevice.setRatePerMips(0.001);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -228,7 +224,6 @@ public class TwoApps {
 
 	@SuppressWarnings({"serial" })
 	private static Application createApplication0(String appId, int userId){
-		
 		Application application = Application.createApplication(appId, userId);
 
 		application.addAppModule("client", 10);
@@ -257,8 +252,7 @@ public class TwoApps {
 	
 	@SuppressWarnings({"serial" })
 	private static Application createApplication1(String appId, int userId){
-		
-		Application application = Application.createApplication(appId, userId); 
+		Application application = Application.createApplication(appId, userId);
 
 		application.addAppModule("client_1", 10);
 		application.addAppModule("concentration_calculator_1", 10);
@@ -276,7 +270,7 @@ public class TwoApps {
 		application.addTupleMapping("client_1", "CONCENTRATION_1", "SELF_STATE_UPDATE_1", new FractionalSelectivity(1.0));
 		application.addTupleMapping("concentration_calculator_1", "_SENSOR_1", "CONCENTRATION_1", new FractionalSelectivity(1.0));
 		application.addTupleMapping("client_1", "GLOBAL_GAME_STATE_1", "GLOBAL_STATE_UPDATE_1", new FractionalSelectivity(1.0));
-
+		
 		final AppLoop loop1 = new AppLoop(new ArrayList<String>(){{add("EEG_1");add("client_1");add("concentration_calculator_1");add("client_1");add("DISPLAY_1");}});
 		List<AppLoop> loops = new ArrayList<AppLoop>(){{add(loop1);}};
 		application.setLoops(loops);
