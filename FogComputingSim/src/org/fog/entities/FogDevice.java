@@ -40,7 +40,7 @@ import org.fog.utils.NetworkUsageMonitor;
 import org.fog.utils.TimeKeeper;
 
 public class FogDevice extends PowerDatacenter {
-	private static final boolean PRINT_COMMUNICATION_DETAILS = false;
+	private static final boolean PRINT_COMMUNICATION_DETAILS = true;
 	
 	protected Map<String, Map<String, Integer>> moduleInstanceCount;
 	protected List<Pair<Integer, Double>> associatedActuatorIds;

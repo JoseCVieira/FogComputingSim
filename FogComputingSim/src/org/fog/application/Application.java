@@ -28,7 +28,7 @@ public class Application {
 	private List<List<Integer>> paths; // added-------------------------------------------------------
 	
 	public Application(String appId, int userId) {
-		setAppId(appId);
+		setAppId(appId + "_" + userId);
 		setUserId(userId);
 		setModules(new ArrayList<AppModule>());
 		setEdges(new ArrayList<AppEdge>());
@@ -47,19 +47,9 @@ public class Application {
 		setGeoCoverage(geoCoverage);
 		setLoops(loops);
 		setEdgeMap(new HashMap<String, AppEdge>());
-		for(AppEdge edge : edges){
+		
+		for(AppEdge edge : edges)
 			getEdgeMap().put(edge.getTupleType(), edge);
-		}
-	}
-	
-	/**
-	 * Creates a plain vanilla application with no modules and edges.
-	 * @param appId
-	 * @param userId
-	 * @return
-	 */
-	public static Application createApplication(String appId, int userId){
-		return new Application(appId, userId);
 	}
 	
 	/**
@@ -369,7 +359,6 @@ public class Application {
 	
 	@Override
 	public String toString() {
-		return "Application [edgeMap=" + edgeMap + ", geoCoverage=" + geoCoverage + ", modules=" + modules + ", edges="
-				+ edges + ", loops=" + loops + ", appId=" + appId + ", userId=" + userId + ", paths=" + paths + "]";
+		return "Application [appId=" + appId + ", userId=" + userId + "]";
 	}
 }

@@ -1,11 +1,3 @@
-/*
- * Title:        CloudSim Toolkit
- * Description:  CloudSim (Cloud Simulation) Toolkit for Modeling and Simulation of Clouds
- * Licence:      GPL - http://www.gnu.org/copyleft/gpl.html
- *
- * Copyright (c) 2009-2012, The University of Melbourne, Australia
- */
-
 package org.cloudbus.cloudsim.core;
 
 import java.util.ArrayList;
@@ -22,29 +14,11 @@ import org.cloudbus.cloudsim.core.predicates.Predicate;
 import org.cloudbus.cloudsim.core.predicates.PredicateAny;
 import org.cloudbus.cloudsim.core.predicates.PredicateNone;
 
-/**
- * This class extends the CloudSimCore to enable network simulation in CloudSim. Also, it disables
- * all the network models from CloudSim, to provide a simpler simulation of networking. In the
- * network model used by CloudSim, a topology file written in BRITE format is used to describe the
- * network. Later, nodes in such file are mapped to CloudSim entities. Delay calculated from the
- * BRITE model are added to the messages send through CloudSim. Messages using the old model are
- * converted to the apropriate methods with the correct parameters.
- * 
- * @author Rodrigo N. Calheiros
- * @author Anton Beloglazov
- * @since CloudSim Toolkit 1.0
- */
 public class CloudSim {
-
-	/** The Constant CLOUDSIM_VERSION_STRING. */
 	private static final String CLOUDSIM_VERSION_STRING = "3.0";
 
 	/** The id of CIS entity. */
 	private static int cisId = -1;
-
-	/** The id of CloudSimShutdown entity. */
-	@SuppressWarnings("unused")
-	private static int shutdownId = -1;
 
 	/** The CIS object. */
 	private static CloudInformationService cis = null;
@@ -52,15 +26,8 @@ public class CloudSim {
 	/** The Constant NOT_FOUND. */
 	private static final int NOT_FOUND = -1;
 
-	/** The trace flag. */
-	@SuppressWarnings("unused")
-	private static boolean traceFlag = false;
-
 	/** The calendar. */
 	private static Calendar calendar = null;
-
-	/** The termination time. */
-	private static double terminateAt = -1;
 
 	/** The minimal time between events. Events within shorter periods after the last event are discarded. */
 	private static double minTimeBetweenEvents = 0.1;
@@ -69,30 +36,20 @@ public class CloudSim {
 	 * Initialises all the common attributes.
 	 * 
 	 * @param _calendar the _calendar
-	 * @param _traceFlag the _trace flag
-	 * @param numUser number of users
 	 * @throws Exception This happens when creating this entity before initialising CloudSim package
 	 *             or this entity name is <tt>null</tt> or empty
 	 * @pre $none
 	 * @post $none
 	 */
-	private static void initCommonVariable(Calendar _calendar, boolean _traceFlag, int numUser)
+	private static void initCommonVariable(Calendar _calendar)
 			throws Exception {
 		initialize();
-		// NOTE: the order for the below 3 lines are important
-		traceFlag = _traceFlag;
 
-		// Set the current Wall clock time as the starting time of
-		// simulation
-		if (_calendar == null) {
+		// Set the current Wall clock time as the starting time of simulation
+		if (_calendar == null)
 			calendar = Calendar.getInstance();
-		} else {
+		else
 			calendar = _calendar;
-		}
-
-		// creates a CloudSimShutdown object
-		CloudSimShutdown shutdown = new CloudSimShutdown("CloudSimShutdown", numUser);
-		shutdownId = shutdown.getId();
 	}
 
 	/**
@@ -116,9 +73,9 @@ public class CloudSim {
 	 * @pre numUser >= 0
 	 * @post $none
 	 */
-	public static void init(int numUser, Calendar cal, boolean traceFlag) {
+	public static void init(Calendar cal) {
 		try {
-			initCommonVariable(cal, traceFlag, numUser);
+			initCommonVariable(cal);
 
 			// create a GIS object
 			cis = new CloudInformationService("CloudInformationService");
@@ -157,12 +114,12 @@ public class CloudSim {
 	 * @pre numUser >= 0
 	 * @post $none
 	 */
-	public static void init(int numUser, Calendar cal, boolean traceFlag, double periodBetweenEvents) {
+	public static void init(Calendar cal, double periodBetweenEvents) {
 	    if (periodBetweenEvents <= 0) {
 		throw new IllegalArgumentException("The minimal time between events should be positive, but is:" + periodBetweenEvents);
 	    }
 	    
-	    init(numUser, cal, traceFlag);
+	    init(cal);
 	    minTimeBetweenEvents = periodBetweenEvents;
 	}
 	
@@ -183,16 +140,14 @@ public class CloudSim {
 	 * @post $none
 	 */
 	public static double startSimulation() throws NullPointerException {
-		Log.printLine("Starting CloudSim version " + CLOUDSIM_VERSION_STRING);
+		Log.printLine("\nStarting CloudSim version " + CLOUDSIM_VERSION_STRING);
 		try {
 			double clock = run();
 
 			// reset all static variables
 			cisId = -1;
-			shutdownId = -1;
 			cis = null;
 			calendar = null;
-			traceFlag = false;
 
 			return clock;
 		} catch (IllegalArgumentException e) {
@@ -230,25 +185,9 @@ public class CloudSim {
 	 */
 	public static boolean terminateSimulation() {
 		running = false;
-		printMessage("Simulation: Reached termination time.");
+		Log.printLine("Simulation: Reached termination time.");
 		return true;
 	}
-
-	/**
-	 * This method is called if one wants to terminate the simulation at a given time.
-	 * 
-	 * @param time the time at which the simulation has to be terminated
-	 * @return true, if successful otherwise.
-	 */
-	public static boolean terminateSimulation(double time) {
-		if (time <= clock) {
-			return false;
-		} else {
-			terminateAt = time;
-		}
-		return true;
-	}
-
 	
 	/**
 	 * Returns the minimum time between events. Events within shorter periods after the last event are discarded. 
@@ -328,12 +267,6 @@ public class CloudSim {
 	// The predicates used in entity wait methods
 	/** The wait predicates. */
 	private static Map<Integer, Predicate> waitPredicates;
-
-	/** The paused. */
-	private static boolean paused = false;
-
-	/** The pause at. */
-	private static long pauseAt = -1;
 
 	/** The abrupt terminate. */
 	private static boolean abruptTerminate = false;
@@ -495,7 +428,7 @@ public class CloudSim {
 		if (e == null) {
 			throw new IllegalArgumentException("Adding null entity.");
 		} else {
-			printMessage("Adding: " + e.getName());
+			Log.printLine("Adding: " + e.getName());
 		}
 		e.startEntity();
 	}
@@ -506,7 +439,7 @@ public class CloudSim {
 	 * 
 	 * @return true, if successful otherwise
 	 */
-	public static boolean runClockTick() {
+	public static boolean runClockTick() { //TODO: AQUI
 		SimEntity ent;
 		boolean queue_empty;
 		
@@ -548,7 +481,7 @@ public class CloudSim {
 		} else {
 			queue_empty = true;
 			running = false;
-			printMessage("Simulation: No more future events");
+			Log.printLine("Simulation: No more future events");
 		}
 
 		return queue_empty;
@@ -558,7 +491,7 @@ public class CloudSim {
 	 * Internal method used to stop the simulation. This method should <b>not</b> be used directly.
 	 */
 	public static void runStop() {
-		printMessage("Simulation completed.");
+		Log.printLine("Simulation completed.");
 	}
 
 	/**
@@ -751,9 +684,9 @@ public class CloudSim {
 		int dest, src;
 		SimEntity dest_ent;
 		// Update the system's clock
-		if (e.eventTime() < clock) {
+		if (e.eventTime() < clock)
 			throw new IllegalArgumentException("Past event detected.");
-		}
+		
 		clock = e.eventTime();
 
 		// Ok now process it
@@ -792,11 +725,10 @@ public class CloudSim {
 
 			case SimEvent.HOLD_DONE:
 				src = e.getSource();
-				if (src < 0) {
+				if (src < 0)
 					throw new IllegalArgumentException("Null entity holding.");
-				} else {
+				else
 					entities.get(src).setState(SimEntity.RUNNABLE);
-				}
 				break;
 
 			default:
@@ -811,11 +743,10 @@ public class CloudSim {
 	public static void runStart() {
 		running = true;
 		// Start all the entities
-		for (SimEntity ent : entities) {
+		for (SimEntity ent : entities)
 			ent.startEntity();
-		}
 
-		printMessage("Entities started.");
+		Log.printLine("Entities started.");
 	}
 
 	/**
@@ -829,82 +760,18 @@ public class CloudSim {
 	}
 
 	/**
-	 * This method is called if one wants to pause the simulation.
-	 * 
-	 * @return true, if successful otherwise.
-	 */
-	public static boolean pauseSimulation() {
-		paused = true;
-		return paused;
-	}
-
-	/**
-	 * This method is called if one wants to pause the simulation at a given time.
-	 * 
-	 * @param time the time at which the simulation has to be paused
-	 * @return true, if successful otherwise.
-	 */
-	public static boolean pauseSimulation(long time) {
-		if (time <= clock) {
-			return false;
-		} else {
-			pauseAt = time;
-		}
-		return true;
-	}
-
-	/**
-	 * This method is called if one wants to resume the simulation that has previously been paused.
-	 * 
-	 * @return if the simulation has been restarted or or otherwise.
-	 */
-	public static boolean resumeSimulation() {
-		paused = false;
-
-		if (pauseAt <= clock) {
-			pauseAt = -1;
-		}
-
-		return !paused;
-	}
-
-	/**
 	 * Start the simulation running. This should be called after all the entities have been setup
 	 * and added, and their ports linked.
 	 * 
 	 * @return the double last clock value
 	 */
-	public static double run() {
-		if (!running) {
+	public static double run() { //TODO: AQUI
+		if (!running)
 			runStart();
-		}
-		while (true) {
-			if (runClockTick() || abruptTerminate) {
+		
+		while (true)
+			if (runClockTick() || abruptTerminate)
 				break;
-			}
-
-			// this block allows termination of simulation at a specific time
-			if (terminateAt > 0.0 && clock >= terminateAt) {
-				terminateSimulation();
-				clock = terminateAt;
-				break;
-			}
-
-			if (pauseAt != -1
-					&& ((future.size() > 0 && clock <= pauseAt && pauseAt <= future.iterator().next()
-							.eventTime()) || future.size() == 0 && pauseAt <= clock)) {
-				pauseSimulation();
-				clock = pauseAt;
-			}
-
-			while (paused) {
-				try {
-					Thread.sleep(100);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-		}
 
 		double clock = clock();
 
@@ -942,8 +809,6 @@ public class CloudSim {
 		running = false;
 
 		waitPredicates = null;
-		paused = false;
-		pauseAt = -1;
 		abruptTerminate = false;
 	}
 
@@ -953,23 +818,5 @@ public class CloudSim {
 	public static void abruptallyTerminate() {
 		abruptTerminate = true;
 	}
-
-	/**
-	 * Prints a message about the progress of the simulation.
-	 * 
-	 * @param message the message
-	 */
-	private static void printMessage(String message) {
-		Log.printLine(message);
-	}
-
-	/**
-	 * Checks if is paused.
-	 * 
-	 * @return true, if is paused
-	 */
-	public static boolean isPaused() {
-		return paused;
-	}
-
+	
 }

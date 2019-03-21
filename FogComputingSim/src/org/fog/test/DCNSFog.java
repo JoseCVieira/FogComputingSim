@@ -48,11 +48,7 @@ public class DCNSFog {
 
 		try {
 			Log.disable();
-			int num_user = 1;
-			Calendar calendar = Calendar.getInstance();
-			boolean trace_flag = false;
-
-			CloudSim.init(num_user, calendar, trace_flag);
+			CloudSim.init(Calendar.getInstance());
 
 			String appId = "dcns";
 			
@@ -179,7 +175,7 @@ public class DCNSFog {
 	@SuppressWarnings({"serial" })
 	private static Application createApplication(String appId, int userId){
 		
-		Application application = Application.createApplication(appId, userId);
+		Application application = new Application(appId, userId);
 		application.addAppModule("object_detector", 10);
 		application.addAppModule("motion_detector", 10);
 		application.addAppModule("object_tracker", 10);

@@ -55,11 +55,7 @@ public class VRGameTwoApps {
 
 		try {
 			Log.disable();
-			int num_user = 1;
-			Calendar calendar = Calendar.getInstance();
-			boolean trace_flag = false;
-			
-			CloudSim.init(num_user, calendar, trace_flag);
+			CloudSim.init(Calendar.getInstance());
 			
 			FogBroker broker0 = new FogBroker("broker_0");
 			FogBroker broker1 = new FogBroker("broker_1");
@@ -224,7 +220,7 @@ public class VRGameTwoApps {
 
 	@SuppressWarnings({"serial" })
 	private static Application createApplication0(String appId, int userId){
-		Application application = Application.createApplication(appId, userId);
+		Application application = new Application(appId, userId);
 
 		application.addAppModule("client", 10);
 		application.addAppModule("concentration_calculator", 10);
@@ -252,7 +248,7 @@ public class VRGameTwoApps {
 	
 	@SuppressWarnings({"serial" })
 	private static Application createApplication1(String appId, int userId){
-		Application application = Application.createApplication(appId, userId);
+		Application application = new Application(appId, userId);
 
 		application.addAppModule("client_1", 10);
 		application.addAppModule("concentration_calculator_1", 10);

@@ -126,7 +126,7 @@ public class RunSim extends JDialog {
     			}else
     				Log.disable();
     			
-    			CloudSim.init(1, Calendar.getInstance(), false);
+    			CloudSim.init(Calendar.getInstance());
     			createFogDevices(RunSim.graph);
     			
     			ArrayList<FogDeviceGui> clients = getClients();
@@ -152,8 +152,6 @@ public class RunSim extends JDialog {
 					
 					printDetails(application);
     			}
-    			
-    			System.out.println("");
     			
     			TimeKeeper.getInstance().setSimulationStartTime(Calendar.getInstance().getTimeInMillis());
     			CloudSim.startSimulation();
@@ -253,7 +251,7 @@ public class RunSim extends JDialog {
 			
 			if(applicationGui == null) return null;
 			
-			Application application = Application.createApplication(appId + "_" + userId, userId);
+			Application application = new Application(appId, userId);
 			
 			for(AppModule appModule : applicationGui.getModules())
 				application.addAppModule(appModule);

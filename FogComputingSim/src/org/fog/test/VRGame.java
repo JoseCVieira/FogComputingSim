@@ -55,7 +55,7 @@ public class VRGame {
 			}else
 				Log.disable();
 			
-			CloudSim.init(1, Calendar.getInstance(), false); // 1 user, do not trace events
+			CloudSim.init(Calendar.getInstance());
 			
 			FogBroker broker = new FogBroker("broker");
 			Application application = createApplication(APP_ID, broker.getId());
@@ -89,7 +89,7 @@ public class VRGame {
 	@SuppressWarnings({"serial"})
 	private static Application createApplication(String appId, int userId){
 		// creates an empty application model (empty directed graph)
-		Application application = Application.createApplication(appId, userId);
+		Application application = new Application(appId, userId);
 
 		// Adding modules (vertices) to the application model (directed graph)
 		application.addAppModule("client", 10);
