@@ -439,7 +439,7 @@ public class CloudSim {
 	 * 
 	 * @return true, if successful otherwise
 	 */
-	public static boolean runClockTick() { //TODO: AQUI
+	public static boolean runClockTick() {
 		SimEntity ent;
 		boolean queue_empty;
 		
@@ -447,9 +447,8 @@ public class CloudSim {
 
 		for (int i = 0; i < entities_size; i++) {
 			ent = entities.get(i);
-			if (ent.getState() == SimEntity.RUNNABLE) {
+			if (ent.getState() == SimEntity.RUNNABLE)
 				ent.run();
-			}
 		}
 				
 		// If there are more future events then deal with them
@@ -471,9 +470,8 @@ public class CloudSim {
 					processEvent(next);
 					toRemove.add(next);
 					trymore = fit.hasNext();
-				} else {
+				} else
 					trymore = false;
-				}
 			}
 
 			future.removeAll(toRemove);
@@ -528,9 +526,8 @@ public class CloudSim {
 	 * @param data the data
 	 */
 	public static void send(int src, int dest, double delay, int tag, Object data) {
-		if (delay < 0) {
+		if (delay < 0)
 			throw new IllegalArgumentException("Send delay can't be negative.");
-		}
 
 		SimEvent e = new SimEvent(SimEvent.SEND, clock + delay, src, dest, tag, data);
 		future.addEvent(e);
@@ -546,9 +543,8 @@ public class CloudSim {
 	 * @param data the data
 	 */
 	public static void sendFirst(int src, int dest, double delay, int tag, Object data) {
-		if (delay < 0) {
+		if (delay < 0)
 			throw new IllegalArgumentException("Send delay can't be negative.");
-		}
 
 		SimEvent e = new SimEvent(SimEvent.SEND, clock + delay, src, dest, tag, data);
 		future.addEventFirst(e);
@@ -564,10 +560,9 @@ public class CloudSim {
 	 */
 	public static void wait(int src, Predicate p) {
 		entities.get(src).setState(SimEntity.WAITING);
-		if (p != SIM_ANY) {
+		if (p != SIM_ANY)
 			// If a predicate has been used store it in order to check it
 			waitPredicates.put(src, p);
-		}
 	}
 
 	/**
@@ -583,9 +578,8 @@ public class CloudSim {
 		Iterator<SimEvent> iterator = deferred.iterator();
 		while (iterator.hasNext()) {
 			event = iterator.next();
-			if ((event.getDestination() == d) && (p.match(event))) {
+			if ((event.getDestination() == d) && (p.match(event)))
 				count++;
-			}
 		}
 		return count;
 	}
@@ -622,9 +616,8 @@ public class CloudSim {
 		Iterator<SimEvent> iterator = deferred.iterator();
 		while (iterator.hasNext()) {
 			ev = iterator.next();
-			if (ev.getDestination() == src && p.match(ev)) {
+			if (ev.getDestination() == src && p.match(ev))
 				break;
-			}
 		}
 		return ev;
 	}
@@ -664,16 +657,11 @@ public class CloudSim {
 		Iterator<SimEvent> iter = future.iterator();
 		while (iter.hasNext()) {
 			ev = iter.next();
-			if (ev.getSource() == src && p.match(ev)) {
+			if (ev.getSource() == src && p.match(ev))
 				iter.remove();
-			}
 		}
 		return previousSize < future.size();
 	}
-
-	//
-	// Private internal methods
-	//
 
 	/**
 	 * Processes an event.
@@ -714,12 +702,10 @@ public class CloudSim {
 							dest_ent.setEventBuffer((SimEvent) e.clone());
 							dest_ent.setState(SimEntity.RUNNABLE);
 							waitPredicates.remove(destObj);
-						} else {
+						} else
 							deferred.addEvent(e);
-						}
-					} else {
+					} else
 						deferred.addEvent(e);
-					}
 				}
 				break;
 
@@ -765,7 +751,7 @@ public class CloudSim {
 	 * 
 	 * @return the double last clock value
 	 */
-	public static double run() { //TODO: AQUI
+	public static double run() {
 		if (!running)
 			runStart();
 		
@@ -787,17 +773,13 @@ public class CloudSim {
 	 */
 	public static void finishSimulation() {
 		// Allow all entities to exit their body method
-		if (!abruptTerminate) {
-			for (SimEntity ent : entities) {
-				if (ent.getState() != SimEntity.FINISHED) {
+		if (!abruptTerminate)
+			for (SimEntity ent : entities)
+				if (ent.getState() != SimEntity.FINISHED)
 					ent.run();
-				}
-			}
-		}
 
-		for (SimEntity ent : entities) {
+		for (SimEntity ent : entities)
 			ent.shutdownEntity();
-		}
 
 		// reset all static variables
 		// Private data members

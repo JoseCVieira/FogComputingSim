@@ -34,9 +34,9 @@ public class GraphView extends JPanel {
 	private JPanel canvas;
 	private Graph graph;
 
+	private Image imgApp;
 	private Image imgHost;
 	private Image imgSensor;
-	private Image imgAppModule;
 	private Image imgActuator;
 
 	Map<Node, Coordinates> coordFogNodes = new HashMap<Node, Coordinates>();
@@ -45,7 +45,7 @@ public class GraphView extends JPanel {
 	public GraphView(final Graph graph) {
 		this.graph = graph;
 		imgHost = Toolkit.getDefaultToolkit().getImage(this.getClass().getResource("/images/fog.png"));
-		imgAppModule = Toolkit.getDefaultToolkit().getImage(this.getClass().getResource("/images/app.png"));
+		imgApp = Toolkit.getDefaultToolkit().getImage(this.getClass().getResource("/images/app.png"));
 		imgSensor = Toolkit.getDefaultToolkit().getImage(this.getClass().getResource("/images/sensor.png"));
 		imgActuator = Toolkit.getDefaultToolkit().getImage(this.getClass().getResource("/images/actuator.png"));
 		
@@ -133,12 +133,16 @@ public class GraphView extends JPanel {
 					String nodeName = entry.getKey().getName();
 					switch(entry.getKey().getType()){
 						case "APP_MODULE":
-							g.drawImage(imgAppModule, wrapper.getX() - nodeWidth / 2, wrapper.getY() - nodeHeight / 2, nodeWidth, nodeHeight, this);
+							g.drawImage(imgApp, wrapper.getX() - nodeWidth / 2, wrapper.getY() - nodeHeight / 2, nodeWidth, nodeHeight, this);
 							g.drawString(nodeName, wrapper.getX() - f.stringWidth(nodeName) / 2, wrapper.getY() + nodeHeight);
 							break;
 						case Config.FOG_TYPE:
 							g.drawImage(imgHost, wrapper.getX() - nodeWidth / 2, wrapper.getY() - nodeHeight / 2, nodeWidth, nodeHeight, this);
 							g.drawString(nodeName, wrapper.getX() - f.stringWidth(nodeName) / 2, wrapper.getY() + nodeHeight);
+							
+							String appName = ((FogDeviceGui)entry.getKey()).getApplication();
+							if(!appName.equals(""))
+								g.drawString("[" + appName + "]", wrapper.getX() - f.stringWidth("[" + appName + "]") / 2, wrapper.getY() + nodeHeight + g.getFont().getSize());
 							break;
 						case Config.SENSOR_TYPE:
 							g.drawImage(imgSensor, wrapper.getX() - nodeWidth / 2, wrapper.getY() - nodeHeight / 2, nodeWidth, nodeHeight, this);

@@ -92,35 +92,35 @@ public class VRGame {
 		Application application = new Application(appId, userId);
 
 		// Adding modules (vertices) to the application model (directed graph)
-		application.addAppModule("client", 10);
-		application.addAppModule("c_calculator", 10);
-		application.addAppModule("connector", 10);
+		application.addAppModule("client" + userId, 10);
+		application.addAppModule("c_calculator" + userId, 10);
+		application.addAppModule("connector" + userId, 10);
 
 		// Connecting the application modules (vertices) in the application model (directed graph) with edges
 		// adding edge from EEG to Client module carrying tuples of type EEG
-		application.addAppEdge("EEG", "client", 3000, 500, "EEG", Tuple.UP, AppEdge.SENSOR);
-		application.addAppEdge("client", "c_calculator", 3500, 500, "_SENSOR", Tuple.UP, AppEdge.MODULE);
-		application.addAppEdge("c_calculator", "connector", 100, 1000, 1000, "PLAYER_GAME_STATE", Tuple.UP, AppEdge.MODULE);
-		application.addAppEdge("c_calculator", "client", 14, 500, "CONCENTRATION", Tuple.DOWN, AppEdge.MODULE);
-		application.addAppEdge("connector", "client", 100, 28, 1000, "GLOBAL_GAME_STATE", Tuple.DOWN, AppEdge.MODULE);
-		application.addAppEdge("client", "DISPLAY", 1000, 500, "SELF_STATE_UPDATE", Tuple.DOWN, AppEdge.ACTUATOR);
-		application.addAppEdge("client", "DISPLAY", 1000, 500, "GLOBAL_STATE_UPDATE", Tuple.DOWN, AppEdge.ACTUATOR);
+		application.addAppEdge("EEG" + userId, "client" + userId, 3000, 500, "EEG" + userId, Tuple.UP, AppEdge.SENSOR);
+		application.addAppEdge("client" + userId, "c_calculator" + userId, 3500, 500, "_SENSOR" + userId, Tuple.UP, AppEdge.MODULE);
+		application.addAppEdge("c_calculator" + userId, "connector" + userId, 100, 1000, 1000, "PLAYER_GAME_STATE" + userId, Tuple.UP, AppEdge.MODULE);
+		application.addAppEdge("c_calculator" + userId, "client" + userId, 14, 500, "CONCENTRATION" + userId, Tuple.DOWN, AppEdge.MODULE);
+		application.addAppEdge("connector" + userId, "client" + userId, 100, 28, 1000, "GLOBAL_GAME_STATE" + userId, Tuple.DOWN, AppEdge.MODULE);
+		application.addAppEdge("client" + userId, "DISPLAY" + userId, 1000, 500, "SELF_STATE_UPDATE" + userId, Tuple.DOWN, AppEdge.ACTUATOR);
+		application.addAppEdge("client" + userId, "DISPLAY" + userId, 1000, 500, "GLOBAL_STATE_UPDATE" + userId, Tuple.DOWN, AppEdge.ACTUATOR);
 
 		// Defining the input-output relationships (represented by selectivity) of the application modules.
 		// 0.9 tuples of type _SENSOR are emitted by Client module per incoming tuple of type EEG 
-		application.addTupleMapping("client", "EEG", "_SENSOR", new FractionalSelectivity(0.9));
-		application.addTupleMapping("client", "CONCENTRATION", "SELF_STATE_UPDATE", new FractionalSelectivity(1.0));
-		application.addTupleMapping("c_calculator", "_SENSOR", "CONCENTRATION", new FractionalSelectivity(1.0));
-		application.addTupleMapping("client", "GLOBAL_GAME_STATE", "GLOBAL_STATE_UPDATE", new FractionalSelectivity(1.0)); 
+		application.addTupleMapping("client" + userId, "EEG" + userId, "_SENSOR" + userId, new FractionalSelectivity(0.9));
+		application.addTupleMapping("client" + userId, "CONCENTRATION" + userId, "SELF_STATE_UPDATE" + userId, new FractionalSelectivity(1.0));
+		application.addTupleMapping("c_calculator" + userId, "_SENSOR" + userId, "CONCENTRATION" + userId, new FractionalSelectivity(1.0));
+		application.addTupleMapping("client" + userId, "GLOBAL_GAME_STATE" + userId, "GLOBAL_STATE_UPDATE" + userId, new FractionalSelectivity(1.0)); 
 	
 		// Defining application loops to monitor the latency of
 		// Only one loop for monitoring : EEG(sensor) -> Client -> c_calculator -> Client -> DISPLAY (actuator)
 		final AppLoop loop1 = new AppLoop(new ArrayList<String>(){{
-			add("EEG");
-			add("client");
-			add("c_calculator");
-			add("client");
-			add("DISPLAY");
+			add("EEG_" + userId);
+			add("client_" + userId);
+			add("c_calculator_" + userId);
+			add("client_" + userId);
+			add("DISPLAY_" + userId);
 		}});
 		
 		List<AppLoop> loops = new ArrayList<AppLoop>(){{
@@ -192,10 +192,10 @@ public class VRGame {
 		mobile.getParentsIds().add(parentId);
 		
 		// Inter-transmission time of EEG sensor follows a deterministic distribution
-		Sensor eegSensor = new Sensor("SENSOR-"+id, "EEG", userId, appId, new DeterministicDistribution(EEG_TRANSMISSION_TIME));
+		Sensor eegSensor = new Sensor("SENSOR-"+id, "EEG" + userId, userId, appId, new DeterministicDistribution(EEG_TRANSMISSION_TIME));
 		sensors.add(eegSensor);
 		
-		Actuator display = new Actuator("ACTUATOR-"+id, userId, appId, "DISPLAY");
+		Actuator display = new Actuator("ACTUATOR-"+id, userId, appId, "DISPLAY" + userId);
 		actuators.add(display);
 		
 		eegSensor.setGatewayDeviceId(mobile.getId());

@@ -207,17 +207,6 @@ public class FogDevice extends PowerDatacenter {
 		setModuleInstanceCount(new HashMap<String, Map<String, Integer>>());
 	}
 	
-	/**
-	 * Overrides this method when making a new and different type of resource. <br>
-	 * <b>NOTE:</b> You do not need to override {@link #body()} method, if you use this method.
-	 * 
-	 * @pre $none
-	 * @post $none
-	 */
-	protected void registerOtherEntity() {
-		
-	}
-	
 	@Override
 	protected void processOtherEvent(SimEvent ev) {
 		switch(ev.getTag()){
@@ -280,7 +269,8 @@ public class FogDevice extends PowerDatacenter {
 		if(!moduleInstanceCount.containsKey(appId))
 			moduleInstanceCount.put(appId, new HashMap<String, Integer>());
 		moduleInstanceCount.get(appId).put(config.getModule().getName(), config.getInstanceCount());
-		System.out.println(getName()+ " Creating "+config.getInstanceCount()+" instances of module "+config.getModule().getName());
+		System.out.println(getName() + " Creating "+config.getInstanceCount() +
+				" instances of module " + config.getModule().getName());
 	}
 
 	private AppModule getModuleByName(String moduleName){
@@ -305,10 +295,8 @@ public class FogDevice extends PowerDatacenter {
 		
 		if(module == null) return;
 		
-		for(int i = 0; i < module.getNumInstances(); i++){			
-			//System.out.println(CloudSim.clock()+" : Sending periodic tuple "+edge.getTupleType());
-			Tuple tuple = controller.getApplications().get(module.getAppId()).createTuple(edge, getId(),
-					module.getId());
+		for(int i = 0; i < module.getNumInstances(); i++){
+			Tuple tuple = controller.getApplications().get(module.getAppId()).createTuple(edge, module.getId());
 			updateTimingsOnSending(tuple);
 			sendToSelf(tuple);			
 		}
@@ -441,24 +429,6 @@ public class FogDevice extends PowerDatacenter {
 			}
 		}
 	}
-
-	protected int getChildIdWithRouteTo(int targetDeviceId){
-		for(Integer childId : getChildrenIds()){
-			if(targetDeviceId == childId)
-				return childId;
-			if(((FogDevice)CloudSim.getEntity(childId)).getChildIdWithRouteTo(targetDeviceId) != -1)
-				return childId;
-		}
-		return -1;
-	}
-	
-	protected int getChildIdForTuple(Tuple tuple){
-		if(tuple.getDirection() == Tuple.ACTUATOR){
-			int gatewayId = ((Actuator)CloudSim.getEntity(tuple.getActuatorId())).getGatewayDeviceId();
-			return getChildIdWithRouteTo(gatewayId);
-		}
-		return -1;
-	}
 	
 	protected void updateAllocatedMips(String incomingOperator){
 		getHost().getVmScheduler().deallocatePesForAllVms();
@@ -557,12 +527,11 @@ public class FogDevice extends PowerDatacenter {
 		if(getName().equals("cloud"))
 			updateCloudTraffic();
 		
-		Logger.debug(getName(), "Received tuple "+tuple.getCloudletId()+"with tupleType = "+tuple.getTupleType()+"\t| Source : "+
-		CloudSim.getEntityName(ev.getSource())+"|Dest : "+CloudSim.getEntityName(ev.getDestination()));
+		Logger.debug(getName(), "Received tuple " + tuple.getCloudletId() +
+				"with tupleType = "+tuple.getTupleType() + "\t| Source : " +
+				CloudSim.getEntityName(ev.getSource())+"|Dest : " +
+				CloudSim.getEntityName(ev.getDestination()));
 		send(ev.getSource(), CloudSim.getMinTimeBetweenEvents(), FogEvents.TUPLE_ACK);
-		
-		if(FogUtils.appIdToGeoCoverageMap.containsKey(tuple.getAppId())){
-		}
 		
 		if(tuple.getDirection() == Tuple.ACTUATOR){
 			sendTupleToActuator(tuple);
@@ -571,6 +540,7 @@ public class FogDevice extends PowerDatacenter {
 		
 		if(getHost().getVmList().size() > 0){
 			final AppModule operator = (AppModule)getHost().getVmList().get(0);
+			
 			if(CloudSim.clock() > 0){
 				getHost().getVmScheduler().deallocatePesForVm(operator);
 				getHost().getVmScheduler().allocatePesForVm(operator, new ArrayList<Double>(){
@@ -580,9 +550,8 @@ public class FogDevice extends PowerDatacenter {
 		}
 		
 		
-		if(getName().equals("cloud") && tuple.getDestModuleName()==null){
+		if(getName().equals("cloud") && tuple.getDestModuleName()==null)
 			sendNow(controller.getId(), FogEvents.TUPLE_FINISHED, null);
-		}
 		
 		if(appToModulesMap.containsKey(tuple.getAppId())){
 			if(appToModulesMap.get(tuple.getAppId()).contains(tuple.getDestModuleName())){
@@ -599,22 +568,17 @@ public class FogDevice extends PowerDatacenter {
 				tuple.setVmId(vmId);
 				updateTimingsOnReceipt(tuple);
 				
-				/*
-				System.out.println(tuple + "\n\n");
-				System.out.println(tuple.getDestModuleName() + "\n\n");
-				System.out.println(ev + "\n\n");*/
-				
 				executeTuple(ev, tuple.getDestModuleName());
 				
 			}else if(tuple.getDestModuleName()!=null){
 				if(tuple.getDirection() == Tuple.UP) {
 					if(PRINT_COMMUNICATION_DETAILS) printCommunication(tuple, "UP");
 						sendUp(tuple, findNextHopCommunication(tuple));
-				}else if(tuple.getDirection() == Tuple.DOWN){
+				}else if(tuple.getDirection() == Tuple.DOWN) {
 					if(PRINT_COMMUNICATION_DETAILS) printCommunication(tuple, "DOWN");
 						sendDown(tuple, findNextHopCommunication(tuple));
 				}
-			}else{
+			}else {
 				if(PRINT_COMMUNICATION_DETAILS) printCommunication(tuple, "UP");
 					sendUp(tuple, findNextHopCommunication(tuple));
 			}
@@ -622,7 +586,7 @@ public class FogDevice extends PowerDatacenter {
 			if(tuple.getDirection() == Tuple.UP) {
 				if(PRINT_COMMUNICATION_DETAILS) printCommunication(tuple, "UP");
 					sendUp(tuple, findNextHopCommunication(tuple));
-			}else if(tuple.getDirection() == Tuple.DOWN){
+			}else if(tuple.getDirection() == Tuple.DOWN) {
 				if(PRINT_COMMUNICATION_DETAILS) printCommunication(tuple, "DOWN");
 					sendDown(tuple, findNextHopCommunication(tuple));
 			}
@@ -676,9 +640,8 @@ public class FogDevice extends PowerDatacenter {
 				module.getDownInstanceIdsMaps().get(srcModule).add(tuple.getSourceModuleId());
 			
 			int instances = -1;
-			for(String _moduleName : module.getDownInstanceIdsMaps().keySet()){
+			for(String _moduleName : module.getDownInstanceIdsMaps().keySet())
 				instances = Math.max(module.getDownInstanceIdsMaps().get(_moduleName).size(), instances);
-			}
 			module.setNumInstances(instances);
 		}
 		

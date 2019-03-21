@@ -11,54 +11,24 @@ import org.fog.application.AppLoop;
 import org.fog.application.Application;
 import org.fog.utils.FogEvents;
 import org.fog.utils.FogUtils;
-import org.fog.utils.GeoLocation;
 import org.fog.utils.Logger;
 import org.fog.utils.TimeKeeper;
 import org.fog.utils.distribution.Distribution;
 
 public class Sensor extends SimEntity{
 	
-	private int gatewayDeviceId;
-	private GeoLocation geoLocation;
-	private long outputSize;
+	private static final long OUTPUT_SIZE = 3;
+	
 	private String appId;
-	private int userId;
 	private String tupleType;
 	private String sensorName;
 	private String destModuleName;
-	private Distribution transmitDistribution;
+	private int userId;
 	private int controllerId;
-	private Application app;
+	private int gatewayDeviceId;
 	private double latency;
-	
-	public Sensor(String name, int userId, String appId, int gatewayDeviceId, double latency, GeoLocation geoLocation, 
-			Distribution transmitDistribution, int cpuLength, int nwLength, String tupleType, String destModuleName) {
-		super(name);
-		this.setAppId(appId);
-		this.gatewayDeviceId = gatewayDeviceId;
-		this.geoLocation = geoLocation;
-		this.outputSize = 3;
-		this.setTransmitDistribution(transmitDistribution);
-		setUserId(userId);
-		setDestModuleName(destModuleName);
-		setTupleType(tupleType);
-		setSensorName(sensorName);
-		setLatency(latency);
-	}
-	
-	public Sensor(String name, int userId, String appId, int gatewayDeviceId, double latency, GeoLocation geoLocation, 
-			Distribution transmitDistribution, String tupleType) {
-		super(name);
-		this.setAppId(appId);
-		this.gatewayDeviceId = gatewayDeviceId;
-		this.geoLocation = geoLocation;
-		this.outputSize = 3;
-		this.setTransmitDistribution(transmitDistribution);
-		setUserId(userId);
-		setTupleType(tupleType);
-		setSensorName(sensorName);
-		setLatency(latency);
-	}
+	private Application app;
+	private Distribution transmitDistribution;
 	
 	/**
 	 * This constructor is called from the code that generates PhysicalTopology from JSON
@@ -69,29 +39,31 @@ public class Sensor extends SimEntity{
 	 * @param appId
 	 * @param transmitDistribution
 	 */
-	public Sensor(String name, String tupleType, int userId, String appId, Distribution transmitDistribution) {
+	public Sensor(String name, String tupleType, int userId, String appId, Distribution transmitDistribution,
+			int gatewayDeviceId, double latency) {
+		
 		super(name);
 		this.setAppId(appId);
 		this.setTransmitDistribution(transmitDistribution);
 		setTupleType(tupleType);
 		setSensorName(tupleType);
 		setUserId(userId);
+		setGatewayDeviceId(gatewayDeviceId);
+		setLatency(latency);
 	}
 	
 	public void transmit(){
 		AppEdge _edge = null;
-		for(AppEdge edge : getApp().getEdges()) {
-			//System.out.println(edge.getSource());
+		for(AppEdge edge : getApp().getEdges())
 			if(edge.getSource().equals(getTupleType()))
 				_edge = edge;
-		}
 
-		//System.out.println("\n" + getTupleType());
 		long cpuLength = (long) _edge.getTupleCpuLength();
 		long nwLength = (long) _edge.getTupleNwLength();
 		
 		Tuple tuple = new Tuple(getAppId(), FogUtils.generateTupleId(), Tuple.UP, cpuLength, 1,
-				nwLength, outputSize, new UtilizationModelFull(), new UtilizationModelFull(), new UtilizationModelFull());
+				nwLength, OUTPUT_SIZE, new UtilizationModelFull(), new UtilizationModelFull(),
+				new UtilizationModelFull());
 		tuple.setUserId(getUserId());
 		tuple.setTupleType(getTupleType());
 		
@@ -123,7 +95,7 @@ public class Sensor extends SimEntity{
 	
 	@Override
 	public void startEntity() {
-		send(gatewayDeviceId, CloudSim.getMinTimeBetweenEvents(), FogEvents.SENSOR_JOINED, geoLocation);
+		send(gatewayDeviceId, CloudSim.getMinTimeBetweenEvents(), FogEvents.SENSOR_JOINED, null);
 		send(getId(), getTransmitDistribution().getNextValue(), FogEvents.EMIT_TUPLE);
 	}
 
@@ -143,7 +115,6 @@ public class Sensor extends SimEntity{
 
 	@Override
 	public void shutdownEntity() {
-		
 	}
 
 	public int getGatewayDeviceId() {
@@ -152,14 +123,6 @@ public class Sensor extends SimEntity{
 
 	public void setGatewayDeviceId(int gatewayDeviceId) {
 		this.gatewayDeviceId = gatewayDeviceId;
-	}
-
-	public GeoLocation getGeoLocation() {
-		return geoLocation;
-	}
-
-	public void setGeoLocation(GeoLocation geoLocation) {
-		this.geoLocation = geoLocation;
 	}
 
 	public int getUserId() {
@@ -236,10 +199,9 @@ public class Sensor extends SimEntity{
 
 	@Override
 	public String toString() {
-		return "Sensor [gatewayDeviceId=" + gatewayDeviceId + ", outputSize=" + outputSize + ", appId=" +
-				appId + ", userId=" + userId + ", tupleType=" + tupleType + ", sensorName="
-				+ sensorName + ", destModuleName=" + destModuleName
-				+ ", latency=" + latency + "]";
+		return "Sensor [gatewayDeviceId=" + gatewayDeviceId + ", appId=" + appId + ", userId=" +
+				userId + ", tupleType=" + tupleType + ", sensorName=" + sensorName + ", destModuleName=" +
+				destModuleName + ", latency=" + latency + "]";
 	}
 
 }

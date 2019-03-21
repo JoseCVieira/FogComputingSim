@@ -56,7 +56,6 @@ import org.fog.utils.FogLinearPowerModel;
 import org.fog.utils.FogUtils;
 import org.fog.utils.Logger;
 import org.fog.utils.TimeKeeper;
-import org.fog.utils.distribution.DeterministicDistribution;
 
 public class RunSim extends JDialog {
 	private static final long serialVersionUID = -8313194085507492462L;
@@ -328,16 +327,11 @@ public class RunSim extends JDialog {
 				}
 			}
 			
-			Sensor newSensor = new Sensor(sensor.getName(), tupleType + "_" + userId, userId, appId + "_" + userId,
-					new DeterministicDistribution(5.1)/*sensor.getDistribution()*/);
-			sensors.add(newSensor);
-			newSensor.setGatewayDeviceId(getFogDeviceByName(clientName).getId());
-			newSensor.setLatency(sensorLat);
+			sensors.add(new Sensor(sensor.getName(), tupleType + "_" + userId, userId, appId + "_" + userId,
+					sensor.getDistribution(), getFogDeviceByName(clientName).getId(), sensorLat));
 
-			Actuator display = new Actuator(actuator.getName(), userId, appId + "_" + userId, actuatorType + "_" + userId);
-			actuators.add(display);
-			display.setGatewayDeviceId(getFogDeviceByName(clientName).getId());
-			display.setLatency(actuatorLat);
+			actuators.add(new Actuator(actuator.getName(), userId, appId + "_" + userId,
+					getFogDeviceByName(clientName).getId(), actuatorLat, actuatorType + "_" + userId));
 		}
 		
 		private FogDevice getFogDeviceByName(String name) {

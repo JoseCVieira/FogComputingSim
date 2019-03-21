@@ -13,33 +13,28 @@ public class Tuple extends Cloudlet{
 	public static final int ACTUATOR = 3;
 	
 	private String appId;
-	
 	private String tupleType;
 	private String destModuleName;
 	private String srcModuleName;
 	private int actualTupleId;
 	private int direction;
-	private int actuatorId;
-	private int sourceDeviceId;
 	private int sourceModuleId;
+	
 	/**
 	 * Map to keep track of which module instances has a tuple traversed.
-	 * 
 	 * Map from moduleName to vmId of a module instance
 	 */
 	private Map<String, Integer> moduleCopyMap;
 	
 	public Tuple(String appId, int cloudletId, int direction, long cloudletLength, int pesNumber,
-			long cloudletFileSize, long cloudletOutputSize,
-			UtilizationModel utilizationModelCpu,
-			UtilizationModel utilizationModelRam,
-			UtilizationModel utilizationModelBw) {
-		super(cloudletId, cloudletLength, pesNumber, cloudletFileSize,
-				cloudletOutputSize, utilizationModelCpu, utilizationModelRam,
-				utilizationModelBw);
+			long cloudletFileSize, long cloudletOutputSize, UtilizationModel utilizationModelCpu,
+			UtilizationModel utilizationModelRam, UtilizationModel utilizationModelBw) {
+		
+		super(cloudletId, cloudletLength, pesNumber, cloudletFileSize, cloudletOutputSize,
+				utilizationModelCpu, utilizationModelRam, utilizationModelBw);
+		
 		setAppId(appId);
 		setDirection(direction);
-		setSourceDeviceId(-1);
 		setModuleCopyMap(new HashMap<String, Integer>());
 	}
 
@@ -91,22 +86,6 @@ public class Tuple extends Cloudlet{
 		this.direction = direction;
 	}
 
-	public int getActuatorId() {
-		return actuatorId;
-	}
-
-	public void setActuatorId(int actuatorId) {
-		this.actuatorId = actuatorId;
-	}
-
-	public int getSourceDeviceId() {
-		return sourceDeviceId;
-	}
-
-	public void setSourceDeviceId(int sourceDeviceId) {
-		this.sourceDeviceId = sourceDeviceId;
-	}
-
 	public Map<String, Integer> getModuleCopyMap() {
 		return moduleCopyMap;
 	}
@@ -133,8 +112,6 @@ public class Tuple extends Cloudlet{
 		"srcModuleName: " + srcModuleName + "\n"+
 		"actualTupleId: " + actualTupleId + "\n"+
 		"direction: " + direction + "\n"+
-		"actuatorId: " + actuatorId + "\n"+
-		"sourceDeviceId: " + sourceDeviceId + "\n"+
 		"sourceModuleId: " + sourceModuleId + "\n\n";
 		return str;
 	}

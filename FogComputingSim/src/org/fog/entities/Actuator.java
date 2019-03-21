@@ -6,7 +6,6 @@ import org.cloudbus.cloudsim.core.SimEvent;
 import org.fog.application.AppLoop;
 import org.fog.application.Application;
 import org.fog.utils.FogEvents;
-import org.fog.utils.GeoLocation;
 import org.fog.utils.Logger;
 import org.fog.utils.TimeKeeper;
 
@@ -14,27 +13,19 @@ public class Actuator extends SimEntity{
 
 	private int gatewayDeviceId;
 	private double latency;
-	private GeoLocation geoLocation;
 	private String appId;
 	private int userId;
 	private String actuatorType;
 	private Application app;
 	
-	public Actuator(String name, int userId, String appId, int gatewayDeviceId, double latency, GeoLocation geoLocation, String actuatorType, String srcModuleName) {
+	public Actuator(String name, int userId, String appId, int gatewayDeviceId, double latency, 
+			String actuatorType) {
 		super(name);
 		this.setAppId(appId);
 		this.gatewayDeviceId = gatewayDeviceId;
-		this.geoLocation = geoLocation;
 		setUserId(userId);
 		setActuatorType(actuatorType);
 		setLatency(latency);
-	}
-	
-	public Actuator(String name, int userId, String appId, String actuatorType) {
-		super(name);
-		this.setAppId(appId);
-		setUserId(userId);
-		setActuatorType(actuatorType);
 	}
 
 	@Override
@@ -91,14 +82,6 @@ public class Actuator extends SimEntity{
 
 	public void setGatewayDeviceId(int gatewayDeviceId) {
 		this.gatewayDeviceId = gatewayDeviceId;
-	}
-
-	public GeoLocation getGeoLocation() {
-		return geoLocation;
-	}
-
-	public void setGeoLocation(GeoLocation geoLocation) {
-		this.geoLocation = geoLocation;
 	}
 
 	public int getUserId() {
