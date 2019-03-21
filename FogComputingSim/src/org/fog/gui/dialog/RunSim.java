@@ -60,7 +60,7 @@ import org.fog.utils.distribution.DeterministicDistribution;
 
 public class RunSim extends JDialog {
 	private static final long serialVersionUID = -8313194085507492462L;
-	private static final boolean DEBUG_MODE = true;
+	private static final boolean DEBUG_MODE = false;
 	
 	private static List<FogBroker> fogBrokers = new ArrayList<FogBroker>();
 	private static List<FogDevice> fogDevices = new ArrayList<FogDevice>();
@@ -153,7 +153,7 @@ public class RunSim extends JDialog {
 					printDetails(application);
     			}
     			
-    			System.exit(0);
+    			System.out.println("");
     			
     			TimeKeeper.getInstance().setSimulationStartTime(Calendar.getInstance().getTimeInMillis());
     			CloudSim.startSimulation();
@@ -253,7 +253,7 @@ public class RunSim extends JDialog {
 			
 			if(applicationGui == null) return null;
 			
-			Application application = Application.createApplication(appId, userId);
+			Application application = Application.createApplication(appId + "_" + userId, userId);
 			
 			for(AppModule appModule : applicationGui.getModules())
 				application.addAppModule(appModule);
@@ -330,13 +330,13 @@ public class RunSim extends JDialog {
 				}
 			}
 			
-			Sensor newSensor = new Sensor(sensor.getName(), tupleType + "_" + userId, userId, appId,
+			Sensor newSensor = new Sensor(sensor.getName(), tupleType + "_" + userId, userId, appId + "_" + userId,
 					new DeterministicDistribution(5.1)/*sensor.getDistribution()*/);
 			sensors.add(newSensor);
 			newSensor.setGatewayDeviceId(getFogDeviceByName(clientName).getId());
 			newSensor.setLatency(sensorLat);
 
-			Actuator display = new Actuator(actuator.getName(), userId, appId, actuatorType + "_" + userId);
+			Actuator display = new Actuator(actuator.getName(), userId, appId + "_" + userId, actuatorType + "_" + userId);
 			actuators.add(display);
 			display.setGatewayDeviceId(getFogDeviceByName(clientName).getId());
 			display.setLatency(actuatorLat);
@@ -377,19 +377,35 @@ public class RunSim extends JDialog {
 		}
 		
 		private void printDetails(Application application) {
-			System.out.println("Fog Devices: " + fogDevices + "\n\n");
-			System.out.println("Actuators: " + actuators + "\n\n");
-			System.out.println("Sensors: " + sensors + "\n\n");
 			
-			for(AppEdge appEdge : application.getEdges())
-				System.out.println("AppEdge: " + appEdge + "\n");
+			System.out.println("\n[FOG DEVICES]:\n");
+			for(FogDevice fd : fogDevices)
+				System.out.println(fd);
 			
+			System.out.println("\n[ACTUATORS]:\n");
+			for(Actuator act : actuators)
+				System.out.println(act);
+			
+			System.out.println("\n[SENSORS]:\n");
+			for(Sensor s : sensors)
+				System.out.println(s);
+			
+			System.out.println("\n[APP MODULES]:\n");
 			for(AppModule appModule : application.getModules()) {
-				System.out.println("AppModule: " + appModule);
-				System.out.println("SelectivityMap: " + appModule.getSelectivityMap() + "\n\n\n");
+				System.out.println(appModule);
 			}
 			
-			System.out.println("Application: " + application);
+			System.out.println("\n[APP EDGES]:\n");
+			for(AppEdge appEdge : application.getEdges())
+				System.out.println(appEdge);
+			
+			System.out.println("\n[APP TUPLES]:\n");
+			for(AppModule appModule : application.getModules())
+				for(Pair<String, String> pair : appModule.getSelectivityMap().keySet())
+					System.out.println("From: " + pair.getFirst() + " To: " + pair.getSecond() +
+							" Value: " + pair.getValue());
+			
+			System.out.println("\nApplication:\n" + application);
 		}
 	}
 	

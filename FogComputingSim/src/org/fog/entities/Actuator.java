@@ -143,8 +143,8 @@ public class Actuator extends SimEntity{
 
 	@Override
 	public String toString() {
-		return "Actuator [gatewayDeviceId=" + gatewayDeviceId + ", latency=" + latency + ", geoLocation=" + geoLocation
-				+ ", appId=" + appId + ", userId=" + userId + ", actuatorType=" + actuatorType + ", app=" + app + "]";
+		return "Actuator [" + "gatewayDeviceId=" + gatewayDeviceId + ", latency=" + latency + ", appId=" +
+	appId + ", userId=" + userId + ", actuatorType=" + actuatorType + "]";
 	}
 
 }

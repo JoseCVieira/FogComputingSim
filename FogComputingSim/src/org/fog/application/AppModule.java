@@ -147,9 +147,8 @@ public class AppModule extends PowerVm{
 
 	@Override
 	public String toString() {
-		return "AppModule [name=" + name + ", appId=" + appId + ", selectivityMap=" + selectivityMap
-				+ ", downInstanceIdsMaps=" + downInstanceIdsMaps + ", numInstances=" + numInstances
-				+ ", actuatorSubscriptions=" + actuatorSubscriptions + "]";
+		return "AppModule [name=" + name + ", appId=" + appId + ", downInstanceIdsMaps=" + downInstanceIdsMaps +
+				", numInstances=" + numInstances + ", actuatorSubscriptions=" + actuatorSubscriptions + "]";
 	}
 	
 }

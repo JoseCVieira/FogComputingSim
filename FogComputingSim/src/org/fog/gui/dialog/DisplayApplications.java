@@ -15,13 +15,17 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
 import org.fog.gui.core.ApplicationGui;
+import org.fog.gui.core.FogDeviceGui;
 import org.fog.gui.core.Graph;
+import org.fog.gui.core.Node;
+import org.fog.utils.Config;
 import org.fog.utils.Util;
 
 /** A dialog to view applications */
@@ -52,7 +56,7 @@ public class DisplayApplications extends JDialog {
 	}
 
 	private JPanel createInputPanel() {
-		String[] columnNames = {"Name", "Edit"};
+		String[] columnNames = {"Name", "Edit", "Remove"};
         
         dtm = new DefaultTableModel(getApplications(), columnNames);
         JTable jtable = new JTable(dtm) {
@@ -93,6 +97,24 @@ public class DisplayApplications extends JDialog {
 			    	new AddApplication(graph, frame, graph.getAppList().get(rowAtPoint));
 			    	dtm.setDataVector(getApplications(), columnNames);
 			    	configureTable(jtable);
+			    }else if(columnAtPoint == 2) {
+			    	if(Util.confirm(DisplayApplications.this, "Do you really want to remove " +
+			    			table.getValueAt(rowAtPoint, 0)+ " ?") == JOptionPane.YES_OPTION) {
+			    		
+			    		ApplicationGui appToRemove = null;
+			    		for(ApplicationGui applicationGui : graph.getAppList())
+			    			if(applicationGui.getAppId().equals(table.getValueAt(rowAtPoint, 0)))
+			    				appToRemove = applicationGui;
+			    		
+			    		for(Node node : graph.getDevicesList().keySet())
+			    			if(node.getType().equals(Config.FOG_TYPE))
+			    				if(((FogDeviceGui)node).getApplication().equals(appToRemove.getAppId()))
+			    					((FogDeviceGui)node).setApplication("");
+			    		
+			    		graph.removeApp(appToRemove);
+			    		dtm.setDataVector(getApplications(), columnNames);
+				    	configureTable(jtable);
+			    	}
 			    }
 			}
         });
@@ -142,16 +164,18 @@ public class DisplayApplications extends JDialog {
 		int index = 0;
 		
 		for(ApplicationGui app : graph.getAppList()) {
-			String[] list = new String[2];
+			String[] list = new String[3];
 				
 			list[0] = app.getAppId();
 			list[1] = "✎";
+			list[2] = "✘";
 			lists[index++] = list;
 		}
 		return lists;
 	}
 	
 	private void configureTable(JTable jtable) {
+		jtable.getColumn("Remove").setCellRenderer(new Util.ButtonRenderer());
 		jtable.getColumn("Edit").setCellRenderer(new Util.ButtonRenderer());
 		jtable.getColumnModel().getColumn(0).setPreferredWidth(WIDTH - 200);
 		jtable.getColumnModel().getColumn(1).setPreferredWidth(200);

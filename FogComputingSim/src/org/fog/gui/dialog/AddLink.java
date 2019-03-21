@@ -344,7 +344,7 @@ public class AddLink extends JDialog {
 		for(Node node : graph.getDevicesList().keySet()) {
 			if(node.getType().equals(Config.FOG_TYPE))
 				nodesToDisplay.add(node);
-			else if((node.getType().equals(Config.SENSOR_TYPE) || node.getType().equals(Config.ACTUATOR_TYPE)) && !isConnected(node.getName()))
+			else if(!node.getType().equals(Config.FOG_TYPE) && !isConnected(node.getName()))
 				nodesToDisplay.add(node);
 		}
 		return nodesToDisplay;

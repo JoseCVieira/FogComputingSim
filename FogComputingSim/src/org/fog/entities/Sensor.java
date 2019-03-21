@@ -80,10 +80,13 @@ public class Sensor extends SimEntity{
 	
 	public void transmit(){
 		AppEdge _edge = null;
-		for(AppEdge edge : getApp().getEdges()){
+		for(AppEdge edge : getApp().getEdges()) {
+			//System.out.println(edge.getSource());
 			if(edge.getSource().equals(getTupleType()))
 				_edge = edge;
 		}
+
+		//System.out.println("\n" + getTupleType());
 		long cpuLength = (long) _edge.getTupleCpuLength();
 		long nwLength = (long) _edge.getTupleNwLength();
 		
@@ -233,10 +236,10 @@ public class Sensor extends SimEntity{
 
 	@Override
 	public String toString() {
-		return "Sensor [gatewayDeviceId=" + gatewayDeviceId + ", geoLocation=" + geoLocation + ", outputSize="
-				+ outputSize + ", appId=" + appId + ", userId=" + userId + ", tupleType=" + tupleType + ", sensorName="
-				+ sensorName + ", destModuleName=" + destModuleName + ", transmitDistribution=" + transmitDistribution
-				+ ", controllerId=" + controllerId + ", app=" + app + ", latency=" + latency + "]";
+		return "Sensor [gatewayDeviceId=" + gatewayDeviceId + ", outputSize=" + outputSize + ", appId=" +
+				appId + ", userId=" + userId + ", tupleType=" + tupleType + ", sensorName="
+				+ sensorName + ", destModuleName=" + destModuleName
+				+ ", latency=" + latency + "]";
 	}
 
 }

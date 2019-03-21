@@ -229,8 +229,10 @@ public class AddFogDevice extends JDialog {
 		ComboBoxModel<String> applicationModel = new DefaultComboBoxModel(applicationIds.toArray());
 		application = new JComboBox<>(applicationModel);
 		
-		if(fog == null || (fog != null && !Gui.hasSensorActuator(fog)))
+		if(fog == null || (fog != null && !Gui.hasSensorActuator(fog))) {
+			applicationModel.setSelectedItem("");
 			application.setVisible(false);
+		}
 		
 		JLabel lapplication = new JLabel("Application: ");
 		springPanel.add(lapplication);

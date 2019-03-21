@@ -14,22 +14,21 @@ import org.fog.application.selectivity.SelectivityModel;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
-import org.fog.entities.Tuple;
 import org.fog.utils.Logger;
 
 public class MyModulePlacement extends ModulePlacement{
 	
-	protected ModuleMapping moduleMapping;
-	protected List<Sensor> sensors;
-	protected List<Actuator> actuators;
-	protected Map<Integer, Double> currentCpuLoad;
+	private ModuleMapping moduleMapping;
+	private List<Sensor> sensors;
+	private List<Actuator> actuators;
+	private Map<Integer, Double> currentCpuLoad;
 	
-	/**
-	 * Stores the current mapping of application modules to fog devices 
-	 */
-	protected Map<Integer, List<String>> currentModuleMap;
-	protected Map<Integer, Map<String, Double>> currentModuleLoadMap;
-	protected Map<Integer, Map<String, Integer>> currentModuleInstanceNum;
+	// Stores the current mapping of application modules to fog devices
+	private Map<Integer, List<String>> currentModuleMap;
+	private Map<Integer, Map<String, Double>> currentModuleLoadMap;
+	private Map<Integer, Map<String, Integer>> currentModuleInstanceNum;
+	
+	List<String> placedModules = new ArrayList<String>();
 	
 	public MyModulePlacement(List<FogDevice> fogDevices, List<Sensor> sensors, List<Actuator> actuators,
 			Application application, ModuleMapping moduleMapping){
@@ -38,6 +37,7 @@ public class MyModulePlacement extends ModulePlacement{
 		this.setModuleMapping(moduleMapping);
 		this.setModuleToDeviceMap(new HashMap<String, List<Integer>>());
 		this.setDeviceToModuleMap(new HashMap<Integer, List<AppModule>>());
+		
 		setSensors(sensors);
 		setActuators(actuators);
 		setCurrentCpuLoad(new HashMap<Integer, Double>());
@@ -68,11 +68,12 @@ public class MyModulePlacement extends ModulePlacement{
 		}
 
 		getApplication().setPaths(MygetLeafToRootPaths());
-		System.out.println(getApplication().getPaths());
+		printPaths(getApplication().getPaths());
 		
 		for(List<Integer> path : getApplication().getPaths())
 			placeModulesInPath(path);
 		
+		System.out.println("");
 		for(int deviceId : getCurrentModuleMap().keySet())
 			for(String module : getCurrentModuleMap().get(deviceId))
 				createModuleInstanceOnDevice(getApplication().getModuleByName(module), getFogDeviceById(deviceId));
@@ -81,7 +82,6 @@ public class MyModulePlacement extends ModulePlacement{
 	private void placeModulesInPath(List<Integer> path) {
 		if(path.size()==0) return;
 		
-		List<String> placedModules = new ArrayList<String>();
 		Map<AppEdge, Double> appEdgeToRate = new HashMap<AppEdge, Double>();
 		
 		for(AppEdge edge : getApplication().getEdges())
@@ -94,6 +94,9 @@ public class MyModulePlacement extends ModulePlacement{
 			Map<String, Integer> actuatorsAssociated = getAssociatedActuators(device);
 			placedModules.addAll(sensorsAssociated.keySet());
 			placedModules.addAll(actuatorsAssociated.keySet());
+			
+			if(sensorsAssociated.keySet().isEmpty() || actuatorsAssociated.keySet().isEmpty())
+				continue;
 			
 			// Setting the rates of application edges emanating from sensors
 			for(String sensor : sensorsAssociated.keySet())
@@ -127,7 +130,6 @@ public class MyModulePlacement extends ModulePlacement{
 			}
 			
 			List<String> modulesToPlace = getModulesToPlace(placedModules);
-			//System.out.println("path = " + path + " deviceId= " + deviceId + " modulesToPlace= " + modulesToPlace);
 			
 			while(modulesToPlace.size() > 0){
 				String moduleName = modulesToPlace.get(0);
@@ -144,6 +146,7 @@ public class MyModulePlacement extends ModulePlacement{
 				if(totalCpuLoad + getCurrentCpuLoad().get(deviceId) > device.getHost().getTotalMips())
 					Logger.debug("ModulePlacementEdgeward", "Placement of operator "+moduleName+ "NOT POSSIBLE on device "+device.getName());
 				else{
+					changed = true;
 					Logger.debug("ModulePlacementEdgeward", "Placement of operator "+moduleName+ " on device "+device.getName() + " successful.");
 					getCurrentCpuLoad().put(deviceId, totalCpuLoad + getCurrentCpuLoad().get(deviceId));
 					System.out.println("Placement of operator "+moduleName+ " on device "+device.getName() + " successful.");
@@ -165,7 +168,6 @@ public class MyModulePlacement extends ModulePlacement{
 					}
 					getCurrentModuleInstanceNum().get(deviceId).put(moduleName, max);
 				}
-				
 				modulesToPlace.remove(moduleName);
 			}
 		}
@@ -176,30 +178,14 @@ public class MyModulePlacement extends ModulePlacement{
 	 * @param placedModules Modules that have already been placed in current path
 	 * @return list of modules ready to be placed
 	 */
-	private List<String> getModulesToPlace(List<String> placedModules){
+	private List<String> getModulesToPlace(List<String> placedModules){ // Changed---------------------------------
 		Application app = getApplication();
-		List<String> modulesToPlace_1 = new ArrayList<String>();
 		List<String> modulesToPlace = new ArrayList<String>();
 		
 		for(AppModule module : app.getModules())
 			if(!placedModules.contains(module.getName()))
-				modulesToPlace_1.add(module.getName());
+				modulesToPlace.add(module.getName());
 		
-		//  Filtering based on whether modules (to be placed) lower in physical topology are already placed
-		for(String moduleName : modulesToPlace_1){
-			boolean toBePlaced = true;
-			
-			for(AppEdge edge : app.getEdges()){
-				//CHECK IF OUTGOING DOWN EDGES ARE PLACED
-				if(edge.getSource().equals(moduleName) && edge.getDirection()==Tuple.DOWN && !placedModules.contains(edge.getDestination()))
-					toBePlaced = false;
-				//CHECK IF INCOMING UP EDGES ARE PLACED
-				if(edge.getDestination().equals(moduleName) && edge.getDirection()==Tuple.UP && !placedModules.contains(edge.getSource()))
-					toBePlaced = false;
-			}
-			if(toBePlaced)
-				modulesToPlace.add(moduleName);
-		}
 		return modulesToPlace;
 	}
 	
@@ -261,9 +247,9 @@ public class MyModulePlacement extends ModulePlacement{
 	protected List<List<Integer>> MygetPathsFromTo(final int fromFogDeviceId, final int toFogDeviceId,
 			List<List<Integer>> pathsList){
 		
-		if(pathsList.size() == 0){		
-			final List<Integer> path =  (new ArrayList<Integer>(){{add(toFogDeviceId);}});
-			List<List<Integer>> paths = (new ArrayList<List<Integer>>(){{add(path);}});
+		if(pathsList.size() == 0){
+			final List<Integer> path = new ArrayList<Integer>(){{add(toFogDeviceId);}};
+			List<List<Integer>> paths = new ArrayList<List<Integer>>(){{add(path);}};
 			return paths;
 		}
 		
@@ -274,22 +260,36 @@ public class MyModulePlacement extends ModulePlacement{
 			for(List<Integer> path : pathsList) {
 				if(path.contains(fromFogDeviceId) && path.contains(toFogDeviceId)) {
 					listInner = new ArrayList<>();
-					for(Integer integer : path)
-						if (integer <= fromFogDeviceId && integer >= toFogDeviceId)
-							listInner.add(integer);
+					
+					boolean first = false, second = false;
+					for(int i = 0; i < path.size(); i++) {
+						if(path.get(i) == fromFogDeviceId)
+							first = true;
+						
+						if(first && !second)
+							listInner.add(path.get(i));
+						
+						if(path.get(i) == toFogDeviceId)
+							second = true;
+					}
 					
 					if(!pathList.contains(listInner))
 						pathList.add(listInner);
-					
 				}
 			}
 		}else {
 			for(List<Integer> path : pathsList) {
 				if(path.contains(toFogDeviceId)) {
 					listInner = new ArrayList<>();
-					for(Integer integer : path)
-						if (integer >= toFogDeviceId)
-							listInner.add(integer);
+					
+					boolean canBeAdded = true;
+					for(int i = 0; i < path.size(); i++) {
+						if(canBeAdded)
+							listInner.add(path.get(i));
+						
+						if(canBeAdded && path.get(i) == toFogDeviceId)
+							canBeAdded = false;
+					}
 					
 					if(!pathList.contains(listInner))
 						pathList.add(listInner);
@@ -301,24 +301,25 @@ public class MyModulePlacement extends ModulePlacement{
 	
 	protected List<List<Integer>> MygetLeafToRootPaths(){
 		List<Integer> listInner = new ArrayList<>();
-		List<List<Integer>> pathListAux = new ArrayList<>();
 		
 		// All paths without brothers
-		FogDevice cloud=null;
+		int cloudId = -1; //TODO Neste momento só é permitido ter 1 cloud...
 		for(FogDevice device : getFogDevices())
 			if(device.getParentsIds().size() == 1 && device.getParentsIds().get(0) == -1)
-				cloud = device;
+				cloudId = device.getId();
 		
-		List<List<Integer>> pathList = getPaths(cloud.getId());
+		List<List<Integer>> pathList = getPaths(cloudId);
+		List<List<Integer>> pathBrotherList = new ArrayList<List<Integer>>();
 		
 		// All paths with brothers
 		for(FogDevice device : getFogDevices()) {
-			for(int broderId : device.getBrothersIds()) {
-				List<List<Integer>> brothersTopPathsList = MygetPathsFromTo(broderId, cloud.getId(), pathList);
+			for(int brotherId : device.getBrothersIds()) {				
+				List<List<Integer>> brothersTopPathsList = MygetPathsFromTo(brotherId, cloudId, pathList);
 				List<List<Integer>> parentBottomPathsList = MygetPathsFromTo(-1, device.getId(), pathList);
 				
 				for(List<Integer> parentPath : parentBottomPathsList) {
 					for(List<Integer> brotherPath : brothersTopPathsList) {
+						
 						listInner = new ArrayList<>();
 						
 						for(int fogId : parentPath)
@@ -327,25 +328,17 @@ public class MyModulePlacement extends ModulePlacement{
 						for(int fogId : brotherPath)
 							listInner.add(fogId);
 						
-						pathListAux.add(listInner);
+						if(!pathBrotherList.contains(listInner))
+							pathBrotherList.add(listInner);
 					}
 				}
 			}
 		}
 		
-		for(List<Integer> path : pathList)
-			if(!pathListAux.contains(path))
-				pathListAux.add(path);
+		for(List<Integer> path : pathBrotherList)
+			pathList.add(path);
 		
-		return pathListAux;
-	}
-	
-	protected List<List<Integer>> getLeafToRootPaths(){
-		FogDevice cloud=null;
-		for(FogDevice device : getFogDevices())
-			if(device.getName().equalsIgnoreCase("cloud"))
-				cloud = device;
-		return getPaths(cloud.getId());
+		return pathList;
 	}
 	
 	protected double getRateOfSensor(String sensorType){
@@ -354,6 +347,18 @@ public class MyModulePlacement extends ModulePlacement{
 				return 1/sensor.getTransmitDistribution().getMeanInterTransmitTime();
 		}
 		return 0;
+	}
+	
+	private void printPaths(List<List<Integer>> paths){
+		System.out.println("\nPath list:\n");
+		
+		for(List<Integer> path : paths) {
+			for(int fogId : path)
+				System.out.print(getFogDeviceById(fogId).getName() + "   ");
+			System.out.println();
+		}
+		
+		System.out.println("\n");
 	}
 	
 	public ModuleMapping getModuleMapping() {

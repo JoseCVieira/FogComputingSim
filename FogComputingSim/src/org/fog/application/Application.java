@@ -112,8 +112,8 @@ public class Application {
 			edge = new AppEdge(e.getSource() + "_" + userId, e.getDestination() + "_" + userId, e.getTupleCpuLength(),
 				e.getTupleNwLength(), e.getTupleType() + "_" + userId, e.getDirection(), e.getEdgeType());
 		else
-			edge = new AppEdge(e.getSource(), e.getDestination(), e.getPeriodicity(),
-					e.getTupleCpuLength(), e.getTupleNwLength(), e.getTupleType(),
+			edge = new AppEdge(e.getSource() + "_" + userId, e.getDestination() + "_" + userId, e.getPeriodicity(),
+					e.getTupleCpuLength(), e.getTupleNwLength(), e.getTupleType() + "_" + userId,
 					e.getDirection(), e.getEdgeType());
 		
 		getEdges().add(edge);
