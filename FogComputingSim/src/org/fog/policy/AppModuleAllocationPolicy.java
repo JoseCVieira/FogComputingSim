@@ -16,28 +16,26 @@ public class AppModuleAllocationPolicy extends VmAllocationPolicy{
 	
 	public AppModuleAllocationPolicy(List<? extends Host> list) {
 		super(list);
-		if(list.size()==1)
-			fogHost = list.get(0);
+		if(list.size() == 1) fogHost = list.get(0);
 		appModuleIds = new ArrayList<Integer>();
 	}
 
 	@Override
 	public boolean allocateHostForVm(Vm vm) {
-		Host host = fogHost;
-		boolean result = host.vmCreate(vm);
-		if (result) // if vm were succesfully created in the host
+		if (fogHost.vmCreate(vm)) { // if vm were succesfully created in the host
 			getAppModuleIdsIds().add(vm.getId());
-		
-		return result;
+			return true;
+		}
+		return false;
 	}
 
 	@Override
 	public boolean allocateHostForVm(Vm vm, Host host) {
-		boolean result = host.vmCreate(vm);
-		if (result) // if vm were succesfully created in the host
+		if (host.vmCreate(vm)) { // if vm were succesfully created in the host
 			getAppModuleIdsIds().add(vm.getId());
-		
-		return result;
+			return true;
+		}
+		return false;
 	}
 
 	@Override

@@ -12,13 +12,11 @@ import org.fog.application.selectivity.SelectivityModel;
 import org.fog.entities.Tuple;
 import org.fog.scheduler.TupleScheduler;
 import org.fog.utils.FogUtils;
-import org.fog.utils.GeoCoverage;
 
 // Class represents an application in the Distributed Dataflow Model.
 public class Application {
 	
 	private Map<String, AppEdge> edgeMap;
-	private GeoCoverage geoCoverage;
 	private List<AppModule> modules; //List of application modules in the application
 	private List<AppEdge> edges; //List of application edges in the application
 	private List<AppLoop> loops; // List of application loops to monitor for delay
@@ -32,24 +30,10 @@ public class Application {
 		setUserId(userId);
 		setModules(new ArrayList<AppModule>());
 		setEdges(new ArrayList<AppEdge>());
-		setGeoCoverage(null);
 		setLoops(new ArrayList<AppLoop>());
 		setEdgeMap(new HashMap<String, AppEdge>());
 		
 		setPaths(new ArrayList<>());
-	}
-	
-	public Application(String appId, List<AppModule> modules,
-			List<AppEdge> edges, List<AppLoop> loops, GeoCoverage geoCoverage) {
-		setAppId(appId);
-		setModules(modules);
-		setEdges(edges);
-		setGeoCoverage(geoCoverage);
-		setLoops(loops);
-		setEdgeMap(new HashMap<String, AppEdge>());
-		
-		for(AppEdge edge : edges)
-			getEdgeMap().put(edge.getTupleType(), edge);
 	}
 	
 	/**
@@ -266,26 +250,25 @@ public class Application {
 	public String getAppId() {
 		return appId;
 	}
+	
 	public void setAppId(String appId) {
 		this.appId = appId;
 	}
+	
 	public List<AppModule> getModules() {
 		return modules;
 	}
+	
 	public void setModules(List<AppModule> modules) {
 		this.modules = modules;
 	}
+	
 	public List<AppEdge> getEdges() {
 		return edges;
 	}
+	
 	public void setEdges(List<AppEdge> edges) {
 		this.edges = edges;
-	}
-	public GeoCoverage getGeoCoverage() {
-		return geoCoverage;
-	}
-	public void setGeoCoverage(GeoCoverage geoCoverage) {
-		this.geoCoverage = geoCoverage;
 	}
 
 	public List<AppLoop> getLoops() {

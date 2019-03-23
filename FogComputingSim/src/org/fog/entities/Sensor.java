@@ -81,8 +81,8 @@ public class Sensor extends SimEntity{
 		Application application = getApp();
 		for(AppLoop loop : application.getLoops()){
 			if(loop.hasEdge(src, dest)){
-				
 				int tupleId = TimeKeeper.getInstance().getUniqueId();
+				
 				if(!TimeKeeper.getInstance().getLoopIdToTupleIds().containsKey(loop.getLoopId()))
 					TimeKeeper.getInstance().getLoopIdToTupleIds().put(loop.getLoopId(), new ArrayList<Integer>());
 				TimeKeeper.getInstance().getLoopIdToTupleIds().get(loop.getLoopId()).add(tupleId);

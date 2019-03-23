@@ -40,7 +40,7 @@ import org.fog.utils.NetworkUsageMonitor;
 import org.fog.utils.TimeKeeper;
 
 public class FogDevice extends PowerDatacenter {
-	private static final boolean PRINT_COMMUNICATION_DETAILS = true;
+	private static final boolean PRINT_COMMUNICATION_DETAILS = false;
 	
 	protected Map<String, Map<String, Integer>> moduleInstanceCount;
 	protected List<Pair<Integer, Double>> associatedActuatorIds;
@@ -73,8 +73,9 @@ public class FogDevice extends PowerDatacenter {
 	protected double ratePerMips;
 	protected double totalCost;
 	
-	public FogDevice(String name, FogDeviceCharacteristics characteristics, VmAllocationPolicy vmAllocationPolicy, List<Storage> storageList,
-			double schedulingInterval, double uplinkBandwidth, double downlinkBandwidth, double ratePerMips) throws Exception {
+	public FogDevice(String name, FogDeviceCharacteristics characteristics, VmAllocationPolicy vmAllocationPolicy,
+			List<Storage> storageList, double schedulingInterval, double uplinkBandwidth, double downlinkBandwidth,
+			double ratePerMips) throws Exception {
 		super(name, characteristics, vmAllocationPolicy, storageList, schedulingInterval);
 		
 		setModuleInstanceCount(new HashMap<String, Map<String, Integer>>());

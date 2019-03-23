@@ -146,15 +146,28 @@ public class RunSim extends JDialog {
     				Application application = createApplication(graph, fog.getApplication(), broker.getId());
     				application.setUserId(broker.getId());
     				
-					controller.submitApplication(application, new MyModulePlacement(fogDevices, getSensorsByBrokerId(broker.getId()),
-							getActuatorsByBrokerId(broker.getId()), application, ModuleMapping.createModuleMapping()));
+    				ModuleMapping moduleMapping = ModuleMapping.createModuleMapping();
+    				
+    				if(broker.getId() == 7) {
+    					moduleMapping.addModuleToDevice("client_7", "Client1");
+    					moduleMapping.addModuleToDevice("concentration_calculator_7", "FogNode1");
+    					moduleMapping.addModuleToDevice("connector_7", "Proxy");
+    				}else {
+    					moduleMapping.addModuleToDevice("client_10", "Client2");
+    					moduleMapping.addModuleToDevice("concentration_calculator_10", "FogNode2");
+    					moduleMapping.addModuleToDevice("connector_10", "Proxy");
+    				}
+    				
+					controller.submitApplication(application, new MyModulePlacement(fogDevices, application, moduleMapping));
 					
-					printDetails(application);
+					if(DEBUG_MODE)
+						printDetails(application);
     			}
     			
     			TimeKeeper.getInstance().setSimulationStartTime(Calendar.getInstance().getTimeInMillis());
     			CloudSim.startSimulation();
     			CloudSim.stopSimulation();
+    			System.exit(0);
     		} catch (Exception e) {
     			e.printStackTrace();
     			Log.printLine("Unwanted errors happen");
@@ -348,28 +361,7 @@ public class RunSim extends JDialog {
 			return null;
 		}
 		
-		private List<Sensor> getSensorsByBrokerId(int brokerId) {
-			List<Sensor> list = new ArrayList<Sensor>();
-			
-			for(Sensor s : sensors)
-				if(s.getTupleType().contains("_" + brokerId))
-					list.add(s);
-			
-			return list;
-		}
-		
-		private List<Actuator> getActuatorsByBrokerId(int brokerId) {
-			List<Actuator> list = new ArrayList<Actuator>();
-			
-			for(Actuator a : actuators)
-				if(a.getActuatorType().contains("_" + brokerId))
-					list.add(a);
-			
-			return list;
-		}
-		
 		private void printDetails(Application application) {
-			
 			System.out.println("\n[FOG DEVICES]:\n");
 			for(FogDevice fd : fogDevices)
 				System.out.println(fd);
@@ -383,9 +375,8 @@ public class RunSim extends JDialog {
 				System.out.println(s);
 			
 			System.out.println("\n[APP MODULES]:\n");
-			for(AppModule appModule : application.getModules()) {
+			for(AppModule appModule : application.getModules())
 				System.out.println(appModule);
-			}
 			
 			System.out.println("\n[APP EDGES]:\n");
 			for(AppEdge appEdge : application.getEdges())
@@ -397,7 +388,7 @@ public class RunSim extends JDialog {
 					System.out.println("From: " + pair.getFirst() + " To: " + pair.getSecond() +
 							" Value: " + pair.getValue());
 			
-			System.out.println("\nApplication:\n" + application);
+			System.out.println("\n[APPLICATION]:\n" + application);
 		}
 	}
 	

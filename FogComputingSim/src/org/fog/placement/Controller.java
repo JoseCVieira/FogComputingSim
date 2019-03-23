@@ -18,7 +18,6 @@ import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.utils.Config;
 import org.fog.utils.FogEvents;
-import org.fog.utils.FogUtils;
 import org.fog.utils.NetworkUsageMonitor;
 import org.fog.utils.TimeKeeper;
 import org.fog.utils.Util;
@@ -81,7 +80,7 @@ public class Controller extends SimEntity{
 	
 	@Override
 	public void startEntity() {
-		for(String appId : applications.keySet()){
+		for(String appId : applications.keySet()){ //TODO: ver isto
 			if(getAppLaunchDelays().get(appId)==0)
 				processAppSubmit(applications.get(appId));
 			else
@@ -141,7 +140,6 @@ public class Controller extends SimEntity{
 	}
 	
 	public void submitApplication(Application application, int delay, ModulePlacement modulePlacement){
-		FogUtils.appIdToGeoCoverageMap.put(application.getAppId(), application.getGeoCoverage());
 		getApplications().put(application.getAppId(), application);
 		getAppLaunchDelays().put(application.getAppId(), delay);
 		getAppModulePlacementPolicy().put(application.getAppId(), modulePlacement);
@@ -174,7 +172,6 @@ public class Controller extends SimEntity{
 	
 	private void processAppSubmit(Application application){
 		System.out.println(CloudSim.clock()+" Submitted application "+ application.getAppId());
-		FogUtils.appIdToGeoCoverageMap.put(application.getAppId(), application.getGeoCoverage());
 		getApplications().put(application.getAppId(), application);
 		
 		ModulePlacement modulePlacement = getAppModulePlacementPolicy().get(application.getAppId());
