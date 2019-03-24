@@ -44,38 +44,13 @@ public class Controller extends SimEntity{
 		setFogDevices(fogDevices);
 		setActuators(actuators);
 		setSensors(sensors);
-		connectWithLatencies();
 	}
 
 	public FogDevice getFogDeviceById(int id){
 		for(FogDevice fogDevice : getFogDevices())
 			if(id==fogDevice.getId())
 				return fogDevice;
-
 		return null;
-	}
-	
-	private void connectWithLatencies(){
-		for(FogDevice fogDevice : getFogDevices()){
-			for(int parentId : fogDevice.getParentsIds()) {
-				FogDevice parent = getFogDeviceById(parentId);
-				
-				if(parent == null) continue;
-				
-				double latency = fogDevice.getUpStreamLatencyMap().get(parent.getId());
-				parent.getDownStreamLatencyMap().put(fogDevice.getId(), latency);
-				parent.getChildrenIds().add(fogDevice.getId());
-			}
-			
-			for(int parentId : fogDevice.getBrothersIds()) {
-				FogDevice parent = getFogDeviceById(parentId);
-				
-				if(parent == null) continue;
-				
-				double latency = fogDevice.getUpStreamLatencyMap().get(parent.getId());
-				parent.getDownStreamLatencyMap().put(fogDevice.getId(), latency);
-			}
-		}
 	}
 	
 	@Override
@@ -171,7 +146,7 @@ public class Controller extends SimEntity{
 	}
 	
 	private void processAppSubmit(Application application){
-		System.out.println(CloudSim.clock()+" Submitted application "+ application.getAppId());
+		System.out.println("Submitted application " + application.getAppId() + " at time= " + CloudSim.clock());
 		getApplications().put(application.getAppId(), application);
 		
 		ModulePlacement modulePlacement = getAppModulePlacementPolicy().get(application.getAppId());

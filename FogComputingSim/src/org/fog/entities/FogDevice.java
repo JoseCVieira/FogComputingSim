@@ -29,6 +29,7 @@ import org.fog.application.AppLoop;
 import org.fog.application.AppModule;
 import org.fog.application.Application;
 import org.fog.placement.Controller;
+import org.fog.placement.ModulePlacement;
 import org.fog.policy.AppModuleAllocationPolicy;
 import org.fog.scheduler.StreamOperatorScheduler;
 import org.fog.utils.Config;
@@ -38,9 +39,11 @@ import org.fog.utils.Logger;
 import org.fog.utils.ModuleLaunchConfig;
 import org.fog.utils.NetworkUsageMonitor;
 import org.fog.utils.TimeKeeper;
+import org.fog.utils.dijkstra.DijkstraAlgorithm;
+import org.fog.utils.dijkstra.Vertex;
 
 public class FogDevice extends PowerDatacenter {
-	private static final boolean PRINT_COMMUNICATION_DETAILS = false;
+	private static final boolean PRINT_COMMUNICATION_DETAILS = true;
 	
 	protected Map<String, Map<String, Integer>> moduleInstanceCount;
 	protected List<Pair<Integer, Double>> associatedActuatorIds;
@@ -743,66 +746,44 @@ public class FogDevice extends PowerDatacenter {
 		send(getId(), CloudSim.getMinTimeBetweenEvents(), FogEvents.TUPLE_ARRIVAL, tuple);
 	}
 
-	private int findNextHopCommunication(Tuple tuple) { //TODO verify best path (costs, bandwidth, etc)
+	/**
+	 * Find next hop based on delay
+	 * @param tuple
+	 * @return
+	 */
+	private int findNextHopCommunication(Tuple tuple) {
 		Application app = controller.getApplications().get(tuple.getAppId());
+		ModulePlacement modulePlacement = controller.getAppModulePlacementPolicy().get(app.getAppId());
+		
 		String destModule = tuple.getDestModuleName();
-		int thisId = getId();
+		int destId = modulePlacement.getModuleToDeviceMap().get(destModule);
+		int initId = getId();
 		
-		int destinyIndex = -1;
-		int thisIndex = -1;
-		int hopCount = -1;
-		int nextHop = -1;
-		int index = 0;
+		DijkstraAlgorithm dijkstra = app.getDijkstraAlgorithm();
+		Vertex initNode = null;
+		Vertex destNode = null;
 		
-		List<Integer> bestPath;
-		
-		for(List<Integer> path : app.getPaths()) {
-			destinyIndex = -1;
-			thisIndex = -1;
-			index = 0;
+		for(Vertex vertex : dijkstra.getNodes()) {
+			if(vertex.getName().equals(Integer.toString(initId)))
+				initNode = vertex;
 			
-			if(path.contains(thisId)) {
-				for(int value : path) {
-					if(value == thisId)
-						thisIndex = index;
-					
-					if(controller.getFogDeviceById(value).getModuleByName(destModule) != null)
-						destinyIndex = index;
-					
-					if(destinyIndex >= 0 && thisIndex >= 0)
-						break;
-						
-					index++;
-				}
-			}
-			
-			if(destinyIndex != -1 && thisIndex != -1) {
-				int diff = Math.abs(destinyIndex - thisIndex);
-				if(hopCount == -1 || hopCount > diff) {
-					hopCount = diff;
-					bestPath = path;
-					
-					if(destinyIndex < thisIndex)
-						nextHop = bestPath.get(thisIndex - 1);
-					else if(destinyIndex > thisIndex)
-						nextHop = bestPath.get(thisIndex + 1);
-					else
-						nextHop = bestPath.get(thisIndex);
-				}
-			}
+			if(vertex.getName().equals(Integer.toString(destId)))
+				destNode = vertex;
 		}
-		return nextHop;
+		
+		dijkstra.execute(initNode);
+		LinkedList<Vertex> path = dijkstra.getPath(destNode);
+		return Integer.parseInt(path.get(1).getName());
 	}
 	
 	// Added for debug
 	private void printCommunication(Tuple tuple, String direction){
-		System.out.println("\n[ Direction: " + direction);
-		System.out.println(getId());
+		System.out.println("\nDirection: " + direction);
 		System.out.println(tuple);
-		System.out.println(findNextHopCommunication(tuple));
-		System.out.println("]\n");
+		System.out.println("From: " + getId());
+		System.out.println("To: " + findNextHopCommunication(tuple));
 	}
-	
+
 	public PowerHost getHost(){
 		return (PowerHost) getHostList().get(0);
 	}
@@ -940,20 +921,7 @@ public class FogDevice extends PowerDatacenter {
 	}
 
 	public void setBrothersIds(List<Integer> brothersIds) {
-		List<Integer> copy = new ArrayList<>();
-		copy.addAll(brothersIds);
-		
-		if(brothersIds.size() != 0) {
-			int i = 0;
-			for(int value : copy) {
-				if(value == getId())
-					break;
-				i++;
-			}
-	
-			copy.remove(i);
-		}
-		this.brothersIds = copy;
+		this.brothersIds = brothersIds;
 	}
 	
 	public void setController(Controller controller) {

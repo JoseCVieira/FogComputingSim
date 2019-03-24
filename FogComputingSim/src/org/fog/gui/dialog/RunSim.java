@@ -48,7 +48,7 @@ import org.fog.gui.core.Node;
 import org.fog.gui.core.SensorGui;
 import org.fog.placement.Controller;
 import org.fog.placement.ModuleMapping;
-import org.fog.placement.MyModulePlacement;
+import org.fog.placement.ModulePlacementMapping;
 import org.fog.policy.AppModuleAllocationPolicy;
 import org.fog.scheduler.StreamOperatorScheduler;
 import org.fog.utils.Config;
@@ -149,16 +149,24 @@ public class RunSim extends JDialog {
     				ModuleMapping moduleMapping = ModuleMapping.createModuleMapping();
     				
     				if(broker.getId() == 7) {
+    					/*moduleMapping.addModuleToDevice("client_7", "Proxy");
+    					moduleMapping.addModuleToDevice("concentration_calculator_7", "Client1");
+    					moduleMapping.addModuleToDevice("connector_7", "FogNode1");*/
+    					
     					moduleMapping.addModuleToDevice("client_7", "Client1");
     					moduleMapping.addModuleToDevice("concentration_calculator_7", "FogNode1");
     					moduleMapping.addModuleToDevice("connector_7", "Proxy");
     				}else {
+    					/*moduleMapping.addModuleToDevice("client_10", "Proxy");
+    					moduleMapping.addModuleToDevice("concentration_calculator_10", "Client2");
+    					moduleMapping.addModuleToDevice("connector_10", "FogNode2");*/
+    					
     					moduleMapping.addModuleToDevice("client_10", "Client2");
     					moduleMapping.addModuleToDevice("concentration_calculator_10", "FogNode2");
     					moduleMapping.addModuleToDevice("connector_10", "Proxy");
     				}
     				
-					controller.submitApplication(application, new MyModulePlacement(fogDevices, application, moduleMapping));
+					controller.submitApplication(application, new ModulePlacementMapping(fogDevices, application, moduleMapping));
 					
 					if(DEBUG_MODE)
 						printDetails(application);
@@ -191,30 +199,54 @@ public class RunSim extends JDialog {
 					fogDevices.add(createFogDevice((FogDeviceGui)node));
 			
 			for (Entry<Node, List<Edge>> entry : graph.getDevicesList().entrySet()) {
-				if(entry.getKey().getType().equals(Config.FOG_TYPE)) {
-					FogDeviceGui fog1 = (FogDeviceGui)entry.getKey();
-					FogDevice f1 = getFogDeviceByName(fog1.getName());
+				if(!entry.getKey().getType().equals(Config.FOG_TYPE))
+					continue;
+				
+				FogDeviceGui fog1 = (FogDeviceGui)entry.getKey();
+				FogDevice f1 = getFogDeviceByName(fog1.getName());
+				
+				for (Edge edge : entry.getValue()) {
+					if(!edge.getNode().getType().equals(Config.FOG_TYPE))
+						continue;						
+						
+					FogDeviceGui fog2 = (FogDeviceGui)edge.getNode();
+					FogDevice f2 = getFogDeviceByName(fog2.getName());
 					
-					for (Edge edge : entry.getValue()) {
-						if(edge.getNode().getType().equals(Config.FOG_TYPE)){
-							FogDeviceGui fog2 = (FogDeviceGui)edge.getNode();
-							FogDevice f2 = getFogDeviceByName(fog2.getName());
-							
-							if(fog1.getLevel() > fog2.getLevel()) {
-								f1.getParentsIds().add(f2.getId());
-								f1.getUpStreamLatencyMap().put(f2.getId(), edge.getLatency());
-							}else if(fog1.getLevel() < fog2.getLevel()) {
-								f2.getParentsIds().add(f1.getId());
-								f2.getUpStreamLatencyMap().put(f1.getId(), edge.getLatency());
-							}else {
-								f2.getBrothersIds().add(f1.getId());
-								f2.getUpStreamLatencyMap().put(f1.getId(), edge.getLatency());
-								f1.getBrothersIds().add(f2.getId());
-								f1.getUpStreamLatencyMap().put(f2.getId(), edge.getLatency());
-							}
-						}
+					if(fog1.getLevel() > fog2.getLevel()) {
+						f1.getParentsIds().add(f2.getId());
+						f2.getChildrenIds().add(f1.getId());
+					}else if(fog1.getLevel() < fog2.getLevel()) {
+						f2.getParentsIds().add(f1.getId());
+						f1.getChildrenIds().add(f2.getId());
+					}else {
+						f2.getBrothersIds().add(f1.getId());
+						f1.getBrothersIds().add(f2.getId());
 					}
+					
+					f2.getUpStreamLatencyMap().put(f1.getId(), edge.getLatency());
+					f2.getDownStreamLatencyMap().put(f1.getId(), edge.getLatency());
+					f1.getUpStreamLatencyMap().put(f2.getId(), edge.getLatency());
+					f1.getDownStreamLatencyMap().put(f2.getId(), edge.getLatency());
 				}
+			}
+			
+			for (Entry<Node, List<Edge>> entry : graph.getDevicesList().entrySet()) {
+				if(!entry.getKey().getType().equals(Config.FOG_TYPE))
+					continue;
+				
+				FogDeviceGui fog1 = (FogDeviceGui)entry.getKey();
+				FogDevice f1 = getFogDeviceByName(fog1.getName());
+				
+				System.out.println("id: " + f1.getId() + " Name: " + fog1.getName());
+				
+				System.out.println("Parents: " +  f1.getParentsIds());
+				System.out.println("Children: " + f1.getChildrenIds());
+				System.out.println("Brothers: " + f1.getBrothersIds());
+				
+				System.out.println("UpStreamMap: " + f1.getUpStreamLatencyMap());
+				System.out.println("DownStreamMap: " + f1.getDownStreamLatencyMap());
+				
+				System.out.println("\n\n\n");
 			}
 			
 			for(FogDevice fogDevice : fogDevices)

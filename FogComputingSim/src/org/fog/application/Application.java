@@ -12,18 +12,18 @@ import org.fog.application.selectivity.SelectivityModel;
 import org.fog.entities.Tuple;
 import org.fog.scheduler.TupleScheduler;
 import org.fog.utils.FogUtils;
+import org.fog.utils.dijkstra.DijkstraAlgorithm;
 
 // Class represents an application in the Distributed Dataflow Model.
 public class Application {
 	
+	private DijkstraAlgorithm dijkstraAlgorithm;
 	private Map<String, AppEdge> edgeMap;
 	private List<AppModule> modules; //List of application modules in the application
 	private List<AppEdge> edges; //List of application edges in the application
 	private List<AppLoop> loops; // List of application loops to monitor for delay
 	private String appId;
 	private int userId;
-	
-	private List<List<Integer>> paths; // added-------------------------------------------------------
 	
 	public Application(String appId, int userId) {
 		setAppId(appId + "_" + userId);
@@ -32,8 +32,6 @@ public class Application {
 		setEdges(new ArrayList<AppEdge>());
 		setLoops(new ArrayList<AppLoop>());
 		setEdgeMap(new HashMap<String, AppEdge>());
-		
-		setPaths(new ArrayList<>());
 	}
 	
 	/**
@@ -239,14 +237,6 @@ public class Application {
 		return tuple;
 	}
 	
-	public void setPaths(List<List<Integer>> paths) {
-		this.paths = paths;
-	}
-	
-	public List<List<Integer>> getPaths() {
-		return paths;
-	}
-	
 	public String getAppId() {
 		return appId;
 	}
@@ -293,6 +283,14 @@ public class Application {
 
 	public void setEdgeMap(Map<String, AppEdge> edgeMap) {
 		this.edgeMap = edgeMap;
+	}
+	
+	public DijkstraAlgorithm getDijkstraAlgorithm() {
+		return dijkstraAlgorithm;
+	}
+
+	public void setDijkstraAlgorithm(DijkstraAlgorithm dijkstraAlgorithm) {
+		this.dijkstraAlgorithm = dijkstraAlgorithm;
 	}
 	
 	@Override

@@ -12,7 +12,7 @@ import org.fog.entities.FogDevice;
 public abstract class ModulePlacement {	
 	private List<FogDevice> fogDevices;
 	private Application application;
-	private Map<String, List<Integer>> moduleToDeviceMap;
+	private Map<String, Integer> moduleToDeviceMap;
 	private Map<Integer, List<AppModule>> deviceToModuleMap;
 	private Map<Integer, Map<String, Integer>> moduleInstanceCountMap;
 	
@@ -20,6 +20,7 @@ public abstract class ModulePlacement {
 	
 	protected boolean createModuleInstanceOnDevice(AppModule _module, final FogDevice device){
 		AppModule module = null;
+		
 		if(getModuleToDeviceMap().containsKey(_module.getName()))
 			module = new AppModule(_module);
 		else
@@ -31,10 +32,8 @@ public abstract class ModulePlacement {
 			if(!getDeviceToModuleMap().containsKey(device.getId()))
 				getDeviceToModuleMap().put(device.getId(), new ArrayList<AppModule>());
 			getDeviceToModuleMap().get(device.getId()).add(module);
-			
-			if(!getModuleToDeviceMap().containsKey(module.getName()))
-				getModuleToDeviceMap().put(module.getName(), new ArrayList<Integer>());
-			getModuleToDeviceMap().get(module.getName()).add(device.getId());
+
+			getModuleToDeviceMap().put(module.getName(), device.getId());
 			return true;
 		}
 		
@@ -44,18 +43,16 @@ public abstract class ModulePlacement {
 	}
 	
 	protected FogDevice getDeviceByName(String deviceName) {
-		for(FogDevice dev : getFogDevices()){
+		for(FogDevice dev : getFogDevices())
 			if(dev.getName().equals(deviceName))
 				return dev;
-		}
 		return null;
 	}
 	
 	protected FogDevice getDeviceById(int id){
-		for(FogDevice dev : getFogDevices()){
+		for(FogDevice dev : getFogDevices())
 			if(dev.getId() == id)
 				return dev;
-		}
 		return null;
 	}
 	
@@ -79,11 +76,11 @@ public abstract class ModulePlacement {
 		this.application = application;
 	}
 
-	public Map<String, List<Integer>> getModuleToDeviceMap() {
+	public Map<String, Integer> getModuleToDeviceMap() {
 		return moduleToDeviceMap;
 	}
 
-	public void setModuleToDeviceMap(Map<String, List<Integer>> moduleToDeviceMap) {
+	public void setModuleToDeviceMap(Map<String, Integer> moduleToDeviceMap) {
 		this.moduleToDeviceMap = moduleToDeviceMap;
 	}
 

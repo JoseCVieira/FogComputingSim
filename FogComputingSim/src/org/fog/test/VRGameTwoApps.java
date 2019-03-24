@@ -26,7 +26,7 @@ import org.fog.entities.Sensor;
 import org.fog.entities.Tuple;
 import org.fog.placement.Controller;
 import org.fog.placement.ModuleMapping;
-import org.fog.placement.MyModulePlacement;
+import org.fog.placement.ModulePlacementMapping;
 import org.fog.policy.AppModuleAllocationPolicy;
 import org.fog.scheduler.StreamOperatorScheduler;
 import org.fog.utils.FogLinearPowerModel;
@@ -84,9 +84,9 @@ public class VRGameTwoApps {
 			for(FogDevice fogDevice : fogDevices)
 				fogDevice.setController(controller);
 			
-			controller.submitApplication(application0, new MyModulePlacement(fogDevices, sensors_0, actuators_0,
+			controller.submitApplication(application0, new ModulePlacementMapping(fogDevices, sensors_0, actuators_0,
 					application0, ModuleMapping.createModuleMapping()));
-			controller.submitApplication(application1, new MyModulePlacement(fogDevices, sensors_1, actuators_1,
+			controller.submitApplication(application1, new ModulePlacementMapping(fogDevices, sensors_1, actuators_1,
 					application1, ModuleMapping.createModuleMapping()));
 			
 			TimeKeeper.getInstance().setSimulationStartTime(Calendar.getInstance().getTimeInMillis());

@@ -26,7 +26,7 @@ import org.fog.entities.Sensor;
 import org.fog.entities.Tuple;
 import org.fog.placement.Controller;
 import org.fog.placement.ModuleMapping;
-import org.fog.placement.MyModulePlacement;
+import org.fog.placement.ModulePlacementMapping;
 import org.fog.policy.AppModuleAllocationPolicy;
 import org.fog.scheduler.StreamOperatorScheduler;
 import org.fog.utils.FogLinearPowerModel;
@@ -71,7 +71,7 @@ public class VRGame {
 			for(FogDevice fogDevice : fogDevices)
 				fogDevice.setController(controller);
 			
-			controller.submitApplication(application, 0, new MyModulePlacement(fogDevices, sensors, actuators,
+			controller.submitApplication(application, 0, new ModulePlacementMapping(fogDevices, sensors, actuators,
 					application, moduleMapping));
 			System.out.println(fogDevices);
 			
