@@ -65,7 +65,7 @@ public class AddFogDevice extends JDialog {
 		
 		setTitle(fog == null ? "  Add Fog Device" : "  Edit Fog Device");
 		setModal(true);
-		setPreferredSize(new Dimension(700, 800));
+		setPreferredSize(new Dimension(700, 700));
 		setResizable(false);
 		pack();
 		setLocationRelativeTo(frame);
@@ -199,14 +199,14 @@ public class AddFogDevice extends JDialog {
 		level.setSelectedIndex(fog == null ? maxLevel+1 : fog.getLevel());
 		springPanel.add(level);
 		
-		bw = Util.createInput(springPanel, bw, "Uplink BW (MB/s): ", fog == null ? Double.toString(Config.BW) : Double.toString(fog.getBw()));
+		bw = Util.createInput(springPanel, bw, "BW (MB/s): ", fog == null ? Double.toString(Config.BW) : Double.toString(fog.getBw()));
 		mips = Util.createInput(springPanel, mips, "MIPS: ", fog == null ? Double.toString(Config.MIPS) : Double.toString(fog.getMips()));
 		ram = Util.createInput(springPanel, ram, "RAM (MB): ", fog == null ? Long.toString(Config.RAM) : Long.toString(fog.getRam()));
 		storage = Util.createInput(springPanel, storage, "MEM (MB): ", fog == null ? Long.toString(Config.MEM) : Long.toString(fog.getStorage()));
 		rateMips = Util.createInput(springPanel, rateMips, "Rate/MIPS (€): ", fog == null ? Double.toString(Config.RATE_MIPS) : Double.toString(fog.getRateMips()));
 		rateRam = Util.createInput(springPanel, rateRam, "Rate/RAM (€/sec for 1 MB): ", fog == null ? Double.toString(Config.RATE_RAM) : Double.toString(fog.getRateRam()));
 		rateStorage = Util.createInput(springPanel, rateStorage, "Rate/MEM (€/sec for 1 MB): ", fog == null ? Double.toString(Config.RATE_MEM) : Double.toString(fog.getRateStorage()));
-		rateBw = Util.createInput(springPanel, rateBw, "Rate/BwUp (€/1 MB): ", fog == null ? Double.toString(Config.RATE_BW) : Double.toString(fog.getRateBw()));
+		rateBw = Util.createInput(springPanel, rateBw, "Rate/Bw (€/1 MB): ", fog == null ? Double.toString(Config.RATE_BW) : Double.toString(fog.getRateBw()));
 		idlePower = Util.createInput(springPanel, idlePower, "Idle Power (W): ", fog == null ? Double.toString(Config.IDLE_POWER) : Double.toString(fog.getIdlePower()));
 		busyPower = Util.createInput(springPanel, busyPower, "Busy Power (W): ", fog == null ? Double.toString(Config.BUSY_POWER) : Double.toString(fog.getBusyPower()));
 		cost = Util.createInput(springPanel, cost, "Cost Per Second: ", fog == null ? Double.toString(Config.COST_PER_SEC) : Double.toString(fog.getCostPerSec()));
@@ -237,7 +237,7 @@ public class AddFogDevice extends JDialog {
 		springPanel.add(application);
 
 		//rows, cols, initX, initY, xPad, yPad
-        SpringUtilities.makeCompactGrid(springPanel, 16, 2, 6, 6, 6, 6);
+        SpringUtilities.makeCompactGrid(springPanel, 14, 2, 6, 6, 6, 6);
 		return springPanel;
 	}
 	

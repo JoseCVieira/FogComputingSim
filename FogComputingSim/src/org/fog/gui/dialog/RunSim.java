@@ -149,17 +149,17 @@ public class RunSim extends JDialog {
     				ModuleMapping moduleMapping = ModuleMapping.createModuleMapping();
     				
     				if(broker.getId() == 8) {
-    					/*moduleMapping.addModuleToDevice("client_7", "Proxy");
-    					moduleMapping.addModuleToDevice("concentration_calculator_7", "Client1");
-    					moduleMapping.addModuleToDevice("connector_7", "FogNode1");*/
+    					moduleMapping.addModuleToDevice("client_8", "Client2");
+    					moduleMapping.addModuleToDevice("concentration_calculator_8", "Client2");
+    					moduleMapping.addModuleToDevice("connector_8", "Client2");
     					
-    					moduleMapping.addModuleToDevice("client_8", "Cloud");
+    					/*moduleMapping.addModuleToDevice("client_8", "Cloud");
     					moduleMapping.addModuleToDevice("concentration_calculator_8", "Cloud");
-    					moduleMapping.addModuleToDevice("connector_8", "Cloud");
+    					moduleMapping.addModuleToDevice("connector_8", "Cloud");*/
     				}else {
-    					/*moduleMapping.addModuleToDevice("client_10", "Proxy");
-    					moduleMapping.addModuleToDevice("concentration_calculator_10", "Client2");
-    					moduleMapping.addModuleToDevice("connector_10", "FogNode2");*/
+    					/*moduleMapping.addModuleToDevice("client_11", "Client1");
+    					moduleMapping.addModuleToDevice("concentration_calculator_11", "Client1");
+    					moduleMapping.addModuleToDevice("connector_11", "Client1");*/
     					
     					moduleMapping.addModuleToDevice("client_11", "Cloud");
     					moduleMapping.addModuleToDevice("concentration_calculator_11", "Cloud");
@@ -212,17 +212,8 @@ public class RunSim extends JDialog {
 					FogDeviceGui fog2 = (FogDeviceGui)edge.getNode();
 					FogDevice f2 = getFogDeviceByName(fog2.getName());
 					
-					if(fog1.getLevel() > fog2.getLevel()) {
-						f1.getParentsIds().add(f2.getId());
-						f2.getChildrenIds().add(f1.getId());
-					}else if(fog1.getLevel() < fog2.getLevel()) {
-						f2.getParentsIds().add(f1.getId());
-						f1.getChildrenIds().add(f2.getId());
-					}else {
-						f2.getBrothersIds().add(f1.getId());
-						f1.getBrothersIds().add(f2.getId());
-					}
-					
+					f2.getNeighborsIds().add(f1.getId());
+					f1.getNeighborsIds().add(f2.getId());
 					f2.getLatencyMap().put(f1.getId(), edge.getLatency());
 					f1.getLatencyMap().put(f2.getId(), edge.getLatency());
 				}
@@ -236,19 +227,9 @@ public class RunSim extends JDialog {
 				FogDevice f1 = getFogDeviceByName(fog1.getName());
 				
 				System.out.println("id: " + f1.getId() + " Name: " + fog1.getName());
-				
-				System.out.println("Parents: " +  f1.getParentsIds());
-				System.out.println("Children: " + f1.getChildrenIds());
-				System.out.println("Brothers: " + f1.getBrothersIds());
-				
-				System.out.println("UpStreamMap: " + f1.getLatencyMap());
-				
-				System.out.println("\n\n\n");
+				System.out.println("Neighbors: " +  f1.getNeighborsIds());
+				System.out.println("UpStreamMap: " + f1.getLatencyMap() + "\n\n");
 			}
-			
-			for(FogDevice fogDevice : fogDevices)
-				if(fogDevice.getParentsIds().size() == 0)
-					fogDevice.getParentsIds().add(-1);
 		}
 		
 		private FogDevice createFogDevice(FogDeviceGui fog) {
@@ -270,8 +251,9 @@ public class RunSim extends JDialog {
 
 			LinkedList<Storage> storageList = new LinkedList<Storage>();
 
-			FogDeviceCharacteristics characteristics = new FogDeviceCharacteristics("x86", "Linux", "Xen",
-					host, 10.0, fog.getCostPerSec(), fog.getRateMips(), fog.getRateRam(), fog.getRateStorage(), fog.getRateBw());
+			FogDeviceCharacteristics characteristics = new FogDeviceCharacteristics(Config.FOG_DEVICE_ARCH,
+					Config.FOG_DEVICE_OS, Config.FOG_DEVICE_VMM, host, Config.FOG_DEVICE_TIMEZONE,
+					fog.getCostPerSec(), fog.getRateMips(), fog.getRateRam(), fog.getRateStorage(), fog.getRateBw());
 			
 			try {
 				return new FogDevice(fog.getName(), characteristics, new AppModuleAllocationPolicy(hostList),

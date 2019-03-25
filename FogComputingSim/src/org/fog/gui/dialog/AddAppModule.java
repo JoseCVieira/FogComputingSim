@@ -154,7 +154,7 @@ public class AddAppModule extends JDialog {
         moduleMips = Util.createInput(springPanel, moduleMips, "Mips: ", module == null ? Double.toString(Config.MODULE_MIPS) : Double.toString(module.getMips()));
         moduleRam = Util.createInput(springPanel, moduleRam, "Ram: ", module == null ? Integer.toString(Config.MODULE_RAM) : Integer.toString(module.getRam()));
         moduleSize = Util.createInput(springPanel, moduleSize, "Mem: ", module == null ? Long.toString(Config.MODULE_SIZE) : Long.toString(module.getSize()));
-        moduleBw = Util.createInput(springPanel, moduleBw, "Bw: ", module == null ? Long.toString(Config.MODUEL_BW) : Long.toString(module.getBw()));
+        moduleBw = Util.createInput(springPanel, moduleBw, "Bw: ", module == null ? Long.toString(Config.MODULE_BW) : Long.toString(module.getBw()));
 
 		//rows, cols, initX, initY, xPad, yPad
         SpringUtilities.makeCompactGrid(springPanel, 5, 2, 6, 6, 6, 6);

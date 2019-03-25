@@ -51,9 +51,7 @@ public class FogDevice extends PowerDatacenter {
 	protected double lastMemUtilization; // MEM ---- added
 	protected double lastBwUtilization; // BW ---- added
 	
-	private List<Integer> childrenIds;
-	private List<Integer> brothersIds; // Added
-	private List<Integer> parentsIds; // Modified
+	private List<Integer> neighborsIds;
 	private Controller controller; // Added
 	
 	protected Map<Integer, Double> latencyMap; // Modified
@@ -80,10 +78,7 @@ public class FogDevice extends PowerDatacenter {
 		this.lastMemUtilization = 0;
 		this.lastBwUtilization = 0;
 		
-		setParentsIds(new ArrayList<Integer>());
-		setBrothersIds(new ArrayList<Integer>());
-		setChildrenIds(new ArrayList<Integer>());
-		
+		setNeighborsIds(new ArrayList<Integer>());
 		setLatencyMap(new HashMap<Integer, Double>());
 		
 		setVmAllocationPolicy(vmAllocationPolicy);
@@ -501,9 +496,9 @@ public class FogDevice extends PowerDatacenter {
 		Logger.debug(getName(), "Executing tuple on module "+moduleName);
 		Tuple tuple = (Tuple)ev.getData();
 		
-		AppModule module = getModuleByName(moduleName);
-		
 		if(tuple.getDirection() == Tuple.UP){
+			AppModule module = getModuleByName(moduleName);
+			
 			String srcModule = tuple.getSrcModuleName();
 			if(!module.getDownInstanceIdsMaps().containsKey(srcModule))
 				module.getDownInstanceIdsMaps().put(srcModule, new ArrayList<Integer>());
@@ -632,20 +627,12 @@ public class FogDevice extends PowerDatacenter {
 		return (PowerHost) getHostList().get(0);
 	}
 	
-	public List<Integer> getParentsIds() {
-		return parentsIds;
+	public List<Integer> getNeighborsIds() {
+		return neighborsIds;
 	}
 	
-	public void setParentsIds(List<Integer> parentsId) {
-		this.parentsIds = parentsId;
-	}
-	
-	public List<Integer> getChildrenIds() {
-		return childrenIds;
-	}
-	
-	public void setChildrenIds(List<Integer> childrenIds) {
-		this.childrenIds = childrenIds;
+	public void setNeighborsIds(List<Integer> neighborsIds) {
+		this.neighborsIds = neighborsIds;
 	}
 	
 	public Queue<Pair<Tuple, Integer>> getTupleQueue() {
@@ -721,14 +708,6 @@ public class FogDevice extends PowerDatacenter {
 		this.moduleInstanceCount = moduleInstanceCount;
 	}
 	
-	public List<Integer> getBrothersIds() {
-		return brothersIds;
-	}
-
-	public void setBrothersIds(List<Integer> brothersIds) {
-		this.brothersIds = brothersIds;
-	}
-	
 	public void setController(Controller controller) {
 		this.controller = controller;
 	}
@@ -742,9 +721,7 @@ public class FogDevice extends PowerDatacenter {
 		String str = "";
 		
 		str = "\nID: " + getId() + " Name: " + getName() + "\n"+
-		"ParentsIds: " + parentsIds + "\n"+
-		"BrodersIds: " + brothersIds + "\n"+
-		"ChildrenIds: " + childrenIds + "\n"+
+		"NeighborsIds: " + neighborsIds + "\n"+
 		"MIPS: " + getHost().getTotalMips() + "\n"+
 		"RAM: " + getHost().getRam() + "\n"+
 		"MEM: " + getHost().getStorage() + "\n"+

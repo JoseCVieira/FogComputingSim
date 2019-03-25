@@ -69,25 +69,10 @@ public class ModulePlacementMapping extends ModulePlacement{
 		for(FogDevice fDev : getFogDevices()) {
 			int dId = fDev.getId();
 			
-			for(int p : fDev.getParentsIds()) {
-				if(p == -1)
-					continue;
-				
-				int lat = fDev.getLatencyMap().get(p).intValue();
-				edges.add(new Edge(mapNodes.get(dId), mapNodes.get(p), lat));
-				edges.add(new Edge(mapNodes.get(p), mapNodes.get(dId), lat));
-			}
-			
-			for(int b : fDev.getBrothersIds()) {
-				int lat = fDev.getLatencyMap().get(b).intValue();
-				edges.add(new Edge(mapNodes.get(dId), mapNodes.get(b), lat));
-				edges.add(new Edge(mapNodes.get(b), mapNodes.get(dId), lat));
-			}
-			
-			for(int c : fDev.getChildrenIds()) {
-				int lat = fDev.getLatencyMap().get(c).intValue();
-				edges.add(new Edge(mapNodes.get(dId), mapNodes.get(c), lat));
-				edges.add(new Edge(mapNodes.get(c), mapNodes.get(dId), lat));
+			for(int neighborId : fDev.getNeighborsIds()) {
+				int lat = fDev.getLatencyMap().get(neighborId).intValue();
+				edges.add(new Edge(mapNodes.get(dId), mapNodes.get(neighborId), lat));
+				edges.add(new Edge(mapNodes.get(neighborId), mapNodes.get(dId), lat));
 			}
 		}
 
