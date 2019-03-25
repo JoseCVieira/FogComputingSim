@@ -232,30 +232,6 @@ public class Host {
 		vm.setHost(this);
 		return true;
 	}
-	
-	/*public boolean vmTestCreate(Vm vm) { //Added ----------------------------------------------------
-		if (getStorage() < vm.getSize())
-			return false;
-
-		if(getRamProvisioner().allocateRamForVm(vm, vm.getCurrentRequestedRam()))
-			return false;
-		
-		if (!getBwProvisioner().allocateBwForVm(vm, vm.getCurrentRequestedBw())) {
-			getRamProvisioner().deallocateRamForVm(vm);
-			return false;
-		}
-
-		if (!getVmScheduler().allocatePesForVm(vm, vm.getCurrentRequestedMips())) {
-			getRamProvisioner().deallocateRamForVm(vm);
-			getBwProvisioner().deallocateBwForVm(vm);
-			return false;
-		}
-		
-		getRamProvisioner().deallocateRamForVm(vm);
-		getBwProvisioner().deallocateBwForVm(vm);
-		getVmScheduler().deallocatePesForVm(vm);
-		return true;
-	}*/
 
 	/**
 	 * Destroys a VM running in the host.
