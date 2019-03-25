@@ -40,7 +40,6 @@ public class FogDevice extends PowerDatacenter {
 	protected Map<String, Map<String, Integer>> moduleInstanceCount;
 	protected List<Pair<Integer, Double>> associatedActuatorIds;
 	protected Map<String, List<String>> appToModulesMap;
-	protected Map<Integer, Integer> cloudTrafficMap;
 	protected List<String> activeApplications;
 	
 	protected Queue<Pair<Tuple, Integer>> uplinkTupleQueue;
@@ -76,7 +75,6 @@ public class FogDevice extends PowerDatacenter {
 		setModuleInstanceCount(new HashMap<String, Map<String, Integer>>());
 		setAssociatedActuatorIds(new ArrayList<Pair<Integer, Double>>());
 		appToModulesMap = new HashMap<String, List<String>>();
-		this.cloudTrafficMap = new HashMap<Integer, Integer>();
 		setActiveApplications(new ArrayList<String>());
 		
 		uplinkTupleQueue = new LinkedList<Pair<Tuple, Integer>>();
@@ -411,14 +409,6 @@ public class FogDevice extends PowerDatacenter {
 		controller.getApplications().put(app.getAppId(), app);
 	}
 	
-	protected void updateCloudTraffic(){
-		int time = (int)CloudSim.clock()/1000;
-		if(!cloudTrafficMap.containsKey(time))
-			cloudTrafficMap.put(time, 0);
-		
-		cloudTrafficMap.put(time, cloudTrafficMap.get(time)+1);
-	}
-	
 	protected void sendTupleToActuator(Tuple tuple){
 		for(Pair<Integer, Double> actuatorAssociation : getAssociatedActuatorIds()){
 			int actuatorId = actuatorAssociation.getFirst();
@@ -437,9 +427,6 @@ public class FogDevice extends PowerDatacenter {
 
 	protected void processTupleArrival(SimEvent ev){
 		Tuple tuple = (Tuple)ev.getData();
-		
-		if(getName().equals("cloud"))// TODO change this??? (parent id)...
-			updateCloudTraffic();
 		
 		Logger.debug(getName(), "Received tuple " + tuple.getCloudletId() + " with tupleType = " +
 				tuple.getTupleType() + " Source : " + CloudSim.getEntityName(ev.getSource())+" Dest : " +

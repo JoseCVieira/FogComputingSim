@@ -47,7 +47,8 @@ public class TimeKeeper {
 		} else{
 			double currentAverage = tupleTypeToAverageCpuTime.get(tuple.getTupleType());
 			int currentCount = tupleTypeToExecutedTupleCount.get(tuple.getTupleType());
-			tupleTypeToAverageCpuTime.put(tuple.getTupleType(), (currentAverage*currentCount+executionTime)/(currentCount+1));
+			tupleTypeToAverageCpuTime.put(tuple.getTupleType(), 
+					(currentAverage*currentCount+executionTime)/(currentCount+1));
 		}
 	}
 	
@@ -148,6 +149,5 @@ public class TimeKeeper {
 	public void setLoopIdToCurrentNum(Map<Integer, Integer> loopIdToCurrentNum) {
 		this.loopIdToCurrentNum = loopIdToCurrentNum;
 	}
-	
 	
 }

@@ -24,10 +24,6 @@ public class Util {
 		
 	}
 	
-	public String centerString(int width, String s) {
-	    return String.format("%-" + width  + "s", String.format("%" + (s.length() + (width - s.length()) / 2) + "s", s));
-	}
-	
 	public static boolean validString(String value) {
 		if(value == null || value.length() < 1)
 			return false;
@@ -83,6 +79,10 @@ public class Util {
 			v = -1;
 		
 	    return v;
+	}
+	
+	public String centerString(int width, String s) {
+	    return String.format("%-" + width  + "s", String.format("%" + (s.length() + (width - s.length()) / 2) + "s", s));
 	}
 	
 	public static void prompt(Component parentComponent, String msg, String type){

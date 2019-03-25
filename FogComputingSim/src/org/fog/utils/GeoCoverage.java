@@ -52,5 +52,4 @@ public class GeoCoverage {
 		this.long_u = long_u;
 	}
 	
-	
 }

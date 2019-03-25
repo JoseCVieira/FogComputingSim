@@ -15,12 +15,15 @@ public class ModuleLaunchConfig {
 	public AppModule getModule() {
 		return module;
 	}
+	
 	public void setModule(AppModule module) {
 		this.module = module;
 	}
+	
 	public int getInstanceCount() {
 		return instanceCount;
 	}
+	
 	public void setInstanceCount(int instanceCount) {
 		this.instanceCount = instanceCount;
 	}
