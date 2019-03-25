@@ -11,7 +11,6 @@ import org.apache.commons.math3.util.Pair;
 import org.cloudbus.cloudsim.Cloudlet;
 import org.cloudbus.cloudsim.Host;
 import org.cloudbus.cloudsim.Log;
-import org.cloudbus.cloudsim.Pe;
 import org.cloudbus.cloudsim.Storage;
 import org.cloudbus.cloudsim.Vm;
 import org.cloudbus.cloudsim.VmAllocationPolicy;
@@ -20,21 +19,14 @@ import org.cloudbus.cloudsim.core.CloudSimTags;
 import org.cloudbus.cloudsim.core.SimEvent;
 import org.cloudbus.cloudsim.power.PowerDatacenter;
 import org.cloudbus.cloudsim.power.PowerHost;
-import org.cloudbus.cloudsim.power.models.PowerModel;
-import org.cloudbus.cloudsim.provisioners.RamProvisionerSimple;
-import org.cloudbus.cloudsim.sdn.overbooking.BwProvisionerOverbooking;
-import org.cloudbus.cloudsim.sdn.overbooking.PeProvisionerOverbooking;
 import org.fog.application.AppEdge;
 import org.fog.application.AppLoop;
 import org.fog.application.AppModule;
 import org.fog.application.Application;
 import org.fog.placement.Controller;
 import org.fog.placement.ModulePlacement;
-import org.fog.policy.AppModuleAllocationPolicy;
-import org.fog.scheduler.StreamOperatorScheduler;
 import org.fog.utils.Config;
 import org.fog.utils.FogEvents;
-import org.fog.utils.FogUtils;
 import org.fog.utils.Logger;
 import org.fog.utils.ModuleLaunchConfig;
 import org.fog.utils.NetworkUsageMonitor;
@@ -43,7 +35,7 @@ import org.fog.utils.dijkstra.DijkstraAlgorithm;
 import org.fog.utils.dijkstra.Vertex;
 
 public class FogDevice extends PowerDatacenter {
-	private static final boolean PRINT_COMMUNICATION_DETAILS = true;
+	private static final boolean PRINT_COMMUNICATION_DETAILS = false;
 	
 	protected Map<String, Map<String, Integer>> moduleInstanceCount;
 	protected List<Pair<Integer, Double>> associatedActuatorIds;
@@ -51,10 +43,10 @@ public class FogDevice extends PowerDatacenter {
 	protected Map<Integer, Integer> cloudTrafficMap;
 	protected List<String> activeApplications;
 	
-	protected Queue<Pair<Tuple, Integer>> southTupleQueue;
-	protected Queue<Pair<Tuple, Integer>> northTupleQueue; // Modified
-	protected boolean isSouthLinkBusy;
-	protected boolean isNorthLinkBusy;
+	protected Queue<Pair<Tuple, Integer>> uplinkTupleQueue;
+	protected Queue<Pair<Tuple, Integer>> downlinkTupleQueue; // Modified
+	protected boolean uplinkTupleBusy;
+	protected boolean downlinkTuplekBusy;
 	protected double downlinkBandwidth;
 	protected double uplinkBandwidth;
 	
@@ -87,10 +79,10 @@ public class FogDevice extends PowerDatacenter {
 		this.cloudTrafficMap = new HashMap<Integer, Integer>();
 		setActiveApplications(new ArrayList<String>());
 		
-		southTupleQueue = new LinkedList<Pair<Tuple, Integer>>();
-		northTupleQueue = new LinkedList<Pair<Tuple, Integer>>();
-		setNorthLinkBusy(false);
-		setSouthLinkBusy(false);
+		uplinkTupleQueue = new LinkedList<Pair<Tuple, Integer>>();
+		downlinkTupleQueue = new LinkedList<Pair<Tuple, Integer>>();
+		setUplinkTupleBusy(false);
+		setDownlinkTuplekBusy(false);
 		setDownlinkBandwidth(downlinkBandwidth);
 		setUplinkBandwidth(uplinkBandwidth);
 		
@@ -128,88 +120,6 @@ public class FogDevice extends PowerDatacenter {
 		setRatePerMips(ratePerMips);
 		setTotalCost(0);
 	}
-
-	public FogDevice(String name, long mips, int ram, double uplinkBandwidth, double downlinkBandwidth,
-			double ratePerMips, PowerModel powerModel) throws Exception {
-		
-		super(name, null, null, new LinkedList<Storage>(), 0);
-		
-		List<Pe> peList = new ArrayList<Pe>();
-
-		// Create PEs and add these into a list.
-		// need to store Pe id and MIPS Rating
-		peList.add(new Pe(0, new PeProvisionerOverbooking(mips)));
-
-		int hostId = FogUtils.generateEntityId();
-		long storage = 1000000; // host storage
-		int bw = 10000;
-
-		PowerHost host = new PowerHost(
-			hostId,
-			new RamProvisionerSimple(ram),
-			new BwProvisionerOverbooking(bw),
-			storage,
-			peList,
-			new StreamOperatorScheduler(peList),
-			powerModel
-		);
-
-		List<Host> hostList = new ArrayList<Host>();
-		hostList.add(host);
-
-		setVmAllocationPolicy(new AppModuleAllocationPolicy(hostList));
-		
-		String arch = Config.FOG_DEVICE_ARCH; 
-		String os = Config.FOG_DEVICE_OS; 
-		String vmm = Config.FOG_DEVICE_VMM;
-		double time_zone = Config.FOG_DEVICE_TIMEZONE;
-		double cost = Config.FOG_DEVICE_COST; 
-		double costPerMem = Config.FOG_DEVICE_COST_PER_MEMORY;
-		double costPerStorage = Config.FOG_DEVICE_COST_PER_STORAGE;
-		double costPerBw = Config.FOG_DEVICE_COST_PER_BW;
-
-		FogDeviceCharacteristics characteristics = new FogDeviceCharacteristics(arch, os, vmm, host,
-				time_zone, cost, costPerMem, costPerStorage, costPerBw);
-
-		setCharacteristics(characteristics);
-		
-		setLastProcessTime(0.0);
-		setVmList(new ArrayList<Vm>());
-		setUplinkBandwidth(uplinkBandwidth);
-		setDownlinkBandwidth(downlinkBandwidth);
-		setAssociatedActuatorIds(new ArrayList<Pair<Integer, Double>>());
-		
-		for (Host host1 : getCharacteristics().getHostList())
-			host1.setDatacenter(this);
-
-		setActiveApplications(new ArrayList<String>());
-		if (getCharacteristics().getNumberOfPes() == 0)
-			throw new Exception(super.getName()
-					+ " : Error - this entity has no PEs. Therefore, can't process any Cloudlets.");
-		
-		getCharacteristics().setId(super.getId());
-		
-		appToModulesMap = new HashMap<String, List<String>>();
-		northTupleQueue = new LinkedList<Pair<Tuple, Integer>>();
-		southTupleQueue = new LinkedList<Pair<Tuple, Integer>>();
-		setNorthLinkBusy(false);
-		setSouthLinkBusy(false);
-		
-		
-		setChildrenIds(new ArrayList<Integer>());
-		
-		this.cloudTrafficMap = new HashMap<Integer, Integer>();
-		
-		this.energyConsumption = 0;
-		this.lastRamUtilization = 0;
-		this.lastMemUtilization = 0;
-		this.lastBwUtilization = 0;
-		this.lastMipsUtilization = 0;
-		setTotalCost(0);
-		setDownStreamLatencyMap(new HashMap<Integer, Double>());
-		setUpStreamLatencyMap(new HashMap<Integer, Double>());
-		setModuleInstanceCount(new HashMap<String, Map<String, Integer>>());
-	}
 	
 	@Override
 	protected void processOtherEvent(SimEvent ev) {
@@ -233,10 +143,10 @@ public class FogDevice extends PowerDatacenter {
 			processAppSubmit(ev);
 			break;
 		case FogEvents.UPDATE_NORTH_TUPLE_QUEUE:
-			updateNorthTupleQueue();
+			updateUplinkTupleQueue();
 			break;
 		case FogEvents.UPDATE_SOUTH_TUPLE_QUEUE:
-			updateSouthTupleQueue();
+			updateDownlinkTupleQueue();
 			break;
 		case FogEvents.ACTIVE_APP_UPDATE:
 			updateActiveApplications(ev);
@@ -369,10 +279,7 @@ public class FogDevice extends PowerDatacenter {
 						host.getId(), timeFrameHostEnergy);
 			}
 
-			Log.formatLine(
-					"\n%.2f: Data center's energy is %.2f W*sec\n",
-					currentTime,
-					timeFrameDatacenterEnergy);
+			Log.formatLine("\n%.2f: Data center's energy is %.2f W*sec\n", currentTime, timeFrameDatacenterEnergy);
 		}
 
 		setPower(getPower() + timeFrameDatacenterEnergy);
@@ -398,8 +305,10 @@ public class FogDevice extends PowerDatacenter {
 						Tuple tuple = (Tuple)cl;
 						TimeKeeper.getInstance().tupleEndedExecution(tuple);
 						Application application = controller.getApplications().get(tuple.getAppId());
-						Logger.debug(getName(), "Completed execution of tuple "+tuple.getCloudletId()+"on "+tuple.getDestModuleName());
-						List<Tuple> resultantTuples = application.getResultantTuples(tuple.getDestModuleName(), tuple, getId(), vm.getId());
+						Logger.debug(getName(), "Completed execution of tuple "+tuple.getCloudletId() +
+								"on " + tuple.getDestModuleName());
+						List<Tuple> resultantTuples = application.getResultantTuples(tuple.getDestModuleName(),
+								tuple, vm.getId());
 						
 						for(Tuple resTuple : resultantTuples){
 							resTuple.setModuleCopyMap(new HashMap<String, Integer>(tuple.getModuleCopyMap()));
@@ -515,6 +424,7 @@ public class FogDevice extends PowerDatacenter {
 			int actuatorId = actuatorAssociation.getFirst();
 			double delay = actuatorAssociation.getSecond();
 			String actuatorType = ((Actuator)CloudSim.getEntity(actuatorId)).getActuatorType();
+			
 			if(tuple.getDestModuleName().equals(actuatorType)){
 				send(actuatorId, delay, FogEvents.TUPLE_ARRIVAL, tuple);
 				return;
@@ -528,14 +438,13 @@ public class FogDevice extends PowerDatacenter {
 	protected void processTupleArrival(SimEvent ev){
 		Tuple tuple = (Tuple)ev.getData();
 		
-		if(getName().equals("cloud"))
+		if(getName().equals("cloud"))// TODO change this??? (parent id)...
 			updateCloudTraffic();
 		
-		Logger.debug(getName(), "Received tuple " + tuple.getCloudletId() +
-				"with tupleType = "+tuple.getTupleType() + "\t| Source : " +
-				CloudSim.getEntityName(ev.getSource())+"|Dest : " +
+		Logger.debug(getName(), "Received tuple " + tuple.getCloudletId() + " with tupleType = " +
+				tuple.getTupleType() + " Source : " + CloudSim.getEntityName(ev.getSource())+" Dest : " +
 				CloudSim.getEntityName(ev.getDestination()));
-		send(ev.getSource(), CloudSim.getMinTimeBetweenEvents(), FogEvents.TUPLE_ACK);
+		send(ev.getSource(), CloudSim.getMinTimeBetweenEvents(), FogEvents.TUPLE_ACK);		
 		
 		if(tuple.getDirection() == Tuple.ACTUATOR){
 			sendTupleToActuator(tuple);
@@ -553,11 +462,7 @@ public class FogDevice extends PowerDatacenter {
 			}
 		}
 		
-		
-		if(getName().equals("cloud") && tuple.getDestModuleName()==null)
-			sendNow(controller.getId(), FogEvents.TUPLE_FINISHED, null);
-		
-		if(appToModulesMap.containsKey(tuple.getAppId())){
+		if(appToModulesMap.containsKey(tuple.getAppId())){			
 			if(appToModulesMap.get(tuple.getAppId()).contains(tuple.getDestModuleName())){
 				int vmId = -1;
 				
@@ -566,7 +471,7 @@ public class FogDevice extends PowerDatacenter {
 						vmId = vm.getId();
 					
 				if(vmId < 0 || (tuple.getModuleCopyMap().containsKey(tuple.getDestModuleName()) && 
-						tuple.getModuleCopyMap().get(tuple.getDestModuleName())!=vmId ))
+						tuple.getModuleCopyMap().get(tuple.getDestModuleName()) != vmId))
 					return;
 
 				tuple.setVmId(vmId);
@@ -582,17 +487,14 @@ public class FogDevice extends PowerDatacenter {
 					if(PRINT_COMMUNICATION_DETAILS) printCommunication(tuple, "DOWN");
 						sendDown(tuple, findNextHopCommunication(tuple));
 				}
-			}else {
-				if(PRINT_COMMUNICATION_DETAILS) printCommunication(tuple, "UP");
-					sendUp(tuple, findNextHopCommunication(tuple));
 			}
 		}else{
 			if(tuple.getDirection() == Tuple.UP) {
 				if(PRINT_COMMUNICATION_DETAILS) printCommunication(tuple, "UP");
-					sendUp(tuple, findNextHopCommunication(tuple));
-			}else if(tuple.getDirection() == Tuple.DOWN) {
+				sendUp(tuple, findNextHopCommunication(tuple));
+			}else if(tuple.getDirection() == Tuple.DOWN){
 				if(PRINT_COMMUNICATION_DETAILS) printCommunication(tuple, "DOWN");
-					sendDown(tuple, findNextHopCommunication(tuple));
+				sendDown(tuple, findNextHopCommunication(tuple));
 			}
 		}
 	}
@@ -687,18 +589,17 @@ public class FogDevice extends PowerDatacenter {
 		this.processVmMigrate(ev, false);
 	}
 	
-	
-	protected void updateNorthTupleQueue(){
-		if(!getNorthTupleQueue().isEmpty()){
-			Pair<Tuple, Integer> pair = getNorthTupleQueue().poll();
+	protected void updateUplinkTupleQueue(){
+		if(!getUplinkTupleQueue().isEmpty()){
+			Pair<Tuple, Integer> pair = getUplinkTupleQueue().poll();
 			sendUpFreeLink(pair.getFirst(), pair.getSecond());
 		}else
-			setNorthLinkBusy(false);
+			setUplinkTupleBusy(false);
 	}
 	
 	protected void sendUpFreeLink(Tuple tuple, int parentId){
 		double networkDelay = tuple.getCloudletFileSize()/getUplinkBandwidth();
-		setNorthLinkBusy(true);
+		setUplinkTupleBusy(true);
 		
 		double latency = getUpStreamLatencyMap().get(parentId);
 		send(getId(), networkDelay, FogEvents.UPDATE_NORTH_TUPLE_QUEUE);
@@ -706,26 +607,24 @@ public class FogDevice extends PowerDatacenter {
 		NetworkUsageMonitor.sendingTuple(latency, tuple.getCloudletFileSize());
 	}
 	
-	protected void sendUp(Tuple tuple, int parentId){
-		if(parentId > 0 && (getParentsIds().contains(parentId) || getBrothersIds().contains(parentId))){
-			if(!isNorthLinkBusy())
-				sendUpFreeLink(tuple, parentId);
-			else
-				northTupleQueue.add(new Pair<Tuple, Integer>(tuple, parentId));
-		}
+	protected void sendUp(Tuple tuple, int id){
+		if(!isUplinkTupleBusy())
+			sendUpFreeLink(tuple, id);
+		else
+			downlinkTupleQueue.add(new Pair<Tuple, Integer>(tuple, id));
 	}
 	
-	protected void updateSouthTupleQueue(){
-		if(!getSouthTupleQueue().isEmpty()){
-			Pair<Tuple, Integer> pair = getSouthTupleQueue().poll(); 
+	protected void updateDownlinkTupleQueue(){
+		if(!getDownlinkTupleQueue().isEmpty()){
+			Pair<Tuple, Integer> pair = getDownlinkTupleQueue().poll(); 
 			sendDownFreeLink(pair.getFirst(), pair.getSecond());
 		}else
-			setSouthLinkBusy(false);
+			setDownlinkTuplekBusy(false);
 	}
 	
 	protected void sendDownFreeLink(Tuple tuple, int childId){
 		double networkDelay = tuple.getCloudletFileSize()/getDownlinkBandwidth();
-		setSouthLinkBusy(true);
+		setDownlinkTuplekBusy(true);
 		
 		double latency = getDownStreamLatencyMap().get(childId);
 		send(getId(), networkDelay, FogEvents.UPDATE_SOUTH_TUPLE_QUEUE);
@@ -733,13 +632,11 @@ public class FogDevice extends PowerDatacenter {
 		NetworkUsageMonitor.sendingTuple(latency, tuple.getCloudletFileSize());
 	}
 	
-	protected void sendDown(Tuple tuple, int childId){
-		if(getChildrenIds().contains(childId) || getBrothersIds().contains(childId)){
-			if(!isSouthLinkBusy())
-				sendDownFreeLink(tuple, childId);
-			else
-				southTupleQueue.add(new Pair<Tuple, Integer>(tuple, childId));
-		}
+	protected void sendDown(Tuple tuple, int id){
+		if(!isDownlinkTuplekBusy())
+			sendDownFreeLink(tuple, id);
+		else
+			uplinkTupleQueue.add(new Pair<Tuple, Integer>(tuple, id));
 	}
 	
 	protected void sendToSelf(Tuple tuple){
@@ -756,7 +653,15 @@ public class FogDevice extends PowerDatacenter {
 		ModulePlacement modulePlacement = controller.getAppModulePlacementPolicy().get(app.getAppId());
 		
 		String destModule = tuple.getDestModuleName();
-		int destId = modulePlacement.getModuleToDeviceMap().get(destModule);
+		
+		int destId;
+		try {
+			destId = modulePlacement.getModuleToDeviceMap().get(destModule);
+		} catch (Exception e) { // Actuator tuple
+			destId = tuple.getClientId();
+		}
+		
+		
 		int initId = getId();
 		
 		DijkstraAlgorithm dijkstra = app.getDijkstraAlgorithm();
@@ -781,9 +686,9 @@ public class FogDevice extends PowerDatacenter {
 		System.out.println("\nDirection: " + direction);
 		System.out.println(tuple);
 		System.out.println("From: " + getId());
-		System.out.println("To: " + findNextHopCommunication(tuple));
+		System.out.println("To: " + findNextHopCommunication(tuple) + "\n\n");
 	}
-
+	
 	public PowerHost getHost(){
 		return (PowerHost) getHostList().get(0);
 	}
@@ -811,20 +716,20 @@ public class FogDevice extends PowerDatacenter {
 		this.uplinkBandwidth = uplinkBandwidth;
 	}
 	
-	public boolean isSouthLinkBusy() {
-		return isSouthLinkBusy;
+	public boolean isUplinkTupleBusy() {
+		return uplinkTupleBusy;
 	}
 	
-	public boolean isNorthLinkBusy() {
-		return isNorthLinkBusy;
+	public void setUplinkTupleBusy(boolean uplinkTupleBusy) {
+		this.uplinkTupleBusy = uplinkTupleBusy;
 	}
 	
-	public void setSouthLinkBusy(boolean isSouthLinkBusy) {
-		this.isSouthLinkBusy = isSouthLinkBusy;
+	public boolean isDownlinkTuplekBusy() {
+		return downlinkTuplekBusy;
 	}
 	
-	public void setNorthLinkBusy(boolean isNorthLinkBusy) {
-		this.isNorthLinkBusy = isNorthLinkBusy;
+	public void setDownlinkTuplekBusy(boolean downlinkTuplekBusy) {
+		this.downlinkTuplekBusy = downlinkTuplekBusy;
 	}
 	
 	public List<String> getActiveApplications() {
@@ -835,20 +740,20 @@ public class FogDevice extends PowerDatacenter {
 		this.activeApplications = activeApplications;
 	}
 
-	public Queue<Pair<Tuple, Integer>> getNorthTupleQueue() {
-		return northTupleQueue;
+	public Queue<Pair<Tuple, Integer>> getDownlinkTupleQueue() {
+		return downlinkTupleQueue;
 	}
 
-	public void setNorthTupleQueue(Queue<Pair<Tuple, Integer>> northTupleQueue) {
-		this.northTupleQueue = northTupleQueue;
+	public void setDownlinkTupleQueue(Queue<Pair<Tuple, Integer>> downlinkTupleQueue) {
+		this.downlinkTupleQueue = downlinkTupleQueue;
 	}
 
-	public Queue<Pair<Tuple, Integer>> getSouthTupleQueue() {
-		return southTupleQueue;
+	public Queue<Pair<Tuple, Integer>> getUplinkTupleQueue() {
+		return uplinkTupleQueue;
 	}
 
-	public void setSouthTupleQueue(Queue<Pair<Tuple, Integer>> southTupleQueue) {
-		this.southTupleQueue = southTupleQueue;
+	public void setUplinkTupleQueue(Queue<Pair<Tuple, Integer>> uplinkTupleQueue) {
+		this.uplinkTupleQueue = uplinkTupleQueue;
 	}
 
 	public double getDownlinkBandwidth() {

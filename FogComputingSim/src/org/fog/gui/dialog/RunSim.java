@@ -144,7 +144,7 @@ public class RunSim extends JDialog {
     			for(FogDeviceGui fog : clients) {
     				FogBroker broker = getFogBrokerByName(fog.getName());
     				Application application = createApplication(graph, fog.getApplication(), broker.getId());
-    				application.setUserId(broker.getId());
+    				application.setClientId(getFogDeviceByName(fog.getName()).getId());
     				
     				ModuleMapping moduleMapping = ModuleMapping.createModuleMapping();
     				
@@ -153,17 +153,17 @@ public class RunSim extends JDialog {
     					moduleMapping.addModuleToDevice("concentration_calculator_7", "Client1");
     					moduleMapping.addModuleToDevice("connector_7", "FogNode1");*/
     					
-    					moduleMapping.addModuleToDevice("client_7", "Client1");
-    					moduleMapping.addModuleToDevice("concentration_calculator_7", "FogNode1");
-    					moduleMapping.addModuleToDevice("connector_7", "Proxy");
+    					moduleMapping.addModuleToDevice("client_7", "Cloud");
+    					moduleMapping.addModuleToDevice("concentration_calculator_7", "Cloud");
+    					moduleMapping.addModuleToDevice("connector_7", "Cloud");
     				}else {
     					/*moduleMapping.addModuleToDevice("client_10", "Proxy");
     					moduleMapping.addModuleToDevice("concentration_calculator_10", "Client2");
     					moduleMapping.addModuleToDevice("connector_10", "FogNode2");*/
     					
-    					moduleMapping.addModuleToDevice("client_10", "Client2");
-    					moduleMapping.addModuleToDevice("concentration_calculator_10", "FogNode2");
-    					moduleMapping.addModuleToDevice("connector_10", "Proxy");
+    					moduleMapping.addModuleToDevice("client_10", "Cloud");
+    					moduleMapping.addModuleToDevice("concentration_calculator_10", "Cloud");
+    					moduleMapping.addModuleToDevice("connector_10", "Cloud");
     				}
     				
 					controller.submitApplication(application, new ModulePlacementMapping(fogDevices, application, moduleMapping));

@@ -150,9 +150,8 @@ public class Controller extends SimEntity{
 		getApplications().put(application.getAppId(), application);
 		
 		ModulePlacement modulePlacement = getAppModulePlacementPolicy().get(application.getAppId());
-		for(FogDevice fogDevice : fogDevices){
+		for(FogDevice fogDevice : fogDevices)
 			sendNow(fogDevice.getId(), FogEvents.ACTIVE_APP_UPDATE, application);
-		}
 		
 		Map<Integer, List<AppModule>> deviceToModuleMap = modulePlacement.getDeviceToModuleMap();
 		for(Integer deviceId : deviceToModuleMap.keySet()){

@@ -24,6 +24,7 @@ public class Application {
 	private List<AppLoop> loops; // List of application loops to monitor for delay
 	private String appId;
 	private int userId;
+	private int clientId;
 	
 	public Application(String appId, int userId) {
 		setAppId(appId + "_" + userId);
@@ -161,10 +162,9 @@ public class Application {
 	 * Get the tuples generated upon execution of incoming tuple <i>inputTuple</i> by module named <i>moduleName</i>
 	 * @param moduleName name of the module performing execution of incoming tuple and emitting resultant tuples
 	 * @param inputTuple incoming tuple, whose execution creates resultant tuples
-	 * @param sourceDeviceId
 	 * @return
 	 */
-	public List<Tuple> getResultantTuples(String moduleName, Tuple inputTuple, int sourceDeviceId, int sourceModuleId){
+	public List<Tuple> getResultantTuples(String moduleName, Tuple inputTuple, int sourceModuleId){
 		List<Tuple> tuples = new ArrayList<Tuple>();
 		AppModule module = getModuleByName(moduleName);
 		
@@ -183,8 +183,8 @@ public class Application {
 							inputTuple.getCloudletOutputSize(),
 							inputTuple.getUtilizationModelCpu(),
 							inputTuple.getUtilizationModelRam(),
-							inputTuple.getUtilizationModelBw()
-							);
+							inputTuple.getUtilizationModelBw(),
+							clientId);
 					tuple.setActualTupleId(inputTuple.getActualTupleId());
 					tuple.setUserId(inputTuple.getUserId());
 					tuple.setAppId(inputTuple.getAppId());
@@ -219,8 +219,8 @@ public class Application {
 					100,
 					new UtilizationModelFull(), 
 					new UtilizationModelFull(), 
-					new UtilizationModelFull()
-					);
+					new UtilizationModelFull(),
+					clientId);
 			
 			tuple.setUserId(getUserId());
 			tuple.setAppId(getAppId());
@@ -292,9 +292,18 @@ public class Application {
 	public void setDijkstraAlgorithm(DijkstraAlgorithm dijkstraAlgorithm) {
 		this.dijkstraAlgorithm = dijkstraAlgorithm;
 	}
+
+	public int getClientId() {
+		return clientId;
+	}
+
+	public void setClientId(int clientId) {
+		this.clientId = clientId;
+	}
 	
 	@Override
 	public String toString() {
-		return "Application [appId=" + appId + ", userId=" + userId + "]";
+		return "Application [appId=" + appId + ", userId=" + userId + ", clientId=" + clientId + "]";
 	}
+
 }
