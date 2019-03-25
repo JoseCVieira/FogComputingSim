@@ -73,19 +73,19 @@ public class ModulePlacementMapping extends ModulePlacement{
 				if(p == -1)
 					continue;
 				
-				int lat = fDev.getUpStreamLatencyMap().get(p).intValue();
+				int lat = fDev.getLatencyMap().get(p).intValue();
 				edges.add(new Edge(mapNodes.get(dId), mapNodes.get(p), lat));
 				edges.add(new Edge(mapNodes.get(p), mapNodes.get(dId), lat));
 			}
 			
 			for(int b : fDev.getBrothersIds()) {
-				int lat = fDev.getUpStreamLatencyMap().get(b).intValue();
+				int lat = fDev.getLatencyMap().get(b).intValue();
 				edges.add(new Edge(mapNodes.get(dId), mapNodes.get(b), lat));
 				edges.add(new Edge(mapNodes.get(b), mapNodes.get(dId), lat));
 			}
 			
 			for(int c : fDev.getChildrenIds()) {
-				int lat = fDev.getDownStreamLatencyMap().get(c).intValue();
+				int lat = fDev.getLatencyMap().get(c).intValue();
 				edges.add(new Edge(mapNodes.get(dId), mapNodes.get(c), lat));
 				edges.add(new Edge(mapNodes.get(c), mapNodes.get(dId), lat));
 			}

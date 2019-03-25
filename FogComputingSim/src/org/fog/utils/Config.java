@@ -17,16 +17,14 @@ public class Config {
 	public static final String APP_MODULE_TYPE = "APP_MODULE";
 	
 	// Prices from https://www.cloudsigma.com/pricing/
-	public static final double BW_UP = 2.1;
-	public static final double BW_DOWN = 5.5;
+	public static final double BW = 2.1;
 	public static final double MIPS = 22733.5;
 	public static final int RAM = 16384;
 	public static final int MEM = 1048576;
 	public static final double RATE_MIPS = 1.5855E-04;
 	public static final double RATE_RAM = 1.14E-07;
 	public static final double RATE_MEM = 5E-11;
-	public static final double RATE_BW_UP = 3.9E-05;
-	public static final double RATE_BW_DOWN = 3.9E-05;
+	public static final double RATE_BW = 3.9E-05;
 	public static final double IDLE_POWER = 83.4333;
 	public static final double BUSY_POWER = 107.339;
 	public static final double COST_PER_SEC = 3.0;

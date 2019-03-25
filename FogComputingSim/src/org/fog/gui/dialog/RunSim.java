@@ -223,10 +223,8 @@ public class RunSim extends JDialog {
 						f1.getBrothersIds().add(f2.getId());
 					}
 					
-					f2.getUpStreamLatencyMap().put(f1.getId(), edge.getLatency());
-					f2.getDownStreamLatencyMap().put(f1.getId(), edge.getLatency());
-					f1.getUpStreamLatencyMap().put(f2.getId(), edge.getLatency());
-					f1.getDownStreamLatencyMap().put(f2.getId(), edge.getLatency());
+					f2.getLatencyMap().put(f1.getId(), edge.getLatency());
+					f1.getLatencyMap().put(f2.getId(), edge.getLatency());
 				}
 			}
 			
@@ -243,8 +241,7 @@ public class RunSim extends JDialog {
 				System.out.println("Children: " + f1.getChildrenIds());
 				System.out.println("Brothers: " + f1.getBrothersIds());
 				
-				System.out.println("UpStreamMap: " + f1.getUpStreamLatencyMap());
-				System.out.println("DownStreamMap: " + f1.getDownStreamLatencyMap());
+				System.out.println("UpStreamMap: " + f1.getLatencyMap());
 				
 				System.out.println("\n\n\n");
 			}
@@ -261,7 +258,7 @@ public class RunSim extends JDialog {
 			PowerHost host = new PowerHost(
 					FogUtils.generateEntityId(),
 					new RamProvisionerSimple((int)fog.getRam()),
-					new BwProvisionerOverbooking((long)fog.getUpBw()*1024),
+					new BwProvisionerOverbooking((long)fog.getBw()*1024),//TODO
 					fog.getStorage(),
 					peList,
 					new StreamOperatorScheduler(peList),
@@ -274,11 +271,11 @@ public class RunSim extends JDialog {
 			LinkedList<Storage> storageList = new LinkedList<Storage>();
 
 			FogDeviceCharacteristics characteristics = new FogDeviceCharacteristics("x86", "Linux", "Xen",
-					host, 10.0, fog.getCostPerSec(), fog.getRateMips(), fog.getRateRam(), fog.getRateStorage(), fog.getRateBwUp());
+					host, 10.0, fog.getCostPerSec(), fog.getRateMips(), fog.getRateRam(), fog.getRateStorage(), fog.getRateBw());
 			
 			try {
 				return new FogDevice(fog.getName(), characteristics, new AppModuleAllocationPolicy(hostList),
-						storageList, 10, fog.getUpBw(), fog.getDownBw());
+						storageList, 10, fog.getBw());
 			} catch (Exception e) {
 				e.printStackTrace();
 				return null;

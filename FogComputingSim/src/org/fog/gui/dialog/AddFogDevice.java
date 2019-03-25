@@ -40,16 +40,14 @@ public class AddFogDevice extends JDialog {
 	private JLabel levelLabel;
 	
 	private JTextField deviceName;
-	private JTextField upBw;
-	private JTextField downBw;
+	private JTextField bw;
 	private JTextField mips;
 	private JTextField ram;
 	private JTextField storage;
 	private JTextField rateMips;
 	private JTextField rateRam;
 	private JTextField rateStorage;
-	private JTextField rateBwUp;
-	private JTextField rateBwDown;
+	private JTextField rateBw;
 	private JTextField idlePower;
 	private JTextField busyPower;
 	private JTextField cost;
@@ -105,8 +103,8 @@ public class AddFogDevice extends JDialog {
 				String error_msg = "", name_ = "";
 				int level_= -1;
 				long ram_= -1, storage_ = -1;
-				double mips_= -1, upBw_= -1, downBw_= -1, rateMips_ = -1, rateRam_ = -1, rateStorage_ = -1,
-						rateBwUp_ = -1, rateBwDown_ = -1, idlePower_ = -1, busyPower_ = -1, cost_ = -1;
+				double mips_= -1, upBw_= -1, rateMips_ = -1, rateRam_ = -1, rateStorage_ = -1,
+						rateBw_ = -1, idlePower_ = -1, busyPower_ = -1, cost_ = -1;
 				
 				if (Util.validString(deviceName.getText())) {
 					if(fog == null || (fog != null && !fog.getName().equals(deviceName.getText())))
@@ -118,31 +116,27 @@ public class AddFogDevice extends JDialog {
 				if(deviceName.getText().contains(" "))
 					error_msg += "Name cannot contain spaces\n";
 				
-				if (!Util.validString(upBw.getText())) error_msg += "Missing uplink BW\n";
-				if (!Util.validString(downBw.getText())) error_msg += "Missing downlink BW\n";
+				if (!Util.validString(bw.getText())) error_msg += "Missing Bandwidth\n";
 				if (!Util.validString(mips.getText())) error_msg += "Missing Mips\n";
 				if (!Util.validString(ram.getText())) error_msg += "Missing Ram\n";
 				if (!Util.validString(storage.getText())) error_msg += "Missing storage\n";
 				if (!Util.validString(rateMips.getText())) error_msg += "Missing rate/Mips\n";
 				if (!Util.validString(rateRam.getText())) error_msg += "Missing rate/Ram\n";
 				if (!Util.validString(rateStorage.getText())) error_msg += "Missing rate/Mem\n";
-				if (!Util.validString(rateBwUp.getText())) error_msg += "Missing rate/BwUp\n";
-				if (!Util.validString(rateBwDown.getText())) error_msg += "Missing rate/BwDown\n";
+				if (!Util.validString(rateBw.getText())) error_msg += "Missing rate/Bw\n";
 				if (!Util.validString(idlePower.getText())) error_msg += "Missing Idle Power\n";
 				if (!Util.validString(busyPower.getText())) error_msg += "Missing Busy Power\n";
 				if (!Util.validString(cost.getText())) error_msg += "Missing Cost Per Second\n";
 
 				name_ = deviceName.getText();
-				if((upBw_ = Util.stringToDouble(upBw.getText())) < 0) error_msg += "\nUplink bandwidth should be a positive number";
-				if((downBw_ = Util.stringToDouble(downBw.getText())) < 0) error_msg += "\nDownlink bandwidth should be a positive number";
+				if((upBw_ = Util.stringToDouble(bw.getText())) < 0) error_msg += "\nBandwidth should be a positive number";
 				if((mips_ = Util.stringToDouble(mips.getText())) < 0) error_msg += "\nMips should be a positive number";
 				if((ram_ = Util.stringToInt(ram.getText())) < 0) error_msg += "\nRam should be a positive number";
 				if((storage_ = Util.stringToInt(storage.getText())) < 0) error_msg += "\nMem should be a positive number";
 				if((rateMips_ = Util.stringToDouble(rateMips.getText())) < 0) error_msg += "\nRate/Mips should be a positive number";
 				if((rateRam_ = Util.stringToDouble(rateRam.getText())) < 0) error_msg += "\nRate/Ram should be a positive number";
 				if((rateStorage_ = Util.stringToDouble(rateStorage.getText())) < 0) error_msg += "\nRate/Mem should be a positive number";
-				if((rateBwUp_ = Util.stringToDouble(rateBwUp.getText())) < 0) error_msg += "\nRate/BwUp should be a positive number";
-				if((rateBwDown_ = Util.stringToDouble(rateBwDown.getText())) < 0) error_msg += "\nRate/BwDown should be a positive number";
+				if((rateBw_ = Util.stringToDouble(rateBw.getText())) < 0) error_msg += "\nRate/Bw should be a positive number";
 				if((idlePower_ = Util.stringToDouble(idlePower.getText())) < 0) error_msg += "\nIdle Power should be a positive number";
 				if((busyPower_ = Util.stringToDouble(busyPower.getText())) < 0) error_msg += "\nBusy Power should be a positive number";
 				if((cost_ = Util.stringToDouble(cost.getText())) < 0) error_msg += "\nCost Per Second should be a positive number";
@@ -152,12 +146,11 @@ public class AddFogDevice extends JDialog {
 				String appId = (String)application.getSelectedItem();
 				if(error_msg == "") {
 					if(fog != null)
-						fog.setValues(name_, level_, mips_, ram_, storage_, upBw_, downBw_, rateMips_, rateRam_,
-								rateStorage_, rateBwUp_, rateBwDown_, idlePower_, busyPower_, cost_, appId);
+						fog.setValues(name_, level_, mips_, ram_, storage_, upBw_, rateMips_, rateRam_,
+								rateStorage_, rateBw_, idlePower_, busyPower_, cost_, appId);
 					else {
 						FogDeviceGui fogDevice = new FogDeviceGui(name_, level_, mips_, ram_, storage_, upBw_,
-								downBw_, rateMips_, rateRam_, rateStorage_, rateBwUp_, rateBwDown_, idlePower_,
-								busyPower_, cost_, appId);
+								rateMips_, rateRam_, rateStorage_, rateBw_, idlePower_, busyPower_, cost_, appId);
 						graph.addNode(fogDevice);
 					}
 					setVisible(false);								
@@ -206,16 +199,14 @@ public class AddFogDevice extends JDialog {
 		level.setSelectedIndex(fog == null ? maxLevel+1 : fog.getLevel());
 		springPanel.add(level);
 		
-		upBw = Util.createInput(springPanel, upBw, "Uplink BW (MB/s): ", fog == null ? Double.toString(Config.BW_UP) : Double.toString(fog.getUpBw()));
-		downBw = Util.createInput(springPanel, downBw, "Downlink BW (MB/s): ", fog == null ? Double.toString(Config.BW_DOWN) : Double.toString(fog.getDownBw()));
+		bw = Util.createInput(springPanel, bw, "Uplink BW (MB/s): ", fog == null ? Double.toString(Config.BW) : Double.toString(fog.getBw()));
 		mips = Util.createInput(springPanel, mips, "MIPS: ", fog == null ? Double.toString(Config.MIPS) : Double.toString(fog.getMips()));
 		ram = Util.createInput(springPanel, ram, "RAM (MB): ", fog == null ? Long.toString(Config.RAM) : Long.toString(fog.getRam()));
 		storage = Util.createInput(springPanel, storage, "MEM (MB): ", fog == null ? Long.toString(Config.MEM) : Long.toString(fog.getStorage()));
 		rateMips = Util.createInput(springPanel, rateMips, "Rate/MIPS (€): ", fog == null ? Double.toString(Config.RATE_MIPS) : Double.toString(fog.getRateMips()));
 		rateRam = Util.createInput(springPanel, rateRam, "Rate/RAM (€/sec for 1 MB): ", fog == null ? Double.toString(Config.RATE_RAM) : Double.toString(fog.getRateRam()));
 		rateStorage = Util.createInput(springPanel, rateStorage, "Rate/MEM (€/sec for 1 MB): ", fog == null ? Double.toString(Config.RATE_MEM) : Double.toString(fog.getRateStorage()));
-		rateBwUp = Util.createInput(springPanel, rateBwUp, "Rate/BwUp (€/1 MB): ", fog == null ? Double.toString(Config.RATE_BW_UP) : Double.toString(fog.getRateBwUp()));
-		rateBwDown = Util.createInput(springPanel, rateBwDown, "Rate/BwDown (€/1 MB): ", fog == null ? Double.toString(Config.RATE_BW_DOWN) : Double.toString(fog.getRateBwDown()));
+		rateBw = Util.createInput(springPanel, rateBw, "Rate/BwUp (€/1 MB): ", fog == null ? Double.toString(Config.RATE_BW) : Double.toString(fog.getRateBw()));
 		idlePower = Util.createInput(springPanel, idlePower, "Idle Power (W): ", fog == null ? Double.toString(Config.IDLE_POWER) : Double.toString(fog.getIdlePower()));
 		busyPower = Util.createInput(springPanel, busyPower, "Busy Power (W): ", fog == null ? Double.toString(Config.BUSY_POWER) : Double.toString(fog.getBusyPower()));
 		cost = Util.createInput(springPanel, cost, "Cost Per Second: ", fog == null ? Double.toString(Config.COST_PER_SEC) : Double.toString(fog.getCostPerSec()));

@@ -18,8 +18,9 @@ public class FogEvents {
 	public static final int GET_RESOURCE_USAGE = BASE + 14;
 	public static final int RESOURCE_USAGE = BASE + 15;
 	public static final int CONTROL_MSG_ARRIVAL = BASE + 16;
-	public static final int UPDATE_NORTH_TUPLE_QUEUE = BASE + 17;
-	public static final int UPDATE_SOUTH_TUPLE_QUEUE = BASE + 18;
+	public static final int UPDATE_TUPLE_QUEUE = BASE + 17;
+	/*public static final int UPDATE_NORTH_TUPLE_QUEUE = BASE + 17;
+	public static final int UPDATE_SOUTH_TUPLE_QUEUE = BASE + 18;*/
 	public static final int ACTUATOR_JOINED = BASE + 19;
 	public static final int STOP_SIMULATION = BASE + 20;
 	public static final int SEND_PERIODIC_TUPLE = BASE + 21;

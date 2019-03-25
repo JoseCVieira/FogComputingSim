@@ -54,19 +54,17 @@ public class Bridge {
 					double mips = (Double) node.get("mips");
 					long ram = (Long) node.get("ram");
 					long mem = (Long) node.get("mem");
-					double upBw = (Double) node.get("upBw");
-					double downBw = (Double) node.get("downBw");
+					double bw = (Double) node.get("bw");
 					double rateMips = (Double) node.get("ratePerMips");
 					double rateRam = (Double) node.get("ratePerRam");
 					double rateStorage = (Double) node.get("ratePerMem");
-					double rateBwUp = (Double) node.get("ratePerBwUp");
-					double rateBwDown = (Double) node.get("ratePerBwDown");
+					double rateBw = (Double) node.get("ratePerBw");
 					double idlePower = (Double) node.get("idlePower");
 					double busyPower = (Double) node.get("busyPower");
 					double cost = (Double) node.get("cost");
 
-					Node fogDevice = new FogDeviceGui(nodeName, level, mips, ram, mem, upBw, downBw, rateMips, rateRam,
-							rateStorage, rateBwUp, rateBwDown, idlePower, busyPower, cost, application);
+					Node fogDevice = new FogDeviceGui(nodeName, level, mips, ram, mem, bw, rateMips, rateRam,
+							rateStorage, rateBw, idlePower, busyPower, cost, application);
 					graph.addNode(fogDevice);
 				} else if(nodeType.equals(Config.SENSOR_TYPE)){
 					int distType = new BigDecimal((Long)node.get("distribution")).intValue();
@@ -240,14 +238,12 @@ public class Bridge {
 					jobj.put("mips", fogDevice.getMips());
 					jobj.put("ram", fogDevice.getRam());
 					jobj.put("mem", fogDevice.getStorage());
-					jobj.put("upBw", fogDevice.getUpBw());
-					jobj.put("downBw", fogDevice.getDownBw());
+					jobj.put("bw", fogDevice.getBw());
 					jobj.put("level", fogDevice.getLevel());
 					jobj.put("ratePerMips", fogDevice.getRateMips());
 					jobj.put("ratePerRam", fogDevice.getRateRam());
 					jobj.put("ratePerMem", fogDevice.getRateStorage());
-					jobj.put("ratePerBwUp", fogDevice.getRateBwUp());
-					jobj.put("ratePerBwDown", fogDevice.getRateBwDown());
+					jobj.put("ratePerBw", fogDevice.getRateBw());
 					jobj.put("idlePower", fogDevice.getIdlePower());
 					jobj.put("busyPower", fogDevice.getBusyPower());
 					jobj.put("cost", fogDevice.getCostPerSec());

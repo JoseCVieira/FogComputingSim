@@ -14,21 +14,19 @@ public class FogDeviceGui extends Node {
 	private double mips;
 	private long ram;
 	private long storage;
-	private double upBw;
-	private double downBw;
+	private double bw;
 	private double rateMips;
 	private double rateRam;
 	private double rateStorage;
-	private double rateBwUp;
-	private double rateBwDown;
+	private double rateBw;
 	private double idlePower;
 	private double busyPower;
 	private double costPerSec;
 	private String application;
 
-	public FogDeviceGui(String name, int level, double mips, long ram, long storage, double upBw,
-			double downBw, double rateMips, double rateRam, double rateStorage, double rateBwUp,
-			double rateBwDown, double idlePower, double busyPower, double costPerSec, String appId) {
+	public FogDeviceGui(String name, int level, double mips, long ram, long storage, double bw,
+			double rateMips, double rateRam, double rateStorage, double rateBw, double idlePower,
+			double busyPower, double costPerSec, String appId) {
 		super(name, Config.FOG_TYPE);
 		
 		this.setName(name);
@@ -36,34 +34,30 @@ public class FogDeviceGui extends Node {
 		this.setMips(mips);
 		this.setRam(ram);
 		this.setStorage(storage);
-		this.setUpBw(upBw);
-		this.setDownBw(downBw);
+		this.setBw(bw);
 		this.setRateMips(rateMips);
 		this.setRateRam(rateRam);
 		this.setRateStorage(rateStorage);
-		this.setRateBwUp(rateBwUp);
-		this.setRateBwDown(rateBwDown);
+		this.setRateBw(rateBw);
 		this.setIdlePower(idlePower);
 		this.setBusyPower(busyPower);
 		this.setCostPerSec(costPerSec);
 		this.setApplication(appId);
 	}
 	
-	public void setValues(String name, int level, double mips, long ram, long storage, double upBw,
-			double downBw, double rateMips, double rateRam, double rateStorage, double rateBwUp,
-			double rateBwDown, double idlePower, double busyPower, double costPerSec, String appId) {
+	public void setValues(String name, int level, double mips, long ram, long storage, double bw,
+			double rateMips, double rateRam, double rateStorage, double rateBw, double idlePower,
+			double busyPower, double costPerSec, String appId) {
 		this.setName(name);
 		this.setLevel(level);
 		this.setMips(mips);
 		this.setRam(ram);
 		this.setStorage(storage);
-		this.setUpBw(upBw);
-		this.setDownBw(downBw);
+		this.setBw(bw);
 		this.setRateMips(rateMips);
 		this.setRateRam(rateRam);
 		this.setRateStorage(rateStorage);
-		this.setRateBwUp(rateBwUp);
-		this.setRateBwDown(rateBwDown);
+		this.setRateBw(rateBw);
 		this.setIdlePower(idlePower);
 		this.setBusyPower(busyPower);
 		this.setCostPerSec(costPerSec);
@@ -110,20 +104,12 @@ public class FogDeviceGui extends Node {
 		this.storage = storage;
 	}
 
-	public double getUpBw() {
-		return upBw;
+	public double getBw() {
+		return bw;
 	}
 
-	public void setUpBw(double upBw) {
-		this.upBw = upBw;
-	}
-
-	public double getDownBw() {
-		return downBw;
-	}
-
-	public void setDownBw(double downBw) {
-		this.downBw = downBw;
+	public void setBw(double bw) {
+		this.bw = bw;
 	}
 
 	public double getRateMips() {
@@ -150,20 +136,12 @@ public class FogDeviceGui extends Node {
 		this.rateStorage = rateStorage;
 	}
 
-	public double getRateBwUp() {
-		return rateBwUp;
+	public double getRateBw() {
+		return rateBw;
 	}
 
-	public void setRateBwUp(double rateBwUp) {
-		this.rateBwUp = rateBwUp;
-	}
-
-	public double getRateBwDown() {
-		return rateBwDown;
-	}
-
-	public void setRateBwDown(double rateBwDown) {
-		this.rateBwDown = rateBwDown;
+	public void setRateBw(double rateBw) {
+		this.rateBw = rateBw;
 	}
 
 	public String getApplication() {
@@ -201,10 +179,9 @@ public class FogDeviceGui extends Node {
 	@Override
 	public String toString() {
 		return "FogDeviceGui [name=" + name + ", level=" + level + ", mips=" + mips + ", ram=" + ram + ", storage="
-				+ storage + ", upBw=" + upBw + ", downBw=" + downBw + ", rateMips=" + rateMips + ", rateRam=" + rateRam
-				+ ", rateStorage=" + rateStorage + ", rateBwUp=" + rateBwUp + ", rateBwDown=" + rateBwDown
-				+ ", idlePower=" + idlePower + ", busyPower=" + busyPower + ", costPerSec=" + costPerSec
-				+ ", application=" + application + "]";
+				+ storage + ", bw=" + bw + ", rateMips=" + rateMips + ", rateRam=" + rateRam + ", rateStorage="
+				+ rateStorage + ", rateBw=" + rateBw + ", idlePower=" + idlePower + ", busyPower=" + busyPower
+				+ ", costPerSec=" + costPerSec + ", application=" + application + "]";
 	}
 	
 }
