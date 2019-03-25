@@ -148,22 +148,22 @@ public class RunSim extends JDialog {
     				
     				ModuleMapping moduleMapping = ModuleMapping.createModuleMapping();
     				
-    				if(broker.getId() == 7) {
+    				if(broker.getId() == 8) {
     					/*moduleMapping.addModuleToDevice("client_7", "Proxy");
     					moduleMapping.addModuleToDevice("concentration_calculator_7", "Client1");
     					moduleMapping.addModuleToDevice("connector_7", "FogNode1");*/
     					
-    					moduleMapping.addModuleToDevice("client_7", "Cloud");
-    					moduleMapping.addModuleToDevice("concentration_calculator_7", "Cloud");
-    					moduleMapping.addModuleToDevice("connector_7", "Cloud");
+    					moduleMapping.addModuleToDevice("client_8", "Cloud");
+    					moduleMapping.addModuleToDevice("concentration_calculator_8", "Cloud");
+    					moduleMapping.addModuleToDevice("connector_8", "Cloud");
     				}else {
     					/*moduleMapping.addModuleToDevice("client_10", "Proxy");
     					moduleMapping.addModuleToDevice("concentration_calculator_10", "Client2");
     					moduleMapping.addModuleToDevice("connector_10", "FogNode2");*/
     					
-    					moduleMapping.addModuleToDevice("client_10", "Cloud");
-    					moduleMapping.addModuleToDevice("concentration_calculator_10", "Cloud");
-    					moduleMapping.addModuleToDevice("connector_10", "Cloud");
+    					moduleMapping.addModuleToDevice("client_11", "Cloud");
+    					moduleMapping.addModuleToDevice("concentration_calculator_11", "Cloud");
+    					moduleMapping.addModuleToDevice("connector_11", "Cloud");
     				}
     				
 					controller.submitApplication(application, new ModulePlacementMapping(fogDevices, application, moduleMapping));
@@ -273,12 +273,12 @@ public class RunSim extends JDialog {
 
 			LinkedList<Storage> storageList = new LinkedList<Storage>();
 
-			FogDeviceCharacteristics characteristics = new FogDeviceCharacteristics( "x86", "Linux", "Xen",
-				host, 10.0, fog.getCostPerSec(), fog.getRateRam(), fog.getRateStorage(), fog.getRateBwUp());
+			FogDeviceCharacteristics characteristics = new FogDeviceCharacteristics("x86", "Linux", "Xen",
+					host, 10.0, fog.getCostPerSec(), fog.getRateMips(), fog.getRateRam(), fog.getRateStorage(), fog.getRateBwUp());
 			
 			try {
 				return new FogDevice(fog.getName(), characteristics, new AppModuleAllocationPolicy(hostList),
-						storageList, 10, fog.getUpBw(), fog.getDownBw(), fog.getRateMips());
+						storageList, 10, fog.getUpBw(), fog.getDownBw());
 			} catch (Exception e) {
 				e.printStackTrace();
 				return null;

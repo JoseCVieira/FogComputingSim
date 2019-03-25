@@ -64,12 +64,10 @@ public class FogDevice extends PowerDatacenter {
 	
 	private double lastUtilizationUpdateTime;
 	protected double energyConsumption;
-	protected double ratePerMips;
 	protected double totalCost;
 	
 	public FogDevice(String name, FogDeviceCharacteristics characteristics, VmAllocationPolicy vmAllocationPolicy,
-			List<Storage> storageList, double schedulingInterval, double uplinkBandwidth, double downlinkBandwidth,
-			double ratePerMips) throws Exception {
+			List<Storage> storageList, double schedulingInterval, double uplinkBandwidth, double downlinkBandwidth) throws Exception {
 		super(name, characteristics, vmAllocationPolicy, storageList, schedulingInterval);
 		
 		setModuleInstanceCount(new HashMap<String, Map<String, Integer>>());
@@ -115,7 +113,6 @@ public class FogDevice extends PowerDatacenter {
 		setLastProcessTime(0.0);
 		lastUtilizationUpdateTime = 0;
 		setEnergyConsumption(0);
-		setRatePerMips(ratePerMips);
 		setTotalCost(0);
 	}
 	
@@ -383,11 +380,13 @@ public class FogDevice extends PowerDatacenter {
 		double newEnergyConsumption = currentEnergyConsumption + time_def*getHost().getPowerModel().getPower(lastMipsUtilization);
 		setEnergyConsumption(newEnergyConsumption);
 		
+		FogDeviceCharacteristics characteristics = (FogDeviceCharacteristics) getCharacteristics();
+		
 		newcost = getTotalCost();
-		newcost += time_def*lastMipsUtilization*getHost().getTotalMips()*getRatePerMips();
-		newcost += time_def*lastRamUtilization*getHost().getRam()*getCharacteristics().getCostPerMem();
-		newcost += time_def*lastMemUtilization*totalMem*getCharacteristics().getCostPerStorage();
-		newcost += time_def*lastBwUtilization*getHost().getBw()*getCharacteristics().getCostPerBw();
+		newcost += time_def*lastMipsUtilization*getHost().getTotalMips()*characteristics.getCostPerMips();
+		newcost += time_def*lastRamUtilization*getHost().getRam()*characteristics.getCostPerMem();
+		newcost += time_def*lastMemUtilization*totalMem*characteristics.getCostPerStorage();
+		newcost += time_def*lastBwUtilization*getHost().getBw()*characteristics.getCostPerBw();
 		newcost += time_def*getCharacteristics().getCostPerSecond();
 
 		/*System.out.println("\n\n" + getName());
@@ -782,14 +781,6 @@ public class FogDevice extends PowerDatacenter {
 	public void setUpStreamLatencyMap(Map<Integer, Double> upStreamLatencyMap) {
 		this.upStreamLatencyMap = upStreamLatencyMap;
 	}
-
-	public double getRatePerMips() {
-		return ratePerMips;
-	}
-
-	public void setRatePerMips(double ratePerMips) {
-		this.ratePerMips = ratePerMips;
-	}
 	
 	public double getTotalCost() {
 		return totalCost;
@@ -839,8 +830,7 @@ public class FogDevice extends PowerDatacenter {
 		"DownlinkBandwidth: " + downlinkBandwidth + "\n"+
 		"UplinkBandwidth: " + uplinkBandwidth + "\n"+
 		"upStreamLatencyMap: " + upStreamLatencyMap + "\n"+
-		"downStreamLatencyMap: " + downStreamLatencyMap + "\n"+
-		"RatePerMips: " + ratePerMips + "\n\n";
+		"downStreamLatencyMap: " + downStreamLatencyMap + "\n\n";
 		return str;
 	}
 	
