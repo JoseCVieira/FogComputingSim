@@ -35,7 +35,7 @@ import org.fog.utils.Util.AppModulesCellRenderer;
 public class AddTuple extends JDialog {
 	private static final long serialVersionUID = -511667786177319577L;
 	private static final int WIDTH = 600;
-	private static final int HEIGHT = 300;
+	private static final int HEIGHT = 280;
 	
 	private final AppModule module;
 	private final ApplicationGui app;

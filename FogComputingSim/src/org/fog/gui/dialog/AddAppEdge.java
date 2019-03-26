@@ -36,7 +36,7 @@ import org.fog.utils.Util.AppModulesCellRenderer;
 public class AddAppEdge extends JDialog {
 	private static final long serialVersionUID = -511667786177319577L;
 	private static final int WIDTH = 600;
-	private static final int HEIGHT = 600;
+	private static final int HEIGHT = 530;
 	
 	private final AppEdge edge;
 	private final ApplicationGui app;
@@ -256,7 +256,7 @@ public class AddAppEdge extends JDialog {
 			}
 		}
 		
-		SpringUtilities.makeCompactGrid(springPanel, 11, 2, 6, 6, 6, 6);
+		SpringUtilities.makeCompactGrid(springPanel, 10, 2, 6, 6, 6, 6);
 		return springPanel;
 	}
 	

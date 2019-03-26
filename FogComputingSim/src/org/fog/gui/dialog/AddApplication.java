@@ -237,7 +237,7 @@ public class AddApplication extends JDialog {
 			    int rowAtPoint = table.rowAtPoint(e.getPoint());
 			    int columnAtPoint = table.columnAtPoint(e.getPoint());
 			    
-			    if(columnAtPoint == 7) {			    	
+			    if(columnAtPoint == 6) {			    	
 			    	new AddAppEdge(frame, app, app.getEdges().get(rowAtPoint));
 			    	updateTable(dtmEdges, jtableEdges, getAppEdges(), COLUMN_EDGES);
 			    }

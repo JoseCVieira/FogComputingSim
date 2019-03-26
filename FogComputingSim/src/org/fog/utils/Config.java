@@ -29,7 +29,7 @@ public class Config {
 	public static final double COST_PER_SEC = 3.0;
 	
 	public static final double MODULE_MIPS = 1000.0;
-	public static final int MODULE_RAM = 10;
+	public static final int MODULE_RAM = 8192;
 	public static final long MODULE_SIZE = 10000;
 	public static final long MODULE_BW = 1000;
 	
