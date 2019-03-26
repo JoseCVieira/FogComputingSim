@@ -1,8 +1,5 @@
 package org.fog.application;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.math3.util.Pair;
@@ -22,22 +19,6 @@ public class AppModule extends PowerVm{
 	private String name;
 	private String appId;
 	private Map<Pair<String, String>, SelectivityModel> selectivityMap;
-	
-	/**
-	 * A map from the AppModules sending tuples UP to this module to their instance IDs.
-	 * If a new instance ID is detected, the number of instances is incremented.  
-	 */
-	private Map<String, List<Integer>> downInstanceIdsMaps;
-	
-	/**
-	 * Number of instances of this module
-	 */
-	private int numInstances;
-	
-	/**
-	 * Mapping from tupleType emitted by this AppModule to Actuators subscribing to that tupleType
-	 */
-	private Map<String, List<Integer>> actuatorSubscriptions;
 	
 	public AppModule(int id, String name, String appId, int userId, double mips, int ram, long bw, long size, String vmm,
 			CloudletScheduler cloudletScheduler, Map<Pair<String, String>, SelectivityModel> selectivityMap) {
@@ -62,9 +43,6 @@ public class AppModule extends PowerVm{
 		setCurrentAllocatedRam(0);
 		setCurrentAllocatedSize(0);
 		setSelectivityMap(selectivityMap);
-		setActuatorSubscriptions(new HashMap<String, List<Integer>>());
-		setNumInstances(0);
-		setDownInstanceIdsMaps(new HashMap<String, List<Integer>>());
 	}
 	
 	public AppModule(AppModule operator) {
@@ -80,7 +58,6 @@ public class AppModule extends PowerVm{
 		setCurrentAllocatedRam(0);
 		setCurrentAllocatedSize(0);
 		setSelectivityMap(operator.getSelectivityMap());
-		setDownInstanceIdsMaps(new HashMap<String, List<Integer>>());
 	}
 	
 	public void setValues(String name, double mips, int ram, long bw, long size) { //Added
@@ -89,12 +66,6 @@ public class AppModule extends PowerVm{
 		setRam(ram);
 		setBw(bw);
 		setSize(size);
-	}
-	
-	public void subscribeActuator(int id, String tuplyType){
-		if(!getActuatorSubscriptions().containsKey(tuplyType))
-			getActuatorSubscriptions().put(tuplyType, new ArrayList<Integer>());
-		getActuatorSubscriptions().get(tuplyType).add(id);
 	}
 	
 	public String getName() {
@@ -120,35 +91,10 @@ public class AppModule extends PowerVm{
 	public void setAppId(String appId) {
 		this.appId = appId;
 	}
-	
-	public Map<String, List<Integer>> getActuatorSubscriptions() {
-		return actuatorSubscriptions;
-	}
-	
-	public void setActuatorSubscriptions(Map<String, List<Integer>> actuatorSubscriptions) {
-		this.actuatorSubscriptions = actuatorSubscriptions;
-	}
-	
-	public Map<String, List<Integer>> getDownInstanceIdsMaps() {
-		return downInstanceIdsMaps;
-	}
-	
-	public void setDownInstanceIdsMaps(Map<String, List<Integer>> downInstanceIdsMaps) {
-		this.downInstanceIdsMaps = downInstanceIdsMaps;
-	}
-	
-	public int getNumInstances() {
-		return numInstances;
-	}
-	
-	public void setNumInstances(int numInstances) {
-		this.numInstances = numInstances;
-	}
 
 	@Override
 	public String toString() {
-		return "AppModule [name=" + name + ", appId=" + appId + ", downInstanceIdsMaps=" + downInstanceIdsMaps +
-				", numInstances=" + numInstances + ", actuatorSubscriptions=" + actuatorSubscriptions + "]";
+		return "AppModule [name=" + name + ", appId=" + appId +"]";
 	}
 	
 }

@@ -27,7 +27,6 @@ import javax.swing.SpringLayout;
 import org.apache.commons.math3.util.Pair;
 import org.fog.application.AppEdge;
 import org.fog.application.AppModule;
-import org.fog.entities.Tuple;
 import org.fog.gui.core.ApplicationGui;
 import org.fog.gui.core.SpringUtilities;
 import org.fog.utils.Config;
@@ -54,7 +53,6 @@ public class AddAppEdge extends JDialog {
 	private JLabel lsourceNode;
 	private JLabel ltargetNode;
 	
-	private JComboBox<String> direction;
 	private JComboBox<String> edgeType;
 	private JComboBox<String> sourceNode;
 	private JComboBox<String> targetNode;
@@ -87,10 +85,6 @@ public class AddAppEdge extends JDialog {
 		
 		@SuppressWarnings({ "rawtypes" })
 		ComboBoxModel<String> targetModel = new DefaultComboBoxModel(app.getModules().toArray());
-
-		@SuppressWarnings({ "rawtypes" })
-		ComboBoxModel<String> directionModel =
-		new DefaultComboBoxModel(Arrays.asList("UP", "DOWN").toArray());
 		
 		@SuppressWarnings({ "rawtypes" })
 		ComboBoxModel<String> edgeTypeModel =
@@ -102,7 +96,6 @@ public class AddAppEdge extends JDialog {
 		
 		sourceNode = new JComboBox<>(sourceModel);
 		targetNode = new JComboBox<>(targetModel);
-		direction = new JComboBox<>(directionModel);
 		edgeType = new JComboBox<>(edgeTypeModel);
 		periodic = new JComboBox<>(periodicModel); 
 		
@@ -147,15 +140,6 @@ public class AddAppEdge extends JDialog {
 		lactuator.setLabelFor(actuatorName);
 		springPanel.add(actuatorName);
 		
-		String dir = "";
-		if(edge != null) {
-			if(edge.getDirection() == Tuple.UP)
-				dir = "UP";
-			else
-				dir = "DOWN";
-		}
-		
-		direction = Util.createDropDown(springPanel, direction, "Direction: ", directionModel, dir);
 		periodic = Util.createDropDown(springPanel, periodic, "Periodic: ", periodicModel, null);
 		periodicity = Util.createInput(springPanel, periodicity, "Periodicity: ", edge == null ? Double.toString(Config.EDGE_PERIODICITY) : Double.toString(edge.getPeriodicity()));		
 		tupleCpuLength = Util.createInput(springPanel, tupleCpuLength, "Tuple CPU Length: ", edge == null ? Double.toString(Config.EDGE_CPU_LENGTH) : Double.toString(edge.getTupleCpuLength()));
@@ -339,7 +323,6 @@ public class AddAppEdge extends JDialog {
 				if (!Util.validString(tupleCpuLength.getText())) error_msg += "Missing Tuple CPU Length\n";
 				if (!Util.validString(tupleNwLength.getText())) error_msg += "Missing Tuple NW Length\n";
 				if (!Util.validString(tupleType.getText())) error_msg += "Missing Tuple Type\n";
-				if (!Util.validString((String)direction.getSelectedItem())) error_msg += "Missing Direction\n";
 				if (!Util.validString((String)edgeType.getSelectedItem())) error_msg += "Missing Edge Type\n";
 				if (!Util.validString((String)periodic.getSelectedItem())) error_msg += "Missing Periodic\n";
 				if(periodicity.isVisible() && !Util.validString((String)periodicity.getText()))error_msg += "Missing Periodicity\n";
@@ -362,22 +345,19 @@ public class AddAppEdge extends JDialog {
 					if(edge != null) {
 						if(periodicity.isVisible())
 							edge.setValues(srcName_, dstName_, periodicity_, tupleCpuLength_, tupleNwLength_,
-									tupleType.getText(),((String)direction.getSelectedItem()).equals("UP") ?
-											Tuple.UP : Tuple.DOWN, iEdgeType);
+									tupleType.getText(), iEdgeType);
 						else
 							edge.setValues(srcName_, dstName_, tupleCpuLength_, tupleNwLength_,
-									tupleType.getText(), ((String)direction.getSelectedItem()).equals("UP") ?
-											Tuple.UP : Tuple.DOWN, iEdgeType);
+									tupleType.getText(), iEdgeType);
 					}
 					else {
 						if(periodicity.isVisible())
 							app.addAppEdge(srcName_, dstName_, periodicity_, tupleCpuLength_, tupleNwLength_,
-									tupleType.getText(),((String)direction.getSelectedItem()).equals("UP") ?
-											Tuple.UP : Tuple.DOWN, iEdgeType);
+									tupleType.getText(), iEdgeType);
 						else
 							app.addAppEdge(srcName_, dstName_, tupleCpuLength_, tupleNwLength_,
-									tupleType.getText(), ((String)direction.getSelectedItem()).equals("UP") ?
-											Tuple.UP : Tuple.DOWN, iEdgeType);
+									tupleType.getText(), iEdgeType);
+
 					}
 					setVisible(false);
 				}else
@@ -398,23 +378,6 @@ public class AddAppEdge extends JDialog {
 		return buttonPanel;
 	}
 	
-	/* Miscellaneous methods */
-	private void changeDirection(String value) {
-		direction.removeAllItems();
-		ArrayList<String> directions = new ArrayList<String>();
-		
-		if(value != "")
-			directions.add(value);
-		else {
-			directions.add("UP");
-			directions.add("DOWN");
-		}
-		
-		@SuppressWarnings({ "rawtypes", "unchecked" })
-		ComboBoxModel<String> directionModel = new DefaultComboBoxModel(directions.toArray());
-		direction.setModel(directionModel);
-	}
-	
 	private void changeEdgeType(String value) {
 		if(value.equals("SENSOR")) {
 			sensorName.setVisible(true);
@@ -425,7 +388,6 @@ public class AddAppEdge extends JDialog {
 			ltargetNode.setVisible(true);
 			sourceNode.setVisible(false);
 			lsourceNode.setVisible(false);
-			changeDirection("UP");
 			for(AppEdge appEdge : app.getEdges()) {
 				if(appEdge.getEdgeType() == AppEdge.SENSOR) {
 					sensorName.setText(appEdge.getSource());
@@ -442,7 +404,6 @@ public class AddAppEdge extends JDialog {
 			ltargetNode.setVisible(false);
 			sourceNode.setVisible(true);
 			lsourceNode.setVisible(true);
-			changeDirection("DOWN");
 			for(AppEdge appEdge : app.getEdges()) {
 				if(appEdge.getEdgeType() == AppEdge.ACTUATOR) {
 					actuatorName.setText(appEdge.getDestination());
@@ -459,7 +420,6 @@ public class AddAppEdge extends JDialog {
 			ltargetNode.setVisible(true);
 			sourceNode.setVisible(true);
 			lsourceNode.setVisible(true);
-			changeDirection("");
 		}
 	}
 }

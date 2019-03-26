@@ -186,11 +186,10 @@ public class FogDevice extends PowerDatacenter {
 		
 		if(module == null) return;
 		
-		for(int i = 0; i < module.getNumInstances(); i++){
-			Tuple tuple = controller.getApplications().get(module.getAppId()).createTuple(edge, module.getId());
-			updateTimingsOnSending(tuple);
-			sendToSelf(tuple);			
-		}
+		Tuple tuple = controller.getApplications().get(module.getAppId()).createTuple(edge, module.getId());
+		updateTimingsOnSending(tuple);
+		sendToSelf(tuple);
+		
 		send(getId(), edge.getPeriodicity(), FogEvents.SEND_PERIODIC_TUPLE, edge);
 	}
 
@@ -327,6 +326,7 @@ public class FogDevice extends PowerDatacenter {
 				getHost().getVmScheduler().allocatePesForVm(vm, new ArrayList<Double>(){
 					protected static final long serialVersionUID = 1L;
 				{add((double) getHost().getTotalMips());}});
+				
 			}else{
 				getHost().getVmScheduler().allocatePesForVm(vm, new ArrayList<Double>(){
 					protected static final long serialVersionUID = 1L;
@@ -346,11 +346,17 @@ public class FogDevice extends PowerDatacenter {
 		
 		for(final Vm vm : getHost().getVmList()){
 			AppModule operator = (AppModule)vm;
-			//System.out.println("NAME: " + getName() + " Module name: " + operator.getName() + "\tMIPS USAGE FOR VM: " + getHost().getTotalAllocatedMipsForVm(vm));
 			operator.updateVmProcessing(CloudSim.clock(), getVmAllocationPolicy().getHost(operator).getVmScheduler()
 					.getAllocatedMipsForVm(operator));
-			totalMipsAllocated += getHost().getTotalAllocatedMipsForVm(vm);
-			totalRamAllocated += ((AppModule)vm).getCurrentAllocatedRam();
+			
+			double allocatedMips = getHost().getTotalAllocatedMipsForVm(vm);
+			totalMipsAllocated += allocatedMips;
+			
+			if(allocatedMips != 0)
+				totalRamAllocated += ((AppModule)vm).getCurrentAllocatedRam();
+			
+			
+			
 			totalBwAllocated += ((AppModule)vm).getCurrentAllocatedBw();
 			totalMemAllocated += ((AppModule)vm).getSize();
 		}
@@ -365,12 +371,17 @@ public class FogDevice extends PowerDatacenter {
 		
 		FogDeviceCharacteristics characteristics = (FogDeviceCharacteristics) getCharacteristics();
 		
+		System.out.println(getHost().getTotalMips());
+		System.out.println(getHost().getRam());
+		System.out.println(getHost().getStorage());
+		System.out.println(getHost().getBw());
+		
 		newcost = getTotalCost();
 		newcost += timeDif*lastMipsUtilization*getHost().getTotalMips()*characteristics.getCostPerMips();		
 		newcost += timeDif*lastRamUtilization*getHost().getRam()*characteristics.getCostPerMem();
 		newcost += timeDif*lastMemUtilization*getHost().getStorage()*characteristics.getCostPerStorage();
 		newcost += timeDif*lastBwUtilization*getHost().getBw()*characteristics.getCostPerBw();
-		newcost += timeDif*getCharacteristics().getCostPerSecond();
+		newcost += timeDif*characteristics.getCostPerSecond();
 
 		/*System.out.println("\n\n" + getName());
 		System.out.println(lastUtilization + " " + getHost().getTotalMips() + " " + getRatePerMips());
@@ -435,7 +446,7 @@ public class FogDevice extends PowerDatacenter {
 			}
 		}
 		
-		if(appToModulesMap.containsKey(tuple.getAppId())){			
+		if(appToModulesMap.containsKey(tuple.getAppId())){
 			if(appToModulesMap.get(tuple.getAppId()).contains(tuple.getDestModuleName())){
 				int vmId = -1;
 				
@@ -496,23 +507,8 @@ public class FogDevice extends PowerDatacenter {
 	}
 	
 	protected void executeTuple(SimEvent ev, String moduleName){
-		Logger.debug(getName(), "Executing tuple on module "+moduleName);
+		Logger.debug(getName(), "Executing tuple on module " + moduleName);
 		Tuple tuple = (Tuple)ev.getData();
-		
-		if(tuple.getDirection() == Tuple.UP){
-			AppModule module = getModuleByName(moduleName);
-			
-			String srcModule = tuple.getSrcModuleName();
-			if(!module.getDownInstanceIdsMaps().containsKey(srcModule))
-				module.getDownInstanceIdsMaps().put(srcModule, new ArrayList<Integer>());
-			if(!module.getDownInstanceIdsMaps().get(srcModule).contains(tuple.getSourceModuleId()))
-				module.getDownInstanceIdsMaps().get(srcModule).add(tuple.getSourceModuleId());
-			
-			int instances = -1;
-			for(String _moduleName : module.getDownInstanceIdsMaps().keySet())
-				instances = Math.max(module.getDownInstanceIdsMaps().get(_moduleName).size(), instances);
-			module.setNumInstances(instances);
-		}
 		
 		TimeKeeper.getInstance().tupleStartedExecution(tuple);
 		updateAllocatedMips(moduleName);

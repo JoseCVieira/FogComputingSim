@@ -71,9 +71,9 @@ public class Application {
 	 * @param edgeType
 	 */
 	public void addAppEdge(String source, String destination, double tupleCpuLength, 
-			double tupleNwLength, String tupleType, int direction, int edgeType){
+			double tupleNwLength, String tupleType, int edgeType){
 		AppEdge edge = new AppEdge(source, destination, tupleCpuLength, tupleNwLength,
-				tupleType, direction, edgeType);
+				tupleType, edgeType);
 		getEdges().add(edge);
 		getEdgeMap().put(edge.getTupleType(), edge);
 	}
@@ -83,11 +83,10 @@ public class Application {
 		
 		if(!e.isPeriodic())
 			edge = new AppEdge(e.getSource() + "_" + userId, e.getDestination() + "_" + userId, e.getTupleCpuLength(),
-				e.getTupleNwLength(), e.getTupleType() + "_" + userId, e.getDirection(), e.getEdgeType());
+				e.getTupleNwLength(), e.getTupleType() + "_" + userId, e.getEdgeType());
 		else
 			edge = new AppEdge(e.getSource() + "_" + userId, e.getDestination() + "_" + userId, e.getPeriodicity(),
-					e.getTupleCpuLength(), e.getTupleNwLength(), e.getTupleType() + "_" + userId,
-					e.getDirection(), e.getEdgeType());
+					e.getTupleCpuLength(), e.getTupleNwLength(), e.getTupleType() + "_" + userId, e.getEdgeType());
 		
 		getEdges().add(edge);
 		getEdgeMap().put(edge.getTupleType(), edge);
@@ -104,9 +103,9 @@ public class Application {
 	 * @param edgeType
 	 */
 	public void addAppEdge(String source, String destination, double periodicity, double tupleCpuLength, 
-			double tupleNwLength, String tupleType, int direction, int edgeType){
+			double tupleNwLength, String tupleType, int edgeType){
 		AppEdge edge = new AppEdge(source, destination, periodicity, tupleCpuLength, tupleNwLength,
-			tupleType, direction, edgeType);
+			tupleType, edgeType);
 		getEdges().add(edge);
 		getEdgeMap().put(edge.getTupleType(), edge);
 	}
@@ -176,7 +175,7 @@ public class Application {
 				
 				SelectivityModel selectivityModel = module.getSelectivityMap().get(pair);
 				if(selectivityModel.canSelect()){
-					Tuple tuple = new Tuple(appId, FogUtils.generateTupleId(), edge.getDirection(),
+					Tuple tuple = new Tuple(appId, FogUtils.generateTupleId(),
 							(long) (edge.getTupleCpuLength()),
 							inputTuple.getNumberOfPes(),
 							(long) (edge.getTupleNwLength()),
@@ -195,8 +194,6 @@ public class Application {
 					
 					if(edge.getEdgeType() == AppEdge.ACTUATOR)
 						tuple.setDirection(Tuple.ACTUATOR);
-					else
-						tuple.setDirection(edge.getDirection());
 					
 					tuples.add(tuple);
 				}
@@ -212,7 +209,7 @@ public class Application {
 	 * @return
 	 */
 	public Tuple createTuple(AppEdge edge, int sourceModuleId){
-		Tuple tuple = new Tuple(appId, FogUtils.generateTupleId(), edge.getDirection(),
+		Tuple tuple = new Tuple(appId, FogUtils.generateTupleId(),
 					(long) (edge.getTupleCpuLength()),
 					1,
 					(long) (edge.getTupleNwLength()),
@@ -231,8 +228,6 @@ public class Application {
 		
 		if(edge.getEdgeType() == AppEdge.ACTUATOR)
 			tuple.setDirection(Tuple.ACTUATOR);
-		else
-			tuple.setDirection(edge.getDirection());
 		
 		return tuple;
 	}

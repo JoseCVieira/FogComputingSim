@@ -9,7 +9,6 @@ import java.util.Map;
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.core.SimEntity;
 import org.cloudbus.cloudsim.core.SimEvent;
-import org.fog.application.AppEdge;
 import org.fog.application.AppLoop;
 import org.fog.application.AppModule;
 import org.fog.application.Application;
@@ -124,16 +123,6 @@ public class Controller extends SimEntity{
 			
 		for(Actuator ac : actuators)
 			ac.setApp(getApplications().get(ac.getAppId()));
-		
-		for(AppEdge edge : application.getEdges()){
-			if(edge.getEdgeType() == AppEdge.ACTUATOR){
-				String moduleName = edge.getSource();
-				
-				for(Actuator actuator : getActuators())
-					if(actuator.getActuatorType().equalsIgnoreCase(edge.getDestination()))
-						application.getModuleByName(moduleName).subscribeActuator(actuator.getId(), edge.getTupleType());
-			}
-		}
 	}
 	
 	public void submitApplication(Application application, ModulePlacement modulePlacement){

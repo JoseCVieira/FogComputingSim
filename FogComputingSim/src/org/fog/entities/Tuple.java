@@ -7,10 +7,8 @@ import org.cloudbus.cloudsim.Cloudlet;
 import org.cloudbus.cloudsim.UtilizationModel;
 
 public class Tuple extends Cloudlet{
-
-	public static final int UP = 1;
-	public static final int DOWN = 2;
-	public static final int ACTUATOR = 3;
+	private static final int NOT_ACTUATOR = 1;
+	public static final int ACTUATOR = 2;
 	
 	private String appId;
 	private String tupleType;
@@ -27,7 +25,7 @@ public class Tuple extends Cloudlet{
 	 */
 	private Map<String, Integer> moduleCopyMap;
 	
-	public Tuple(String appId, int cloudletId, int direction, long cloudletLength, int pesNumber,
+	public Tuple(String appId, int cloudletId, long cloudletLength, int pesNumber,
 			long cloudletFileSize, long cloudletOutputSize, UtilizationModel utilizationModelCpu,
 			UtilizationModel utilizationModelRam, UtilizationModel utilizationModelBw, int clientId) {
 		
@@ -36,7 +34,7 @@ public class Tuple extends Cloudlet{
 		
 		setAppId(appId);
 		setClientId(clientId);
-		setDirection(direction);
+		setDirection(NOT_ACTUATOR);
 		setModuleCopyMap(new HashMap<String, Integer>());
 	}
 
@@ -104,6 +102,14 @@ public class Tuple extends Cloudlet{
 		this.sourceModuleId = sourceModuleId;
 	}
 	
+	public int getClientId() {
+		return clientId;
+	}
+
+	public void setClientId(int clientId) {
+		this.clientId = clientId;
+	}
+	
 	@Override
 	public String toString() {
 		String str = "";
@@ -117,12 +123,5 @@ public class Tuple extends Cloudlet{
 		"sourceModuleId: " + sourceModuleId + "\n\n";
 		return str;
 	}
-
-	public int getClientId() {
-		return clientId;
-	}
-
-	public void setClientId(int clientId) {
-		this.clientId = clientId;
-	}
+	
 }

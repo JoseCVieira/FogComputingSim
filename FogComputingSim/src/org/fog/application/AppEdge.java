@@ -31,10 +31,6 @@ public class AppEdge {
 	 * Type of tuples carried by the application edge
 	 */
 	private String tupleType;
-	/**
-	 * Direction of tuples carried by the application edge.
-	 */
-	private int direction;
 	private int edgeType;
 	
 	/**
@@ -47,50 +43,46 @@ public class AppEdge {
 	private boolean isPeriodic;
 	
 	public AppEdge(String source, String destination, double tupleCpuLength, 
-			double tupleNwLength, String tupleType, int direction, int edgeType){
+			double tupleNwLength, String tupleType, int edgeType){
 		setSource(source);
 		setDestination(destination);
 		setTupleCpuLength(tupleCpuLength);
 		setTupleNwLength(tupleNwLength);
 		setTupleType(tupleType);
-		setDirection(direction);
 		setEdgeType(edgeType);
 		setPeriodic(false);
 	}
 	
 	public AppEdge(String source, String destination, double periodicity, double tupleCpuLength, 
-			double tupleNwLength, String tupleType, int direction, int edgeType){
+			double tupleNwLength, String tupleType, int edgeType){
 		setSource(source);
 		setDestination(destination);
 		setTupleCpuLength(tupleCpuLength);
 		setTupleNwLength(tupleNwLength);
 		setTupleType(tupleType);
-		setDirection(direction);
 		setEdgeType(edgeType);
 		setPeriodic(true);
 		setPeriodicity(periodicity);
 	}
 	
 	public void setValues(String source, String destination, double tupleCpuLength, 
-			double tupleNwLength, String tupleType, int direction, int edgeType){
+			double tupleNwLength, String tupleType, int edgeType){
 		setSource(source);
 		setDestination(destination);
 		setTupleCpuLength(tupleCpuLength);
 		setTupleNwLength(tupleNwLength);
 		setTupleType(tupleType);
-		setDirection(direction);
 		setEdgeType(edgeType);
 		setPeriodic(false);
 	}
 	
 	public void setValues(String source, String destination, double periodicity, double tupleCpuLength, 
-			double tupleNwLength, String tupleType, int direction, int edgeType){
+			double tupleNwLength, String tupleType, int edgeType){
 		setSource(source);
 		setDestination(destination);
 		setTupleCpuLength(tupleCpuLength);
 		setTupleNwLength(tupleNwLength);
 		setTupleType(tupleType);
-		setDirection(direction);
 		setEdgeType(edgeType);
 		setPeriodic(true);
 		setPeriodicity(periodicity);
@@ -127,14 +119,6 @@ public class AppEdge {
 		this.tupleType = tupleType;
 	}
 
-	public int getDirection() {
-		return direction;
-	}
-
-	public void setDirection(int direction) {
-		this.direction = direction;
-	}
-
 	public int getEdgeType() {
 		return edgeType;
 	}
@@ -162,8 +146,7 @@ public class AppEdge {
 	@Override
 	public String toString() {
 		return "AppEdge [source=" + source + ", destination=" + destination + ", tupleCpuLength=" + tupleCpuLength
-				+ ", tupleNwLength=" + tupleNwLength + ", tupleType=" + tupleType + ", direction=" + direction
-				+ ", edgeType=" + edgeType + ", periodicity=" + periodicity + ", isPeriodic=" + isPeriodic + "]";
+				+ ", tupleNwLength=" + tupleNwLength + ", tupleType=" + tupleType + ", edgeType=" + edgeType + ", periodicity=" + periodicity + ", isPeriodic=" + isPeriodic + "]";
 	}
 
 }

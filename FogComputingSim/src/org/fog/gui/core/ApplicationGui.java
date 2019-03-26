@@ -39,16 +39,16 @@ public class ApplicationGui {
 	}
 
 	public void addAppEdge(String source, String destination, double tupleCpuLength, 
-			double tupleNwLength, String tupleType, int direction, int edgeType){
-		AppEdge edge = new AppEdge(source, destination, tupleCpuLength, tupleNwLength, tupleType, direction, edgeType);
+			double tupleNwLength, String tupleType, int edgeType){
+		AppEdge edge = new AppEdge(source, destination, tupleCpuLength, tupleNwLength, tupleType, edgeType);
 		getEdges().add(edge);
 		getEdgeMap().put(edge.getTupleType(), edge);
 	}
 
 	public void addAppEdge(String source, String destination, double periodicity, double tupleCpuLength, 
-			double tupleNwLength, String tupleType, int direction, int edgeType){
+			double tupleNwLength, String tupleType, int edgeType){
 		AppEdge edge = new AppEdge(source, destination, periodicity, tupleCpuLength, tupleNwLength,
-			tupleType, direction, edgeType);
+			tupleType, edgeType);
 		getEdges().add(edge);
 		getEdgeMap().put(edge.getTupleType(), edge);
 	}

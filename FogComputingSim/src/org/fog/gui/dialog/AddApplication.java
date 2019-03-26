@@ -30,7 +30,6 @@ import org.apache.commons.math3.util.Pair;
 import org.fog.application.AppEdge;
 import org.fog.application.AppModule;
 import org.fog.application.selectivity.FractionalSelectivity;
-import org.fog.entities.Tuple;
 import org.fog.gui.core.ApplicationGui;
 import org.fog.gui.core.Graph;
 import org.fog.utils.Util;
@@ -42,7 +41,7 @@ public class AddApplication extends JDialog {
 	private static final int HEIGHT = 1000;
 	private static final String[] COLUMN_MODULES = {"Name", "Mips", "Ram", "Mem", "Bw", "Edit"};
 	private static final String[] COLUMN_EDGES = {"Source", "Destination", "Tuple CPU",
-			"Tuple NW", "Tuple Type", "Direction", "Edge Type", "Edit"};
+			"Tuple NW", "Tuple Type", "Edge Type", "Edit"};
 	private static final String[] COLUMN_TUPLES = {"Module Name", "Input Tuple Type",
 			"Output Tuple Type", "Selectivity", "Edit"};
 	
@@ -336,7 +335,7 @@ public class AddApplication extends JDialog {
 		int index = 0;
 		
 		for(AppEdge appEdge : app.getEdges()) {
-			String[] list = new String[8];
+			String[] list = new String[7];
 			
 			String eType = "SENSOR";
 			if(appEdge.getEdgeType() == AppEdge.ACTUATOR)
@@ -349,9 +348,8 @@ public class AddApplication extends JDialog {
 			list[2] = Double.toString(appEdge.getTupleCpuLength());
 			list[3] = Double.toString(appEdge.getTupleNwLength());
 			list[4] = appEdge.getTupleType();
-			list[5] = appEdge.getDirection() == Tuple.UP ? "UP" : "Down";
-			list[6] = eType;
-			list[7] = "✎";
+			list[5] = eType;
+			list[6] = "✎";
 			lists[index++] = list;
 		}
 		return lists;

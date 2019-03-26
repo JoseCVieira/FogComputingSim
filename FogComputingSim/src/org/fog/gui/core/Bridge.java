@@ -149,17 +149,16 @@ public class Bridge {
 				double tupleCpuLength = (Double) edge.get("tupleCpuLength");
 				double tupleNwLength = (Double) edge.get("tupleNwLength");
 				String tupleType = (String) edge.get("tupleType");
-				int direction = ((Long) edge.get("direction")).intValue();
 				int edgeType = ((Long) edge.get("edgeType")).intValue();
 				
 				for(ApplicationGui app : graph.getAppList()) {
 					if(app.getAppId().equals(appId)) {
 						if(!periodic)
 							app.addAppEdge(source, destination, tupleCpuLength, tupleNwLength, tupleType,
-									direction, edgeType);
+									edgeType);
 						else
 							app.addAppEdge(source, destination, periodicity,tupleCpuLength, tupleNwLength,
-									tupleType, direction, edgeType);
+									tupleType, edgeType);
 						break;
 					}
 				}
@@ -322,7 +321,6 @@ public class Bridge {
 				jobj.put("tupleCpuLength", appEdge.getTupleCpuLength());
 				jobj.put("tupleNwLength", appEdge.getTupleNwLength());
 				jobj.put("tupleType", appEdge.getTupleType());
-				jobj.put("direction", appEdge.getDirection());
 				jobj.put("edgeType", appEdge.getEdgeType());
 				edges.add(jobj);
 			}

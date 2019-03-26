@@ -39,8 +39,8 @@ public class Sensor extends SimEntity{
 	 * @param appId
 	 * @param transmitDistribution
 	 */
-	public Sensor(String name, String tupleType, int userId, String appId, Distribution transmitDistribution,
-			int gatewayDeviceId, double latency) {
+	public Sensor(String name, String tupleType, int userId, String appId,
+			Distribution transmitDistribution, int gatewayDeviceId, double latency) {
 		
 		super(name);
 		this.setAppId(appId);
@@ -61,7 +61,7 @@ public class Sensor extends SimEntity{
 		long cpuLength = (long) _edge.getTupleCpuLength();
 		long nwLength = (long) _edge.getTupleNwLength();
 		
-		Tuple tuple = new Tuple(getAppId(), FogUtils.generateTupleId(), Tuple.UP, cpuLength, 1,
+		Tuple tuple = new Tuple(getAppId(), FogUtils.generateTupleId(), cpuLength, 1,
 				nwLength, OUTPUT_SIZE, new UtilizationModelFull(), new UtilizationModelFull(),
 				new UtilizationModelFull(), -1);
 		
