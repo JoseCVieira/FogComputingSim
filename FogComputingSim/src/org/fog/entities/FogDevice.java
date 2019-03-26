@@ -339,65 +339,20 @@ public class FogDevice extends PowerDatacenter {
 	// Modified
 	private void updateEnergyConsumption() {
 		double totalMipsAllocated = 0;
-		double totalRamAllocated = 0;
-		double totalMemAllocated = 0;
-		double totalBwAllocated = 0;
-		double newcost = 0;
-		
 		for(final Vm vm : getHost().getVmList()){
 			AppModule operator = (AppModule)vm;
 			operator.updateVmProcessing(CloudSim.clock(), getVmAllocationPolicy().getHost(operator).getVmScheduler()
 					.getAllocatedMipsForVm(operator));
-			
-			double allocatedMips = getHost().getTotalAllocatedMipsForVm(vm);
-			totalMipsAllocated += allocatedMips;
-			
-			if(allocatedMips != 0)
-				totalRamAllocated += ((AppModule)vm).getCurrentAllocatedRam();
-			
-			
-			
-			totalBwAllocated += ((AppModule)vm).getCurrentAllocatedBw();
-			totalMemAllocated += ((AppModule)vm).getSize();
+			totalMipsAllocated += getHost().getTotalAllocatedMipsForVm(vm);
 		}
-		double totalMem = totalMemAllocated + getHost().getStorage();
 		
 		double timeNow = CloudSim.clock();
 		double timeDif = timeNow-lastUtilizationUpdateTime;
-		
-		double currentEnergyConsumption = getEnergyConsumption();
-		double newEnergyConsumption = currentEnergyConsumption + timeDif*getHost().getPowerModel().getPower(lastMipsUtilization);
-		setEnergyConsumption(newEnergyConsumption);
-		
+		setEnergyConsumption(getEnergyConsumption() + timeDif*getHost().getPowerModel().getPower(lastMipsUtilization));
 		FogDeviceCharacteristics characteristics = (FogDeviceCharacteristics) getCharacteristics();
+		setTotalCost(getTotalCost() + timeDif*lastMipsUtilization*getHost().getTotalMips()*characteristics.getCostPerMips());
 		
-		System.out.println(getHost().getTotalMips());
-		System.out.println(getHost().getRam());
-		System.out.println(getHost().getStorage());
-		System.out.println(getHost().getBw());
-		
-		newcost = getTotalCost();
-		newcost += timeDif*lastMipsUtilization*getHost().getTotalMips()*characteristics.getCostPerMips();		
-		newcost += timeDif*lastRamUtilization*getHost().getRam()*characteristics.getCostPerMem();
-		newcost += timeDif*lastMemUtilization*getHost().getStorage()*characteristics.getCostPerStorage();
-		newcost += timeDif*lastBwUtilization*getHost().getBw()*characteristics.getCostPerBw();
-		newcost += timeDif*characteristics.getCostPerSecond();
-
-		/*System.out.println("\n\n" + getName());
-		System.out.println(lastUtilization + " " + getHost().getTotalMips() + " " + getRatePerMips());
-		System.out.println(lastRamUtilization + " " + getHost().getRam() + " " + getCharacteristics().getCostPerMem());
-		System.out.println(lastMemUtilization + " " + totalMem + " " + getCharacteristics().getCostPerStorage());
-		System.out.println(lastBwUtilization + " " + getHost().getBw() + " " + getCharacteristics().getCostPerBw());*/
-		setTotalCost(newcost);
-		
-		
-		System.out.println("NAME: " + getName() + "\tMIPS USAGE: " + (float)totalMipsAllocated/getHost().getTotalMips());
-		System.out.println("NAME: " + getName() + "\tRAM USAGE: " + (float)totalRamAllocated/getHost().getRam());
-		
-		lastMipsUtilization = Math.min(1, (float)totalMipsAllocated/getHost().getTotalMips());
-		lastRamUtilization = Math.min(1, (float)totalRamAllocated/getHost().getRam());
-		lastBwUtilization = Math.min(1, (float)totalBwAllocated/getHost().getBw());
-		lastMemUtilization = Math.min(1, (float)totalMemAllocated/totalMem);
+		lastMipsUtilization = totalMipsAllocated/getHost().getTotalMips();
 		lastUtilizationUpdateTime = timeNow;
 	}
 

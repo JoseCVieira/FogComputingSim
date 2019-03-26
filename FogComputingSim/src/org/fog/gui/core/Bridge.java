@@ -52,7 +52,7 @@ public class Bridge {
 				if(nodeType.equals(Config.FOG_TYPE)){
 					int level = new BigDecimal((Long)node.get("level")).intValue();
 					double mips = (Double) node.get("mips");
-					long ram = (Long) node.get("ram");
+					int ram = new BigDecimal((Long)node.get("ram")).intValue();
 					long mem = (Long) node.get("mem");
 					double bw = (Double) node.get("bw");
 					double rateMips = (Double) node.get("ratePerMips");

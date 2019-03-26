@@ -12,7 +12,7 @@ public class FogDeviceGui extends Node {
 	private String name;
 	private int level;
 	private double mips;
-	private long ram;
+	private int ram;
 	private long storage;
 	private double bw;
 	private double rateMips;
@@ -24,7 +24,7 @@ public class FogDeviceGui extends Node {
 	private double costPerSec;
 	private String application;
 
-	public FogDeviceGui(String name, int level, double mips, long ram, long storage, double bw,
+	public FogDeviceGui(String name, int level, double mips, int ram, long storage, double bw,
 			double rateMips, double rateRam, double rateStorage, double rateBw, double idlePower,
 			double busyPower, double costPerSec, String appId) {
 		super(name, Config.FOG_TYPE);
@@ -45,7 +45,7 @@ public class FogDeviceGui extends Node {
 		this.setApplication(appId);
 	}
 	
-	public void setValues(String name, int level, double mips, long ram, long storage, double bw,
+	public void setValues(String name, int level, double mips, int ram, long storage, double bw,
 			double rateMips, double rateRam, double rateStorage, double rateBw, double idlePower,
 			double busyPower, double costPerSec, String appId) {
 		this.setName(name);
@@ -88,11 +88,11 @@ public class FogDeviceGui extends Node {
 		this.mips = mips;
 	}
 
-	public long getRam() {
+	public int getRam() {
 		return ram;
 	}
 
-	public void setRam(long ram) {
+	public void setRam(int ram) {
 		this.ram = ram;
 	}
 	

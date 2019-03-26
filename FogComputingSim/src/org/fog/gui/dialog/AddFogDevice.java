@@ -101,8 +101,8 @@ public class AddFogDevice extends JDialog {
 		okBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				String error_msg = "", name_ = "";
-				int level_= -1;
-				long ram_= -1, storage_ = -1;
+				int ram_= -1, level_= -1;
+				long storage_ = -1;
 				double mips_= -1, upBw_= -1, rateMips_ = -1, rateRam_ = -1, rateStorage_ = -1,
 						rateBw_ = -1, idlePower_ = -1, busyPower_ = -1, cost_ = -1;
 				
