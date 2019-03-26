@@ -44,7 +44,6 @@ public class FogDevice extends PowerDatacenter {
 	
 	private Queue<Pair<Tuple, Integer>> tupleQueue;
 	private boolean tupleLinkBusy;
-	private double bandwidth;
 	
 	protected double lastMipsUtilization;
 	protected double lastRamUtilization; // RAM ---- added
@@ -61,7 +60,7 @@ public class FogDevice extends PowerDatacenter {
 	protected double totalCost;
 	
 	public FogDevice(String name, FogDeviceCharacteristics characteristics, VmAllocationPolicy vmAllocationPolicy,
-			List<Storage> storageList, double schedulingInterval, double uplinkBandwidth) throws Exception {
+			List<Storage> storageList, double schedulingInterval) throws Exception {
 		super(name, characteristics, vmAllocationPolicy, storageList, schedulingInterval);
 		
 		setModuleInstanceCount(new HashMap<String, Map<String, Integer>>());
@@ -71,7 +70,6 @@ public class FogDevice extends PowerDatacenter {
 		
 		setTupleQueue(new LinkedList<Pair<Tuple, Integer>>());
 		setTupleLinkBusy(false);
-		setBandwidth(uplinkBandwidth);
 		
 		this.lastMipsUtilization = 0;
 		this.lastRamUtilization = 0;
@@ -348,6 +346,7 @@ public class FogDevice extends PowerDatacenter {
 		
 		for(final Vm vm : getHost().getVmList()){
 			AppModule operator = (AppModule)vm;
+			//System.out.println("NAME: " + getName() + " Module name: " + operator.getName() + "\tMIPS USAGE FOR VM: " + getHost().getTotalAllocatedMipsForVm(vm));
 			operator.updateVmProcessing(CloudSim.clock(), getVmAllocationPolicy().getHost(operator).getVmScheduler()
 					.getAllocatedMipsForVm(operator));
 			totalMipsAllocated += getHost().getTotalAllocatedMipsForVm(vm);
@@ -358,20 +357,20 @@ public class FogDevice extends PowerDatacenter {
 		double totalMem = totalMemAllocated + getHost().getStorage();
 		
 		double timeNow = CloudSim.clock();
-		double time_def = timeNow-lastUtilizationUpdateTime;
+		double timeDif = timeNow-lastUtilizationUpdateTime;
 		
 		double currentEnergyConsumption = getEnergyConsumption();
-		double newEnergyConsumption = currentEnergyConsumption + time_def*getHost().getPowerModel().getPower(lastMipsUtilization);
+		double newEnergyConsumption = currentEnergyConsumption + timeDif*getHost().getPowerModel().getPower(lastMipsUtilization);
 		setEnergyConsumption(newEnergyConsumption);
 		
 		FogDeviceCharacteristics characteristics = (FogDeviceCharacteristics) getCharacteristics();
 		
 		newcost = getTotalCost();
-		newcost += time_def*lastMipsUtilization*getHost().getTotalMips()*characteristics.getCostPerMips();
-		newcost += time_def*lastRamUtilization*getHost().getRam()*characteristics.getCostPerMem();
-		newcost += time_def*lastMemUtilization*totalMem*characteristics.getCostPerStorage();
-		newcost += time_def*lastBwUtilization*getHost().getBw()*characteristics.getCostPerBw();
-		newcost += time_def*getCharacteristics().getCostPerSecond();
+		newcost += timeDif*lastMipsUtilization*getHost().getTotalMips()*characteristics.getCostPerMips();		
+		newcost += timeDif*lastRamUtilization*getHost().getRam()*characteristics.getCostPerMem();
+		newcost += timeDif*lastMemUtilization*getHost().getStorage()*characteristics.getCostPerStorage();
+		newcost += timeDif*lastBwUtilization*getHost().getBw()*characteristics.getCostPerBw();
+		newcost += timeDif*getCharacteristics().getCostPerSecond();
 
 		/*System.out.println("\n\n" + getName());
 		System.out.println(lastUtilization + " " + getHost().getTotalMips() + " " + getRatePerMips());
@@ -379,6 +378,10 @@ public class FogDevice extends PowerDatacenter {
 		System.out.println(lastMemUtilization + " " + totalMem + " " + getCharacteristics().getCostPerStorage());
 		System.out.println(lastBwUtilization + " " + getHost().getBw() + " " + getCharacteristics().getCostPerBw());*/
 		setTotalCost(newcost);
+		
+		
+		System.out.println("NAME: " + getName() + "\tMIPS USAGE: " + (float)totalMipsAllocated/getHost().getTotalMips());
+		System.out.println("NAME: " + getName() + "\tRAM USAGE: " + (float)totalRamAllocated/getHost().getRam());
 		
 		lastMipsUtilization = Math.min(1, (float)totalMipsAllocated/getHost().getTotalMips());
 		lastRamUtilization = Math.min(1, (float)totalRamAllocated/getHost().getRam());
@@ -525,7 +528,9 @@ public class FogDevice extends PowerDatacenter {
 			appToModulesMap.put(appId, new ArrayList<String>());
 
 		appToModulesMap.get(appId).add(module.getName());
+
 		processVmCreate(ev, false);
+		System.out.println("Creating " + module.getName() + " on device " + getName());
 		
 		if (module.isBeingInstantiated())
 			module.setBeingInstantiated(false);
@@ -558,7 +563,7 @@ public class FogDevice extends PowerDatacenter {
 	}
 	
 	protected void sendFreeLink(Tuple tuple, int destId){
-		double networkDelay = tuple.getCloudletFileSize()/getBandwidth();
+		double networkDelay = tuple.getCloudletFileSize()/getHost().getBw(); //TODO
 		setTupleLinkBusy(true);
 		
 		double latency = getLatencyMap().get(destId);
@@ -650,14 +655,6 @@ public class FogDevice extends PowerDatacenter {
 	public void setTupleLinkBusy(boolean tupleLinkBusy) {
 		this.tupleLinkBusy = tupleLinkBusy;
 	}
-
-	public double getBandwidth() {
-		return bandwidth;
-	}
-
-	public void setBandwidth(double bandwidth) {
-		this.bandwidth = bandwidth;
-	}
 	
 	public List<String> getActiveApplications() {
 		return activeApplications;
@@ -726,7 +723,6 @@ public class FogDevice extends PowerDatacenter {
 		"RAM: " + getHost().getRam() + "\n"+
 		"MEM: " + getHost().getStorage() + "\n"+
 		"BW: " + getHost().getBw() + "\n"+
-		"UplinkBandwidth: " + getBandwidth() + "\n"+
 		"LatencyMap: " + latencyMap + "\n\n";
 		return str;
 	}

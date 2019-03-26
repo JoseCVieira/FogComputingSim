@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.cloudbus.cloudsim.core.CloudSim;
 import org.fog.application.AppModule;
 import org.fog.application.Application;
 import org.fog.entities.FogDevice;
@@ -52,9 +51,8 @@ public class ModulePlacementMapping extends ModulePlacement{
 		
 		for(int deviceId : getCurrentModuleMap().keySet())
 			for(String module : getCurrentModuleMap().get(deviceId))
-				if(!createModuleInstanceOnDevice(getApplication().getModuleByName(module),
-						getFogDeviceById(deviceId)))
-					CloudSim.abruptallyTerminate();
+				createModuleInstanceOnDevice(getApplication().getModuleByName(module),
+						getFogDeviceById(deviceId));
 	}
 	
 	private void createGraph() {

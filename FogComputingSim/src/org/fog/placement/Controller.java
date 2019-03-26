@@ -55,7 +55,7 @@ public class Controller extends SimEntity{
 	
 	@Override
 	public void startEntity() {
-		for(String appId : applications.keySet()){ //TODO: ver isto
+		for(String appId : applications.keySet()){
 			if(getAppLaunchDelays().get(appId)==0)
 				processAppSubmit(applications.get(appId));
 			else

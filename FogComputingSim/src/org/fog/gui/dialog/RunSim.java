@@ -149,21 +149,13 @@ public class RunSim extends JDialog {
     				ModuleMapping moduleMapping = ModuleMapping.createModuleMapping();
     				
     				if(broker.getId() == 8) {
-    					moduleMapping.addModuleToDevice("client_8", "Client2");
-    					moduleMapping.addModuleToDevice("concentration_calculator_8", "Client2");
-    					moduleMapping.addModuleToDevice("connector_8", "Client2");
-    					
-    					/*moduleMapping.addModuleToDevice("client_8", "Cloud");
-    					moduleMapping.addModuleToDevice("concentration_calculator_8", "Cloud");
-    					moduleMapping.addModuleToDevice("connector_8", "Cloud");*/
-    				}else {
-    					/*moduleMapping.addModuleToDevice("client_11", "Client1");
-    					moduleMapping.addModuleToDevice("concentration_calculator_11", "Client1");
-    					moduleMapping.addModuleToDevice("connector_11", "Client1");*/
-    					
-    					moduleMapping.addModuleToDevice("client_11", "Cloud");
-    					moduleMapping.addModuleToDevice("concentration_calculator_11", "Cloud");
-    					moduleMapping.addModuleToDevice("connector_11", "Cloud");
+    					moduleMapping.addModuleToDevice("client_8", "FogNode1");
+    					moduleMapping.addModuleToDevice("concentration_calculator_8", "FogNode1");
+    					moduleMapping.addModuleToDevice("connector_8", "FogNode1");
+    				}else {    					
+    					moduleMapping.addModuleToDevice("client_" + broker.getId(), "Cloud");
+    					moduleMapping.addModuleToDevice("concentration_calculator_" + broker.getId(), "Cloud");
+    					moduleMapping.addModuleToDevice("connector_" + broker.getId(), "Cloud");
     				}
     				
 					controller.submitApplication(application, new ModulePlacementMapping(fogDevices, application, moduleMapping));
@@ -226,9 +218,9 @@ public class RunSim extends JDialog {
 				FogDeviceGui fog1 = (FogDeviceGui)entry.getKey();
 				FogDevice f1 = getFogDeviceByName(fog1.getName());
 				
-				System.out.println("id: " + f1.getId() + " Name: " + fog1.getName());
+				System.out.println("Id: " + f1.getId() + " Name: " + fog1.getName());
 				System.out.println("Neighbors: " +  f1.getNeighborsIds());
-				System.out.println("UpStreamMap: " + f1.getLatencyMap() + "\n\n");
+				System.out.println("LatencymMap: " + f1.getLatencyMap() + "\n\n");
 			}
 		}
 		
@@ -257,7 +249,7 @@ public class RunSim extends JDialog {
 			
 			try {
 				return new FogDevice(fog.getName(), characteristics, new AppModuleAllocationPolicy(hostList),
-						storageList, 10, fog.getBw());
+						storageList, Config.SCHEDULING_INTERVAL);
 			} catch (Exception e) {
 				e.printStackTrace();
 				return null;

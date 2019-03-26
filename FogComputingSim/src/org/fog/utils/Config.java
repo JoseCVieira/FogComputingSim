@@ -44,4 +44,5 @@ public class Config {
 	public static final String FOG_DEVICE_OS = "Linux";
 	public static final String FOG_DEVICE_VMM = "Xen";
 	public static final double FOG_DEVICE_TIMEZONE = 0.0;
+	public static final double SCHEDULING_INTERVAL = 10;
 }

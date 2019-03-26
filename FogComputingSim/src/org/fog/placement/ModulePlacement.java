@@ -18,28 +18,19 @@ public abstract class ModulePlacement {
 	
 	protected abstract void mapModules();
 	
-	protected boolean createModuleInstanceOnDevice(AppModule _module, final FogDevice device){
+	protected void createModuleInstanceOnDevice(AppModule _module, final FogDevice device){
 		AppModule module = null;
 		
 		if(getModuleToDeviceMap().containsKey(_module.getName()))
 			module = new AppModule(_module);
 		else
 			module = _module;
-			
-		if(device.getVmAllocationPolicy().allocateHostForVm(module)){
-			System.out.println("Creating " + module.getName() + " on device " + device.getName());
-			
-			if(!getDeviceToModuleMap().containsKey(device.getId()))
-				getDeviceToModuleMap().put(device.getId(), new ArrayList<AppModule>());
-			getDeviceToModuleMap().get(device.getId()).add(module);
-
-			getModuleToDeviceMap().put(module.getName(), device.getId());
-			return true;
-		}
 		
-		System.err.println("Module " + module.getName() + " cannot be created on device " + device.getName());
-		System.err.println("Terminating");
-		return false;
+		if(!getDeviceToModuleMap().containsKey(device.getId()))
+			getDeviceToModuleMap().put(device.getId(), new ArrayList<AppModule>());
+		getDeviceToModuleMap().get(device.getId()).add(module);
+
+		getModuleToDeviceMap().put(module.getName(), device.getId());
 	}
 	
 	protected FogDevice getDeviceByName(String deviceName) {
