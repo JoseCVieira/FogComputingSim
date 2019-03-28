@@ -41,7 +41,7 @@ public class AddApplication extends JDialog {
 	private static final int HEIGHT = 1000;
 	private static final String[] COLUMN_MODULES = {"Name", "Mips", "Ram", "Mem", "Bw", "Edit"};
 	private static final String[] COLUMN_EDGES = {"Source", "Destination", "Tuple CPU",
-			"Tuple NW", "Tuple Type", "Edge Type", "Edit"};
+			"Tuple NW", "Tuple Type", "Edge Type", "Periodicity", "Edit"};
 	private static final String[] COLUMN_TUPLES = {"Module Name", "Input Tuple Type",
 			"Output Tuple Type", "Selectivity", "Edit"};
 	
@@ -237,7 +237,7 @@ public class AddApplication extends JDialog {
 			    int rowAtPoint = table.rowAtPoint(e.getPoint());
 			    int columnAtPoint = table.columnAtPoint(e.getPoint());
 			    
-			    if(columnAtPoint == 6) {			    	
+			    if(columnAtPoint == 7) {			    	
 			    	new AddAppEdge(frame, app, app.getEdges().get(rowAtPoint));
 			    	updateTable(dtmEdges, jtableEdges, getAppEdges(), COLUMN_EDGES);
 			    }
@@ -335,7 +335,7 @@ public class AddApplication extends JDialog {
 		int index = 0;
 		
 		for(AppEdge appEdge : app.getEdges()) {
-			String[] list = new String[7];
+			String[] list = new String[8];
 			
 			String eType = "SENSOR";
 			if(appEdge.getEdgeType() == AppEdge.ACTUATOR)
@@ -349,7 +349,8 @@ public class AddApplication extends JDialog {
 			list[3] = Double.toString(appEdge.getTupleNwLength());
 			list[4] = appEdge.getTupleType();
 			list[5] = eType;
-			list[6] = "✎";
+			list[6] = appEdge.isPeriodic() ? Double.toString(appEdge.getPeriodicity()) : "-";
+			list[7] = "✎";
 			lists[index++] = list;
 		}
 		return lists;
