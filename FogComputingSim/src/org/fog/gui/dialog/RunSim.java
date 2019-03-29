@@ -26,8 +26,8 @@ import org.cloudbus.cloudsim.Pe;
 import org.cloudbus.cloudsim.Storage;
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.power.PowerHost;
+import org.cloudbus.cloudsim.provisioners.BwProvisionerSimple;
 import org.cloudbus.cloudsim.provisioners.RamProvisionerSimple;
-import org.cloudbus.cloudsim.sdn.overbooking.BwProvisionerOverbooking;
 import org.cloudbus.cloudsim.sdn.overbooking.PeProvisionerOverbooking;
 import org.cloudbus.cloudsim.sdn.overbooking.VmSchedulerTimeSharedOverbookingEnergy;
 import org.fog.application.AppEdge;
@@ -225,16 +225,16 @@ public class RunSim extends JDialog {
 		}
 		
 		private FogDevice createFogDevice(FogDeviceGui fog) {
-			List<Pe> peList = new ArrayList<Pe>();
-			peList.add(new Pe(0, new PeProvisionerOverbooking(fog.getMips())));
+			List<Pe> processingElementsList = new ArrayList<Pe>();
+			processingElementsList.add(new Pe(0, new PeProvisionerOverbooking(fog.getMips())));
 
 			PowerHost host = new PowerHost(
 					FogUtils.generateEntityId(),
 					new RamProvisionerSimple(fog.getRam()),
-					new BwProvisionerOverbooking((long)fog.getBw()*1024),//TODO
+					new BwProvisionerSimple((long)fog.getBw()*1024),
 					fog.getStorage(),
-					peList,
-					new VmSchedulerTimeSharedOverbookingEnergy(peList),
+					processingElementsList,
+					new VmSchedulerTimeSharedOverbookingEnergy(processingElementsList),
 					new FogLinearPowerModel(fog.getBusyPower(), fog.getIdlePower())
 				);
 

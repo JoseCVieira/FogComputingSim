@@ -102,15 +102,25 @@ public class DatacenterCharacteristics {
 	 * @pre costPerStorage >= 0
 	 * @post $none
 	 */
-	public DatacenterCharacteristics(String architecture, String os, String vmm, List<? extends Host> hostList, double timeZone,
-			double costPerSec, double costPerMem, double costPerStorage, double costPerBw) {
+	public DatacenterCharacteristics(
+			String architecture,
+			String os,
+			String vmm,
+			List<? extends Host> hostList,
+			double timeZone,
+			double costPerSec,
+			double costPerMem,
+			double costPerStorage,
+			double costPerBw) {
 		setId(-1);
 		setArchitecture(architecture);
 		setOs(os);
 		setHostList(hostList);
 		setAllocationPolicy(allocationPolicy);
 		setCostPerSecond(costPerSec);
-		setTimeZone(timeZone);
+
+		setTimeZone(0.0);
+
 		setVmm(vmm);
 		setCostPerMem(costPerMem);
 		setCostPerStorage(costPerStorage);
@@ -556,5 +566,4 @@ public class DatacenterCharacteristics {
 	protected void setVmm(String vmm) {
 		this.vmm = vmm;
 	}
-
 }
