@@ -326,7 +326,6 @@ public class FogDevice extends PowerDatacenter {
 				getHost().getVmScheduler().allocatePesForVm(vm, new ArrayList<Double>(){
 					protected static final long serialVersionUID = 1L;
 				{add((double) getHost().getTotalMips());}});
-				
 			}else{
 				getHost().getVmScheduler().allocatePesForVm(vm, new ArrayList<Double>(){
 					protected static final long serialVersionUID = 1L;

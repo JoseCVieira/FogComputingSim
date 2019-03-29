@@ -6,11 +6,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.math3.util.Pair;
+import org.cloudbus.cloudsim.CloudletSchedulerTimeShared;
 import org.cloudbus.cloudsim.UtilizationModelFull;
 import org.fog.application.selectivity.FractionalSelectivity;
 import org.fog.application.selectivity.SelectivityModel;
 import org.fog.entities.Tuple;
-import org.fog.scheduler.TupleScheduler;
 import org.fog.utils.FogUtils;
 import org.fog.utils.dijkstra.DijkstraAlgorithm;
 
@@ -47,7 +47,7 @@ public class Application {
 		String vmm = "Xen";
 		
 		AppModule module = new AppModule(FogUtils.generateEntityId(), moduleName, appId, userId, 
-			mips, ram, bw, size, vmm, new TupleScheduler(mips, 1),
+			mips, ram, bw, size, vmm, new CloudletSchedulerTimeShared(),
 			new HashMap<Pair<String, String>, SelectivityModel>());
 		
 		getModules().add(module);
@@ -55,7 +55,7 @@ public class Application {
 	
 	public void addAppModule(AppModule m){ //ADDED
 		AppModule module = new AppModule(FogUtils.generateEntityId(), m.getName() + "_" + userId, appId, userId, 
-			m.getMips(), m.getRam(), m.getBw(), m.getSize(), m.getVmm(), new TupleScheduler(m.getMips(), 1),
+			m.getMips(), m.getRam(), m.getBw(), m.getSize(), m.getVmm(), new CloudletSchedulerTimeShared(),
 			new HashMap<Pair<String, String>, SelectivityModel>());
 		getModules().add(module);
 	}

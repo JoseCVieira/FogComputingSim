@@ -29,6 +29,7 @@ import org.cloudbus.cloudsim.power.PowerHost;
 import org.cloudbus.cloudsim.provisioners.RamProvisionerSimple;
 import org.cloudbus.cloudsim.sdn.overbooking.BwProvisionerOverbooking;
 import org.cloudbus.cloudsim.sdn.overbooking.PeProvisionerOverbooking;
+import org.cloudbus.cloudsim.sdn.overbooking.VmSchedulerTimeSharedOverbookingEnergy;
 import org.fog.application.AppEdge;
 import org.fog.application.AppLoop;
 import org.fog.application.AppModule;
@@ -50,7 +51,6 @@ import org.fog.placement.Controller;
 import org.fog.placement.ModuleMapping;
 import org.fog.placement.ModulePlacementMapping;
 import org.fog.policy.AppModuleAllocationPolicy;
-import org.fog.scheduler.StreamOperatorScheduler;
 import org.fog.utils.Config;
 import org.fog.utils.FogLinearPowerModel;
 import org.fog.utils.FogUtils;
@@ -234,7 +234,7 @@ public class RunSim extends JDialog {
 					new BwProvisionerOverbooking((long)fog.getBw()*1024),//TODO
 					fog.getStorage(),
 					peList,
-					new StreamOperatorScheduler(peList),
+					new VmSchedulerTimeSharedOverbookingEnergy(peList),
 					new FogLinearPowerModel(fog.getBusyPower(), fog.getIdlePower())
 				);
 

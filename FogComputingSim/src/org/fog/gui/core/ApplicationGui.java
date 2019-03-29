@@ -6,11 +6,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.math3.util.Pair;
+import org.cloudbus.cloudsim.CloudletSchedulerTimeShared;
 import org.fog.application.AppEdge;
 import org.fog.application.AppModule;
 import org.fog.application.selectivity.SelectivityModel;
 import org.fog.entities.Tuple;
-import org.fog.scheduler.TupleScheduler;
 import org.fog.utils.FogUtils;
 
 public class ApplicationGui {
@@ -33,7 +33,7 @@ public class ApplicationGui {
 		int userId = -1;
 		
 		AppModule module = new AppModule(FogUtils.generateEntityId(), moduleName, appId, userId, mips, ram, bw, mem, vmm,
-				new TupleScheduler(mips, 1), new HashMap<Pair<String, String>, SelectivityModel>());
+				new CloudletSchedulerTimeShared(), new HashMap<Pair<String, String>, SelectivityModel>());
 		
 		getModules().add(module);
 	}
