@@ -417,7 +417,7 @@ public class FogDevice extends PowerDatacenter {
 				
 				executeTuple(ev, tuple.getDestModuleName());
 				
-			}else if(tuple.getDestModuleName()!=null){
+			}else if(tuple.getDestModuleName() != null){
 				if(PRINT_COMMUNICATION_DETAILS) printCommunication(tuple);
 				sendTo(tuple, findNextHopCommunication(tuple));
 			}
@@ -436,7 +436,7 @@ public class FogDevice extends PowerDatacenter {
 			if(loop.hasEdge(srcModule, destModule) && loop.isEndModule(destModule)){
 				Double startTime = TimeKeeper.getInstance().getEmitTimes().get(tuple.getActualTupleId());
 				
-				if(startTime==null)
+				if(startTime == null)
 					break;
 				
 				if(!TimeKeeper.getInstance().getLoopIdToCurrentAverage().containsKey(loop.getLoopId())){
@@ -513,7 +513,8 @@ public class FogDevice extends PowerDatacenter {
 	}
 	
 	protected void sendFreeLink(Tuple tuple, int destId){
-		double networkDelay = tuple.getCloudletFileSize()/getHost().getBw(); //TODO
+		double networkDelay = tuple.getCloudletFileSize()/getHost().getBw();
+		
 		setTupleLinkBusy(true);
 		
 		double latency = getLatencyMap().get(destId);
