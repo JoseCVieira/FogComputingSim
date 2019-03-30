@@ -10,6 +10,7 @@ import org.cloudbus.cloudsim.Log;
 import org.cloudbus.cloudsim.Vm;
 import org.cloudbus.cloudsim.VmAllocationPolicy;
 import org.cloudbus.cloudsim.core.CloudSim;
+import org.cloudbus.cloudsim.provisioners.PeProvisionerSimple;
 import org.cloudbus.cloudsim.sdn.power.PowerUtilizationMaxHostInterface;
 
 public class VmAllocationPolicyOverbooking extends VmAllocationPolicy implements PowerUtilizationMaxHostInterface {
@@ -48,7 +49,7 @@ public class VmAllocationPolicyOverbooking extends VmAllocationPolicy implements
 		
 		for (Host host : getHostList()) {
 			getFreePes().add(host.getNumberOfPes());
-			getFreeMips().add((long) PeProvisionerOverbooking.getOverbookedMips((host.getTotalMips())));
+			getFreeMips().add((long) ((PeProvisionerSimple)host.getPeList().get(0).getPeProvisioner()).getOverbookedMips((host.getTotalMips())));
 			getFreeBw().add((long) host.getBwProvisioner().getOverbookedBw(host.getBw()));
 		}
 		

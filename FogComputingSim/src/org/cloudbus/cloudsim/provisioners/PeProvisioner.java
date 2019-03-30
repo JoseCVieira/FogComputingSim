@@ -1,199 +1,152 @@
-/*
- * Title:        CloudSim Toolkit
- * Description:  CloudSim (Cloud Simulation) Toolkit for Modeling and Simulation of Clouds
- * Licence:      GPL - http://www.gnu.org/copyleft/gpl.html
- *
- * Copyright (c) 2009-2012, The University of Melbourne, Australia
- */
-
 package org.cloudbus.cloudsim.provisioners;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.cloudbus.cloudsim.Vm;
 
-/**
- * The Class PeProvisioner.
- * 
- * @author Anton Beloglazov
- * @since CloudSim Toolkit 2.0
- */
-public abstract class PeProvisioner {
-
-	/** The mips. */
+public class PeProvisioner {
+	private double overbookingRatioMips = 4.0;
+	
 	private double mips;
-
-	/** The available mips. */
 	private double availableMips;
+	private Map<String, List<Double>> peTable;
 
-	/**
-	 * Creates the new PeProvisioner.
-	 * 
-	 * @param mips overall amount of MIPS available in the Pe
-	 * 
-	 * @pre mips>=0
-	 * @post $none
-	 */
 	public PeProvisioner(double mips) {
+		this(mips, 1.0);
+	}
+	
+	public PeProvisioner(double mips, double overbookingRatioMips) {
 		setMips(mips);
-		setAvailableMips(mips);
+		setAvailableMips(getOverbookedMips(mips));
+		setPeTable(new HashMap<String, List<Double>>());
+	}
+	
+	public boolean allocateMipsForVm(Vm vm, double mips) {
+		return allocateMipsForVm(vm.getUid(), mips);
 	}
 
-	/**
-	 * Allocates MIPS for a given VM.
-	 * 
-	 * @param vm virtual machine for which the MIPS are being allocated
-	 * @param mips the mips
-	 * 
-	 * @return $true if the MIPS could be allocated; $false otherwise
-	 * 
-	 * @pre $none
-	 * @post $none
-	 */
-	public abstract boolean allocateMipsForVm(Vm vm, double mips);
+	public boolean allocateMipsForVm(String vmUid, double mips) {
+		if (getAvailableMips() < mips) {
+			return false;
+		}
 
-	/**
-	 * Allocates MIPS for a given VM.
-	 * 
-	 * @param vmUid the vm uid
-	 * @param mips the mips
-	 * 
-	 * @return $true if the MIPS could be allocated; $false otherwise
-	 * 
-	 * @pre $none
-	 * @post $none
-	 */
-	public abstract boolean allocateMipsForVm(String vmUid, double mips);
+		List<Double> allocatedMips;
 
-	/**
-	 * Allocates MIPS for a given VM.
-	 * 
-	 * @param vm virtual machine for which the MIPS are being allocated
-	 * @param mips the mips for each virtual Pe
-	 * 
-	 * @return $true if the MIPS could be allocated; $false otherwise
-	 * 
-	 * @pre $none
-	 * @post $none
-	 */
-	public abstract boolean allocateMipsForVm(Vm vm, List<Double> mips);
+		if (getPeTable().containsKey(vmUid)) {
+			allocatedMips = getPeTable().get(vmUid);
+		} else {
+			allocatedMips = new ArrayList<Double>();
+		}
 
-	/**
-	 * Gets allocated MIPS for a given VM.
-	 * 
-	 * @param vm virtual machine for which the MIPS are being allocated
-	 * 
-	 * @return array of allocated MIPS
-	 * 
-	 * @pre $none
-	 * @post $none
-	 */
-	public abstract List<Double> getAllocatedMipsForVm(Vm vm);
+		allocatedMips.add(mips);
 
-	/**
-	 * Gets total allocated MIPS for a given VM for all PEs.
-	 * 
-	 * @param vm virtual machine for which the MIPS are being allocated
-	 * 
-	 * @return total allocated MIPS
-	 * 
-	 * @pre $none
-	 * @post $none
-	 */
-	public abstract double getTotalAllocatedMipsForVm(Vm vm);
+		setAvailableMips(getAvailableMips() - mips);
+		getPeTable().put(vmUid, allocatedMips);
 
-	/**
-	 * Gets allocated MIPS for a given VM for a given virtual Pe.
-	 * 
-	 * @param vm virtual machine for which the MIPS are being allocated
-	 * @param peId the pe id
-	 * 
-	 * @return allocated MIPS
-	 * 
-	 * @pre $none
-	 * @post $none
-	 */
-	public abstract double getAllocatedMipsForVmByVirtualPeId(Vm vm, int peId);
+		return true;
+	}
+	
+	public boolean allocateMipsForVm(Vm vm, List<Double> mips) {
+		int totalMipsToAllocate = 0;
+		for (double _mips : mips) {
+			totalMipsToAllocate += _mips;
+		}
 
-	/**
-	 * Releases MIPS used by a VM.
-	 * 
-	 * @param vm the vm
-	 * 
-	 * @pre $none
-	 * @post none
-	 */
-	public abstract void deallocateMipsForVm(Vm vm);
+		if (getAvailableMips() + getTotalAllocatedMipsForVm(vm) < totalMipsToAllocate) {
+			return false;
+		}
 
-	/**
-	 * Releases MIPS used by all VMs.
-	 * 
-	 * @pre $none
-	 * @post none
-	 */
+		setAvailableMips(getAvailableMips() + getTotalAllocatedMipsForVm(vm) - totalMipsToAllocate);
+
+		getPeTable().put(vm.getUid(), mips);
+
+		return true;
+	}
+	
 	public void deallocateMipsForAllVms() {
-		setAvailableMips(getMips());
+		setAvailableMips(getOverbookedMips(getMips()));
+		getPeTable().clear();
 	}
 
-	/**
-	 * Gets the MIPS.
-	 * 
-	 * @return the MIPS
-	 */
-	public double getMips() {
-		return mips;
+	public double getAllocatedMipsForVmByVirtualPeId(Vm vm, int peId) {
+		if (getPeTable().containsKey(vm.getUid())) {
+			try {
+				return getPeTable().get(vm.getUid()).get(peId);
+			} catch (Exception e) {
+			}
+		}
+		return 0;
 	}
-
-	/**
-	 * Sets the MIPS.
-	 * 
-	 * @param mips the MIPS to set
-	 */
-	public void setMips(double mips) {
-		this.mips = mips;
+	
+	public List<Double> getAllocatedMipsForVm(Vm vm) {
+		if (getPeTable().containsKey(vm.getUid())) {
+			return getPeTable().get(vm.getUid());
+		}
+		return null;
 	}
-
-	/**
-	 * Gets the available MIPS in the PE.
-	 * 
-	 * @return available MIPS
-	 * 
-	 * @pre $none
-	 * @post $none
-	 */
-	public double getAvailableMips() {
-		return availableMips;
-	}
-
-	/**
-	 * Sets the available MIPS.
-	 * 
-	 * @param availableMips the availableMips to set
-	 */
-	protected void setAvailableMips(double availableMips) {
-		this.availableMips = availableMips;
-	}
-
-	/**
-	 * Gets the total allocated MIPS.
-	 * 
-	 * @return the total allocated MIPS
-	 */
-	public double getTotalAllocatedMips() {
-		double totalAllocatedMips = getMips() - getAvailableMips();
-		if (totalAllocatedMips > 0) {
+	
+	public double getTotalAllocatedMipsForVm(Vm vm) {
+		if (getPeTable().containsKey(vm.getUid())) {
+			double totalAllocatedMips = 0.0;
+			for (double mips : getPeTable().get(vm.getUid())) {
+				totalAllocatedMips += mips;
+			}
 			return totalAllocatedMips;
 		}
 		return 0;
 	}
-
-	/**
-	 * Gets the utilization of the Pe in percents.
-	 * 
-	 * @return the utilization
-	 */
+	
+	public void deallocateMipsForVm(Vm vm) {
+		if (getPeTable().containsKey(vm.getUid())) {
+			for (double mips : getPeTable().get(vm.getUid())) {
+				setAvailableMips(getAvailableMips() + mips);
+			}
+			getPeTable().remove(vm.getUid());
+		}
+	}
+	
+	public double getMips() {
+		return mips;
+	}
+	
+	public void setMips(double mips) {
+		this.mips = mips;
+	}
+	
+	public double getAvailableMips() {
+		return availableMips;
+	}
+	
+	protected void setAvailableMips(double availableMips) {
+		this.availableMips = availableMips;
+	}
+	
+	public double getTotalAllocatedMips() {
+		double totalAllocatedMips = getMips() - getAvailableMips();
+		
+		if (totalAllocatedMips > 0)
+			return totalAllocatedMips;
+		
+		return 0;
+	}
+	
 	public double getUtilization() {
 		return getTotalAllocatedMips() / getMips();
+	}
+	
+	protected Map<String, List<Double>> getPeTable() {
+		return peTable;
+	}
+	
+	protected void setPeTable(Map<String, List<Double>> peTable) {
+		this.peTable = peTable;
+	}
+
+	public double getOverbookedMips(double availableMips) {
+		return availableMips * overbookingRatioMips;		
 	}
 
 }
