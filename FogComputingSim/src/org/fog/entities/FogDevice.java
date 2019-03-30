@@ -36,6 +36,7 @@ import org.fog.utils.dijkstra.Vertex;
 
 public class FogDevice extends PowerDatacenter {
 	private static final boolean PRINT_COMMUNICATION_DETAILS = false;
+	private static final boolean PRINT_COST_DETAILS = false;
 	
 	protected Map<String, Map<String, Integer>> moduleInstanceCount;
 	protected List<Pair<Integer, Double>> associatedActuatorIds;
@@ -335,24 +336,50 @@ public class FogDevice extends PowerDatacenter {
 		updateEnergyConsumption();
 	}
 	
-	// Modified
 	private void updateEnergyConsumption() {
 		double totalMipsAllocated = 0;
+		double totalRamAllocated = 0;
+		double totalMemAllocated = 0;
+		
 		for(final Vm vm : getHost().getVmList()){
 			AppModule operator = (AppModule)vm;
 			operator.updateVmProcessing(CloudSim.clock(), getVmAllocationPolicy().getHost(operator).getVmScheduler()
 					.getAllocatedMipsForVm(operator));
-			totalMipsAllocated += getHost().getTotalAllocatedMipsForVm(vm);
+			
+			double allocatedMipsForVm = getHost().getTotalAllocatedMipsForVm(vm);
+			totalMipsAllocated += allocatedMipsForVm;
+			totalMemAllocated += ((AppModule)vm).getSize();
+			
+			if(allocatedMipsForVm != 0)
+				totalRamAllocated += ((AppModule)vm).getCurrentAllocatedRam();
 		}
+		double totalBwAllocated = isTupleLinkBusy() ? totalBwAllocated = getHost().getBw() : 0;		
 		
 		double timeNow = CloudSim.clock();
 		double timeDif = timeNow-lastUtilizationUpdateTime;
-		setEnergyConsumption(getEnergyConsumption() + timeDif*getHost().getPowerModel().getPower(lastMipsUtilization));
-		FogDeviceCharacteristics characteristics = (FogDeviceCharacteristics) getCharacteristics();
-		setTotalCost(getTotalCost() + timeDif*lastMipsUtilization*getHost().getTotalMips()*characteristics.getCostPerMips());
 		
+		double currentEnergyConsumption = getEnergyConsumption();
+		double newEnergyConsumption = currentEnergyConsumption +
+				timeDif*getHost().getPowerModel().getPower(lastMipsUtilization);
+		setEnergyConsumption(newEnergyConsumption);
+		
+		FogDeviceCharacteristics characteristics = (FogDeviceCharacteristics) getCharacteristics();
+		
+		double newcost = getTotalCost();
+		newcost += timeDif*lastMipsUtilization*getHost().getTotalMips()*characteristics.getCostPerMips();
+		newcost += timeDif*lastRamUtilization*getHost().getRam()*characteristics.getCostPerMem();
+		newcost += timeDif*lastMemUtilization*getHost().getStorage()*characteristics.getCostPerStorage();
+		newcost += timeDif*lastBwUtilization*getHost().getBw()*characteristics.getCostPerBw();
+		newcost += timeDif*characteristics.getCostPerSecond();
+		setTotalCost(newcost);
+		
+		lastRamUtilization = totalRamAllocated/getHost().getRam();
+		lastBwUtilization = totalBwAllocated/getHost().getBw();
+		lastMemUtilization = totalMemAllocated/getHost().getStorage();
 		lastMipsUtilization = totalMipsAllocated/getHost().getTotalMips();
 		lastUtilizationUpdateTime = timeNow;
+		
+		if(PRINT_COST_DETAILS) printCost();
 	}
 
 	protected void processAppSubmit(SimEvent ev) {
@@ -508,19 +535,23 @@ public class FogDevice extends PowerDatacenter {
 		if(!getTupleQueue().isEmpty()){
 			Pair<Tuple, Integer> pair = getTupleQueue().poll();
 			sendFreeLink(pair.getFirst(), pair.getSecond());
-		}else
+		}else {
 			setTupleLinkBusy(false);
+			updateEnergyConsumption();
+		}
 	}
 	
 	protected void sendFreeLink(Tuple tuple, int destId){
 		double networkDelay = tuple.getCloudletFileSize()/getHost().getBw();
 		
+		updateEnergyConsumption();
 		setTupleLinkBusy(true);
 		
 		double latency = getLatencyMap().get(destId);
 		send(getId(), networkDelay, FogEvents.UPDATE_TUPLE_QUEUE);
 		send(destId, networkDelay + latency, FogEvents.TUPLE_ARRIVAL, tuple);
 		NetworkUsageMonitor.sendingTuple(latency, tuple.getCloudletFileSize());
+		updateEnergyConsumption();
 	}
 	
 	protected void sendTo(Tuple tuple, int id){
@@ -572,11 +603,18 @@ public class FogDevice extends PowerDatacenter {
 		return Integer.parseInt(path.get(1).getName());
 	}
 	
-	// Added for debug
 	private void printCommunication(Tuple tuple){
 		System.out.println("Tuple" + tuple);
 		System.out.println("From: " + getId());
 		System.out.println("To: " + findNextHopCommunication(tuple) + "\n\n");
+	}
+	
+	private void printCost() {
+		System.out.println("\n\nName: " + getName());
+		System.out.println("lastMipsUtilization: " + lastMipsUtilization);
+		System.out.println("lastRamUtilization: " + lastRamUtilization);
+		System.out.println("lastMemUtilization: " + lastMemUtilization);
+		System.out.println("lastBwUtilization: " + lastBwUtilization);
 	}
 	
 	public PowerHost getHost(){
