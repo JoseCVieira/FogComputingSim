@@ -231,7 +231,7 @@ public class RunSim extends JDialog {
 			PowerHost host = new PowerHost(
 					FogUtils.generateEntityId(),
 					new RamProvisioner(fog.getRam()),
-					new BwProvisioner((long)fog.getBw()*1024),
+					new BwProvisioner((long)fog.getBw()),
 					fog.getStorage(),
 					processingElementsList,
 					new VmSchedulerTimeSharedOverbookingEnergy(processingElementsList),

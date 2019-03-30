@@ -199,7 +199,7 @@ public class AddFogDevice extends JDialog {
 		level.setSelectedIndex(fog == null ? maxLevel+1 : fog.getLevel());
 		springPanel.add(level);
 		
-		bw = Util.createInput(springPanel, bw, "BW (MB/s): ", fog == null ? Double.toString(Config.BW) : Double.toString(fog.getBw()));
+		bw = Util.createInput(springPanel, bw, "BW (B/s): ", fog == null ? Double.toString(Config.BW) : Double.toString(fog.getBw()));
 		mips = Util.createInput(springPanel, mips, "MIPS: ", fog == null ? Double.toString(Config.MIPS) : Double.toString(fog.getMips()));
 		ram = Util.createInput(springPanel, ram, "RAM (MB): ", fog == null ? Long.toString(Config.RAM) : Long.toString(fog.getRam()));
 		storage = Util.createInput(springPanel, storage, "MEM (MB): ", fog == null ? Long.toString(Config.MEM) : Long.toString(fog.getStorage()));

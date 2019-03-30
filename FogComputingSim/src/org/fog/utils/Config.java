@@ -16,7 +16,7 @@ public class Config {
 	public static final String APP_MODULE_TYPE = "APP_MODULE";
 	
 	// Prices from https://www.cloudsigma.com/pricing/
-	public static final double BW = 7.8;
+	public static final double BW = 10240;
 	public static final double MIPS = 22733.5;
 	public static final int RAM = 16384;
 	public static final int MEM = 1048576;
