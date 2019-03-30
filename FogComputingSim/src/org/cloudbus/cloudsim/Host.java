@@ -188,7 +188,8 @@ public class Host {
 		return (getVmScheduler().getPeCapacity() >= vm.getCurrentRequestedMaxMips()
 				&& getVmScheduler().getAvailableMips() >= vm.getCurrentRequestedTotalMips()
 				&& getRamProvisioner().isSuitableForVm(vm, vm.getCurrentRequestedRam())
-				&& getBwProvisioner().isSuitableForVm(vm, vm.getCurrentRequestedBw()));
+				&& getBwProvisioner().isSuitableForVm(vm, vm.getCurrentRequestedBw())
+				&& getStorage() < vm.getSize());
 	}
 
 	/**
