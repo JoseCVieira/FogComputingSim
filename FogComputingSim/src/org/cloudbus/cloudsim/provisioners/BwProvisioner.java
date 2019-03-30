@@ -1,147 +1,110 @@
-/*
- * Title:        CloudSim Toolkit
- * Description:  CloudSim (Cloud Simulation) Toolkit for Modeling and Simulation of Clouds
- * Licence:      GPL - http://www.gnu.org/copyleft/gpl.html
- *
- * Copyright (c) 2009-2012, The University of Melbourne, Australia
- */
-
 package org.cloudbus.cloudsim.provisioners;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import org.cloudbus.cloudsim.Vm;
 
-/**
- * BwProvisioner is an abstract class that represents the provisioning policy of bandwidth to
- * virtual machines inside a Host. When extending this class, care must be taken to guarantee that
- * the field availableBw will always contain the amount of free bandwidth available for future
- * allocations.
- * 
- * @author Rodrigo N. Calheiros
- * @author Anton Beloglazov
- * @since CloudSim Toolkit 1.0
- */
-public abstract class BwProvisioner {
-
-	/** The bw. */
+public class BwProvisioner extends ResourceProvisioner{
+	private double overbookingRatioBw = 1.0;
+	
 	private long bw;
-
-	/** The available bw. */
 	private long availableBw;
-
-	/**
-	 * Creates the new BwProvisioner.
-	 * 
-	 * @param bw overall amount of bandwidth available in the host.
-	 * 
-	 * @pre bw >= 0
-	 * @post $none
-	 */
+	private Map<String, Long> bwTable;
+	
 	public BwProvisioner(long bw) {
+		this(bw, 1.0);
+	}
+	
+	public BwProvisioner(long bw, double overbookingRatioBw) {
+		this.overbookingRatioBw = overbookingRatioBw;
 		setBw(bw);
-		setAvailableBw(bw);
+		setAvailableBw((long) getOverbookedBw(bw));
+		setBwTable(new HashMap<String, Long>());
 	}
+	
+	@Override
+	public boolean allocateResourcesForVm(Vm vm, Number value) {
+		long maxBw = vm.getBw();
+		if ((long) value >= maxBw) value = maxBw;
+		
+		deallocateResourcesForVm(vm);
 
-	/**
-	 * Allocates BW for a given VM.
-	 * 
-	 * @param vm virtual machine for which the bw are being allocated
-	 * @param bw the bw
-	 * 
-	 * @return $true if the bw could be allocated; $false otherwise
-	 * 
-	 * @pre $none
-	 * @post $none
-	 */
-	public abstract boolean allocateBwForVm(Vm vm, long bw);
+		if (getAvailableBw() >= (long) value) {
+			setAvailableBw(getAvailableBw() - (long) value);
+			getBwTable().put(vm.getUid(), (long) value);
+			vm.setCurrentAllocatedBw((long) getAllocatedResourcesForVm(vm));
+			return true;
+		}
 
-	/**
-	 * Gets the allocated BW for VM.
-	 * 
-	 * @param vm the VM
-	 * 
-	 * @return the allocated BW for vm
-	 */
-	public abstract long getAllocatedBwForVm(Vm vm);
-
-	/**
-	 * Releases BW used by a VM.
-	 * 
-	 * @param vm the vm
-	 * 
-	 * @pre $none
-	 * @post none
-	 */
-	public abstract void deallocateBwForVm(Vm vm);
-
-	/**
-	 * Releases BW used by a all VMs.
-	 * 
-	 * @pre $none
-	 * @post none
-	 */
-	public void deallocateBwForAllVms() {
-		setAvailableBw(getBw());
+		vm.setCurrentAllocatedBw((long) getAllocatedResourcesForVm(vm));
+		return false;
 	}
-
-	/**
-	 * Checks if BW is suitable for vm.
-	 * 
-	 * @param vm the vm
-	 * @param bw the bw
-	 * 
-	 * @return true, if BW is suitable for vm
-	 */
-	public abstract boolean isSuitableForVm(Vm vm, long bw);
-
-	/**
-	 * Gets the bw.
-	 * 
-	 * @return the bw
-	 */
+	
+	@Override
+	public Number getAllocatedResourcesForVm(Vm vm) {
+		if (getBwTable().containsKey(vm.getUid()))
+			return getBwTable().get(vm.getUid());
+		return 0;
+	}
+	
+	@Override
+	public void deallocateResourcesForVm(Vm vm) {
+		if (getBwTable().containsKey(vm.getUid())) {
+			long amountFreed = getBwTable().remove(vm.getUid());
+			setAvailableBw(getAvailableBw() + amountFreed);
+			vm.setCurrentAllocatedBw(0);
+		}
+	}
+	
+	@Override
+	public void deallocateResourcesForAllVms() {
+		setAvailableBw((long) getOverbookedBw(bw));
+		getBwTable().clear();
+	}
+	
+	@Override
+	public boolean isSuitableForVm(Vm vm, Number value) {
+		long allocatedBw = (long) getAllocatedResourcesForVm(vm);
+		boolean result = allocateResourcesForVm(vm, value);
+		deallocateResourcesForVm(vm);
+		
+		if (allocatedBw > 0)
+			allocateResourcesForVm(vm, allocatedBw);
+		
+		return result;
+	}
+	
 	public long getBw() {
 		return bw;
 	}
 
-	/**
-	 * Sets the bw.
-	 * 
-	 * @param bw the new bw
-	 */
 	protected void setBw(long bw) {
 		this.bw = bw;
 	}
 
-	/**
-	 * Gets the available BW in the host.
-	 * 
-	 * @return available bw
-	 * 
-	 * @pre $none
-	 * @post $none
-	 */
 	public long getAvailableBw() {
 		return availableBw;
 	}
 
-	/**
-	 * Gets the amount of used BW in the host.
-	 * 
-	 * @return used bw
-	 * 
-	 * @pre $none
-	 * @post $none
-	 */
-	public long getUsedBw() {
-		return bw - availableBw;
-	}
-
-	/**
-	 * Sets the available bw.
-	 * 
-	 * @param availableBw the new available bw
-	 */
 	protected void setAvailableBw(long availableBw) {
 		this.availableBw = availableBw;
 	}
+	
+	public Map<String, Long> getBwTable() {
+		return bwTable;
+	}
 
+	public void setBwTable(Map<String, Long> bwTable) {
+		this.bwTable = bwTable;
+	}
+
+	public long getUsedBw() {
+		return bw - availableBw;
+	}
+	
+	public double getOverbookedBw(long capacity) {
+		return capacity * overbookingRatioBw;		
+	}
+	
 }

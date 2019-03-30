@@ -1,146 +1,110 @@
-/*
- * Title:        CloudSim Toolkit
- * Description:  CloudSim (Cloud Simulation) Toolkit for Modeling and Simulation of Clouds
- * Licence:      GPL - http://www.gnu.org/copyleft/gpl.html
- *
- * Copyright (c) 2009-2012, The University of Melbourne, Australia
- */
-
 package org.cloudbus.cloudsim.provisioners;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import org.cloudbus.cloudsim.Vm;
 
-/**
- * RamProvisioner is an abstract class that represents the provisioning policy of memory to virtual
- * machines inside a Host. When extending this class, care must be taken to guarantee that the field
- * availableMemory will always contain the amount of free memory available for future allocations.
- * 
- * @author Rodrigo N. Calheiros
- * @author Anton Beloglazov
- * @since CloudSim Toolkit 1.0
- */
-public abstract class RamProvisioner {
-
-	/** The ram. */
+public class RamProvisioner extends ResourceProvisioner{
+	private double overbookingRatioRam = 1.0;
+	
 	private int ram;
-
-	/** The available ram. */
 	private int availableRam;
-
-	/**
-	 * Creates the new RamProvisioner.
-	 * 
-	 * @param ram the ram
-	 * 
-	 * @pre ram>=0
-	 * @post $none
-	 */
+	private Map<String, Integer> ramTable;
+	
 	public RamProvisioner(int ram) {
+		this(ram, 1.0);
+	}
+	
+	public RamProvisioner(int ram, double overbookingRatioRam) {
+		this.overbookingRatioRam = overbookingRatioRam;
 		setRam(ram);
-		setAvailableRam(ram);
+		setAvailableRam((int) getOverbookedRam(ram));
+		setRamTable(new HashMap<String, Integer>());
+	}
+	
+	@Override
+	public boolean allocateResourcesForVm(Vm vm, Number value) {
+		int maxRam = vm.getRam();
+		if ((int) value >= maxRam) value = maxRam;
+
+		deallocateResourcesForVm(vm);
+
+		if (getAvailableRam() >= (int) value) {
+			setAvailableRam(getAvailableRam() - (int) value);
+			getRamTable().put(vm.getUid(), (int) value);
+			vm.setCurrentAllocatedRam((int) getAllocatedResourcesForVm(vm));
+			return true;
+		}
+
+		vm.setCurrentAllocatedRam((int) getAllocatedResourcesForVm(vm));
+		return false;
+	}
+	
+	@Override
+	public Number getAllocatedResourcesForVm(Vm vm) {
+		if (getRamTable().containsKey(vm.getUid()))
+			return getRamTable().get(vm.getUid());
+		return 0;
 	}
 
-	/**
-	 * Allocates RAM for a given VM.
-	 * 
-	 * @param vm virtual machine for which the RAM are being allocated
-	 * @param ram the RAM
-	 * 
-	 * @return $true if the RAM could be allocated; $false otherwise
-	 * 
-	 * @pre $none
-	 * @post $none
-	 */
-	public abstract boolean allocateRamForVm(Vm vm, int ram);
-
-	/**
-	 * Gets the allocated RAM for VM.
-	 * 
-	 * @param vm the VM
-	 * 
-	 * @return the allocated RAM for vm
-	 */
-	public abstract int getAllocatedRamForVm(Vm vm);
-
-	/**
-	 * Releases BW used by a VM.
-	 * 
-	 * @param vm the vm
-	 * 
-	 * @pre $none
-	 * @post none
-	 */
-	public abstract void deallocateRamForVm(Vm vm);
-
-	/**
-	 * Releases BW used by a all VMs.
-	 * 
-	 * @pre $none
-	 * @post none
-	 */
-	public void deallocateRamForAllVms() {
-		setAvailableRam(getRam());
+	@Override
+	public void deallocateResourcesForVm(Vm vm) {
+		if (getRamTable().containsKey(vm.getUid())) {
+			int amountFreed = getRamTable().remove(vm.getUid());
+			setAvailableRam(getAvailableRam() + amountFreed);
+			vm.setCurrentAllocatedRam(0);
+		}
+	}
+	
+	@Override
+	public void deallocateResourcesForAllVms() {
+		setAvailableRam((int) getOverbookedRam(ram));
+		getRamTable().clear();
 	}
 
-	/**
-	 * Checks if is suitable for vm.
-	 * 
-	 * @param vm the vm
-	 * @param ram the ram
-	 * 
-	 * @return true, if is suitable for vm
-	 */
-	public abstract boolean isSuitableForVm(Vm vm, int ram);
+	@Override
+	public boolean isSuitableForVm(Vm vm, Number value) {
+		int allocatedRam = (int) getAllocatedResourcesForVm(vm);
+		boolean result = allocateResourcesForVm(vm, value);
+		deallocateResourcesForVm(vm);
+		
+		if (allocatedRam > 0)
+			allocateResourcesForVm(vm, allocatedRam);
+		
+		return result;
+	}
 
-	/**
-	 * Gets the ram.
-	 * 
-	 * @return the ram
-	 */
 	public int getRam() {
 		return ram;
 	}
 
-	/**
-	 * Sets the ram.
-	 * 
-	 * @param ram the ram to set
-	 */
 	protected void setRam(int ram) {
 		this.ram = ram;
 	}
 
-	/**
-	 * Gets the amount of used RAM in the host.
-	 * 
-	 * @return used ram
-	 * 
-	 * @pre $none
-	 * @post $none
-	 */
 	public int getUsedRam() {
 		return ram - availableRam;
 	}
 
-	/**
-	 * Gets the available RAM in the host.
-	 * 
-	 * @return available ram
-	 * 
-	 * @pre $none
-	 * @post $none
-	 */
 	public int getAvailableRam() {
 		return availableRam;
 	}
 
-	/**
-	 * Sets the available ram.
-	 * 
-	 * @param availableRam the availableRam to set
-	 */
 	protected void setAvailableRam(int availableRam) {
 		this.availableRam = availableRam;
+	}
+
+	public Map<String, Integer> getRamTable() {
+		return ramTable;
+	}
+
+	public void setRamTable(Map<String, Integer> ramTable) {
+		this.ramTable = ramTable;
+	}
+	
+	public double getOverbookedRam(int capacity) {
+		return capacity * overbookingRatioRam;		
 	}
 
 }

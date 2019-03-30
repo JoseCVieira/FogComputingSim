@@ -49,8 +49,9 @@ public class VmAllocationPolicyOverbooking extends VmAllocationPolicy implements
 		for (Host host : getHostList()) {
 			getFreePes().add(host.getNumberOfPes());
 			getFreeMips().add((long) PeProvisionerOverbooking.getOverbookedMips((host.getTotalMips())));
-			getFreeBw().add((long) BwProvisionerOverbooking.getOverbookedBw(host.getBw()));
+			getFreeBw().add((long) host.getBwProvisioner().getOverbookedBw(host.getBw()));
 		}
+		
 		hostTotalMips = getHostList().get(0).getTotalMips();
 		hostTotalBw =  getHostList().get(0).getBw();
 		hostTotalPes =  getHostList().get(0).getNumberOfPes();

@@ -958,6 +958,7 @@ public class CloudSim {
 	 * Abruptally terminate.
 	 */
 	public static void abruptallyTerminate() {
+		System.err.println("Unfortunately this program will terminate abruptally.");
 		abruptTerminate = true;
 	}
 

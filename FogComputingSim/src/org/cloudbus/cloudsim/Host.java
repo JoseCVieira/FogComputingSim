@@ -119,13 +119,13 @@ public class Host {
 				System.exit(0);
 			}
 
-			if (!getRamProvisioner().allocateRamForVm(vm, vm.getCurrentRequestedRam())) {
+			if (!getRamProvisioner().allocateResourcesForVm(vm, vm.getCurrentRequestedRam())) {
 				Log.printLine("[VmScheduler.addMigratingInVm] Allocation of VM #" + vm.getId() + " to Host #"
 						+ getId() + " failed by RAM");
 				System.exit(0);
 			}
 
-			if (!getBwProvisioner().allocateBwForVm(vm, vm.getCurrentRequestedBw())) {
+			if (!getBwProvisioner().allocateResourcesForVm(vm, vm.getCurrentRequestedBw())) {
 				Log.printLine("[VmScheduler.addMigratingInVm] Allocation of VM #" + vm.getId() + " to Host #"
 						+ getId() + " failed by BW");
 				System.exit(0);
@@ -171,8 +171,8 @@ public class Host {
 			if (!getVmScheduler().getVmsMigratingIn().contains(vm.getUid())) {
 				getVmScheduler().getVmsMigratingIn().add(vm.getUid());
 			}
-			getRamProvisioner().allocateRamForVm(vm, vm.getCurrentRequestedRam());
-			getBwProvisioner().allocateBwForVm(vm, vm.getCurrentRequestedBw());
+			getRamProvisioner().allocateResourcesForVm(vm, vm.getCurrentRequestedRam());
+			getBwProvisioner().allocateResourcesForVm(vm, vm.getCurrentRequestedBw());
 			getVmScheduler().allocatePesForVm(vm, vm.getCurrentRequestedMips());
 			setStorage(getStorage() - vm.getSize());
 		}
@@ -187,8 +187,8 @@ public class Host {
 	public boolean isSuitableForVm(Vm vm) {
 		return (getVmScheduler().getPeCapacity() >= vm.getCurrentRequestedMaxMips()
 				&& getVmScheduler().getAvailableMips() >= vm.getCurrentRequestedTotalMips()
-				&& getRamProvisioner().isSuitableForVm(vm, vm.getCurrentRequestedRam()) && getBwProvisioner()
-				.isSuitableForVm(vm, vm.getCurrentRequestedBw()));
+				&& getRamProvisioner().isSuitableForVm(vm, vm.getCurrentRequestedRam())
+				&& getBwProvisioner().isSuitableForVm(vm, vm.getCurrentRequestedBw()));
 	}
 
 	/**
@@ -203,27 +203,31 @@ public class Host {
 		if (getStorage() < vm.getSize()) {
 			Log.printLine("[VmScheduler.vmCreate] Allocation of VM #" + vm.getId() + " to Host #" + getId()
 					+ " failed by storage");
+			CloudSim.abruptallyTerminate();
 			return false;
 		}
 
-		if (!getRamProvisioner().allocateRamForVm(vm, vm.getCurrentRequestedRam())) {
+		if (!getRamProvisioner().allocateResourcesForVm(vm, vm.getCurrentRequestedRam())) {
 			Log.printLine("[VmScheduler.vmCreate] Allocation of VM #" + vm.getId() + " to Host #" + getId()
 					+ " failed by RAM");
+			CloudSim.abruptallyTerminate();
 			return false;
 		}
 
-		if (!getBwProvisioner().allocateBwForVm(vm, vm.getCurrentRequestedBw())) {
+		if (!getBwProvisioner().allocateResourcesForVm(vm, vm.getCurrentRequestedBw())) {
 			Log.printLine("[VmScheduler.vmCreate] Allocation of VM #" + vm.getId() + " to Host #" + getId()
 					+ " failed by BW");
-			getRamProvisioner().deallocateRamForVm(vm);
+			getRamProvisioner().deallocateResourcesForVm(vm);
+			CloudSim.abruptallyTerminate();
 			return false;
 		}
 
 		if (!getVmScheduler().allocatePesForVm(vm, vm.getCurrentRequestedMips())) {
 			Log.printLine("[VmScheduler.vmCreate] Allocation of VM #" + vm.getId() + " to Host #" + getId()
 					+ " failed by MIPS");
-			getRamProvisioner().deallocateRamForVm(vm);
-			getBwProvisioner().deallocateBwForVm(vm);
+			getRamProvisioner().deallocateResourcesForVm(vm);
+			getBwProvisioner().deallocateResourcesForVm(vm);
+			CloudSim.abruptallyTerminate();
 			return false;
 		}
 
@@ -255,7 +259,10 @@ public class Host {
 	 * @post $none
 	 */
 	public void vmDestroyAll() {
-		vmDeallocateAll();
+		getRamProvisioner().deallocateResourcesForAllVms();
+		getBwProvisioner().deallocateResourcesForAllVms();
+		getVmScheduler().deallocatePesForAllVms();
+		
 		for (Vm vm : getVmList()) {
 			vm.setHost(null);
 			setStorage(getStorage() + vm.getSize());
@@ -269,19 +276,10 @@ public class Host {
 	 * @param vm the VM
 	 */
 	protected void vmDeallocate(Vm vm) {
-		getRamProvisioner().deallocateRamForVm(vm);
-		getBwProvisioner().deallocateBwForVm(vm);
+		getRamProvisioner().deallocateResourcesForVm(vm);
+		getBwProvisioner().deallocateResourcesForVm(vm);
 		getVmScheduler().deallocatePesForVm(vm);
 		setStorage(getStorage() + vm.getSize());
-	}
-
-	/**
-	 * Deallocate all hostList for the VM.
-	 */
-	protected void vmDeallocateAll() {
-		getRamProvisioner().deallocateRamForAllVms();
-		getBwProvisioner().deallocateBwForAllVms();
-		getVmScheduler().deallocatePesForAllVms();
 	}
 
 	/**

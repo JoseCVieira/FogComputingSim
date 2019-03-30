@@ -14,7 +14,6 @@ import org.cloudbus.cloudsim.core.CloudSimTags;
 import org.cloudbus.cloudsim.core.SimEvent;
 import org.cloudbus.cloudsim.provisioners.BwProvisioner;
 import org.cloudbus.cloudsim.provisioners.RamProvisioner;
-import org.cloudbus.cloudsim.provisioners.RamProvisionerSimple;
 import org.cloudbus.cloudsim.sdn.Arc;
 import org.cloudbus.cloudsim.sdn.Link;
 import org.cloudbus.cloudsim.sdn.Middlebox;
@@ -156,8 +155,8 @@ public class OverbookingNetworkOperatingSystem extends NetworkOperatingSystem {
 		int peId=0;
 		for(int i=0;i<pes;i++) peList.add(new Pe(peId++,new PeProvisionerOverbooking(mips)));
 		
-		RamProvisioner ramPro = new RamProvisionerSimple(ram);
-		BwProvisioner bwPro = new BwProvisionerOverbooking(bw);
+		RamProvisioner ramPro = new RamProvisioner(ram);
+		BwProvisioner bwPro = new BwProvisioner(bw);
 		VmScheduler vmScheduler = new VmSchedulerTimeSharedOverbookingEnergy(peList);		
 		Host newHost = new Host(hostId, ramPro, bwPro, storage, peList, vmScheduler);
 		
