@@ -328,7 +328,8 @@ public class AddAppEdge extends JDialog {
 				if(periodicity.isVisible() && !Util.validString((String)periodicity.getText()))error_msg += "Missing Periodicity\n";
 				for(AppEdge appEdge : app.getEdges())
 					if(appEdge.getTupleType().equals(tupleType.getText()))
-						error_msg += "Repeated Tuple Type\n";
+						if(edge == null || edge != null && !appEdge.getTupleType().equals(edge.getTupleType()))
+							error_msg += "Repeated Tuple Type\n";
 				
 				if(tupleType.getText().contains(" "))
 					error_msg += "Tuple Type cannot contain spaces\n";

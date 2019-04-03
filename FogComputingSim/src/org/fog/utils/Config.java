@@ -18,7 +18,7 @@ public class Config {
 	// Prices from https://www.cloudsigma.com/pricing/
 	public static final double BW = 10240;
 	public static final double MIPS = 22733.5;
-	public static final int RAM = 16384;
+	public static final int RAM = 131072;
 	public static final int MEM = 1048576;
 	public static final double RATE_MIPS = 1.5855E-04;
 	public static final double RATE_RAM = 1.14E-07;

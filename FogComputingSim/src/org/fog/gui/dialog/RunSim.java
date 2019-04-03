@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.swing.BorderFactory;
@@ -56,11 +57,14 @@ import org.fog.utils.FogLinearPowerModel;
 import org.fog.utils.FogUtils;
 import org.fog.utils.Logger;
 import org.fog.utils.TimeKeeper;
+import org.fog.utils.cplex.ModulePlacementOptimization;
 
 public class RunSim extends JDialog {
 	private static final long serialVersionUID = -8313194085507492462L;
 	private static final boolean DEBUG_MODE = false;
+	private static final boolean PRINT_PLACEMENT = true;
 	
+	private static List<Application> applications = new ArrayList<Application>();
 	private static List<FogBroker> fogBrokers = new ArrayList<FogBroker>();
 	private static List<FogDevice> fogDevices = new ArrayList<FogDevice>();
 	private static List<Actuator> actuators = new ArrayList<Actuator>();
@@ -145,18 +149,30 @@ public class RunSim extends JDialog {
     				FogBroker broker = getFogBrokerByName(fog.getName());
     				Application application = createApplication(graph, fog.getApplication(), broker.getId());
     				application.setClientId(getFogDeviceByName(fog.getName()).getId());
-    				
+    				applications.add(application);
+    			}
+    			
+    			ModulePlacementOptimization opt = new ModulePlacementOptimization(fogDevices, applications);
+    			Map<String, List<String>> optPlacement = opt.Execute();
+    			
+    			if(optPlacement == null) {
+    				System.err.println("There is no possible combination to deploy all applications.\n");
+    				System.err.println("FogComputingSim will terminate abruptally.\n");
+    				System.exit(0);
+    			}
+    			
+    			if(PRINT_PLACEMENT)
+    				printPlacement(optPlacement);
+    			
+    			for(FogDeviceGui fog : clients) {
+    				FogBroker broker = getFogBrokerByName(fog.getName());
+    				Application application = getApplicationById(fog.getApplication() + "_" + broker.getId());
     				ModuleMapping moduleMapping = ModuleMapping.createModuleMapping();
     				
-    				if(broker.getId() == 8) {
-    					moduleMapping.addModuleToDevice("client_8", "FogNode1");
-    					moduleMapping.addModuleToDevice("concentration_calculator_8", "FogNode1");
-    					moduleMapping.addModuleToDevice("connector_8", "FogNode1");
-    				}else {    					
-    					moduleMapping.addModuleToDevice("client_" + broker.getId(), "Cloud");
-    					moduleMapping.addModuleToDevice("concentration_calculator_" + broker.getId(), "Cloud");
-    					moduleMapping.addModuleToDevice("connector_" + broker.getId(), "Cloud");
-    				}
+    				for(AppModule appModule : application.getModules())
+    					for(String fogString : optPlacement.keySet())
+    						if(optPlacement.get(fogString).contains(appModule.getName()))
+    							moduleMapping.addModuleToDevice(appModule.getName(), fogString);
     				
 					controller.submitApplication(application, new ModulePlacementMapping(fogDevices, application, moduleMapping));
 					
@@ -209,18 +225,6 @@ public class RunSim extends JDialog {
 					f2.getLatencyMap().put(f1.getId(), edge.getLatency());
 					f1.getLatencyMap().put(f2.getId(), edge.getLatency());
 				}
-			}
-			
-			for (Entry<Node, List<Edge>> entry : graph.getDevicesList().entrySet()) {
-				if(!entry.getKey().getType().equals(Config.FOG_TYPE))
-					continue;
-				
-				FogDeviceGui fog1 = (FogDeviceGui)entry.getKey();
-				FogDevice f1 = getFogDeviceByName(fog1.getName());
-				
-				System.out.println("Id: " + f1.getId() + " Name: " + fog1.getName());
-				System.out.println("Neighbors: " +  f1.getNeighborsIds());
-				System.out.println("LatencymMap: " + f1.getLatencyMap() + "\n\n");
 			}
 		}
 		
@@ -364,6 +368,13 @@ public class RunSim extends JDialog {
 			return null;
 		}
 		
+		private Application getApplicationById(String appId) {
+			for(Application application : applications)
+				if(application.getAppId().equals(appId))
+					return application;
+			return null;
+		}
+		
 		private void printDetails(Application application) {
 			System.out.println("\n[FOG DEVICES]:\n");
 			for(FogDevice fd : fogDevices)
@@ -392,6 +403,16 @@ public class RunSim extends JDialog {
 							" Value: " + pair.getValue());
 			
 			System.out.println("\n[APPLICATION]:\n" + application);
+		}
+		
+		private void printPlacement(Map<String, List<String>> map) {
+			System.out.println("\n\nMODULE PLACEMENT:");
+			for(String fogDevName : map.keySet()) {
+				System.out.print("\n" + fogDevName + ":");
+				for(String modName : map.get(fogDevName))
+					System.out.print("  " + modName);
+			}
+			System.out.println("\n");
 		}
 	}
 	
