@@ -110,8 +110,8 @@ public class Bridge {
 			@SuppressWarnings("unchecked")
 			Iterator<JSONObject> appsIter = applications.iterator(); 
 			while(appsIter.hasNext()){
-				JSONObject app = appsIter.next();
-				graph.addApp(new ApplicationGui((String) app.get("name")));
+				JSONObject app = appsIter.next();				
+				graph.addApp(new ApplicationGui((String) app.get("name"), app.get("loops")));
 			}
 			
 			JSONArray modules = (JSONArray) doc.get("modules");
@@ -288,6 +288,7 @@ public class Bridge {
 		for (ApplicationGui applicationGui : graph.getAppList()) {
 			JSONObject jobj = new JSONObject();
 			jobj.put("name", applicationGui.getAppId());
+			jobj.put("loops", applicationGui.getLoops());
 			applications.add(jobj);
 			
 			for(AppModule appModule : applicationGui.getModules()) {

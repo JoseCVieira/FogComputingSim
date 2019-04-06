@@ -260,7 +260,6 @@ public class RunSim extends JDialog {
 			}
 		}
 		
-		@SuppressWarnings({"serial"})
 		private Application createApplication(Graph graph, String appId, int userId){
 			ApplicationGui applicationGui = null;
 			
@@ -283,16 +282,13 @@ public class RunSim extends JDialog {
 					application.addTupleMapping(appModule.getName(), pair,
 							((FractionalSelectivity)appModule.getSelectivityMap().get(pair)).getSelectivity());
 			
-			List<AppLoop> loops = new ArrayList<AppLoop>(){{
-				add(new AppLoop(new ArrayList<String>(){{
-						add("EEG_" + userId);
-						add("client_" + userId);
-						add("concentration_calculator_" + userId);
-						add("client_" + userId);
-						add("DISPLAY_" + userId);
-					}}
-				));
-			}};
+			List<AppLoop> loops = new ArrayList<AppLoop>();
+			for(List<String> loop : applicationGui.getLoops()) {
+				ArrayList<String> l = new ArrayList<String>();
+				for(String name : loop)
+					l.add(name + "_" + userId);
+				loops.add(new AppLoop(l));
+			}
 			
 			application.setLoops(loops);
 			return application;

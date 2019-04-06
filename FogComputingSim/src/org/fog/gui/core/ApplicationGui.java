@@ -15,13 +15,19 @@ import org.fog.utils.FogUtils;
 
 public class ApplicationGui {
 	private Map<String, AppEdge> edgeMap;
-	private List<AppModule> modules; //List of application modules in the application
-	private List<AppEdge> edges; //List of application edges in the application
-	private List<Tuple> tuples; // List of application loops to monitor for delay
+	
+	private List<AppModule> modules;
+	private List<AppEdge> edges;
+	private List<Tuple> tuples;
+	
+	private List<List<String>> loops = new ArrayList<List<String>>();
+	
 	private String appId;
 
-	public ApplicationGui(String appId) {
+	@SuppressWarnings("unchecked")
+	public ApplicationGui(String appId, Object loops) {
 		this.setAppId(appId);
+		this.setLoops((List<List<String>>) loops);
 		this.setEdges(new ArrayList<AppEdge>());
 		this.setModules(new ArrayList<AppModule>());
 		this.setTuples(new ArrayList<Tuple>());
@@ -65,6 +71,10 @@ public class ApplicationGui {
 		}
 		return null;
 	}
+	
+	public void addAppLoop(List<String> loop){
+		loops.add(loop);
+	}
 
 	public String getAppId() {
 		return appId;
@@ -105,6 +115,14 @@ public class ApplicationGui {
 	public void setEdgeMap(Map<String, AppEdge> edgeMap) {
 		this.edgeMap = edgeMap;
 	}
+	
+	public List<List<String>> getLoops(){
+		return loops;
+	}
+	
+	public void setLoops(List<List<String>> loops){
+		this.loops = loops;
+	}
 
 	@Override
 	public int hashCode() {
@@ -113,6 +131,7 @@ public class ApplicationGui {
 		result = prime * result + ((appId == null) ? 0 : appId.hashCode());
 		result = prime * result + ((edgeMap == null) ? 0 : edgeMap.hashCode());
 		result = prime * result + ((edges == null) ? 0 : edges.hashCode());
+		result = prime * result + ((loops == null) ? 0 : loops.hashCode());
 		result = prime * result + ((modules == null) ? 0 : modules.hashCode());
 		result = prime * result + ((tuples == null) ? 0 : tuples.hashCode());
 		return result;
@@ -141,6 +160,11 @@ public class ApplicationGui {
 			if (other.edges != null)
 				return false;
 		} else if (!edges.equals(other.edges))
+			return false;
+		if (loops == null) {
+			if (other.loops != null)
+				return false;
+		} else if (!loops.equals(other.loops))
 			return false;
 		if (modules == null) {
 			if (other.modules != null)

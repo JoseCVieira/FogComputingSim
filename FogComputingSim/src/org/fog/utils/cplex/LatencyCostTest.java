@@ -13,15 +13,12 @@ public class LatencyCostTest {
 		
 		// fog nodes' characteristics price
 		int fMipsPrice[] = {100, 20, 20};
-		int fBwPrice[] = {100, 20, 20};
 		
 		// fog nodes' characteristics
 		int fMips[] = {50000, 50000, 50000};
-		int fBw[] = {2000, 2000, 2000};
 		
 		// modules' characteristics
 		int mMips[] = {3000, 3500, 4000, 4500, 5000};
-		int mBw[] = {100, 100, 100, 100, 100};
 		
 		int latMap[][] = {{0, 100, 50},{100, 0, 150},{50, 150, 0}};
 		
@@ -54,21 +51,14 @@ public class LatencyCostTest {
 
 			// define constraints
 			IloLinearNumExpr[] usedMipsCapacity = new IloLinearNumExpr[NR_FOG_NODES];
-			IloLinearNumExpr[] usedBwCapacity = new IloLinearNumExpr[NR_FOG_NODES];
 			for (int i = 0; i < NR_FOG_NODES; i++) {
 				usedMipsCapacity[i] = cplex.linearNumExpr();
-				usedBwCapacity[i] = cplex.linearNumExpr();
-				
-        		for (int j = 0; j < NR_MODULES; j++) {
+        		for (int j = 0; j < NR_MODULES; j++)
         			usedMipsCapacity[i].addTerm(var[i][j], mMips[j]);
-        			usedBwCapacity[i].addTerm(var[i][j], mBw[j]);
-        		}
 			}
 			
-			for (int i = 0; i < NR_FOG_NODES; i++) {
+			for (int i = 0; i < NR_FOG_NODES; i++)
         		cplex.addLe(usedMipsCapacity[i], fMips[i]);
-        		cplex.addLe(usedBwCapacity[i], fBw[i]);
-			}
 			
 			//sum by columns
 			IloNumVar[][] aux = new IloNumVar[NR_MODULES][NR_FOG_NODES];
@@ -90,8 +80,7 @@ public class LatencyCostTest {
 					if(i == 0)
 						cplex.eq(mLatMap[i][j], 0.0);
 					else {
-						cplex.ifThen(cplex.and(cplex.eq(aux[i][j], 1), cplex.eq(from[i-1], j)),
-								cplex.eq(mLatMap[i][j], latMapj));
+						cplex.ifThen(cplex.and(cplex.eq(aux[i][j], 1), cplex.eq(from[i-1], j)), cplex.eq(mLatMap[i][j], latMapj));
 						
 						cplex.ifThen(cplex.eq(aux[i][j], 0), cplex.eq(mLatMap[i][j], 0.0));
 					}

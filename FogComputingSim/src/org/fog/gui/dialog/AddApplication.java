@@ -9,6 +9,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -17,6 +19,7 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
@@ -39,11 +42,13 @@ public class AddApplication extends JDialog {
 	private static final long serialVersionUID = 4794808969864918000L;
 	private static final int WIDTH = 1500;
 	private static final int HEIGHT = 1000;
+	
 	private static final String[] COLUMN_MODULES = {"Name", "Mips", "Ram", "Mem", "Bw", "Edit"};
 	private static final String[] COLUMN_EDGES = {"Source", "Destination", "Tuple CPU",
 			"Tuple NW", "Tuple Type", "Edge Type", "Periodicity", "Edit"};
 	private static final String[] COLUMN_TUPLES = {"Module Name", "Input Tuple Type",
 			"Output Tuple Type", "Selectivity", "Edit"};
+	private static final String[] COLUMN_LOOPS = {"Loop", "Remove"};
 	
 	private ApplicationGui app;
 	private final Graph graph;
@@ -52,14 +57,17 @@ public class AddApplication extends JDialog {
 	private JTable jtableModules;
 	private JTable jtableEdges;
 	private JTable jtableTuples;
+	private JTable jtableLoops;
 	
 	private DefaultTableModel dtmModules;
 	private DefaultTableModel dtmEdges;
 	private DefaultTableModel dtmTuples;
+	private DefaultTableModel dtmLoops;
 	
 	private JButton addModuleBtn;
 	private JButton addEdgeBtn;
 	private JButton addTupleBtn;
+	private JButton addLoopBtn;
 	
 	private JTextField tfName;
 	private JTabbedPane tp;
@@ -98,14 +106,20 @@ public class AddApplication extends JDialog {
 	    tp.add("Modules", createModules());
 	    tp.add("Edges", createEdges());
 	    tp.add("Tuples", createTuples());
+	    tp.add("Loops", createLoops());
+	    
 	    tp.addChangeListener(new ChangeListener() {
 	        public void stateChanged(ChangeEvent e) {
 	        	if(tp.getSelectedIndex() == 0)
 	        		updateTable(dtmModules, jtableModules, getAppModules(), COLUMN_MODULES);
 	        	else if(tp.getSelectedIndex() == 1)
 	        		updateTable(dtmEdges, jtableEdges, getAppEdges(), COLUMN_EDGES);
-	        	else
+	        	else if(tp.getSelectedIndex() == 2)
 	        		updateTable(dtmTuples, jtableTuples, getTuples(), COLUMN_TUPLES);
+	        	else {
+	        		dtmLoops.setDataVector(getLoops(), COLUMN_LOOPS);
+					configureTable(jtableLoops);
+	        	}
 	        }
 	    });
 	    jpanel.add(tp);
@@ -150,7 +164,7 @@ public class AddApplication extends JDialog {
 						if(app == null) {
 							tp.setEnabled(true);
 							addModuleBtn.setEnabled(true);
-							app = new ApplicationGui(name);
+							app = new ApplicationGui(name, new ArrayList<List<String>>());
 							graph.getAppList().add(app);
 						}else
 							app.setAppId(name);
@@ -306,6 +320,59 @@ public class AddApplication extends JDialog {
 		return jPanel;
 	}
 	
+	private JPanel createLoops() {
+		dtmLoops = new DefaultTableModel(getLoops(), COLUMN_LOOPS);
+		jtableLoops = createTable(jtableLoops, dtmLoops);
+
+    	JPanel jPanel = new JPanel();
+		jPanel.setLayout(new BoxLayout(jPanel, BoxLayout.PAGE_AXIS));
+		jPanel.add(Box.createRigidArea(new Dimension(100, 0)));
+		
+		addLoopBtn = new JButton("Add Loop");
+		addLoopBtn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				new AddAppLoop(frame, app);
+				dtmLoops.setDataVector(getLoops(), COLUMN_LOOPS);
+				configureTable(jtableLoops);
+			}
+		});
+		
+		jPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		jPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
+		jPanel.add(addLoopBtn);
+    	
+		jtableLoops.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		jtableLoops.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+			    JTable table = (JTable)e.getSource();
+			    int rowAtPoint = table.rowAtPoint(e.getPoint());
+			    int columnAtPoint = table.columnAtPoint(e.getPoint());
+			    
+			    if(columnAtPoint == 1) {			    	
+			    	if(Util.confirm(AddApplication.this, "Do you really want to remove " +
+			    			table.getValueAt(rowAtPoint, 0)+ " ?") == JOptionPane.YES_OPTION) {
+			    		
+			    		String[] parts = table.getValueAt(rowAtPoint, 0).toString().split(" -> ");
+			    		
+			    		List<String> lparts = new ArrayList<String>();
+			    		for(String p : parts)
+			    			lparts.add(p);
+			    		
+			    		app.getLoops().remove(lparts);
+			    		dtmLoops.setDataVector(getLoops(), COLUMN_LOOPS);
+						configureTable(jtableLoops);
+			    	}
+			    }
+			}
+        });
+		
+		configureTable(jtableLoops);
+	    jPanel.add(createJScrollPane(jtableLoops));
+		return jPanel;
+	}
+	
 	private String[][] getAppModules() {
 		if(app == null)
 			return null;
@@ -382,6 +449,30 @@ public class AddApplication extends JDialog {
 		return lists;
 	}
 	
+	private String[][] getLoops() {
+		if(app == null)
+			return null;
+		
+		String[][] lists = new String[app.getLoops().size()][];
+		int index = 0;
+		
+		for(List<String> loop : app.getLoops()) {
+			String[] list = new String[2];
+			list[0] = "";
+			
+			int i = 0;
+			for(String name : loop) {
+				list[0] += name;
+				if(i++ < loop.size() - 1)
+					list[0] += " -> ";
+			}
+			
+			list[1] = "✘";
+			lists[index++] = list;
+		}
+		return lists;
+	}
+	
 	private JPanel createButtonPanel() {
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.LINE_AXIS));
@@ -433,5 +524,11 @@ public class AddApplication extends JDialog {
         jScrollPane.setMinimumSize(new Dimension(WIDTH - 40, HEIGHT - 250));
         jScrollPane.setPreferredSize(new Dimension(WIDTH - 40, HEIGHT - 250));
         return jScrollPane;
+	}
+	
+	private void configureTable(JTable jtable) {
+		jtable.getColumn("Remove").setCellRenderer(new Util.ButtonRenderer());
+		jtable.getColumnModel().getColumn(0).setPreferredWidth(WIDTH - 100);
+		jtable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
 	}
 }
