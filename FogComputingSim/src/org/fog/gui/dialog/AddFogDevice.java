@@ -199,10 +199,10 @@ public class AddFogDevice extends JDialog {
 		level.setSelectedIndex(fog == null ? maxLevel+1 : fog.getLevel());
 		springPanel.add(level);
 		
-		bw = Util.createInput(springPanel, bw, "BW (B/s): ", fog == null ? Double.toString(Config.BW) : Double.toString(fog.getBw()));
 		mips = Util.createInput(springPanel, mips, "MIPS: ", fog == null ? Double.toString(Config.MIPS) : Double.toString(fog.getMips()));
 		ram = Util.createInput(springPanel, ram, "RAM (MB): ", fog == null ? Long.toString(Config.RAM) : Long.toString(fog.getRam()));
 		storage = Util.createInput(springPanel, storage, "MEM (MB): ", fog == null ? Long.toString(Config.MEM) : Long.toString(fog.getStorage()));
+		bw = Util.createInput(springPanel, bw, "BW (B/s): ", fog == null ? Double.toString(Config.BW) : Double.toString(fog.getBw()));
 		rateMips = Util.createInput(springPanel, rateMips, "Rate/MIPS (€): ", fog == null ? Double.toString(Config.RATE_MIPS) : Double.toString(fog.getRateMips()));
 		rateRam = Util.createInput(springPanel, rateRam, "Rate/RAM (€/sec for 1 MB): ", fog == null ? Double.toString(Config.RATE_RAM) : Double.toString(fog.getRateRam()));
 		rateStorage = Util.createInput(springPanel, rateStorage, "Rate/MEM (€/sec for 1 MB): ", fog == null ? Double.toString(Config.RATE_MEM) : Double.toString(fog.getRateStorage()));

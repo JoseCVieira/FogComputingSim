@@ -60,7 +60,7 @@ public class AppModule extends PowerVm{
 		setSelectivityMap(operator.getSelectivityMap());
 	}
 	
-	public void setValues(String name, double mips, int ram, long bw, long size) { //Added
+	public void setValues(String name, double mips, int ram, long size, long bw) { //Added
 		setName(name);
 		setMips(mips);
 		setRam(ram);
