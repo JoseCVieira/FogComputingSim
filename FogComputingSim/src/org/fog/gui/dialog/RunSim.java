@@ -169,33 +169,11 @@ public class RunSim extends JDialog {
     				Application application = getApplicationById(fog.getApplication() + "_" + broker.getId());
     				ModuleMapping moduleMapping = ModuleMapping.createModuleMapping();
     				
-    				/*for(AppModule appModule : application.getModules())
+    				for(AppModule appModule : application.getModules())
     					for(String fogString : optPlacement.keySet())
     						if(optPlacement.get(fogString).contains(appModule.getName()))
-    							moduleMapping.addModuleToDevice(appModule.getName(), fogString);*/
-    				
-    				System.out.println();
-    				if(broker.getId() == 10) {
-	    				moduleMapping.addModuleToDevice("client_10", "Client1");
-	    				moduleMapping.addModuleToDevice("concentration_calculator_10", "FogNode1");
-	    				moduleMapping.addModuleToDevice("connector_10", "Cloud");
-    				}
-    				
-    				if(broker.getId() == 13) {
-    				moduleMapping.addModuleToDevice("client_13", "Client2");
-    				moduleMapping.addModuleToDevice("concentration_calculator_13", "FogNode1");
-    				moduleMapping.addModuleToDevice("connector_13", "Cloud");
-    				}
-    				if(broker.getId() == 16) {
-    				moduleMapping.addModuleToDevice("client_16", "Client3");
-    				moduleMapping.addModuleToDevice("concentration_calculator_16", "FogNode2");
-    				moduleMapping.addModuleToDevice("connector_16", "Cloud");
-    				}
-    				if(broker.getId() == 19) {
-	    				moduleMapping.addModuleToDevice("client_19", "Client4");
-	    				moduleMapping.addModuleToDevice("concentration_calculator_19", "FogNode2");
-	    				moduleMapping.addModuleToDevice("connector_19", "Cloud");
-    				}
+    							moduleMapping.addModuleToDevice(appModule.getName(), fogString);
+    							
 					controller.submitApplication(application, new ModulePlacementMapping(fogDevices, application, moduleMapping));
 					
 					if(DEBUG_MODE)
