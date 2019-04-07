@@ -231,7 +231,7 @@ public class RunSim extends JDialog {
 		
 		private FogDevice createFogDevice(FogDeviceGui fog) {
 			List<Pe> processingElementsList = new ArrayList<Pe>();
-			processingElementsList.add(new Pe(0, new PeProvisioner(fog.getMips(), 4.0)));
+			processingElementsList.add(new Pe(0, new PeProvisioner(fog.getMips())));
 
 			PowerHost host = new PowerHost(
 					FogUtils.generateEntityId(),
