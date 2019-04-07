@@ -53,7 +53,7 @@ public class Application {
 		getModules().add(module);
 	}
 	
-	public void addAppModule(AppModule m){ //ADDED
+	public void addAppModule(AppModule m){
 		AppModule module = new AppModule(FogUtils.generateEntityId(), m.getName() + "_" + userId, appId, userId, 
 			m.getMips(), m.getRam(), m.getBw(), m.getSize(), m.getVmm(), new CloudletSchedulerTimeShared(),
 			new HashMap<Pair<String, String>, SelectivityModel>());
@@ -78,7 +78,7 @@ public class Application {
 		getEdgeMap().put(edge.getTupleType(), edge);
 	}
 	
-	public void addAppEdge(AppEdge e){ //ADDED
+	public void addAppEdge(AppEdge e){
 		if(!e.isPeriodic()) {
 			addAppEdge(
 					e.getSource() + "_" + userId,
@@ -131,7 +131,7 @@ public class Application {
 				selectivityModel);
 	}
 	
-	public void addTupleMapping(String moduleName, Pair<String, String> pair, double value){  //ADDED
+	public void addTupleMapping(String moduleName, Pair<String, String> pair, double value){
 		AppModule module = getModuleByName(moduleName + "_" + userId);
 		Pair<String, String> newPair = new Pair<String, String>(pair.getFirst() + "_" + userId, pair.getSecond() + "_" + userId);
 		module.getSelectivityMap().put(newPair, new FractionalSelectivity(value));

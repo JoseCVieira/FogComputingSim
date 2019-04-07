@@ -32,16 +32,6 @@ public class Tuple extends Cloudlet{
 		super(cloudletId, cloudletLength, pesNumber, cloudletFileSize, cloudletOutputSize,
 				utilizationModelCpu, utilizationModelRam, utilizationModelBw);
 		
-		/*new Tuple(appId, FogUtils.generateTupleId(),
-				(long) (edge.getTupleCpuLength()),
-				1,
-				(long) (edge.getTupleNwLength()),
-				100,
-				new UtilizationModelFull(), 
-				new UtilizationModelFull(), 
-				new UtilizationModelFull(),
-				clientId);*/
-		
 		setAppId(appId);
 		setClientId(clientId);
 		setDirection(NOT_ACTUATOR);

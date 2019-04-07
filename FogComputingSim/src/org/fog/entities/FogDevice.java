@@ -46,14 +46,14 @@ public class FogDevice extends PowerDatacenter {
 	private boolean tupleLinkBusy;
 	
 	protected double lastMipsUtilization;
-	protected double lastRamUtilization; // RAM ---- added
-	protected double lastMemUtilization; // MEM ---- added
-	protected double lastBwUtilization; // BW ---- added
+	protected double lastRamUtilization;
+	protected double lastMemUtilization;
+	protected double lastBwUtilization;
 	
 	private List<Integer> neighborsIds;
-	private Controller controller; // Added
+	private Controller controller;
 	
-	protected Map<Integer, Double> latencyMap; // Modified
+	protected Map<Integer, Double> latencyMap;
 	
 	private double lastUtilizationUpdateTime;
 	protected double energyConsumption;
