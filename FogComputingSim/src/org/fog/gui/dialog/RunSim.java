@@ -119,6 +119,7 @@ public class RunSim extends JDialog {
 	
 	public class Run extends Thread {
 		public Run(){
+			
 		}
 		
 		public void run(){
@@ -173,7 +174,7 @@ public class RunSim extends JDialog {
     					for(String fogString : optPlacement.keySet())
     						if(optPlacement.get(fogString).contains(appModule.getName()))
     							moduleMapping.addModuleToDevice(appModule.getName(), fogString);
-    							
+    				
 					controller.submitApplication(application, new ModulePlacementMapping(fogDevices, application, moduleMapping));
 					
 					if(DEBUG_MODE)
@@ -267,14 +268,14 @@ public class RunSim extends JDialog {
 			
 			if(applicationGui == null) return null;
 			
-			Application application = new Application(appId, userId);
-			
+			Application application = new Application(appId + "_" + userId, userId);
+
 			for(AppModule appModule : applicationGui.getModules())
 				application.addAppModule(appModule);
 			
 			for(AppEdge appEdge : applicationGui.getEdges())
 				application.addAppEdge(appEdge);
-			
+				
 			for(AppModule appModule : applicationGui.getModules())
 				for(Pair<String, String> pair : appModule.getSelectivityMap().keySet())
 					application.addTupleMapping(appModule.getName(), pair,
@@ -289,6 +290,7 @@ public class RunSim extends JDialog {
 			}
 			
 			application.setLoops(loops);
+			
 			return application;
 		}
 		

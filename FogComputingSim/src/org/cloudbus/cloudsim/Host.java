@@ -95,7 +95,7 @@ public class Host {
 	public double updateVmsProcessing(double currentTime) {
 		double smallerTime = Double.MAX_VALUE;
 
-		for (Vm vm : getVmList()) {
+		for (Vm vm : getVmList()) {			
 			double time = vm.updateVmProcessing(currentTime, getVmScheduler().getAllocatedMipsForVm(vm));
 			if (time > 0.0 && time < smallerTime) {
 				smallerTime = time;

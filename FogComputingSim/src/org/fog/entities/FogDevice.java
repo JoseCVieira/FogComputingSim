@@ -28,7 +28,6 @@ import org.fog.placement.ModulePlacement;
 import org.fog.utils.Config;
 import org.fog.utils.FogEvents;
 import org.fog.utils.Logger;
-import org.fog.utils.ModuleLaunchConfig;
 import org.fog.utils.NetworkUsageMonitor;
 import org.fog.utils.TimeKeeper;
 import org.fog.utils.dijkstra.DijkstraAlgorithm;
@@ -132,9 +131,6 @@ public class FogDevice extends PowerDatacenter {
 		case FogEvents.ACTUATOR_JOINED:
 			processActuatorJoined(ev);
 			break;
-		case FogEvents.LAUNCH_MODULE_INSTANCE:
-			updateModuleInstanceCount(ev);
-			break;
 		case FogEvents.RESOURCE_MGMT:
 			manageResources(ev);
 		default:
@@ -149,20 +145,6 @@ public class FogDevice extends PowerDatacenter {
 	private void manageResources(SimEvent ev) {
 		updateEnergyConsumption();
 		send(getId(), Config.RESOURCE_MGMT_INTERVAL, FogEvents.RESOURCE_MGMT);
-	}
-
-	/**
-	 * Updating the number of modules of an application module on this device
-	 * @param ev instance of SimEvent containing the module and no of instances 
-	 */
-	private void updateModuleInstanceCount(SimEvent ev) {
-		ModuleLaunchConfig config = (ModuleLaunchConfig)ev.getData();
-		String appId = config.getModule().getAppId();
-		if(!moduleInstanceCount.containsKey(appId))
-			moduleInstanceCount.put(appId, new HashMap<String, Integer>());
-		moduleInstanceCount.get(appId).put(config.getModule().getName(), config.getInstanceCount());
-		System.out.println(getName() + " Creating "+config.getInstanceCount() +
-				" instances of module " + config.getModule().getName());
 	}
 
 	private AppModule getModuleByName(String moduleName){
@@ -353,6 +335,7 @@ public class FogDevice extends PowerDatacenter {
 			if(allocatedMipsForVm != 0)
 				totalRamAllocated += ((AppModule)vm).getCurrentAllocatedRam();
 		}
+		
 		double totalBwAllocated = isTupleLinkBusy() ? totalBwAllocated = getHost().getBw() : 0;		
 		
 		double timeNow = CloudSim.clock();
@@ -427,27 +410,22 @@ public class FogDevice extends PowerDatacenter {
 			}
 		}
 		
-		if(appToModulesMap.containsKey(tuple.getAppId())){
-			if(appToModulesMap.get(tuple.getAppId()).contains(tuple.getDestModuleName())){
-				int vmId = -1;
+		if(appToModulesMap.containsKey(tuple.getAppId()) &&
+				appToModulesMap.get(tuple.getAppId()).contains(tuple.getDestModuleName())){
 				
-				for(Vm vm : getHost().getVmList())
-					if(((AppModule)vm).getName().equals(tuple.getDestModuleName()))
-						vmId = vm.getId();
-					
-				if(vmId < 0 || (tuple.getModuleCopyMap().containsKey(tuple.getDestModuleName()) && 
-						tuple.getModuleCopyMap().get(tuple.getDestModuleName()) != vmId))
-					return;
+			int vmId = -1;
+			
+			for(Vm vm : getHost().getVmList())
+				if(((AppModule)vm).getName().equals(tuple.getDestModuleName()))
+					vmId = vm.getId();
+				
+			if(vmId < 0 || (tuple.getModuleCopyMap().containsKey(tuple.getDestModuleName()) && 
+					tuple.getModuleCopyMap().get(tuple.getDestModuleName()) != vmId))
+				return;
 
-				tuple.setVmId(vmId);
-				updateTimingsOnReceipt(tuple);
-				
-				executeTuple(ev, tuple.getDestModuleName());
-				
-			}else if(tuple.getDestModuleName() != null){
-				if(PRINT_COMMUNICATION_DETAILS) printCommunication(tuple);
-				sendTo(tuple, findNextHopCommunication(tuple));
-			}
+			tuple.setVmId(vmId);
+			updateTimingsOnReceipt(tuple);
+			executeTuple(ev, tuple.getDestModuleName());
 		}else{
 			if(PRINT_COMMUNICATION_DETAILS) printCommunication(tuple);
 			sendTo(tuple, findNextHopCommunication(tuple));
@@ -459,6 +437,7 @@ public class FogDevice extends PowerDatacenter {
 		String srcModule = tuple.getSrcModuleName();
 		String destModule = tuple.getDestModuleName();
 		List<AppLoop> loops = app.getLoops();
+		
 		for(AppLoop loop : loops){
 			if(loop.hasEdge(srcModule, destModule) && loop.isEndModule(destModule)){
 				Double startTime = TimeKeeper.getInstance().getEmitTimes().get(tuple.getActualTupleId());
@@ -542,12 +521,13 @@ public class FogDevice extends PowerDatacenter {
 	}
 	
 	protected void sendFreeLink(Tuple tuple, int destId){
-		double networkDelay = tuple.getCloudletFileSize()/getHost().getBw();
+		double networkDelay = (double)tuple.getCloudletFileSize()/getHost().getBw();
 		
 		updateEnergyConsumption();
 		setTupleLinkBusy(true);
 		
 		double latency = getLatencyMap().get(destId);
+		
 		send(getId(), networkDelay, FogEvents.UPDATE_TUPLE_QUEUE);
 		send(destId, networkDelay + latency, FogEvents.TUPLE_ARRIVAL, tuple);
 		NetworkUsageMonitor.sendingTuple(latency, tuple.getCloudletFileSize());

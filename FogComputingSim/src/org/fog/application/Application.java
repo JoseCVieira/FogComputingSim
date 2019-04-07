@@ -27,7 +27,7 @@ public class Application {
 	private int clientId;
 	
 	public Application(String appId, int userId) {
-		setAppId(appId + "_" + userId);
+		setAppId(appId);
 		setUserId(userId);
 		setModules(new ArrayList<AppModule>());
 		setEdges(new ArrayList<AppEdge>());
@@ -79,17 +79,24 @@ public class Application {
 	}
 	
 	public void addAppEdge(AppEdge e){ //ADDED
-		AppEdge edge = null;
-		
-		if(!e.isPeriodic())
-			edge = new AppEdge(e.getSource() + "_" + userId, e.getDestination() + "_" + userId, e.getTupleCpuLength(),
-				e.getTupleNwLength(), e.getTupleType() + "_" + userId, e.getEdgeType());
-		else
-			edge = new AppEdge(e.getSource() + "_" + userId, e.getDestination() + "_" + userId, e.getPeriodicity(),
-					e.getTupleCpuLength(), e.getTupleNwLength(), e.getTupleType() + "_" + userId, e.getEdgeType());
-		
-		getEdges().add(edge);
-		getEdgeMap().put(edge.getTupleType(), edge);
+		if(!e.isPeriodic()) {
+			addAppEdge(
+					e.getSource() + "_" + userId,
+					e.getDestination() + "_" + userId,
+					e.getTupleCpuLength(),
+					e.getTupleNwLength(),
+					e.getTupleType() + "_" + userId,
+					e.getEdgeType());
+		}else {
+			addAppEdge(
+					e.getSource() + "_" + userId,
+					e.getDestination() + "_" + userId,
+					e.getPeriodicity(),
+					e.getTupleCpuLength(),
+					e.getTupleNwLength(),
+					e.getTupleType() + "_" + userId,
+					e.getEdgeType());
+		}
 	}
 	
 	/**
