@@ -10,11 +10,12 @@ import org.fog.application.AppModule;
 import org.fog.application.Application;
 import org.fog.entities.FogDevice;
 import org.fog.entities.FogDeviceCharacteristics;
+import org.fog.placement.algorithms.placement.Algorithm;
 
 import ilog.concert.*;
 import ilog.cplex.*;
 
-public class LP {	
+public class LP extends Algorithm{	
 	private double fMipsPrice[];
 	private double fRamPrice[];
 	private double fMemPrice[];
@@ -33,6 +34,8 @@ public class LP {
 	private double mBw[];
 	
 	public LP(List<FogDevice> fogDevices, List<Application> applications) {
+		super(fogDevices, applications);
+		
 		fName = new String[fogDevices.size()];
 		fMips = new double[fogDevices.size()];
 		fRam = new double[fogDevices.size()];
@@ -114,7 +117,7 @@ public class LP {
 		}
 	}
 	
-	public Map<String, List<String>> Execute() {
+	public Map<String, List<String>> execute() {
 		final int NR_FOG_NODES = fMips.length;
 		final int NR_MODULES = mMips.length;
 		

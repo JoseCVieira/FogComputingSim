@@ -63,7 +63,7 @@ public class RunSim extends JDialog {
 	private static final long serialVersionUID = -8313194085507492462L;
 	private static final boolean DEBUG_MODE = false;
 	private static final boolean PRINT_PLACEMENT = true;
-	private static final String OPTIMIZATION_ALGORITHM = "GA";
+	private static final String OPTIMIZATION_ALGORITHM = "LP";
 	
 	private static List<Application> applications = new ArrayList<Application>();
 	private static List<FogBroker> fogBrokers = new ArrayList<FogBroker>();
@@ -157,8 +157,8 @@ public class RunSim extends JDialog {
     			Map<String, List<String>> mapPlacement = null;
     			switch (OPTIMIZATION_ALGORITHM) {
 				case "LP":
-					LP opt = new LP(fogDevices, applications);
-					mapPlacement = opt.Execute();
+					LP lp = new LP(fogDevices, applications);
+					mapPlacement = lp.execute();
 					break;
 				case "GA":
 					
