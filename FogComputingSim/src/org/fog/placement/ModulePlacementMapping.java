@@ -8,10 +8,10 @@ import java.util.Map;
 import org.fog.application.AppModule;
 import org.fog.application.Application;
 import org.fog.entities.FogDevice;
-import org.fog.utils.dijkstra.DijkstraAlgorithm;
-import org.fog.utils.dijkstra.Edge;
-import org.fog.utils.dijkstra.Graph;
-import org.fog.utils.dijkstra.Vertex;
+import org.fog.placement.algorithms.routing.DijkstraAlgorithm;
+import org.fog.placement.algorithms.routing.Edge;
+import org.fog.placement.algorithms.routing.Graph;
+import org.fog.placement.algorithms.routing.Vertex;
 
 public class ModulePlacementMapping extends ModulePlacement{
 	

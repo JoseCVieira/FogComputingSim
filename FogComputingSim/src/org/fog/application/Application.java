@@ -12,7 +12,7 @@ import org.fog.application.selectivity.FractionalSelectivity;
 import org.fog.application.selectivity.SelectivityModel;
 import org.fog.entities.Tuple;
 import org.fog.utils.FogUtils;
-import org.fog.utils.dijkstra.DijkstraAlgorithm;
+import org.fog.placement.algorithms.routing.DijkstraAlgorithm;
 
 // Class represents an application in the Distributed Dataflow Model.
 public class Application {

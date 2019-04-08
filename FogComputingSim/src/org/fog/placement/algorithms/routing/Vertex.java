@@ -1,4 +1,4 @@
-package org.fog.utils.dijkstra;
+package org.fog.placement.algorithms.routing;
 
 public class Vertex {
     final private String name;

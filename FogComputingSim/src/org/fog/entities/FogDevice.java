@@ -30,8 +30,8 @@ import org.fog.utils.FogEvents;
 import org.fog.utils.Logger;
 import org.fog.utils.NetworkUsageMonitor;
 import org.fog.utils.TimeKeeper;
-import org.fog.utils.dijkstra.DijkstraAlgorithm;
-import org.fog.utils.dijkstra.Vertex;
+import org.fog.placement.algorithms.routing.DijkstraAlgorithm;
+import org.fog.placement.algorithms.routing.Vertex;
 
 public class FogDevice extends PowerDatacenter {
 	private static final boolean PRINT_COMMUNICATION_DETAILS = false;

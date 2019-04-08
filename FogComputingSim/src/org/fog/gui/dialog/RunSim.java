@@ -57,7 +57,7 @@ import org.fog.utils.FogLinearPowerModel;
 import org.fog.utils.FogUtils;
 import org.fog.utils.Logger;
 import org.fog.utils.TimeKeeper;
-import org.fog.utils.cplex.ModulePlacementOptimization;
+import org.fog.placement.algorithms.placement.LP.ModulePlacementOptimization;
 
 public class RunSim extends JDialog {
 	private static final long serialVersionUID = -8313194085507492462L;
