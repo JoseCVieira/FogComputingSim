@@ -57,12 +57,13 @@ import org.fog.utils.FogLinearPowerModel;
 import org.fog.utils.FogUtils;
 import org.fog.utils.Logger;
 import org.fog.utils.TimeKeeper;
-import org.fog.placement.algorithms.placement.LP.ModulePlacementOptimization;
+import org.fog.placement.algorithms.placement.LP.LP;
 
 public class RunSim extends JDialog {
 	private static final long serialVersionUID = -8313194085507492462L;
 	private static final boolean DEBUG_MODE = false;
 	private static final boolean PRINT_PLACEMENT = true;
+	private static final String OPTIMIZATION_ALGORITHM = "GA";
 	
 	private static List<Application> applications = new ArrayList<Application>();
 	private static List<FogBroker> fogBrokers = new ArrayList<FogBroker>();
@@ -153,17 +154,30 @@ public class RunSim extends JDialog {
     				applications.add(application);
     			}
     			
-    			ModulePlacementOptimization opt = new ModulePlacementOptimization(fogDevices, applications);
-    			Map<String, List<String>> optPlacement = opt.Execute();
+    			Map<String, List<String>> mapPlacement = null;
+    			switch (OPTIMIZATION_ALGORITHM) {
+				case "LP":
+					LP opt = new LP(fogDevices, applications);
+					mapPlacement = opt.Execute();
+					break;
+				case "GA":
+					
+					
+					break;
+				default:
+    				System.err.println("Unknown algorithm.\nFogComputingSim will terminate abruptally.\n");
+    				System.exit(0);
+					break;
+				}
     			
-    			if(optPlacement == null) {
+    			if(mapPlacement == null) {
     				System.err.println("There is no possible combination to deploy all applications.\n");
     				System.err.println("FogComputingSim will terminate abruptally.\n");
     				System.exit(0);
     			}
     			
     			if(PRINT_PLACEMENT)
-    				printPlacement(optPlacement);
+    				printPlacement(mapPlacement);
     			
     			for(FogDeviceGui fog : clients) {
     				FogBroker broker = getFogBrokerByName(fog.getName());
@@ -171,8 +185,8 @@ public class RunSim extends JDialog {
     				ModuleMapping moduleMapping = ModuleMapping.createModuleMapping();
     				
     				for(AppModule appModule : application.getModules())
-    					for(String fogString : optPlacement.keySet())
-    						if(optPlacement.get(fogString).contains(appModule.getName()))
+    					for(String fogString : mapPlacement.keySet())
+    						if(mapPlacement.get(fogString).contains(appModule.getName()))
     							moduleMapping.addModuleToDevice(appModule.getName(), fogString);
     				
 					controller.submitApplication(application, new ModulePlacementMapping(fogDevices, application, moduleMapping));

@@ -14,7 +14,7 @@ import org.fog.entities.FogDeviceCharacteristics;
 import ilog.concert.*;
 import ilog.cplex.*;
 
-public class ModulePlacementOptimization {	
+public class LP {	
 	private double fMipsPrice[];
 	private double fRamPrice[];
 	private double fMemPrice[];
@@ -32,7 +32,7 @@ public class ModulePlacementOptimization {
 	private double mMem[];
 	private double mBw[];
 	
-	public ModulePlacementOptimization(List<FogDevice> fogDevices, List<Application> applications) {
+	public LP(List<FogDevice> fogDevices, List<Application> applications) {
 		fName = new String[fogDevices.size()];
 		fMips = new double[fogDevices.size()];
 		fRam = new double[fogDevices.size()];
