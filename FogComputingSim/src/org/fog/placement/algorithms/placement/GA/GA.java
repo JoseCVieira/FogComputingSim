@@ -6,7 +6,9 @@ import java.util.Map;
 import java.util.Random;
 
 import org.fog.application.Application;
+import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
+import org.fog.entities.Sensor;
 import org.fog.placement.algorithms.placement.Algorithm;
 
 public class GA extends Algorithm {
@@ -14,8 +16,9 @@ public class GA extends Algorithm {
 	private static final double AGREED_BOUNDARY = 0.0;
 	private static final int MAX_ITER = 5000;
 	
-	public GA(List<FogDevice> fogDevices, List<Application> applications) {
-		super(fogDevices, applications);
+	public GA(final List<FogDevice> fogDevices, final List<Application> applications,
+			final List<Sensor> sensors, final List<Actuator> actuators) {
+		super(fogDevices, applications, sensors, actuators);
 	}
 	
 	@Override
@@ -66,7 +69,7 @@ public class GA extends Algorithm {
 	        for(int i = 0; i < POPULATION_SIZE; i++) 
 	        	population[i] = newGeneration[i];
 	        
-	        System.out.println("Generation: " + generation + "\n" + population[0]);
+	        //System.out.println("Generation: " + generation + "\n" + population[0]);
 	        		
 	        generation++;
 	    }

@@ -158,17 +158,16 @@ public class RunSim extends JDialog {
     			Map<String, List<String>> mapPlacement = null;
     			switch (OPTIMIZATION_ALGORITHM) {
 				case "LP":
-					LP lp = new LP(fogDevices, applications);
+					LP lp = new LP(fogDevices, applications, sensors, actuators);
 					mapPlacement = lp.execute();
 					break;
 				case "GA":
-					GA ga = new GA(fogDevices, applications);
+					GA ga = new GA(fogDevices, applications, sensors, actuators);
 					mapPlacement = ga.execute();
 					break;
 				default:
     				System.err.println("Unknown algorithm.\nFogComputingSim will terminate abruptally.\n");
     				System.exit(0);
-					break;
 				}
     			
     			if(mapPlacement == null) {

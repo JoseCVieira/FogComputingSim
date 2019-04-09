@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.fog.application.Application;
+import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
+import org.fog.entities.Sensor;
 import org.fog.placement.algorithms.placement.Algorithm;
 
 import ilog.concert.*;
@@ -14,8 +16,9 @@ import ilog.cplex.*;
 
 public class LP extends Algorithm{
 	
-	public LP(List<FogDevice> fogDevices, List<Application> applications) {
-		super(fogDevices, applications);
+	public LP(final List<FogDevice> fogDevices, final List<Application> applications,
+			final List<Sensor> sensors, final List<Actuator> actuators) {
+		super(fogDevices, applications, sensors, actuators);
 	}
 	
 	@Override

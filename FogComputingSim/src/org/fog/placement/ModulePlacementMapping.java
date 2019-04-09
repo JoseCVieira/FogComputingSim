@@ -8,10 +8,6 @@ import java.util.Map;
 import org.fog.application.AppModule;
 import org.fog.application.Application;
 import org.fog.entities.FogDevice;
-import org.fog.placement.algorithms.routing.DijkstraAlgorithm;
-import org.fog.placement.algorithms.routing.Edge;
-import org.fog.placement.algorithms.routing.Graph;
-import org.fog.placement.algorithms.routing.Vertex;
 
 public class ModulePlacementMapping extends ModulePlacement{
 	
@@ -32,7 +28,6 @@ public class ModulePlacementMapping extends ModulePlacement{
 			getCurrentModuleMap().put(dev.getId(), new ArrayList<String>());
 		
 		mapModules();
-		createGraph();
 	}
 	
 	@Override
@@ -53,29 +48,6 @@ public class ModulePlacementMapping extends ModulePlacement{
 			for(String module : getCurrentModuleMap().get(deviceId))
 				createModuleInstanceOnDevice(getApplication().getModuleByName(module),
 						getFogDeviceById(deviceId));
-	}
-	
-	private void createGraph() {
-		Map<Integer, Vertex> mapNodes = new HashMap<Integer, Vertex>();
-		List<Edge> edges = new ArrayList<Edge>();
-		
-		for(FogDevice fDev : getFogDevices()) {
-			Vertex vertex = new Vertex(Integer.toString(fDev.getId()));
-			mapNodes.put(fDev.getId(), vertex);
-		}
-		
-		for(FogDevice fDev : getFogDevices()) {
-			int dId = fDev.getId();
-			
-			for(int neighborId : fDev.getNeighborsIds()) {
-				int lat = fDev.getLatencyMap().get(neighborId).intValue();
-				edges.add(new Edge(mapNodes.get(dId), mapNodes.get(neighborId), lat));
-				edges.add(new Edge(mapNodes.get(neighborId), mapNodes.get(dId), lat));
-			}
-		}
-
-		Graph graph = new Graph(new ArrayList<Vertex>(mapNodes.values()), edges);
-        getApplication().setDijkstraAlgorithm(new DijkstraAlgorithm(graph));
 	}
 	
 	public ModuleMapping getModuleMapping() {
