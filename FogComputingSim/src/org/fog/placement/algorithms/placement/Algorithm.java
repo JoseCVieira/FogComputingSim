@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.cloudbus.cloudsim.Pe;
+import org.cloudbus.cloudsim.power.models.PowerModel;
 import org.fog.application.AppModule;
 import org.fog.application.Application;
 import org.fog.entities.FogDevice;
@@ -20,6 +21,7 @@ public abstract class Algorithm {
 	private double fRam[];
 	private double fMem[];
 	private double fBw[];
+	private PowerModel fPwModel[];
 	
 	private String mName[];
 	private double mMips[];
@@ -28,16 +30,17 @@ public abstract class Algorithm {
 	private double mBw[];
 	
 	public Algorithm(final List<FogDevice> fogDevices, final List<Application> applications) {
-		this.fName =new String[fogDevices.size()];
-		this.fMips = new double[fogDevices.size()];
-		this.fRam = new double[fogDevices.size()];
-		this.fMem = new double[fogDevices.size()];
-		this.fBw = new double[fogDevices.size()];
+		fName = new String[fogDevices.size()];
+		fMips = new double[fogDevices.size()];
+		fRam = new double[fogDevices.size()];
+		fMem = new double[fogDevices.size()];
+		fBw = new double[fogDevices.size()];
+		fPwModel = new PowerModel[fogDevices.size()];
 		
-		this.fMipsPrice = new double[fogDevices.size()];
-		this.fRamPrice = new double[fogDevices.size()];
-		this.fMemPrice = new double[fogDevices.size()];
-		this.fBwPrice = new double[fogDevices.size()];
+		fMipsPrice = new double[fogDevices.size()];
+		fRamPrice = new double[fogDevices.size()];
+		fMemPrice = new double[fogDevices.size()];
+		fBwPrice = new double[fogDevices.size()];
 		
 		int i = 0;
 		for(FogDevice fogDevice : fogDevices) {
@@ -49,10 +52,9 @@ public abstract class Algorithm {
 			getfRam()[i] = fogDevice.getHost().getRam();
 			getfMem()[i] = fogDevice.getHost().getStorage();
 			getfBw()[i] = fogDevice.getHost().getBw();
-			
+			getfPwModel()[i] = fogDevice.getHost().getPowerModel();
 			
 			FogDeviceCharacteristics characteristics = (FogDeviceCharacteristics) fogDevice.getCharacteristics();
-			
 			getfMipsPrice()[i] = characteristics.getCostPerMips();
 			getfRamPrice()[i] = characteristics.getCostPerMem();
 			getfMemPrice()[i] = characteristics.getCostPerStorage();
@@ -83,11 +85,11 @@ public abstract class Algorithm {
 		for(Application application : applications)
 			size += application.getModules().size();
 		
-		this.mName = new String[size];
-		this.mMips = new double[size];
-		this.mRam = new double[size];
-		this.mMem = new double[size];
-		this.mBw = new double[size];
+		mName = new String[size];
+		mMips = new double[size];
+		mRam = new double[size];
+		mMem = new double[size];
+		mBw = new double[size];
 		
 		i = 0;
 		for(Application application : applications) {
@@ -111,60 +113,64 @@ public abstract class Algorithm {
 	
 	public abstract Map<String, List<String>> execute();
 
-	protected double[] getfMipsPrice() {
+	public double[] getfMipsPrice() {
 		return fMipsPrice;
 	}
 
-	protected double[] getfRamPrice() {
+	public double[] getfRamPrice() {
 		return fRamPrice;
 	}
 
-	protected double[] getfMemPrice() {
+	public double[] getfMemPrice() {
 		return fMemPrice;
 	}
 
-	protected double[] getfBwPrice() {
+	public double[] getfBwPrice() {
 		return fBwPrice;
 	}
 
-	protected String[] getfName() {
+	public String[] getfName() {
 		return fName;
 	}
 
-	protected double[] getfMips() {
+	public double[] getfMips() {
 		return fMips;
 	}
 
-	protected double[] getfRam() {
+	public double[] getfRam() {
 		return fRam;
 	}
 
-	protected double[] getfMem() {
+	public double[] getfMem() {
 		return fMem;
 	}
 
-	protected double[] getfBw() {
+	public double[] getfBw() {
 		return fBw;
 	}
 
-	protected String[] getmName() {
+	public String[] getmName() {
 		return mName;
 	}
 
-	protected double[] getmMips() {
+	public double[] getmMips() {
 		return mMips;
 	}
 
-	protected double[] getmRam() {
+	public double[] getmRam() {
 		return mRam;
 	}
 
-	protected double[] getmMem() {
+	public double[] getmMem() {
 		return mMem;
 	}
 
-	protected double[] getmBw() {
+	public double[] getmBw() {
 		return mBw;
+	}
+
+	public PowerModel[] getfPwModel() {
+		return fPwModel;
 	}
 	
 }

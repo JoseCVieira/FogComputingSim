@@ -20,4 +20,11 @@ public class FogLinearPowerModel implements PowerModel {
 		return staticPower + (maxPower - staticPower) * utilization;
 	}
 
+	public double getStaticPower() {
+		return staticPower;
+	}
+	
+	public double getBusyPower() {
+		return maxPower;
+	}
 }

@@ -57,13 +57,14 @@ import org.fog.utils.FogLinearPowerModel;
 import org.fog.utils.FogUtils;
 import org.fog.utils.Logger;
 import org.fog.utils.TimeKeeper;
+import org.fog.placement.algorithms.placement.GA.GA;
 import org.fog.placement.algorithms.placement.LP.LP;
 
 public class RunSim extends JDialog {
 	private static final long serialVersionUID = -8313194085507492462L;
 	private static final boolean DEBUG_MODE = false;
 	private static final boolean PRINT_PLACEMENT = true;
-	private static final String OPTIMIZATION_ALGORITHM = "LP";
+	private static final String OPTIMIZATION_ALGORITHM = "GA";
 	
 	private static List<Application> applications = new ArrayList<Application>();
 	private static List<FogBroker> fogBrokers = new ArrayList<FogBroker>();
@@ -161,8 +162,8 @@ public class RunSim extends JDialog {
 					mapPlacement = lp.execute();
 					break;
 				case "GA":
-					
-					
+					GA ga = new GA(fogDevices, applications);
+					mapPlacement = ga.execute();
 					break;
 				default:
     				System.err.println("Unknown algorithm.\nFogComputingSim will terminate abruptally.\n");
