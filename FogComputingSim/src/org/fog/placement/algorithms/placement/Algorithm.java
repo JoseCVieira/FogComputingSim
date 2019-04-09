@@ -43,9 +43,10 @@ public abstract class Algorithm {
 	private double mBw[];
 	
 	private double[][] latencyMap;
-	private double[][] dependencyMap;
+	private int[][] dependencyMap;
+	private int[][] mandatoryPositioning;
 	
-	Map<Map<Integer, Integer>, List<Integer>> paths = new HashMap<Map<Integer,Integer>, List<Integer>>();
+	//Map<Map<Integer, Integer>, List<Integer>> paths = new HashMap<Map<Integer,Integer>, List<Integer>>();
 	
 	public Algorithm(final List<FogDevice> fogDevices, final List<Application> applications,
 			final List<Sensor> sensors, final List<Actuator> actuators) throws IllegalArgumentException {
@@ -54,10 +55,10 @@ public abstract class Algorithm {
 			throw new IllegalArgumentException("Some of the received arguments are null");
 		
 		extractFogCharacteristics(fogDevices, sensors, actuators);
-		computeLatencyMap(fogDevices, sensors, actuators);
+		extractAppCharacteristics(applications, sensors, actuators);
 		
-		extractAppCharacteristics(applications);
-		computeDependencyMap(applications, sensors, actuators);
+		computeLatencyMap(fogDevices, sensors, actuators);
+		computeDependencyMap(applications);
 	}
 	
 	private void extractFogCharacteristics (final List<FogDevice> fogDevices,
@@ -142,6 +143,9 @@ public abstract class Algorithm {
 		fBwPrice = convertDoubles(bwPrice);
 		
 		if(PRINT_DETAILS) {
+			System.out.println("\n*******************************************************");
+			System.out.println("\t\tFOG NODES CHARACTERISTICS:");
+			System.out.println("*******************************************************\n");
 			for(int i = 0; i < fogDevices.size(); i++) {
 				FogDevice fDevice = null;
 				
@@ -159,17 +163,22 @@ public abstract class Algorithm {
 				System.out.println("fMemPrice: " + getfMemPrice()[i]);
 				System.out.println("fBwPrice: " + getfBwPrice()[i]);
 				System.out.println("Neighbors: " +  fDevice.getNeighborsIds());
-				System.out.println("LatencymMap: " + fDevice.getLatencyMap() + "\n");
+				System.out.println("LatencymMap: " + fDevice.getLatencyMap());
+				
+				if(i < fogDevices.size() -1)
+					System.out.println();
 			}
 		}
 	}
 	
-	private void extractAppCharacteristics(final List<Application> applications) {		
+	private void extractAppCharacteristics(final List<Application> applications,
+			final List<Sensor> sensors, final List<Actuator> actuators) {		
 		ArrayList<String> name = new ArrayList<String>(); 
 		ArrayList<Double> mips = new ArrayList<Double>(); 
 		ArrayList<Double> ram = new ArrayList<Double>(); 
 		ArrayList<Double> mem = new ArrayList<Double>(); 
 		ArrayList<Double> bw = new ArrayList<Double>(); 
+		Map<String, String> mPositioning = new HashMap<String, String>();
 		
 		for(Application application : applications) {
 			for(AppModule module : application.getModules()) {
@@ -188,6 +197,10 @@ public abstract class Algorithm {
 					ram.add(0.0);
 					mem.add(0.0);
 					bw.add(0.0);
+					
+					for(Sensor sensor : sensors)
+						if(sensor.getAppId().equals(application.getAppId()))
+							mPositioning.put(sensor.getName(), appEdge.getSource());
 				}
 				
 				if(!name.contains(appEdge.getDestination())) {
@@ -196,6 +209,10 @@ public abstract class Algorithm {
 					ram.add(0.0);
 					mem.add(0.0);
 					bw.add(0.0);
+					
+					for(Actuator actuator : actuators)
+						if(actuator.getAppId().equals(application.getAppId()))
+							mPositioning.put(actuator.getName(), appEdge.getDestination());
 				}
 			}
 		}
@@ -205,15 +222,60 @@ public abstract class Algorithm {
 		mRam = convertDoubles(ram);
 		mMem = convertDoubles(mem);
 		mBw = convertDoubles(bw);
+		mandatoryPositioning = new int[fName.length][mName.length];
+		
+		for(String deviceName : mPositioning.keySet()) {
+			
+			int col = -1, row = -1;
+			for(int i = 0; i < mName.length; i++)
+				if(mName[i].equals(mPositioning.get(deviceName)))
+					col = i;
+			
+			for(int i = 0; i < fName.length; i++)
+				if(fName[i].equals(deviceName))
+					row = i;
+			
+			if(col != -1 && row != -1)
+				mandatoryPositioning[row][col] = 1;
+		}
 		
 		if(PRINT_DETAILS) {
+			System.out.println("\n*******************************************************");
+			System.out.println("\t\tAPP MODULES CHARACTERISTICS:");
+			System.out.println("*******************************************************\n");
+			
 			for(int i = 0; i < mName.length; i++) {
 				System.out.println("mName: " + getmName()[i]);
 				System.out.println("mMips: " + getmMips()[i]);
 				System.out.println("mRam: " + getmRam()[i]);
 				System.out.println("mMem: " + getmMem()[i]);
-				System.out.println("mBw: " + getmBw()[i] + "\n");
+				System.out.println("mBw: " + getmBw()[i]);
+				
+				if(i < mName.length -1)
+					System.out.println();
 			}
+			
+			System.out.println("\n*******************************************************");
+			System.out.println("\t\tMANDATORY POSITIONING:");
+			System.out.println("*******************************************************\n");
+			
+			final String[][] table = new String[fName.length+1][mName.length+1];
+			
+			table[0][0] = " ";
+			for(int i = 0; i < mName.length; i++)
+				table[0][i+1] = mName[i];
+			
+			for(int i = 0; i < fName.length; i++) {
+				table[i+1][0] = fName[i];
+				
+				for(int j = 0; j < mName.length; j++)
+					table[i+1][j+1] = Double.toString(mandatoryPositioning[i][j]);
+			}
+			
+			String repeated = repeate(mName.length, "%17s");
+			
+			for (final Object[] row : table)
+			    System.out.format("%23s" + repeated + "\n", row);
 		}
 	}
 	
@@ -334,7 +396,9 @@ public abstract class Algorithm {
 		}
 		
 		if(PRINT_DETAILS) {
-			System.out.println("\nLATENCY MAP:");
+			System.out.println("\n*******************************************************");
+			System.out.println("\t\tLATENCY MAP:");
+			System.out.println("*******************************************************\n");
 			
 			final String[][] table = new String[fId.length+1][fId.length+1];
 			
@@ -349,29 +413,55 @@ public abstract class Algorithm {
 					table[i+1][j+1] = Double.toString(latencyMap[i][j]);
 			}
 			
-			String repeated = repeate(fId.length+1, "%13s");
+			String repeated = repeate(fId.length, "%13s");
 			
 			for (final Object[] row : table)
-			    System.out.format(repeated + "\n", row);
+			    System.out.format("%23s" + repeated + "\n", row);
 		}
-		
-		System.exit(0);
 	}
 	
-	private void computeDependencyMap(final List<Application> applications,
-			final List<Sensor> sensors, final List<Actuator> actuators) {
+	private void computeDependencyMap(final List<Application> applications) {
 		
-		/*for(Application application : applications) {
+		dependencyMap = new int[mName.length][mName.length];
+		for(Application application : applications) {
 			for(AppEdge appEdge : application.getEdges()) {
-				dependencyMap.put()
 				
+				int col = 0, row = 0;
+				for(int i = 0; i < mName.length; i++) {
+					if(mName[i].equals(appEdge.getSource()))
+						col = i;
+					
+					if(mName[i].equals(appEdge.getDestination()))
+						row = i;
+				}
 				
+				dependencyMap[col][row] = 1;
 			}
 		}
 		
-		for(Map<Integer, Integer> innerMap : latencyMap.keySet()) {
+		if(PRINT_DETAILS) {
+			System.out.println("\n*******************************************************");
+			System.out.println("\t\tDEPENDENCY MAP:");
+			System.out.println("*******************************************************\n");
 			
-		}*/
+			final String[][] table = new String[mName.length+1][mName.length+1];
+			
+			table[0][0] = " ";
+			for(int i = 0; i < mName.length; i++)
+				table[0][i+1] = mName[i];
+			
+			for(int i = 0; i < mName.length; i++) {
+				table[i+1][0] = mName[i];
+				
+				for(int j = 0; j < mName.length; j++)
+					table[i+1][j+1] = Double.toString(dependencyMap[i][j]);
+			}
+			
+			String repeated = repeate(mName.length, "%17s");
+			
+			for (final Object[] row : table)
+			    System.out.format("%23s" + repeated + "\n", row);
+		}
 	}
 	
 	private static double[] convertDoubles(List<Double> d) {
@@ -469,6 +559,18 @@ public abstract class Algorithm {
 
 	public PowerModel[] getfPwModel() {
 		return fPwModel;
+	}
+	
+	public double[][] getLatencyMap() {
+		return latencyMap;
+	}
+	
+	public int[][] getDependencyMap() {
+		return dependencyMap;
+	}
+	
+	public int[][] getMandatoryPositioning() {
+		return mandatoryPositioning;
 	}
 	
 }

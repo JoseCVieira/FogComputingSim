@@ -156,17 +156,22 @@ public class RunSim extends JDialog {
     			}
     			
     			Map<String, List<String>> mapPlacement = null;
-    			switch (OPTIMIZATION_ALGORITHM) {
-				case "LP":
-					LP lp = new LP(fogDevices, applications, sensors, actuators);
-					mapPlacement = lp.execute();
-					break;
-				case "GA":
-					GA ga = new GA(fogDevices, applications, sensors, actuators);
-					mapPlacement = ga.execute();
-					break;
-				default:
-    				System.err.println("Unknown algorithm.\nFogComputingSim will terminate abruptally.\n");
+    			try {
+	    			switch (OPTIMIZATION_ALGORITHM) {
+					case "LP":
+						LP lp = new LP(fogDevices, applications, sensors, actuators);
+						mapPlacement = lp.execute();
+						break;
+					case "GA":
+						GA ga = new GA(fogDevices, applications, sensors, actuators);
+						mapPlacement = ga.execute();
+						break;
+					default:
+	    				System.err.println("Unknown algorithm.\nFogComputingSim will terminate abruptally.\n");
+	    				System.exit(0);
+					}
+    			} catch (Exception e) {
+    				System.err.println("FogComputingSim will terminate abruptally.\n");
     				System.exit(0);
 				}
     			
@@ -178,6 +183,8 @@ public class RunSim extends JDialog {
     			
     			if(PRINT_PLACEMENT)
     				printPlacement(mapPlacement);
+    			
+    			System.exit(0);
     			
     			for(FogDeviceGui fog : clients) {
     				FogBroker broker = getFogBrokerByName(fog.getName());
