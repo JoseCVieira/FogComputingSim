@@ -96,6 +96,12 @@ public class AlgorithmUtils {
         System.out.println("\n");
 	}
 	
+	public static void printVector(double[] vector) {		
+        for(int i = 0; i < vector.length; i++)
+            	System.out.print(vector[i] + " ");        
+        System.out.println("\n");
+	}
+	
 	static double[] convertDoubles(List<Double> d) {
 		double[] ret = new double[d.size()];
 		

@@ -63,14 +63,24 @@ public class Individual implements Comparable<Individual> {
 	}
 	
 	private double calculateFitness() {
-		double fitness = 0, cost = 0, energy = 0, latTransmitting = 0, latProcessing = 0;
+		double fitness;
+		
+		if((fitness = calculateOperationalCost()) == Double.MAX_VALUE) // Exceeds resource capacity
+			return fitness;
+		fitness += calculateEnergyConsumption();
+		fitness += calculateProcessingLatency();
+		fitness += calculateTransmittingLatency();
+		return fitness;
+	}
+	
+	private double calculateOperationalCost() {
+		double cost = 0;
 		
 		for(int i = 0; i < chromosome.length; i++) {
 			double totalMips = 0;
 			double totalRam = 0;
 			double totalMem = 0;
 			double totalBw = 0;
-			double totalNrModules = 0;
 			
 			for(int j = 0; j < chromosome[i].length; j++) {
 				totalMips += chromosome[i][j] * ga.getmMips()[j];
@@ -78,35 +88,60 @@ public class Individual implements Comparable<Individual> {
 				totalMem += chromosome[i][j] * ga.getmMem()[j];
 				totalBw += chromosome[i][j] * ga.getmBw()[j];
 				
-				cost = chromosome[i][j] * ga.getfMipsPrice()[i] * ga.getmMips()[j] +
-					   chromosome[i][j] * ga.getfRamPrice()[i] * ga.getmRam()[j] +
-					   chromosome[i][j] * ga.getfMemPrice()[i] * ga.getmMem()[j] +
-					   chromosome[i][j] * ga.getfBwPrice()[i] * ga.getmBw()[j];
-				
-				if(chromosome[i][j] == 1)
-					totalNrModules++;
-					
-				fitness += cost;
+				cost += chromosome[i][j] * 
+						(ga.getfMipsPrice()[i] * ga.getmMips()[j] +
+						 ga.getfRamPrice()[i] * ga.getmRam()[j] +
+					     ga.getfMemPrice()[i] * ga.getmMem()[j] +
+					     ga.getfBwPrice()[i] * ga.getmBw()[j]);
 			}
 			
 			if(totalMips > ga.getfMips()[i] || totalRam > ga.getfRam()[i] ||
-					totalMem > ga.getfMem()[i] || totalBw > ga.getfBw()[i]) {
-				fitness = Double.MAX_VALUE;
-				break;
-			}
+					totalMem > ga.getfMem()[i] || totalBw > ga.getfBw()[i])
+				return Double.MAX_VALUE;
+		}
+		
+		return cost;
+	}
+	
+	private double calculateEnergyConsumption() {
+		double energy = 0;
+		
+		for(int i = 0; i < chromosome.length; i++) {
+			double totalMips = 0;
 			
-			latProcessing = 0;
-			double unnusedMips = ga.getfMips()[i]-totalMips;
-			double mipsPie = unnusedMips/totalNrModules;
 			for(int j = 0; j < chromosome[i].length; j++)
-				latProcessing += chromosome[i][j] * ga.getmCpuSize()[j] / (ga.getmMips()[j] + mipsPie);
-			
-			fitness += latProcessing;
+				totalMips += chromosome[i][j] * ga.getmMips()[j];
 			
 			if(ga.getfPwModel()[i] != null)
-				energy = ga.getfPwModel()[i].getPower(totalMips/ga.getfMips()[i]);
-			fitness += energy;
+				energy += ga.getfPwModel()[i].getPower(totalMips/ga.getfMips()[i]);
 		}
+		
+		return energy;
+	}
+	
+	private double calculateProcessingLatency() {
+		double latency = 0;
+		
+		for(int i = 0; i < chromosome.length; i++) {
+			int nrModules = 0;
+			double totalMips = 0;
+			
+			for(int j = 0; j < chromosome[i].length; j++) {
+				nrModules += chromosome[i][j];
+				totalMips += chromosome[i][j] * ga.getmMips()[j];
+			}
+			
+			double unnusedMips = ga.getfMips()[i] - totalMips;
+			double mipsPie = unnusedMips/nrModules;
+			for(int j = 0; j < chromosome[i].length; j++)
+				latency += chromosome[i][j] * ga.getmCpuSize()[j] / (ga.getmMips()[j] + mipsPie);
+		}
+		
+		return latency;
+	}
+	
+	private double calculateTransmittingLatency() {
+		double latency = 0;
 		
 		if(fitness != Double.MAX_VALUE) {
 			double[][] aux1 = null;
@@ -117,7 +152,7 @@ public class Individual implements Comparable<Individual> {
 				aux1 = AlgorithmUtils.multiplyMatrices(chromosome, ga.getDependencyMap());
 				aux1 = AlgorithmUtils.multiplyMatrices(aux1, AlgorithmUtils.transposeMatrix(chromosome));
 				aux1 = AlgorithmUtils.dotProductMatrices(aux1, ga.getLatencyMap());
-				latTransmitting = AlgorithmUtils.sumAllElementsMatrix(aux1);
+				latency = AlgorithmUtils.sumAllElementsMatrix(aux1);
 			} catch (Exception e) {
 				System.err.println(e);
 				System.err.println("FogComputingSim will terminate abruptally.\n");
@@ -131,18 +166,18 @@ public class Individual implements Comparable<Individual> {
 				
 				for(int i = 0; i < ga.getfName().length-1; i++) {
 					aux2 = AlgorithmUtils.dotProductMatrices(aux1, ga.getBandwidthMap(i));
-					latTransmitting += AlgorithmUtils.sumAllElementsMatrix(aux2);
+					latency += AlgorithmUtils.sumAllElementsMatrix(aux2);
 				}
 			} catch (Exception e) {
 				System.err.println(e);
 				System.err.println("FogComputingSim will terminate abruptally.\n");
 				System.exit(0);
 			}
-		
-			fitness += latTransmitting;
 		}
-		return fitness;
+		
+		return latency;
 	}
+	
 	
 	private int findModulePlacement(double[][] chromosome, int colomn) {
 		for(int i = 0; i < chromosome.length; i++)
