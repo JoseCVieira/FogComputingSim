@@ -2,7 +2,7 @@ package org.fog.placement.algorithms.placement.GA;
 
 import java.util.Random;
 
-import org.fog.placement.algorithms.placement.Algorithm;
+import org.fog.placement.algorithms.placement.AlgorithmMathUtils;
 
 public class Individual implements Comparable<Individual> {
 	
@@ -114,10 +114,10 @@ public class Individual implements Comparable<Individual> {
 			
 			//link latency
 			try {
-				aux1 = Algorithm.multiplyMatrices(chromosome, ga.getDependencyMap());
-				aux1 = Algorithm.multiplyMatrices(aux1, Algorithm.transposeMatrix(chromosome));
-				aux1 = Algorithm.dotProductMatrices(aux1, ga.getLatencyMap());
-				latTransmitting = Algorithm.sumAllElementsMatrix(aux1);
+				aux1 = AlgorithmMathUtils.multiplyMatrices(chromosome, ga.getDependencyMap());
+				aux1 = AlgorithmMathUtils.multiplyMatrices(aux1, AlgorithmMathUtils.transposeMatrix(chromosome));
+				aux1 = AlgorithmMathUtils.dotProductMatrices(aux1, ga.getLatencyMap());
+				latTransmitting = AlgorithmMathUtils.sumAllElementsMatrix(aux1);
 			} catch (Exception e) {
 				System.err.println(e);
 				System.err.println("FogComputingSim will terminate abruptally.\n");
@@ -126,12 +126,12 @@ public class Individual implements Comparable<Individual> {
 			
 			//network latency (tuple size / bandwidth available)
 			try {
-				aux1 = Algorithm.multiplyMatrices(chromosome, ga.getNwSizeMap());
-				aux1 = Algorithm.multiplyMatrices(aux1, Algorithm.transposeMatrix(chromosome));
+				aux1 = AlgorithmMathUtils.multiplyMatrices(chromosome, ga.getNwSizeMap());
+				aux1 = AlgorithmMathUtils.multiplyMatrices(aux1, AlgorithmMathUtils.transposeMatrix(chromosome));
 				
 				for(int i = 0; i < ga.getfName().length-1; i++) {
-					aux2 = Algorithm.dotProductMatrices(aux1, ga.getBandwidthMap(i));
-					latTransmitting += Algorithm.sumAllElementsMatrix(aux2);
+					aux2 = AlgorithmMathUtils.dotProductMatrices(aux1, ga.getBandwidthMap(i));
+					latTransmitting += AlgorithmMathUtils.sumAllElementsMatrix(aux2);
 				}
 			} catch (Exception e) {
 				System.err.println(e);
