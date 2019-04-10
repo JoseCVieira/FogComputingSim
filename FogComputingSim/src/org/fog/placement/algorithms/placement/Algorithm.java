@@ -60,6 +60,9 @@ public abstract class Algorithm {
 		
 		computeLatencyMap(fogDevices, sensors, actuators);
 		computeDependencyMap(applications);
+		
+		if(PRINT_DETAILS)
+			AlgorithmUtils.printDetails(this, fogDevices, applications, sensors, actuators);
 	}
 	
 	private void extractFogCharacteristics (final List<FogDevice> fogDevices,
@@ -130,46 +133,18 @@ public abstract class Algorithm {
 		}
 		
 		fName = name.toArray(new String[name.size()]);
-		fPwModel = convertPowerModels(pwModel);
+		fPwModel = AlgorithmUtils.convertPowerModels(pwModel);
 		
-		fId = convertIntegers(id);
-		fMips = convertDoubles(mips);
-		fRam = convertDoubles(ram);
-		fMem = convertDoubles(mem);
-		fBw = convertDoubles(bw);
+		fId = AlgorithmUtils.convertIntegers(id);
+		fMips = AlgorithmUtils.convertDoubles(mips);
+		fRam = AlgorithmUtils.convertDoubles(ram);
+		fMem = AlgorithmUtils.convertDoubles(mem);
+		fBw = AlgorithmUtils.convertDoubles(bw);
 		
-		fMipsPrice = convertDoubles(mipsPrice);
-		fRamPrice = convertDoubles(ramPrice);
-		fMemPrice = convertDoubles(memPrice);
-		fBwPrice = convertDoubles(bwPrice);
-		
-		if(PRINT_DETAILS) {
-			System.out.println("\n*******************************************************");
-			System.out.println("\t\tFOG NODES CHARACTERISTICS:");
-			System.out.println("*******************************************************\n");
-			for(int i = 0; i < fogDevices.size(); i++) {
-				FogDevice fDevice = null;
-				
-				for(FogDevice fogDevice : fogDevices)
-					if(fogDevice.getName().equals(getfName()[i]))
-						fDevice = fogDevice;
-				
-				System.out.println("Id: " + fDevice.getId() + " fName: " + getfName()[i]);
-				System.out.println("fMips: " + getfMips()[i]);
-				System.out.println("fRam: " + getfRam()[i]);
-				System.out.println("fMem: " + getfMem()[i]);
-				System.out.println("fBw: " + getfBw()[i]);
-				System.out.println("fMipsPrice: " + getfMipsPrice()[i]);
-				System.out.println("fRamPrice: " + getfRamPrice()[i]);
-				System.out.println("fMemPrice: " + getfMemPrice()[i]);
-				System.out.println("fBwPrice: " + getfBwPrice()[i]);
-				System.out.println("Neighbors: " +  fDevice.getNeighborsIds());
-				System.out.println("LatencymMap: " + fDevice.getLatencyMap());
-				
-				if(i < fogDevices.size() -1)
-					System.out.println();
-			}
-		}
+		fMipsPrice = AlgorithmUtils.convertDoubles(mipsPrice);
+		fRamPrice = AlgorithmUtils.convertDoubles(ramPrice);
+		fMemPrice = AlgorithmUtils.convertDoubles(memPrice);
+		fBwPrice = AlgorithmUtils.convertDoubles(bwPrice);
 	}
 	
 	private void extractAppCharacteristics(final List<Application> applications,
@@ -219,10 +194,10 @@ public abstract class Algorithm {
 		}
 		
 		mName = name.toArray(new String[name.size()]);
-		mMips = convertDoubles(mips);
-		mRam = convertDoubles(ram);
-		mMem = convertDoubles(mem);
-		mBw = convertDoubles(bw);
+		mMips = AlgorithmUtils.convertDoubles(mips);
+		mRam = AlgorithmUtils.convertDoubles(ram);
+		mMem = AlgorithmUtils.convertDoubles(mem);
+		mBw = AlgorithmUtils.convertDoubles(bw);
 		mandatoryMap = new double[fName.length][mName.length];
 		
 		for(String deviceName : mPositioning.keySet()) {
@@ -251,46 +226,6 @@ public abstract class Algorithm {
 					
 				mCpuSize[aux] += appEdge.getTupleCpuLength();
 			}
-		}
-		
-		if(PRINT_DETAILS) {
-			System.out.println("\n*******************************************************");
-			System.out.println("\t\tAPP MODULES CHARACTERISTICS:");
-			System.out.println("*******************************************************\n");
-			
-			for(int i = 0; i < mName.length; i++) {
-				System.out.println("mName: " + getmName()[i]);
-				System.out.println("mMips: " + getmMips()[i]);
-				System.out.println("mRam: " + getmRam()[i]);
-				System.out.println("mMem: " + getmMem()[i]);
-				System.out.println("mBw: " + getmBw()[i]);
-				System.out.println("mCpuSize: " + getmCpuSize()[i]);
-				
-				if(i < mName.length -1)
-					System.out.println();
-			}
-			
-			System.out.println("\n*******************************************************");
-			System.out.println("\t\tMANDATORY POSITIONING:");
-			System.out.println("*******************************************************\n");
-			
-			final String[][] table = new String[fName.length+1][mName.length+1];
-			
-			table[0][0] = " ";
-			for(int i = 0; i < mName.length; i++)
-				table[0][i+1] = mName[i];
-			
-			for(int i = 0; i < fName.length; i++) {
-				table[i+1][0] = fName[i];
-				
-				for(int j = 0; j < mName.length; j++)
-					table[i+1][j+1] = Double.toString(mandatoryMap[i][j]);
-			}
-			
-			String repeated = repeate(mName.length, "%17s");
-			
-			for (final Object[] row : table)
-			    System.out.format("%23s" + repeated + "\n", row);
 		}
 	}
 	
@@ -435,58 +370,6 @@ public abstract class Algorithm {
 				latencyMap[c][r] = latency;
 			}
 		}
-		
-		if(PRINT_DETAILS) {
-			System.out.println("\n*******************************************************");
-			System.out.println("\t\tLATENCY MAP:");
-			System.out.println("*******************************************************\n");
-			
-			String[][] table = new String[fId.length+1][fId.length+1];
-			
-			table[0][0] = " ";
-			for(int i = 0; i < fId.length; i++)
-				table[0][i+1] = fName[i];
-			
-			for(int i = 0; i < fId.length; i++) {
-				table[i+1][0] = fName[i];
-				
-				for(int j = 0; j < fId.length; j++)
-					table[i+1][j+1] = Double.toString(latencyMap[i][j]);
-			}
-			
-			String repeated = repeate(fId.length, "%13s");
-			
-			for (final Object[] r : table)
-			    System.out.format("%23s" + repeated + "\n", r);
-			
-			
-			System.out.println("\n*******************************************************");
-			System.out.println("\t\tBANDWIDTH MAP:");
-			System.out.println("*******************************************************\n");
-			
-			for(iter = 0; iter < fId.length-1; iter++) {
-				table = new String[fId.length+1][fId.length+1];
-				
-				table[0][0] = " ";
-				for(int i = 0; i < fId.length; i++)
-					table[0][i+1] = fName[i];
-				
-				for(int i = 0; i < fId.length; i++) {
-					table[i+1][0] = fName[i];
-					
-					for(int j = 0; j < fId.length; j++)
-						table[i+1][j+1] = Double.toString(bandwidthMap[iter][i][j]);
-				}
-				
-				repeated = repeate(fId.length, "%13s");
-				
-				for (final Object[] r : table)
-				    System.out.format("%23s" + repeated + "\n", r);
-				
-				if(iter < fId.length-2)
-					System.out.println();
-			}
-		}
 	}
 	
 	private void computeDependencyMap(final List<Application> applications) {
@@ -508,87 +391,7 @@ public abstract class Algorithm {
 				nwSizeMap[col][row] = appEdge.getTupleNwLength();
 			}
 		}
-		
-		if(PRINT_DETAILS) {
-			System.out.println("\n*******************************************************");
-			System.out.println("\t\tDEPENDENCY MAP:");
-			System.out.println("*******************************************************\n");
-			
-			String[][] table = new String[mName.length+1][mName.length+1];
-			
-			table[0][0] = " ";
-			for(int i = 0; i < mName.length; i++)
-				table[0][i+1] = mName[i];
-			
-			for(int i = 0; i < mName.length; i++) {
-				table[i+1][0] = mName[i];
-				
-				for(int j = 0; j < mName.length; j++)
-					table[i+1][j+1] = Double.toString(dependencyMap[i][j]);
-			}
-			
-			String repeated = repeate(mName.length, "%17s");
-			
-			for (final Object[] row : table)
-			    System.out.format("%23s" + repeated + "\n", row);
-			
-			System.out.println("\n*******************************************************");
-			System.out.println("\t\tNW SIZE MAP:");
-			System.out.println("*******************************************************\n");
-			
-			table = new String[mName.length+1][mName.length+1];
-			
-			table[0][0] = " ";
-			for(int i = 0; i < mName.length; i++)
-				table[0][i+1] = mName[i];
-			
-			for(int i = 0; i < mName.length; i++) {
-				table[i+1][0] = mName[i];
-				
-				for(int j = 0; j < mName.length; j++)
-					table[i+1][j+1] = Double.toString(nwSizeMap[i][j]);
-			}
-			
-			repeated = repeate(mName.length, "%17s");
-			
-			for (final Object[] row : table)
-			    System.out.format("%23s" + repeated + "\n", row);
-		}
-	}
-	
-	private static double[] convertDoubles(List<Double> d) {
-		double[] ret = new double[d.size()];
-		
-	    for (int i=0; i < ret.length; i++)
-	        ret[i] = d.get(i).doubleValue();
-	    
-	    return ret;
-	}
-	
-	private static int[] convertIntegers(List<Integer> ints) {
-		int[] ret = new int[ints.size()];
-		
-	    for (int i=0; i < ret.length; i++)
-	        ret[i] = ints.get(i).intValue();
-	    
-	    return ret;
-	}
-	
-	private static PowerModel[] convertPowerModels(List<PowerModel> pwM) {
-		PowerModel[] ret = new PowerModel[pwM.size()];
-		
-	    for (int i=0; i < ret.length; i++)
-	        ret[i] = pwM.get(i);
-	    
-	    return ret;
-	}
-	
-	protected static String repeate(int i, String s) {
-		StringBuilder sb = new StringBuilder();
-		for (int j = 0; j < i; j++)
-			sb.append(s);
-		return sb.toString();
-    }
+	}	
 	
 	public int moduleHasMandatoryPositioning(int col) {
 		for(int i = 0; i < mandatoryMap.length; i++)
@@ -613,6 +416,10 @@ public abstract class Algorithm {
 
 	public double[] getfBwPrice() {
 		return fBwPrice;
+	}
+	
+	public int[] getfId() {
+		return fId;
 	}
 
 	public String[] getfName() {

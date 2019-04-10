@@ -10,6 +10,7 @@ import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.placement.algorithms.placement.Algorithm;
+import org.fog.placement.algorithms.placement.AlgorithmUtils;
 
 public class GA extends Algorithm {
 	private static final int POPULATION_SIZE = 2;
@@ -93,7 +94,7 @@ public class GA extends Algorithm {
 					table[i+1][j+1] = Double.toString(population[0].getChromosome()[i][j]);
 			}
 			
-			String repeated = repeate(getmName().length, "%17s");
+			String repeated = AlgorithmUtils.repeate(getmName().length, "%17s");
 			
 			for (final Object[] row : table)
 			    System.out.format("%23s" + repeated + "\n", row);
