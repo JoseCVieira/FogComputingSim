@@ -21,7 +21,7 @@ import org.fog.placement.algorithms.routing.Graph;
 import org.fog.placement.algorithms.routing.Vertex;
 
 public abstract class Algorithm {
-	private static final boolean PRINT_DETAILS = true;
+	protected static final boolean PRINT_DETAILS = true;
 	
 	private double fMipsPrice[];
 	private double fRamPrice[];
@@ -43,10 +43,11 @@ public abstract class Algorithm {
 	private double mBw[];
 	
 	private double[][] latencyMap;
-	private int[][] dependencyMap;
-	private int[][] mandatoryPositioning;
-	
-	//Map<Map<Integer, Integer>, List<Integer>> paths = new HashMap<Map<Integer,Integer>, List<Integer>>();
+	private double[][] dependencyMap;
+	private double[][] nwSizeMap;
+	private double[] mCpuSize;
+	private double[][] mandatoryMap;
+	private double[][][] bandwidthMap;
 	
 	public Algorithm(final List<FogDevice> fogDevices, final List<Application> applications,
 			final List<Sensor> sensors, final List<Actuator> actuators) throws IllegalArgumentException {
@@ -103,7 +104,7 @@ public abstract class Algorithm {
 		for(Sensor sensor : sensors) {
 			id.add(sensor.getId());
 			name.add(sensor.getName());
-			mips.add(0.0);
+			mips.add(1.0); // its value is irrelevant but needs to be different from 0
 			ram.add(0.0);
 			mem.add(0.0);
 			bw.add(0.0);
@@ -117,7 +118,7 @@ public abstract class Algorithm {
 		for(Actuator actuator : actuators) {
 			id.add(actuator.getId());
 			name.add(actuator.getName());
-			mips.add(0.0);
+			mips.add(1.0); // its value is irrelevant but needs to be different from 0
 			ram.add(0.0);
 			mem.add(0.0);
 			bw.add(0.0);
@@ -222,7 +223,7 @@ public abstract class Algorithm {
 		mRam = convertDoubles(ram);
 		mMem = convertDoubles(mem);
 		mBw = convertDoubles(bw);
-		mandatoryPositioning = new int[fName.length][mName.length];
+		mandatoryMap = new double[fName.length][mName.length];
 		
 		for(String deviceName : mPositioning.keySet()) {
 			
@@ -236,7 +237,20 @@ public abstract class Algorithm {
 					row = i;
 			
 			if(col != -1 && row != -1)
-				mandatoryPositioning[row][col] = 1;
+				mandatoryMap[row][col] = 1;
+		}
+		
+		mCpuSize = new double[mName.length];
+		for(Application application : applications) {
+			for(AppEdge appEdge : application.getEdges()) {
+				
+				int aux = 0;
+				for(int i = 0; i < mName.length; i++)
+					if(mName[i].equals(appEdge.getDestination()))
+						aux = i;
+					
+				mCpuSize[aux] += appEdge.getTupleCpuLength();
+			}
 		}
 		
 		if(PRINT_DETAILS) {
@@ -250,6 +264,7 @@ public abstract class Algorithm {
 				System.out.println("mRam: " + getmRam()[i]);
 				System.out.println("mMem: " + getmMem()[i]);
 				System.out.println("mBw: " + getmBw()[i]);
+				System.out.println("mCpuSize: " + getmCpuSize()[i]);
 				
 				if(i < mName.length -1)
 					System.out.println();
@@ -269,7 +284,7 @@ public abstract class Algorithm {
 				table[i+1][0] = fName[i];
 				
 				for(int j = 0; j < mName.length; j++)
-					table[i+1][j+1] = Double.toString(mandatoryPositioning[i][j]);
+					table[i+1][j+1] = Double.toString(mandatoryMap[i][j]);
 			}
 			
 			String repeated = repeate(mName.length, "%17s");
@@ -332,16 +347,36 @@ public abstract class Algorithm {
 		DijkstraAlgorithm dijkstra = new DijkstraAlgorithm(graph);
 		
 		latencyMap = new double[fName.length][fName.length];
+		bandwidthMap = new double[fName.length-1][fName.length][fName.length];
+		int iter = 0, row = 0, col = 0;
 		for(Vertex v1 : dijkstra.getNodes()) {
+			iter = 0;
+			for(int id : fId) {
+				if(Integer.parseInt(v1.getName()) == id) {
+					row = iter;
+					break;
+				}
+				iter++;
+			}
+			
 			for(Vertex v2 : dijkstra.getNodes()) {
-				dijkstra.execute(v1);
+				iter = 0;
+				for(int id : fId) {
+					if(Integer.parseInt(v2.getName()) == id) {
+						col = iter;
+						break;
+					}
+					iter++;
+				}
 				
+				dijkstra.execute(v1);
 				LinkedList<Vertex> path = dijkstra.getPath(v2);
 				
 				double latency = 0;
-				int iter = 0;
+				iter = 0;
 				if(path != null) {
 					for(Vertex v : path) {
+						double bandwidth = 0;
 						boolean found = false;
 						
 						for(FogDevice fogDevice : fogDevices) {
@@ -350,6 +385,7 @@ public abstract class Algorithm {
 									if(iter < path.size() - 1 &&
 											Integer.parseInt(path.get(iter+1).getName()) == neighborId) {
 										latency += (double) fogDevice.getLatencyMap().get(neighborId);
+										bandwidth = (double) 1/fogDevice.getHost().getBw();
 										found = true;
 										break;
 									}
@@ -363,6 +399,7 @@ public abstract class Algorithm {
 								if(Integer.parseInt(v.getName()) == sensor.getId()) {
 									found = true;
 									latency += sensor.getLatency();
+									bandwidth = 0;
 									break;
 								}
 							}
@@ -373,25 +410,29 @@ public abstract class Algorithm {
 								if(Integer.parseInt(v.getName()) == actuator.getId()) {
 									found = true;
 									latency += actuator.getLatency();
+									bandwidth = 0;
 									break;
 								}
 							}
 						}
+						
+						if(iter < path.size()-1)
+							bandwidthMap[iter][row][col] = bandwidth;
 						iter++;
 					}
 				}
 				
-				int col = 0;
-				int row = 0;
+				int c = 0;
+				int r = 0;
 				for(int i = 0; i < fId.length; i++) {
 					if(fId[i] == Integer.parseInt(v1.getName()))
-						col = i;
+						c = i;
 					
 					if(fId[i] == Integer.parseInt(v2.getName()))
-						row = i;
+						r = i;
 				}
 				
-				latencyMap[col][row] = latency;
+				latencyMap[c][r] = latency;
 			}
 		}
 		
@@ -400,7 +441,7 @@ public abstract class Algorithm {
 			System.out.println("\t\tLATENCY MAP:");
 			System.out.println("*******************************************************\n");
 			
-			final String[][] table = new String[fId.length+1][fId.length+1];
+			String[][] table = new String[fId.length+1][fId.length+1];
 			
 			table[0][0] = " ";
 			for(int i = 0; i < fId.length; i++)
@@ -415,14 +456,42 @@ public abstract class Algorithm {
 			
 			String repeated = repeate(fId.length, "%13s");
 			
-			for (final Object[] row : table)
-			    System.out.format("%23s" + repeated + "\n", row);
+			for (final Object[] r : table)
+			    System.out.format("%23s" + repeated + "\n", r);
+			
+			
+			System.out.println("\n*******************************************************");
+			System.out.println("\t\tBANDWIDTH MAP:");
+			System.out.println("*******************************************************\n");
+			
+			for(iter = 0; iter < fId.length-1; iter++) {
+				table = new String[fId.length+1][fId.length+1];
+				
+				table[0][0] = " ";
+				for(int i = 0; i < fId.length; i++)
+					table[0][i+1] = fName[i];
+				
+				for(int i = 0; i < fId.length; i++) {
+					table[i+1][0] = fName[i];
+					
+					for(int j = 0; j < fId.length; j++)
+						table[i+1][j+1] = Double.toString(bandwidthMap[iter][i][j]);
+				}
+				
+				repeated = repeate(fId.length, "%13s");
+				
+				for (final Object[] r : table)
+				    System.out.format("%23s" + repeated + "\n", r);
+				
+				if(iter < fId.length-2)
+					System.out.println();
+			}
 		}
 	}
 	
 	private void computeDependencyMap(final List<Application> applications) {
-		
-		dependencyMap = new int[mName.length][mName.length];
+		nwSizeMap = new double[mName.length][mName.length];	
+		dependencyMap = new double[mName.length][mName.length];
 		for(Application application : applications) {
 			for(AppEdge appEdge : application.getEdges()) {
 				
@@ -436,6 +505,7 @@ public abstract class Algorithm {
 				}
 				
 				dependencyMap[col][row] = 1;
+				nwSizeMap[col][row] = appEdge.getTupleNwLength();
 			}
 		}
 		
@@ -444,7 +514,7 @@ public abstract class Algorithm {
 			System.out.println("\t\tDEPENDENCY MAP:");
 			System.out.println("*******************************************************\n");
 			
-			final String[][] table = new String[mName.length+1][mName.length+1];
+			String[][] table = new String[mName.length+1][mName.length+1];
 			
 			table[0][0] = " ";
 			for(int i = 0; i < mName.length; i++)
@@ -458,6 +528,28 @@ public abstract class Algorithm {
 			}
 			
 			String repeated = repeate(mName.length, "%17s");
+			
+			for (final Object[] row : table)
+			    System.out.format("%23s" + repeated + "\n", row);
+			
+			System.out.println("\n*******************************************************");
+			System.out.println("\t\tNW SIZE MAP:");
+			System.out.println("*******************************************************\n");
+			
+			table = new String[mName.length+1][mName.length+1];
+			
+			table[0][0] = " ";
+			for(int i = 0; i < mName.length; i++)
+				table[0][i+1] = mName[i];
+			
+			for(int i = 0; i < mName.length; i++) {
+				table[i+1][0] = mName[i];
+				
+				for(int j = 0; j < mName.length; j++)
+					table[i+1][j+1] = Double.toString(nwSizeMap[i][j]);
+			}
+			
+			repeated = repeate(mName.length, "%17s");
 			
 			for (final Object[] row : table)
 			    System.out.format("%23s" + repeated + "\n", row);
@@ -491,13 +583,105 @@ public abstract class Algorithm {
 	    return ret;
 	}
 	
-	private static String repeate(int i, String s) {
-	    StringBuilder sb = new StringBuilder();
-	    for (int j = 0; j < i; j++)
-	      sb.append(s);
-	    return sb.toString();
-	  }
+	protected static String repeate(int i, String s) {
+		StringBuilder sb = new StringBuilder();
+		for (int j = 0; j < i; j++)
+			sb.append(s);
+		return sb.toString();
+    }
 	
+	public int moduleHasMandatoryPositioning(int col) {
+		for(int i = 0; i < mandatoryMap.length; i++)
+			if(mandatoryMap[i][col] == 1)
+				return i;
+		return -1;
+	}
+	
+	public static double[][] multiplyMatrices(double[][] firstMatrix, double[][] secondMatrix)
+			throws IllegalArgumentException {
+		
+		if(firstMatrix == null || secondMatrix == null)
+			throw new IllegalArgumentException("Some of the received arguments are null");
+		
+		int r1 = firstMatrix.length;
+		int c1 = firstMatrix[0].length;
+		int r2 = secondMatrix.length;
+		int c2 = secondMatrix[0].length;
+		
+		if(c1 != r2)
+			throw new IllegalArgumentException("Impossible to preform the required matrix multiplication");
+		
+		double[][] product = new double[r1][c2];
+        
+        for(int i = 0; i < r1; i++)
+            for (int j = 0; j < c2; j++)
+                for (int k = 0; k < c1; k++)
+                    product[i][j] += firstMatrix[i][k] * secondMatrix[k][j];
+        
+        return product;
+    }
+	
+	public static double[][] transposeMatrix(double [][] matrix) throws IllegalArgumentException {
+		if(matrix == null)
+			throw new IllegalArgumentException("Invalid argument");
+		
+		double[][] temp = new double[matrix[0].length][matrix.length];
+        for (int i = 0; i < matrix.length; i++)
+            for (int j = 0; j < matrix[0].length; j++)
+                temp[j][i] = matrix[i][j];
+        return temp;
+    }
+	
+	public static double[][] dotProductMatrices(double[][] firstMatrix, double[][] secondMatrix)
+			throws IllegalArgumentException {
+		
+		if(firstMatrix == null || secondMatrix == null)
+			throw new IllegalArgumentException("Some of the received arguments are null");
+		
+		int r1 = firstMatrix.length;
+		int c1 = firstMatrix[0].length;
+		int r2 = secondMatrix.length;
+		int c2 = secondMatrix[0].length;
+		
+		if(r1 != r2 || c1 != c2)
+			throw new IllegalArgumentException("Impossible to preform the required dot product");
+		
+		double[][] product = new double[r1][c1];
+        
+        for(int i = 0; i < r1; i++)
+            for (int j = 0; j < c1; j++)
+                    product[i][j] = firstMatrix[i][j] * secondMatrix[i][j];
+        
+        return product;
+	}
+	
+	public static double sumAllElementsMatrix(double[][] matrix) throws IllegalArgumentException {
+		if(matrix == null)
+			throw new IllegalArgumentException("Invalid argument");
+		
+		int r = matrix.length;
+		int c = matrix[0].length;
+        double ret = 0;
+		
+        for(int i = 0; i < r; i++)
+            for (int j = 0; j < c; j++)
+            	ret += matrix[i][j];
+        
+        return ret;
+	}
+	
+	public static void printMatrix(double[][] matrix) {		
+		int r = matrix.length;
+		int c = matrix[0].length;
+		
+        for(int i = 0; i < r; i++) {
+            for (int j = 0; j < c; j++)
+            	System.out.print(matrix[i][j] + " ");
+            System.out.println();
+        }
+        
+        System.out.println("\n");
+	}
 	
 	public abstract Map<String, List<String>> execute();
 
@@ -556,6 +740,10 @@ public abstract class Algorithm {
 	public double[] getmBw() {
 		return mBw;
 	}
+	
+	public double[] getmCpuSize(){
+		return mCpuSize;
+	}
 
 	public PowerModel[] getfPwModel() {
 		return fPwModel;
@@ -565,12 +753,20 @@ public abstract class Algorithm {
 		return latencyMap;
 	}
 	
-	public int[][] getDependencyMap() {
+	public double[][] getDependencyMap() {
 		return dependencyMap;
 	}
 	
-	public int[][] getMandatoryPositioning() {
-		return mandatoryPositioning;
+	public double[][] getMandatoryMap() {
+		return mandatoryMap;
+	}
+	
+	public double[][] getBandwidthMap(int iter){
+		return bandwidthMap[iter];
+	}
+	
+	public double[][] getNwSizeMap(){
+		return nwSizeMap;
 	}
 	
 }

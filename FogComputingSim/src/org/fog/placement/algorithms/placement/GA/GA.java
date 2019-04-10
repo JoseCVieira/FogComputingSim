@@ -12,9 +12,9 @@ import org.fog.entities.Sensor;
 import org.fog.placement.algorithms.placement.Algorithm;
 
 public class GA extends Algorithm {
-	private static final int POPULATION_SIZE = 100;
+	private static final int POPULATION_SIZE = 2;
 	private static final double AGREED_BOUNDARY = 0.0;
-	private static final int MAX_ITER = 5000;
+	private static final int MAX_ITER = 1;
 	
 	public GA(final List<FogDevice> fogDevices, final List<Application> applications,
 			final List<Sensor> sensors, final List<Actuator> actuators) {
@@ -30,14 +30,14 @@ public class GA extends Algorithm {
 		int generation = 1;
 		boolean found = false;
 		Individual[] population = new Individual[POPULATION_SIZE];
-	  
+		 
 	    // create initial population
 	    for (int i = 0; i < POPULATION_SIZE; i++) {
-	    	int[][] chromosome = Individual.createChromosome(NR_FOG_NODES, NR_MODULES);
+	    	double[][] chromosome = Individual.createChromosome(this, NR_FOG_NODES, NR_MODULES);
 	    	Individual individual = new Individual(this, chromosome);
 	    	population[i] = individual;
 	    }
-	    	  
+	    
 	    while (!found && generation <= MAX_ITER) {
 	    	// sort the population in increasing order of fitness score    	
     		Arrays.sort(population);
@@ -74,8 +74,30 @@ public class GA extends Algorithm {
 	        generation++;
 	    }
 	  
-	    System.out.println("\n---- ---- END ---- ----");
-	    System.out.println("Generation: " + generation + "\n" + population[0]);
+	    if(PRINT_DETAILS) {
+	    	System.out.println("\n*******************************************************");
+			System.out.println("\t\tALGORITHM OUTPUT (generation = " + generation + " Cost = " +
+					population[0].getFitness() + "):");
+			System.out.println("*******************************************************\n");
+			
+			final String[][] table = new String[getfName().length+1][getmName().length+1];
+			
+			table[0][0] = " ";
+			for(int i = 0; i < getmName().length; i++)
+				table[0][i+1] = getmName()[i];
+			
+			for(int i = 0; i < getfName().length; i++) {
+				table[i+1][0] = getfName()[i];
+				
+				for(int j = 0; j < getmName().length; j++)
+					table[i+1][j+1] = Double.toString(population[0].getChromosome()[i][j]);
+			}
+			
+			String repeated = repeate(getmName().length, "%17s");
+			
+			for (final Object[] row : table)
+			    System.out.format("%23s" + repeated + "\n", row);
+	    }
 	    
 	    System.exit(0);
 	    return null;

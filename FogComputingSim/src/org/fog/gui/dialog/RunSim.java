@@ -3,6 +3,7 @@ package org.fog.gui.dialog;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
@@ -171,6 +172,8 @@ public class RunSim extends JDialog {
 	    				System.exit(0);
 					}
     			} catch (Exception e) {
+    				System.err.println(e);
+    				System.err.println("Unwanted error happened while running the optimization algorithm");
     				System.err.println("FogComputingSim will terminate abruptally.\n");
     				System.exit(0);
 				}
