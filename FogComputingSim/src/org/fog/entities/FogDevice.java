@@ -24,49 +24,49 @@ import org.fog.application.AppLoop;
 import org.fog.application.AppModule;
 import org.fog.application.Application;
 import org.fog.placement.Controller;
-import org.fog.placement.ModulePlacement;
 import org.fog.utils.Config;
 import org.fog.utils.FogEvents;
 import org.fog.utils.Logger;
 import org.fog.utils.NetworkUsageMonitor;
 import org.fog.utils.TimeKeeper;
-import org.fog.placement.algorithms.routing.DijkstraAlgorithm;
-import org.fog.placement.algorithms.routing.Vertex;
 
 public class FogDevice extends PowerDatacenter {
 	private static final boolean PRINT_COMMUNICATION_DETAILS = false;
 	private static final boolean PRINT_COST_DETAILS = false;
 	
-	protected Map<String, Map<String, Integer>> moduleInstanceCount;
-	protected List<Pair<Integer, Double>> associatedActuatorIds;
-	protected Map<String, List<String>> appToModulesMap;
-	protected List<String> activeApplications;
+	private Map<String, Map<String, Integer>> moduleInstanceCount;
+	private List<Pair<Integer, Double>> associatedActuatorIds;
+	private Map<String, List<String>> appToModulesMap;
+	private List<String> activeApplications;
 	
 	private Queue<Pair<Tuple, Integer>> tupleQueue;
 	private boolean tupleLinkBusy;
 	
-	protected double lastMipsUtilization;
-	protected double lastRamUtilization;
-	protected double lastMemUtilization;
-	protected double lastBwUtilization;
+	private double lastMipsUtilization;
+	private double lastRamUtilization;
+	private double lastMemUtilization;
+	private double lastBwUtilization;
 	
 	private List<Integer> neighborsIds;
 	private Controller controller;
 	
-	protected Map<Integer, Double> latencyMap;
+	private Map<Integer, Double> latencyMap;
+	private Map<String, Integer> routingMap;
 	
 	private double lastUtilizationUpdateTime;
-	protected double energyConsumption;
-	protected double totalCost;
+	private double energyConsumption;
+	private double totalCost;
 	
-	public FogDevice(String name, FogDeviceCharacteristics characteristics, VmAllocationPolicy vmAllocationPolicy,
-			List<Storage> storageList, double schedulingInterval) throws Exception {
+	public FogDevice(String name, FogDeviceCharacteristics characteristics,
+			VmAllocationPolicy vmAllocationPolicy, List<Storage> storageList,
+			double schedulingInterval, Map<String, Integer> routingMap) throws Exception {
 		super(name, characteristics, vmAllocationPolicy, storageList, schedulingInterval);
 		
 		setModuleInstanceCount(new HashMap<String, Map<String, Integer>>());
 		setAssociatedActuatorIds(new ArrayList<Pair<Integer, Double>>());
 		appToModulesMap = new HashMap<String, List<String>>();
 		setActiveApplications(new ArrayList<String>());
+		setRoutingMap(routingMap);
 		
 		setTupleQueue(new LinkedList<Pair<Tuple, Integer>>());
 		setTupleLinkBusy(false);
@@ -383,7 +383,7 @@ public class FogDevice extends PowerDatacenter {
 		}
 		
 		if(PRINT_COMMUNICATION_DETAILS) printCommunication(tuple);
-		sendTo(tuple, findNextHopCommunication(tuple));
+		sendTo(tuple, routingMap.get(tuple.getDestModuleName())/*findNextHopCommunication(tuple)*/);
 	}
 
 	protected void processTupleArrival(SimEvent ev){
@@ -428,7 +428,7 @@ public class FogDevice extends PowerDatacenter {
 			executeTuple(ev, tuple.getDestModuleName());
 		}else{
 			if(PRINT_COMMUNICATION_DETAILS) printCommunication(tuple);
-			sendTo(tuple, findNextHopCommunication(tuple));
+			sendTo(tuple, routingMap.get(tuple.getDestModuleName())/*findNextHopCommunication(tuple)*/);
 		}
 	}
 
@@ -550,7 +550,7 @@ public class FogDevice extends PowerDatacenter {
 	 * @param tuple
 	 * @return
 	 */
-	private int findNextHopCommunication(Tuple tuple) {
+	/*private int findNextHopCommunication(Tuple tuple) {
 		Application app = controller.getApplications().get(tuple.getAppId());
 		ModulePlacement modulePlacement = controller.getAppModulePlacementPolicy().get(app.getAppId());
 		
@@ -581,12 +581,12 @@ public class FogDevice extends PowerDatacenter {
 		dijkstra.execute(initNode);
 		LinkedList<Vertex> path = dijkstra.getPath(destNode);
 		return Integer.parseInt(path.get(1).getName());
-	}
+	}*/
 	
 	private void printCommunication(Tuple tuple){
 		System.out.println("Tuple" + tuple);
 		System.out.println("From: " + getId());
-		System.out.println("To: " + findNextHopCommunication(tuple) + "\n\n");
+		System.out.println("To: " + routingMap.get(tuple.getDestModuleName())/*findNextHopCommunication(tuple)*/ + "\n\n");
 	}
 	
 	private void printCost() {
@@ -680,6 +680,14 @@ public class FogDevice extends PowerDatacenter {
 	
 	public Controller getController() {
 		return controller;
+	}
+	
+	public Map<String, Integer> getRoutingMap() {
+		return routingMap;
+	}
+
+	public void setRoutingMap(Map<String, Integer> routingMap) {
+		this.routingMap = routingMap;
 	}
 	
 	@Override

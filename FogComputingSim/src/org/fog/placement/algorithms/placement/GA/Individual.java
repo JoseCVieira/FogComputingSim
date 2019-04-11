@@ -65,16 +65,19 @@ public class Individual implements Comparable<Individual> {
 	private double calculateFitness() {
 		double fitness;
 		
-		if((fitness = calculateOperationalCost()) == Double.MAX_VALUE) // Exceeds resource capacity
-			return fitness;
+		if(!isPossibleCombination())
+			return Double.MAX_VALUE;
+		
+		fitness = calculateOperationalCost();
+		System.out.println("fitness1: " + fitness);
 		fitness += calculateEnergyConsumption();
-		fitness += calculateProcessingLatency();
-		fitness += calculateTransmittingLatency();
+		System.out.println("fitness2: " + fitness + "\n\n");
+		/*fitness += calculateProcessingLatency();
+		fitness += calculateTransmittingLatency();*/
 		return fitness;
 	}
 	
-	private double calculateOperationalCost() {
-		double cost = 0;
+	private boolean isPossibleCombination() {
 		
 		for(int i = 0; i < chromosome.length; i++) {
 			double totalMips = 0;
@@ -87,17 +90,25 @@ public class Individual implements Comparable<Individual> {
 				totalRam += chromosome[i][j] * ga.getmRam()[j];
 				totalMem += chromosome[i][j] * ga.getmMem()[j];
 				totalBw += chromosome[i][j] * ga.getmBw()[j];
-				
-				cost += chromosome[i][j] * 
-						(ga.getfMipsPrice()[i] * ga.getmMips()[j] +
-						 ga.getfRamPrice()[i] * ga.getmRam()[j] +
-					     ga.getfMemPrice()[i] * ga.getmMem()[j] +
-					     ga.getfBwPrice()[i] * ga.getmBw()[j]);
 			}
 			
 			if(totalMips > ga.getfMips()[i] || totalRam > ga.getfRam()[i] ||
 					totalMem > ga.getfMem()[i] || totalBw > ga.getfBw()[i])
-				return Double.MAX_VALUE;
+				return false;
+		}
+		return true;
+	}
+	
+	private double calculateOperationalCost() {
+		double cost = 0;
+		
+		for(int i = 0; i < chromosome.length; i++) {
+			for(int j = 0; j < chromosome[i].length; j++) {
+				cost += chromosome[i][j] * (ga.getfMipsPrice()[i] * ga.getmMips()[j] +
+						ga.getfRamPrice()[i] * ga.getmRam()[j] +
+						ga.getfMemPrice()[i] * ga.getmMem()[j] +
+						ga.getfBwPrice()[i] * ga.getmBw()[j]);
+			}
 		}
 		
 		return cost;
@@ -114,7 +125,11 @@ public class Individual implements Comparable<Individual> {
 			
 			if(ga.getfPwModel()[i] != null)
 				energy += ga.getfPwModel()[i].getPower(totalMips/ga.getfMips()[i]);
+			
 		}
+		
+		AlgorithmUtils.printMatrix(chromosome);
+		System.out.println("energy: " + energy);
 		
 		return energy;
 	}
