@@ -9,10 +9,10 @@ import org.fog.application.Application;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
-import org.fog.placement.algorithms.placement.Algorithm;
+import org.fog.placement.algorithms.placement.AlgorithmResolution;
 import org.fog.placement.algorithms.placement.AlgorithmUtils;
 
-public class GA extends Algorithm {
+public class GA extends AlgorithmResolution {
 	private static final int POPULATION_SIZE = 2;
 	private static final double AGREED_BOUNDARY = 0.0;
 	private static final int MAX_ITER = 1;

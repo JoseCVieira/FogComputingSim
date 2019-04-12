@@ -64,7 +64,7 @@ public class RunSim extends JDialog {
 	private static final long serialVersionUID = -8313194085507492462L;
 	private static final boolean DEBUG_MODE = false;
 	private static final boolean PRINT_PLACEMENT = true;
-	private static final String OPTIMIZATION_ALGORITHM = "GA";
+	private static final String OPTIMIZATION_ALGORITHM = "LP";
 	
 	private static List<Application> applications = new ArrayList<Application>();
 	private static List<FogBroker> fogBrokers = new ArrayList<FogBroker>();
@@ -155,16 +155,18 @@ public class RunSim extends JDialog {
     				applications.add(application);
     			}
     			
-    			Map<String, List<String>> mapPlacement = null;
-    			try {
+    			Map<String, List<String>> placementMap = null;
+    			Map<Map<String, String>, Integer> routingMap = null;
+    			/*try {
 	    			switch (OPTIMIZATION_ALGORITHM) {
 					case "LP":
 						LP lp = new LP(fogDevices, applications, sensors, actuators);
-						mapPlacement = lp.execute();
+						placementMap = lp.execute();
 						break;
 					case "GA":
 						GA ga = new GA(fogDevices, applications, sensors, actuators);
-						mapPlacement = ga.execute();
+						placementMap = ga.execute();
+						routingMap = ga.extractRoutingMap(placementMap, fogDevices);
 						break;
 					default:
 	    				System.err.println("Unknown algorithm.\nFogComputingSim will terminate abruptally.\n");
@@ -175,16 +177,22 @@ public class RunSim extends JDialog {
     				System.err.println("Unwanted error happened while running the optimization algorithm");
     				System.err.println("FogComputingSim will terminate abruptally.\n");
     				System.exit(0);
-				}
+				}*/
     			
-    			if(mapPlacement == null) {
+    			LP lp = new LP(fogDevices, applications, sensors, actuators);
+				placementMap = lp.execute();
+    			routingMap = lp.extractRoutingMap(placementMap, fogDevices);
+    			
+    			if(placementMap == null || routingMap == null) {
     				System.err.println("There is no possible combination to deploy all applications.\n");
     				System.err.println("FogComputingSim will terminate abruptally.\n");
     				System.exit(0);
     			}
     			
-    			if(PRINT_PLACEMENT)
-    				printPlacement(mapPlacement);
+    			if(PRINT_PLACEMENT) {
+    				printPlacement(placementMap);
+    				printRouting(routingMap);
+    			}
     			
     			System.exit(0);
     			
@@ -194,8 +202,8 @@ public class RunSim extends JDialog {
     				ModuleMapping moduleMapping = ModuleMapping.createModuleMapping();
     				
     				for(AppModule appModule : application.getModules())
-    					for(String fogString : mapPlacement.keySet())
-    						if(mapPlacement.get(fogString).contains(appModule.getName()))
+    					for(String fogString : placementMap.keySet())
+    						if(placementMap.get(fogString).contains(appModule.getName()))
     							moduleMapping.addModuleToDevice(appModule.getName(), fogString);
     				
 					controller.submitApplication(application, new ModulePlacementMapping(fogDevices, application, moduleMapping));
@@ -430,6 +438,16 @@ public class RunSim extends JDialog {
 				System.out.print("\n" + fogDevName + ":");
 				for(String modName : map.get(fogDevName))
 					System.out.print("  " + modName);
+			}
+			System.out.println("\n");
+		}
+		
+		private void printRouting(Map<Map<String, String>, Integer> map) {
+			System.out.println("\n\nROUTING MAP:");
+			for(Map<String, String> map2 : map.keySet()) {
+				for(String node : map2.keySet())
+					System.out.print("\nFog Node: " + node + " | Module: " +
+				map2.get(node) + " | Next node: " + map.get(map2));
 			}
 			System.out.println("\n");
 		}

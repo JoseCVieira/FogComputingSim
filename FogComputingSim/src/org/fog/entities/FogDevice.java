@@ -59,14 +59,13 @@ public class FogDevice extends PowerDatacenter {
 	
 	public FogDevice(String name, FogDeviceCharacteristics characteristics,
 			VmAllocationPolicy vmAllocationPolicy, List<Storage> storageList,
-			double schedulingInterval, Map<String, Integer> routingMap) throws Exception {
+			double schedulingInterval) throws Exception {
 		super(name, characteristics, vmAllocationPolicy, storageList, schedulingInterval);
 		
 		setModuleInstanceCount(new HashMap<String, Map<String, Integer>>());
 		setAssociatedActuatorIds(new ArrayList<Pair<Integer, Double>>());
 		appToModulesMap = new HashMap<String, List<String>>();
 		setActiveApplications(new ArrayList<String>());
-		setRoutingMap(routingMap);
 		
 		setTupleQueue(new LinkedList<Pair<Tuple, Integer>>());
 		setTupleLinkBusy(false);
