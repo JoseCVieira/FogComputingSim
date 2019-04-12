@@ -123,9 +123,7 @@ public class Individual implements Comparable<Individual> {
 			for(int j = 0; j < chromosome[i].length; j++)
 				totalMips += chromosome[i][j] * ga.getmMips()[j];
 			
-			if(ga.getfPwModel()[i] != null)
-				energy += ga.getfPwModel()[i].getPower(totalMips/ga.getfMips()[i]);
-			
+			energy += (ga.getfBusyPw()[i]-ga.getfIdlePw()[i])*(totalMips/ga.getfMips()[i]);
 		}
 		
 		AlgorithmUtils.printMatrix(chromosome);

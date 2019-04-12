@@ -9,12 +9,12 @@ import org.fog.application.Application;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
-import org.fog.placement.algorithms.placement.AlgorithmResolution;
+import org.fog.placement.algorithms.placement.Algorithm;
 
 import ilog.concert.*;
 import ilog.cplex.*;
 
-public class LP extends AlgorithmResolution {
+public class LP extends Algorithm {
 	
 	public LP(final List<FogDevice> fogDevices, final List<Application> applications,
 			final List<Sensor> sensors, final List<Actuator> actuators) {
