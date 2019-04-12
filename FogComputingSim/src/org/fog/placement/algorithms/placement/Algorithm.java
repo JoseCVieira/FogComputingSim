@@ -344,14 +344,14 @@ public abstract class Algorithm {
 	
 	private int getModuleIndexByModuleName(String name) {
 		for(int i = 0; i < NR_MODULES; i++)
-			if(mName[i].equals(name))
+			if(mName[i] != null && mName[i].equals(name))
 				return i;
 		return -1;
 	}
 	
 	private int getNodeIndexByNodeName(String name) {
 		for(int i = 0; i < NR_NODES; i++)
-			if(fName[i].equals(name))
+			if(fName[i] != null && fName[i].equals(name))
 				return i;
 		return -1;
 	}
