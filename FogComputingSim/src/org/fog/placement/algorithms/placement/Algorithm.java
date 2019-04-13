@@ -202,7 +202,6 @@ public abstract class Algorithm {
 			for(int neighborId : fogDevice.getNeighborsIds()) {
 				int lat = fogDevice.getLatencyMap().get(neighborId).intValue();
 				edges.add(new Edge(mapNodes.get(dId), mapNodes.get(neighborId), lat));
-				edges.add(new Edge(mapNodes.get(neighborId), mapNodes.get(dId), lat));
 			}
 		}
 		
@@ -258,6 +257,7 @@ public abstract class Algorithm {
 								// tuples from sensors/ to actuators only have latency
 								if(fBw[sourceIndex] != 0 && fBw[destinationIndex] != 0)
 									bandwidth = fBw[sourceIndex];
+								
 								latency += edge.getWeight();
 							}
 						}
