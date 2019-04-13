@@ -155,10 +155,10 @@ public class GraphView extends JPanel {
 					}
 				}
 
-				for (Entry<Node, List<Edge>> entry : graph.getDevicesList().entrySet()) {
+				for (Entry<Node, List<Link>> entry : graph.getDevicesList().entrySet()) {
 					Coordinates startNode = coordForNodes.get(entry.getKey());
 
-					for (Edge edge : entry.getValue()) {
+					for (Link edge : entry.getValue()) {
 						Coordinates targetNode = coordForNodes.get(edge.getNode());
 						g.setColor(Color.RED);
 						drawArrow(g, startNode.getX(), startNode.getY(), targetNode.getX(), targetNode.getY());

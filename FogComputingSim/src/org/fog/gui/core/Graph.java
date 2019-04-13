@@ -16,28 +16,28 @@ import org.fog.utils.Config;
 public class Graph implements Serializable {
 	private static final long serialVersionUID = 745864022429447529L;
 	
-	private Map<Node, List<Edge>> devicesList;
+	private Map<Node, List<Link>> devicesList;
 	private List<ApplicationGui> appList;
 
 	public Graph() {
-		devicesList = new HashMap<Node, List<Edge>>();
+		devicesList = new HashMap<Node, List<Link>>();
 		appList = new ArrayList<ApplicationGui>();
 	}
 
-	public Graph(Map<Node, List<Edge>> devicesList) {
+	public Graph(Map<Node, List<Link>> devicesList) {
 		this.devicesList = devicesList;
 	}
 
 	/** Adds a given device to the devicesList. If the base node is not yet part of the devicesList a new entry is added */
-	public void addEdge(Node key, Edge value) {
+	public void addEdge(Node key, Link value) {
 		if (devicesList.containsKey(key)) {
 			if (devicesList.get(key) == null)
-				devicesList.put(key, new ArrayList<Edge>());
+				devicesList.put(key, new ArrayList<Link>());
 			
 			if (value != null)
 				devicesList.get(key).add(value);
 		} else {
-			List<Edge> edges = new ArrayList<Edge>();
+			List<Link> edges = new ArrayList<Link>();
 			if (value != null)
 				edges.add(value);
 
@@ -50,19 +50,19 @@ public class Graph implements Serializable {
 		addEdge(node, null);
 	}
 
-	public void removeEdge(Node key, Edge value) {
+	public void removeEdge(Node key, Link value) {
 		if (!devicesList.containsKey(key))
 			throw new IllegalArgumentException("The devices list does not contain a node for the given key: " + key);
-		List<Edge> edges = devicesList.get(key);
+		List<Link> edges = devicesList.get(key);
 
 		if (!edges.contains(value)) 
 			throw new IllegalArgumentException("The list of edges does not contain the given edge to remove: " + value);
 
 		edges.remove(value);
 		// remove bidirectional
-		List<Edge> reverseEdges = devicesList.get(value.getNode());
-		List<Edge> toRemove = new ArrayList<Edge>();
-		for (Edge edge : reverseEdges) {
+		List<Link> reverseEdges = devicesList.get(value.getNode());
+		List<Link> toRemove = new ArrayList<Link>();
+		for (Link edge : reverseEdges) {
 			if (edge.getNode().equals(key)) {
 				toRemove.add(edge);
 			}
@@ -79,10 +79,10 @@ public class Graph implements Serializable {
 		devicesList.remove(key);
 
 		// clean up all edges
-		for (Entry<Node, List<Edge>> entry : devicesList.entrySet()) {
-			List<Edge> toRemove = new ArrayList<Edge>();
+		for (Entry<Node, List<Link>> entry : devicesList.entrySet()) {
+			List<Link> toRemove = new ArrayList<Link>();
 
-			for (Edge edge : entry.getValue())
+			for (Link edge : entry.getValue())
 				if (edge.getNode().equals(key))
 					toRemove.add(edge);
 			
@@ -121,18 +121,18 @@ public class Graph implements Serializable {
 		return Bridge.graphToJson(this);
 	}
 	
-	public void setDevicesList(Map<Node, List<Edge>> devicesList) {
+	public void setDevicesList(Map<Node, List<Link>> devicesList) {
 		this.devicesList = devicesList;
 	}
 
-	public Map<Node, List<Edge>> getDevicesList() {
+	public Map<Node, List<Link>> getDevicesList() {
 		return devicesList;
 	}
 	
 	public int getMaxLevel() {
 		int maxLevel = -1;
 		
-		for (Entry<Node, List<Edge>> entry : devicesList.entrySet()) {
+		for (Entry<Node, List<Link>> entry : devicesList.entrySet()) {
 			Node node = entry.getKey();
 			
 			if(node.getType() == Config.FOG_TYPE) {

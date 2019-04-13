@@ -43,9 +43,9 @@ import org.fog.entities.FogDeviceCharacteristics;
 import org.fog.entities.Sensor;
 import org.fog.gui.core.ActuatorGui;
 import org.fog.gui.core.ApplicationGui;
-import org.fog.gui.core.Edge;
 import org.fog.gui.core.FogDeviceGui;
 import org.fog.gui.core.Graph;
+import org.fog.gui.core.Link;
 import org.fog.gui.core.Node;
 import org.fog.gui.core.SensorGui;
 import org.fog.placement.Controller;
@@ -238,14 +238,14 @@ public class RunSim extends JDialog {
 				if(node.getType().equals(Config.FOG_TYPE))
 					fogDevices.add(createFogDevice((FogDeviceGui)node));
 			
-			for (Entry<Node, List<Edge>> entry : graph.getDevicesList().entrySet()) {
+			for (Entry<Node, List<Link>> entry : graph.getDevicesList().entrySet()) {
 				if(!entry.getKey().getType().equals(Config.FOG_TYPE))
 					continue;
 				
 				FogDeviceGui fog1 = (FogDeviceGui)entry.getKey();
 				FogDevice f1 = getFogDeviceByName(fog1.getName());
 				
-				for (Edge edge : entry.getValue()) {
+				for (Link edge : entry.getValue()) {
 					if(!edge.getNode().getType().equals(Config.FOG_TYPE))
 						continue;						
 						
@@ -338,8 +338,8 @@ public class RunSim extends JDialog {
 				if(node.getName().equals(clientName))
 					client = (FogDeviceGui) node;
 			
-			for (Entry<Node, List<Edge>> entry : graph.getDevicesList().entrySet()) {
-				for (Edge edge : entry.getValue()) {
+			for (Entry<Node, List<Link>> entry : graph.getDevicesList().entrySet()) {
+				for (Link edge : entry.getValue()) {
 					if(entry.getKey().equals(client)){
 						if(edge.getNode().getType().equals(Config.SENSOR_TYPE)) {
 							sensor = (SensorGui)edge.getNode();

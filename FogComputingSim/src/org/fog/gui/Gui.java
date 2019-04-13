@@ -19,10 +19,10 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.fog.gui.core.Bridge;
-import org.fog.gui.core.Edge;
 import org.fog.gui.core.FogDeviceGui;
 import org.fog.gui.core.Graph;
 import org.fog.gui.core.GraphView;
+import org.fog.gui.core.Link;
 import org.fog.gui.core.Node;
 import org.fog.gui.dialog.About;
 import org.fog.gui.dialog.AddActuator;
@@ -349,7 +349,7 @@ public class Gui extends JFrame {
     		
     		boolean isConnected = false;
     		for(Node node1 : physicalGraph.getDevicesList().keySet())
-				for(Edge edge : physicalGraph.getDevicesList().get(node1))
+				for(Link edge : physicalGraph.getDevicesList().get(node1))
 					if(edge.getNode().getName().equals(node.getName()) || node1.getName().equals(node.getName()))
 						isConnected =  true;
     		
@@ -375,7 +375,7 @@ public class Gui extends JFrame {
 		
 		for(Node node : physicalGraph.getDevicesList().keySet()) {
 			if(fogNode.equals(node)) {
-				for(Edge edge : physicalGraph.getDevicesList().get(node)) {
+				for(Link edge : physicalGraph.getDevicesList().get(node)) {
 	    			if(!sensor && edge.getNode().getType().equals(Config.SENSOR_TYPE))
 	    				sensor = true;
 	    			
@@ -386,7 +386,7 @@ public class Gui extends JFrame {
 	    				break;
 	    		}
 			}else if(node.getType().equals(Config.SENSOR_TYPE) || node.getType().equals(Config.ACTUATOR_TYPE)) {
-				for(Edge edge : physicalGraph.getDevicesList().get(node)) {    					
+				for(Link edge : physicalGraph.getDevicesList().get(node)) {    					
 					if(!sensor && edge.getNode().equals(fogNode) && node.getType().equals(Config.SENSOR_TYPE))
 	    				sensor = true;
 				

@@ -32,7 +32,6 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 
-import org.fog.gui.core.Edge;
 import org.fog.gui.core.Graph;
 import org.fog.gui.core.Link;
 import org.fog.gui.core.Node;
@@ -53,6 +52,7 @@ public class AddLink extends JDialog {
 	private JComboBox<String> sourceNode;
 	private JComboBox<String> targetNode;
 	private JTextField tfLatency;
+	private JTextField tfBandwidth;
 	private DefaultTableModel dtm;
 	
 	public AddLink(final Graph graph, final JFrame frame) {
@@ -108,13 +108,13 @@ public class AddLink extends JDialog {
 				Set<Node> allNodes = graph.getDevicesList().keySet();
 
 				// get edged for selected node and throw out all target nodes where already an edge exists
-				List<Edge> edgesForSelectedNode = graph.getDevicesList().get(selectedNode);
+				List<Link> edgesForSelectedNode = graph.getDevicesList().get(selectedNode);
 				Set<Node> nodesInEdges = new HashSet<Node>();
-				for (Edge edge : edgesForSelectedNode)
+				for (Link edge : edgesForSelectedNode)
 					nodesInEdges.add(edge.getNode());
 				
 				for(Node node : graph.getDevicesList().keySet())
-					for(Edge edge : graph.getDevicesList().get(node))
+					for(Link edge : graph.getDevicesList().get(node))
 						if(edge.getNode().equals(selectedNode) && !nodesInEdges.contains(node))
 							nodesInEdges.add(node);
 
@@ -170,6 +170,13 @@ public class AddLink extends JDialog {
 		tfLatency.setMinimumSize(new Dimension(150, tfLatency.getPreferredSize().height));
 		tfLatency.setPreferredSize(new Dimension(150, tfLatency.getPreferredSize().height));
 		jPanel.add(tfLatency);
+		
+		jPanel.add(new JLabel("  Bandwidth: "));
+		tfBandwidth = new JTextField();
+		tfBandwidth.setMaximumSize(tfBandwidth.getPreferredSize());
+		tfBandwidth.setMinimumSize(new Dimension(150, tfBandwidth.getPreferredSize().height));
+		tfBandwidth.setPreferredSize(new Dimension(150, tfBandwidth.getPreferredSize().height));
+		jPanel.add(tfBandwidth);
 
 		JButton okBtn = new JButton("Add");
 		okBtn.addActionListener(new ActionListener() {
@@ -177,29 +184,21 @@ public class AddLink extends JDialog {
 			public void actionPerformed(ActionEvent e) {
 
 				double latency = 0;
-				boolean catchedError = false;
+				double bandwidth = 0;
+				String error_msg = "";
+				
+				if((latency = Util.stringToDouble(tfLatency.getText())) < 0) error_msg += "\nLatency should be a positive number";
+				if((bandwidth = Util.stringToDouble(tfBandwidth.getText())) < 0) error_msg += "\nLatency should be a positive number";
 
-				if (tfLatency.getText() == null || tfLatency.getText().isEmpty()) {
-					catchedError = true;
-					Util.prompt(AddLink.this, "Please type latency", "Error");
-				}else {
-					try {
-						latency = Double.valueOf(tfLatency.getText());											
-					} catch (NumberFormatException e1) {
-						catchedError = true;
-						Util.prompt(AddLink.this, "Latency should be double type", "Error");
-					}
-				}
-
-				if (!catchedError) {
+				if(error_msg == "") {
 					if (sourceNode.getSelectedItem() == null || targetNode.getSelectedItem() == null)
 						Util.prompt(AddLink.this, "Please select node", "Error");
 					else {
 						Node source = (Node) sourceNode.getSelectedItem();
 						Node target = (Node) targetNode.getSelectedItem();
 
-						Link edge = new Link(target, latency);
-						graph.addEdge(source, edge);
+						Link link = new Link(target, latency);
+						graph.addEdge(source, link);
 						
 						dtm.addRow(new String[] {source.getName(), target.getName(), Double.toString(latency), "✘"});
 						
@@ -223,7 +222,7 @@ public class AddLink extends JDialog {
 		jPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		inputPanelWrapper.add(jPanel);
         
-        String[] columnNames = {"From/To", "From/To", "Latency", "Remove"};
+        String[] columnNames = {"From/To", "From/To", "Latency", "Bandwidth", "Remove"};
         
         dtm = new DefaultTableModel(getConnections(), columnNames);
         JTable jtable = new JTable(dtm){
@@ -243,14 +242,14 @@ public class AddLink extends JDialog {
 			    int rowAtPoint = table.rowAtPoint(e.getPoint());
 			    int columnAtPoint = table.columnAtPoint(e.getPoint());
 			    
-			    if(columnAtPoint == 3) {
+			    if(columnAtPoint == 4) {
 			    	if(Util.confirm(AddLink.this, "Do you realy want to remove the edge [ " + table.getValueAt(rowAtPoint, 0) +
 			    			" ] <---> [ " + table.getValueAt(rowAtPoint, 1) + " ] ?") == JOptionPane.YES_OPTION) {
 			    		
 			    		for(Node node : graph.getDevicesList().keySet()) {
 			    			if(node.getName() == table.getValueAt(rowAtPoint, 0)) {
 			    				int index = 0;
-			    				for(Edge edge : graph.getDevicesList().get(node)) {
+			    				for(Link edge : graph.getDevicesList().get(node)) {
 			    					if(edge.getNode().getName() == table.getValueAt(rowAtPoint, 1))
 			    						break;
 			    					index++;
@@ -318,13 +317,14 @@ public class AddLink extends JDialog {
 		int index = 0;
 		
 		for(Node node : graph.getDevicesList().keySet()) {
-			for(Edge edge : graph.getDevicesList().get(node)) {
-				String[] list = new String[4];
+			for(Link edge : graph.getDevicesList().get(node)) {
+				String[] list = new String[5];
 				
 				list[0] = node.getName();
 				list[1] = edge.getNode().getName();
 				list[2] = Double.toString(edge.getLatency());
-				list[3] = "✘";
+				list[3] = Double.toString(edge.getBandwidth());
+				list[4] = "✘";
 				lists[index++] = list;
 			}
 		}
@@ -333,7 +333,7 @@ public class AddLink extends JDialog {
 	
 	private boolean isConnected(String name) {
 		for(Node node : graph.getDevicesList().keySet())
-			for(Edge edge : graph.getDevicesList().get(node))
+			for(Link edge : graph.getDevicesList().get(node))
 				if(edge.getNode().getName().equals(name) || node.getName().equals(name))
 					return true;
 		return false;
@@ -356,7 +356,7 @@ public class AddLink extends JDialog {
 		sa[ACTUATOR] = false;
 		
 		for(Node node : graph.getDevicesList().keySet()) {
-			for(Edge edge : graph.getDevicesList().get(node)) {
+			for(Link edge : graph.getDevicesList().get(node)) {
 				if(node.getName().equals(name)) {
 					if(edge.getNode().getType().equals(Config.SENSOR_TYPE))
 						sa[SENSOR] = true;

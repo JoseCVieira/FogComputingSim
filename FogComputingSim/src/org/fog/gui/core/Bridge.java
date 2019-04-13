@@ -101,7 +101,7 @@ public class Bridge {
 				Node target = (Node) getNode(graph, dst);
 				
 				if(source!=null && target!=null){
-					Edge edge = new Edge(target, lat);
+					Link edge = new Link(target, lat);
 					graph.addEdge(source, edge);
 				}
 			}
@@ -203,7 +203,7 @@ public class Bridge {
 		JSONArray nodes = new JSONArray();
 		JSONArray links = new JSONArray();
 		
-		for (Entry<Node, List<Edge>> entry : graph.getDevicesList().entrySet()) {
+		for (Entry<Node, List<Link>> entry : graph.getDevicesList().entrySet()) {
 			Node srcNode = entry.getKey();
 			
 			// add node
@@ -252,7 +252,7 @@ public class Bridge {
 			nodes.add(jobj);
 			
 			// add edge
-			for (Edge edge : entry.getValue()) {
+			for (Link edge : entry.getValue()) {
 				Node destNode = edge.getNode();
 
 				if (edgeList.containsKey(destNode) && edgeList.get(destNode).contains(srcNode))
