@@ -47,6 +47,8 @@ public class AddLink extends JDialog {
 	private static final int SENSOR = 0;
 	private static final int ACTUATOR = 1;
 	
+	private static final String[] COLUMNS = {"From/To", "From/To", "Latency", "Bandwidth", "Remove"};
+	
 	private final Graph graph;
 	
 	private JComboBox<String> sourceNode;
@@ -54,7 +56,7 @@ public class AddLink extends JDialog {
 	private JTextField tfLatency;
 	private JTextField tfBandwidth;
 	private DefaultTableModel dtm;
-	
+	private JTable jtable;	
 	public AddLink(final Graph graph, final JFrame frame) {
 		this.graph = graph;
 		setLayout(new BorderLayout());
@@ -197,15 +199,16 @@ public class AddLink extends JDialog {
 						Node source = (Node) sourceNode.getSelectedItem();
 						Node target = (Node) targetNode.getSelectedItem();
 
-						Link link = new Link(target, latency);
+						Link link = new Link(target, latency, bandwidth);
 						graph.addEdge(source, link);
-						
-						dtm.addRow(new String[] {source.getName(), target.getName(), Double.toString(latency), "✘"});
+						dtm.setDataVector(getConnections(), COLUMNS);
+						jtable.getColumn("Remove").setCellRenderer(new Util.ButtonRenderer());
 						
 						ComboBoxModel<String> sourceNodeModel = new DefaultComboBoxModel(sourceNodesToDisplay().toArray());
 						sourceNode.setModel(sourceNodeModel);
 						sourceNodeModel.setSelectedItem(null);
 						tfLatency.setText("");
+						tfBandwidth.setText("");
 					}
 				}
 			}
@@ -222,10 +225,8 @@ public class AddLink extends JDialog {
 		jPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		inputPanelWrapper.add(jPanel);
         
-        String[] columnNames = {"From/To", "From/To", "Latency", "Bandwidth", "Remove"};
-        
-        dtm = new DefaultTableModel(getConnections(), columnNames);
-        JTable jtable = new JTable(dtm){
+        dtm = new DefaultTableModel(getConnections(), COLUMNS);
+        jtable = new JTable(dtm){
 			private static final long serialVersionUID = 1L;
 
 			public boolean isCellEditable(int row, int column){
