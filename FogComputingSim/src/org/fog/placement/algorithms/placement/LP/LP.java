@@ -43,8 +43,8 @@ public class LP extends Algorithm {
 				for(int j = 0; j < NR_MODULES; j++) {
 					double aux = getfMipsPrice()[i]*getmMips()[j] +
 								 getfRamPrice()[i]*getmRam()[j] +
-								 getfMemPrice()[i]*getmMem()[j] +
-								 getfBwPrice()[i]*getmBw()[j];
+								 getfMemPrice()[i]*getmMem()[j]/* +
+								 getfBwPrice()[i]*getmBw()[j]*/;
 					objective.addTerm(var[i][j], aux);
 				}
 			}
@@ -75,7 +75,7 @@ public class LP extends Algorithm {
         		cplex.addLe(usedMipsCapacity[i], getfMips()[i]);
         		cplex.addLe(usedRamCapacity[i], getfRam()[i]);
         		cplex.addLe(usedMemCapacity[i], getfMem()[i]);
-        		cplex.addLe(usedBwCapacity[i], getfBw()[i]);
+        		//cplex.addLe(usedBwCapacity[i], getfBw()[i]);
 			}
 			
 			//sum by columns

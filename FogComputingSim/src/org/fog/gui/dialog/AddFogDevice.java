@@ -40,7 +40,6 @@ public class AddFogDevice extends JDialog {
 	private JLabel levelLabel;
 	
 	private JTextField deviceName;
-	private JTextField bw;
 	private JTextField mips;
 	private JTextField ram;
 	private JTextField storage;
@@ -103,7 +102,7 @@ public class AddFogDevice extends JDialog {
 				String error_msg = "", name_ = "";
 				int ram_= -1, level_= -1;
 				long storage_ = -1;
-				double mips_= -1, upBw_= -1, rateMips_ = -1, rateRam_ = -1, rateStorage_ = -1,
+				double mips_= -1, rateMips_ = -1, rateRam_ = -1, rateStorage_ = -1,
 						rateBw_ = -1, idlePower_ = -1, busyPower_ = -1, cost_ = -1;
 				
 				if (Util.validString(deviceName.getText())) {
@@ -116,7 +115,6 @@ public class AddFogDevice extends JDialog {
 				if(deviceName.getText().contains(" "))
 					error_msg += "Name cannot contain spaces\n";
 				
-				if (!Util.validString(bw.getText())) error_msg += "Missing Bandwidth\n";
 				if (!Util.validString(mips.getText())) error_msg += "Missing Mips\n";
 				if (!Util.validString(ram.getText())) error_msg += "Missing Ram\n";
 				if (!Util.validString(storage.getText())) error_msg += "Missing storage\n";
@@ -129,7 +127,6 @@ public class AddFogDevice extends JDialog {
 				if (!Util.validString(cost.getText())) error_msg += "Missing Cost Per Second\n";
 
 				name_ = deviceName.getText();
-				if((upBw_ = Util.stringToDouble(bw.getText())) < 0) error_msg += "\nBandwidth should be a positive number";
 				if((mips_ = Util.stringToDouble(mips.getText())) < 0) error_msg += "\nMips should be a positive number";
 				if((ram_ = Util.stringToInt(ram.getText())) < 0) error_msg += "\nRam should be a positive number";
 				if((storage_ = Util.stringToInt(storage.getText())) < 0) error_msg += "\nMem should be a positive number";
@@ -146,10 +143,10 @@ public class AddFogDevice extends JDialog {
 				String appId = (String)application.getSelectedItem();
 				if(error_msg == "") {
 					if(fog != null)
-						fog.setValues(name_, level_, mips_, ram_, storage_, upBw_, rateMips_, rateRam_,
+						fog.setValues(name_, level_, mips_, ram_, storage_, rateMips_, rateRam_,
 								rateStorage_, rateBw_, idlePower_, busyPower_, cost_, appId);
 					else {
-						FogDeviceGui fogDevice = new FogDeviceGui(name_, level_, mips_, ram_, storage_, upBw_,
+						FogDeviceGui fogDevice = new FogDeviceGui(name_, level_, mips_, ram_, storage_,
 								rateMips_, rateRam_, rateStorage_, rateBw_, idlePower_, busyPower_, cost_, appId);
 						graph.addNode(fogDevice);
 					}
@@ -202,7 +199,6 @@ public class AddFogDevice extends JDialog {
 		mips = Util.createInput(springPanel, mips, "MIPS: ", fog == null ? Double.toString(Config.MIPS) : Double.toString(fog.getMips()));
 		ram = Util.createInput(springPanel, ram, "RAM (MB): ", fog == null ? Long.toString(Config.RAM) : Long.toString(fog.getRam()));
 		storage = Util.createInput(springPanel, storage, "MEM (MB): ", fog == null ? Long.toString(Config.MEM) : Long.toString(fog.getStorage()));
-		bw = Util.createInput(springPanel, bw, "BW (B/s): ", fog == null ? Double.toString(Config.BW) : Double.toString(fog.getBw()));
 		rateMips = Util.createInput(springPanel, rateMips, "Rate/MIPS (€): ", fog == null ? Double.toString(Config.RATE_MIPS) : Double.toString(fog.getRateMips()));
 		rateRam = Util.createInput(springPanel, rateRam, "Rate/RAM (€/sec for 1 MB): ", fog == null ? Double.toString(Config.RATE_RAM) : Double.toString(fog.getRateRam()));
 		rateStorage = Util.createInput(springPanel, rateStorage, "Rate/MEM (€/sec for 1 MB): ", fog == null ? Double.toString(Config.RATE_MEM) : Double.toString(fog.getRateStorage()));
@@ -237,7 +233,7 @@ public class AddFogDevice extends JDialog {
 		springPanel.add(application);
 
 		//rows, cols, initX, initY, xPad, yPad
-        SpringUtilities.makeCompactGrid(springPanel, 14, 2, 6, 6, 6, 6);
+        SpringUtilities.makeCompactGrid(springPanel, 13, 2, 6, 6, 6, 6);
 		return springPanel;
 	}
 	

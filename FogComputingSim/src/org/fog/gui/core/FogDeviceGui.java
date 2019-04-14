@@ -2,10 +2,6 @@ package org.fog.gui.core;
 
 import org.fog.utils.Config;
 
-/**
- * The model that represents virtual machine node for the graph.
- * 
- */
 public class FogDeviceGui extends Node {
 	private static final long serialVersionUID = -8635044061126993668L;
 	
@@ -14,7 +10,6 @@ public class FogDeviceGui extends Node {
 	private double mips;
 	private int ram;
 	private long storage;
-	private double bw;
 	private double rateMips;
 	private double rateRam;
 	private double rateStorage;
@@ -24,7 +19,7 @@ public class FogDeviceGui extends Node {
 	private double costPerSec;
 	private String application;
 
-	public FogDeviceGui(String name, int level, double mips, int ram, long storage, double bw,
+	public FogDeviceGui(String name, int level, double mips, int ram, long storage,
 			double rateMips, double rateRam, double rateStorage, double rateBw, double idlePower,
 			double busyPower, double costPerSec, String appId) {
 		super(name, Config.FOG_TYPE);
@@ -34,7 +29,6 @@ public class FogDeviceGui extends Node {
 		this.setMips(mips);
 		this.setRam(ram);
 		this.setStorage(storage);
-		this.setBw(bw);
 		this.setRateMips(rateMips);
 		this.setRateRam(rateRam);
 		this.setRateStorage(rateStorage);
@@ -45,7 +39,7 @@ public class FogDeviceGui extends Node {
 		this.setApplication(appId);
 	}
 	
-	public void setValues(String name, int level, double mips, int ram, long storage, double bw,
+	public void setValues(String name, int level, double mips, int ram, long storage,
 			double rateMips, double rateRam, double rateStorage, double rateBw, double idlePower,
 			double busyPower, double costPerSec, String appId) {
 		this.setName(name);
@@ -53,7 +47,6 @@ public class FogDeviceGui extends Node {
 		this.setMips(mips);
 		this.setRam(ram);
 		this.setStorage(storage);
-		this.setBw(bw);
 		this.setRateMips(rateMips);
 		this.setRateRam(rateRam);
 		this.setRateStorage(rateStorage);
@@ -102,14 +95,6 @@ public class FogDeviceGui extends Node {
 
 	public void setStorage(long storage) {
 		this.storage = storage;
-	}
-
-	public double getBw() {
-		return bw;
-	}
-
-	public void setBw(double bw) {
-		this.bw = bw;
 	}
 
 	public double getRateMips() {
@@ -174,14 +159,6 @@ public class FogDeviceGui extends Node {
 
 	public void setCostPerSec(double costPerSec) {
 		this.costPerSec = costPerSec;
-	}
-
-	@Override
-	public String toString() {
-		return "FogDeviceGui [name=" + name + ", level=" + level + ", mips=" + mips + ", ram=" + ram + ", storage="
-				+ storage + ", bw=" + bw + ", rateMips=" + rateMips + ", rateRam=" + rateRam + ", rateStorage="
-				+ rateStorage + ", rateBw=" + rateBw + ", idlePower=" + idlePower + ", busyPower=" + busyPower
-				+ ", costPerSec=" + costPerSec + ", application=" + application + "]";
 	}
 	
 }

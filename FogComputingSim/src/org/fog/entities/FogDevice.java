@@ -2,7 +2,6 @@ package org.fog.entities;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -39,8 +38,8 @@ public class FogDevice extends PowerDatacenter {
 	private Map<String, List<String>> appToModulesMap;
 	private List<String> activeApplications;
 	
-	private Queue<Pair<Tuple, Integer>> tupleQueue;
-	private boolean tupleLinkBusy;
+	private Map<Integer, Queue<Pair<Tuple, Integer>>> tupleQueue;
+	private Map<Integer, Boolean> tupleLinkBusy;
 	
 	private double lastMipsUtilization;
 	private double lastRamUtilization;
@@ -51,6 +50,7 @@ public class FogDevice extends PowerDatacenter {
 	private Controller controller;
 	
 	private Map<Integer, Double> latencyMap;
+	private Map<Integer, Double> bandwidthMap;
 	private Map<String, Integer> routingMap;
 	
 	private double lastUtilizationUpdateTime;
@@ -67,9 +67,6 @@ public class FogDevice extends PowerDatacenter {
 		appToModulesMap = new HashMap<String, List<String>>();
 		setActiveApplications(new ArrayList<String>());
 		
-		setTupleQueue(new LinkedList<Pair<Tuple, Integer>>());
-		setTupleLinkBusy(false);
-		
 		this.lastMipsUtilization = 0;
 		this.lastRamUtilization = 0;
 		this.lastMemUtilization = 0;
@@ -77,6 +74,9 @@ public class FogDevice extends PowerDatacenter {
 		
 		setNeighborsIds(new ArrayList<Integer>());
 		setLatencyMap(new HashMap<Integer, Double>());
+		
+		setTupleQueue(new HashMap<Integer, Queue<Pair<Tuple,Integer>>>());
+		setTupleLinkBusy(new HashMap<Integer, Boolean>());
 		
 		setVmAllocationPolicy(vmAllocationPolicy);
 		setSchedulingInterval(schedulingInterval);
@@ -122,7 +122,7 @@ public class FogDevice extends PowerDatacenter {
 			processAppSubmit(ev);
 			break;
 		case FogEvents.UPDATE_TUPLE_QUEUE:
-			updateTupleQueue();
+			updateTupleQueue(ev);
 			break;
 		case FogEvents.ACTIVE_APP_UPDATE:
 			updateActiveApplications(ev);
@@ -335,7 +335,10 @@ public class FogDevice extends PowerDatacenter {
 				totalRamAllocated += ((AppModule)vm).getCurrentAllocatedRam();
 		}
 		
-		double totalBwAllocated = isTupleLinkBusy() ? totalBwAllocated = getHost().getBw() : 0;		
+		/*double totalBwAllocated = 0;
+		for(int destId : getTupleLinkBusy().keySet())
+			if(getTupleLinkBusy().get(destId))
+				totalBwAllocated += getBandwidthMap().get(destId);*/
 		
 		double timeNow = CloudSim.clock();
 		double timeDif = timeNow-lastUtilizationUpdateTime;
@@ -351,12 +354,12 @@ public class FogDevice extends PowerDatacenter {
 		newcost += timeDif*lastMipsUtilization*getHost().getTotalMips()*characteristics.getCostPerMips();
 		newcost += timeDif*lastRamUtilization*getHost().getRam()*characteristics.getCostPerMem();
 		newcost += timeDif*lastMemUtilization*getHost().getStorage()*characteristics.getCostPerStorage();
-		newcost += timeDif*lastBwUtilization*getHost().getBw()*characteristics.getCostPerBw();
+		//newcost += timeDif*lastBwUtilization*getHost().getBw()*characteristics.getCostPerBw();
 		newcost += timeDif*characteristics.getCostPerSecond();
 		setTotalCost(newcost);
 		
 		lastRamUtilization = totalRamAllocated/getHost().getRam();
-		lastBwUtilization = totalBwAllocated/getHost().getBw();
+		//lastBwUtilization = totalBwAllocated/getHost().getBw();
 		lastMemUtilization = totalMemAllocated/getHost().getStorage();
 		lastMipsUtilization = totalMipsAllocated/getHost().getTotalMips();
 		lastUtilizationUpdateTime = timeNow;
@@ -509,78 +512,41 @@ public class FogDevice extends PowerDatacenter {
 		this.processVmMigrate(ev, false);
 	}
 	
-	protected void updateTupleQueue(){
-		if(!getTupleQueue().isEmpty()){
-			Pair<Tuple, Integer> pair = getTupleQueue().poll();
+	protected void updateTupleQueue(SimEvent ev){
+		Integer destId = (Integer)ev.getData();
+		
+		if(!getTupleQueue().get(destId).isEmpty()){
+			Pair<Tuple, Integer> pair = getTupleQueue().get(destId).poll();
 			sendFreeLink(pair.getFirst(), pair.getSecond());
 		}else {
-			setTupleLinkBusy(false);
+			getTupleLinkBusy().put(destId, false);
 			updateEnergyConsumption();
 		}
 	}
 	
 	protected void sendFreeLink(Tuple tuple, int destId){
-		double networkDelay = (double)tuple.getCloudletFileSize()/getHost().getBw();
-		
 		updateEnergyConsumption();
-		setTupleLinkBusy(true);
+		getTupleLinkBusy().put(destId, true);
 		
 		double latency = getLatencyMap().get(destId);
+		double networkDelay = bandwidthMap.get(destId);
 		
-		send(getId(), networkDelay, FogEvents.UPDATE_TUPLE_QUEUE);
+		send(getId(), networkDelay, FogEvents.UPDATE_TUPLE_QUEUE, destId);
 		send(destId, networkDelay + latency, FogEvents.TUPLE_ARRIVAL, tuple);
 		NetworkUsageMonitor.sendingTuple(latency, tuple.getCloudletFileSize());
 		updateEnergyConsumption();
 	}
 	
 	protected void sendTo(Tuple tuple, int id){
-		if(!isTupleLinkBusy())
+		if(!getTupleLinkBusy().get(id))
 			sendFreeLink(tuple, id);
 		else
-			tupleQueue.add(new Pair<Tuple, Integer>(tuple, id));
+			getTupleQueue().get(id).add(new Pair<Tuple, Integer>(tuple, id));
 	}
 
 	protected void sendToSelf(Tuple tuple){
 		send(getId(), CloudSim.getMinTimeBetweenEvents(), FogEvents.TUPLE_ARRIVAL, tuple);
 	}
-
-	/**
-	 * Find next hop based on delay
-	 * @param tuple
-	 * @return
-	 */
-	/*private int findNextHopCommunication(Tuple tuple) {
-		Application app = controller.getApplications().get(tuple.getAppId());
-		ModulePlacement modulePlacement = controller.getAppModulePlacementPolicy().get(app.getAppId());
-		
-		String destModule = tuple.getDestModuleName();
-		
-		int destId;
-		try {
-			destId = modulePlacement.getModuleToDeviceMap().get(destModule);
-		} catch (Exception e) { // Actuator tuple
-			destId = tuple.getClientId();
-		}
-		
-		
-		int initId = getId();
-		
-		DijkstraAlgorithm dijkstra = app.getDijkstraAlgorithm();
-		Vertex initNode = null;
-		Vertex destNode = null;
-		
-		for(Vertex vertex : dijkstra.getNodes()) {
-			if(vertex.getName().equals(Integer.toString(initId)))
-				initNode = vertex;
-			
-			if(vertex.getName().equals(Integer.toString(destId)))
-				destNode = vertex;
-		}
-		
-		dijkstra.execute(initNode);
-		LinkedList<Vertex> path = dijkstra.getPath(destNode);
-		return Integer.parseInt(path.get(1).getName());
-	}*/
 	
 	private void printCommunication(Tuple tuple){
 		System.out.println("Tuple" + tuple);
@@ -606,22 +572,6 @@ public class FogDevice extends PowerDatacenter {
 	
 	public void setNeighborsIds(List<Integer> neighborsIds) {
 		this.neighborsIds = neighborsIds;
-	}
-	
-	public Queue<Pair<Tuple, Integer>> getTupleQueue() {
-		return tupleQueue;
-	}
-
-	public void setTupleQueue(Queue<Pair<Tuple, Integer>> tupleQueue) {
-		this.tupleQueue = tupleQueue;
-	}
-
-	public boolean isTupleLinkBusy() {
-		return tupleLinkBusy;
-	}
-
-	public void setTupleLinkBusy(boolean tupleLinkBusy) {
-		this.tupleLinkBusy = tupleLinkBusy;
 	}
 	
 	public List<String> getActiveApplications() {
@@ -654,6 +604,14 @@ public class FogDevice extends PowerDatacenter {
 
 	public void setLatencyMap(Map<Integer, Double> latencyMap) {
 		this.latencyMap = latencyMap;
+	}
+	
+	public Map<Integer, Double> getBandwidthMap() {
+		return bandwidthMap;
+	}
+
+	public void setBandwidthMap(Map<Integer, Double> bandwidthMap) {
+		this.bandwidthMap = bandwidthMap;
 	}
 	
 	public double getTotalCost() {
@@ -689,6 +647,22 @@ public class FogDevice extends PowerDatacenter {
 		this.routingMap = routingMap;
 	}
 	
+	public Map<Integer, Queue<Pair<Tuple, Integer>>> getTupleQueue() {
+		return tupleQueue;
+	}
+
+	public void setTupleQueue(Map<Integer, Queue<Pair<Tuple, Integer>>> tupleQueue) {
+		this.tupleQueue = tupleQueue;
+	}
+
+	public Map<Integer, Boolean> getTupleLinkBusy() {
+		return tupleLinkBusy;
+	}
+
+	public void setTupleLinkBusy(Map<Integer, Boolean> tupleLinkBusy) {
+		this.tupleLinkBusy = tupleLinkBusy;
+	}
+	
 	@Override
 	public String toString() {
 		String str = "";
@@ -699,6 +673,7 @@ public class FogDevice extends PowerDatacenter {
 		"RAM: " + getHost().getRam() + "\n"+
 		"MEM: " + getHost().getStorage() + "\n"+
 		"BW: " + getHost().getBw() + "\n"+
+		"bandwidthMap: " + bandwidthMap + "\n"+
 		"LatencyMap: " + latencyMap + "\n\n";
 		return str;
 	}

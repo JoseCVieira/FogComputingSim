@@ -41,6 +41,7 @@ import org.fog.entities.FogBroker;
 import org.fog.entities.FogDevice;
 import org.fog.entities.FogDeviceCharacteristics;
 import org.fog.entities.Sensor;
+import org.fog.entities.Tuple;
 import org.fog.gui.core.ActuatorGui;
 import org.fog.gui.core.ApplicationGui;
 import org.fog.gui.core.FogDeviceGui;
@@ -254,8 +255,18 @@ public class RunSim extends JDialog {
 					
 					f2.getNeighborsIds().add(f1.getId());
 					f1.getNeighborsIds().add(f2.getId());
+					
 					f2.getLatencyMap().put(f1.getId(), edge.getLatency());
 					f1.getLatencyMap().put(f2.getId(), edge.getLatency());
+					
+					f2.getLatencyMap().put(f1.getId(), edge.getBandwidth());
+					f1.getLatencyMap().put(f2.getId(), edge.getBandwidth());
+					
+					f1.getTupleQueue().put(f2.getId(), new LinkedList<Pair<Tuple, Integer>>());
+					f2.getTupleQueue().put(f1.getId(), new LinkedList<Pair<Tuple, Integer>>());
+					
+					f1.getTupleLinkBusy().put(f2.getId(), false);
+					f2.getTupleLinkBusy().put(f1.getId(), false);
 				}
 			}
 		}
@@ -267,7 +278,7 @@ public class RunSim extends JDialog {
 			PowerHost host = new PowerHost(
 					FogUtils.generateEntityId(),
 					new RamProvisioner(fog.getRam()),
-					new BwProvisioner((long)fog.getBw()),
+					null, // bandwidth is defined in each link instead of in each node
 					fog.getStorage(),
 					processingElementsList,
 					new VmSchedulerTimeSharedOverbookingEnergy(processingElementsList),

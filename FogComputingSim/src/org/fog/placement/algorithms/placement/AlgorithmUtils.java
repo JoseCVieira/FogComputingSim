@@ -148,11 +148,11 @@ public class AlgorithmUtils {
 			System.out.println("fMips: " + al.getfMips()[i]);
 			System.out.println("fRam: " + al.getfRam()[i]);
 			System.out.println("fMem: " + al.getfMem()[i]);
-			System.out.println("fBw: " + al.getfBw()[i]);
+			//System.out.println("fBw: " + al.getfBw()[i]);
 			System.out.println("fMipsPrice: " + al.getfMipsPrice()[i]);
 			System.out.println("fRamPrice: " + al.getfRamPrice()[i]);
 			System.out.println("fMemPrice: " + al.getfMemPrice()[i]);
-			System.out.println("fBwPrice: " + al.getfBwPrice()[i]);
+			//System.out.println("fBwPrice: " + al.getfBwPrice()[i]);
 			System.out.println("Neighbors: " +  fDevice.getNeighborsIds());
 			System.out.println("LatencymMap: " + fDevice.getLatencyMap());
 			

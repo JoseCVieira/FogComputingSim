@@ -190,7 +190,7 @@ public class AddLink extends JDialog {
 				String error_msg = "";
 				
 				if((latency = Util.stringToDouble(tfLatency.getText())) < 0) error_msg += "\nLatency should be a positive number";
-				if((bandwidth = Util.stringToDouble(tfBandwidth.getText())) < 0) error_msg += "\nLatency should be a positive number";
+				if((bandwidth = Util.stringToDouble(tfBandwidth.getText())) < 0) error_msg += "\nBandwidth should be a positive number";
 
 				if(error_msg == "") {
 					if (sourceNode.getSelectedItem() == null || targetNode.getSelectedItem() == null)
@@ -210,7 +210,8 @@ public class AddLink extends JDialog {
 						tfLatency.setText("");
 						tfBandwidth.setText("");
 					}
-				}
+				}else
+					Util.prompt(AddLink.this, error_msg, "Error");
 			}
 		});
 

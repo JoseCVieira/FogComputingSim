@@ -93,7 +93,7 @@ public class Individual implements Comparable<Individual> {
 			}
 			
 			if(totalMips > ga.getfMips()[i] || totalRam > ga.getfRam()[i] ||
-					totalMem > ga.getfMem()[i] || totalBw > ga.getfBw()[i])
+					totalMem > ga.getfMem()[i]/* || totalBw > ga.getfBw()[i]*/)
 				return false;
 		}
 		return true;
@@ -106,8 +106,8 @@ public class Individual implements Comparable<Individual> {
 			for(int j = 0; j < chromosome[i].length; j++) {
 				cost += chromosome[i][j] * (ga.getfMipsPrice()[i] * ga.getmMips()[j] +
 						ga.getfRamPrice()[i] * ga.getmRam()[j] +
-						ga.getfMemPrice()[i] * ga.getmMem()[j] +
-						ga.getfBwPrice()[i] * ga.getmBw()[j]);
+						ga.getfMemPrice()[i] * ga.getmMem()[j]/* +
+						ga.getfBwPrice()[i] * ga.getmBw()[j]*/);
 			}
 		}
 		

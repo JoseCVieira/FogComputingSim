@@ -30,14 +30,14 @@ public abstract class Algorithm {
 	protected double fMipsPrice[];
 	protected double fRamPrice[];
 	protected double fMemPrice[];
-	protected double fBwPrice[];
+	//protected double fBwPrice[];
 	
 	protected int fId[];
 	protected String fName[];
 	protected double fMips[];
 	protected double fRam[];
 	protected double fMem[];
-	protected double fBw[];
+	//protected double fBw[];
 	protected double fBusyPw[];
 	protected double fIdlePw[];
 	
@@ -67,13 +67,13 @@ public abstract class Algorithm {
 		fMips = new double[NR_NODES];
 		fRam = new double[NR_NODES];
 		fMem = new double[NR_NODES];
-		fBw = new double[NR_NODES];
+		//fBw = new double[NR_NODES];
 		fBusyPw = new double[NR_NODES];
 		fIdlePw = new double[NR_NODES];
 		fMipsPrice = new double[NR_NODES];
 		fRamPrice = new double[NR_NODES];
 		fMemPrice = new double[NR_NODES];
-		fBwPrice = new double[NR_NODES];
+		//fBwPrice = new double[NR_NODES];
 		
 		LinkedHashSet<String> hashSet = new LinkedHashSet<String>();
 		for(Application application : applications) {
@@ -128,13 +128,13 @@ public abstract class Algorithm {
 			fMips[i] = totalMips;
 			fRam[i] = fogDevice.getHost().getRam();
 			fMem[i] = fogDevice.getHost().getStorage();
-			fBw[i] = fogDevice.getHost().getBw();
+			//fBw[i] = fogDevice.getHost().getBw();
 			fBusyPw[i] = ((FogLinearPowerModel) fogDevice.getHost().getPowerModel()).getBusyPower();
 			fIdlePw[i] = ((FogLinearPowerModel) fogDevice.getHost().getPowerModel()).getStaticPower();
 			fMipsPrice[i] = characteristics.getCostPerMips();
 			fRamPrice[i] = characteristics.getCostPerMem();
-			fMemPrice[i] = characteristics.getCostPerStorage();
-			fBwPrice[i++] = characteristics.getCostPerBw();
+			fMemPrice[i++] = characteristics.getCostPerStorage();
+			//fBwPrice[i++] = characteristics.getCostPerBw();
 		}
 		
 		// sensors and actuators are added to compute tuples latency
@@ -248,7 +248,7 @@ public abstract class Algorithm {
 							if(edge.getSource().getName().equals(path.get(iter).getName()) &&
 								edge.getDestination().getName().equals(path.get(iter+1).getName())) {
 								
-								int sourceId = Integer.parseInt(edge.getSource().getName());
+								/*int sourceId = Integer.parseInt(edge.getSource().getName());
 								int destinationId = Integer.parseInt(edge.getSource().getName());
 								
 								int sourceIndex = getNodeIndexByNodeId(sourceId);
@@ -256,7 +256,7 @@ public abstract class Algorithm {
 								
 								// tuples from sensors/ to actuators only have latency
 								if(fBw[sourceIndex] != 0 && fBw[destinationIndex] != 0)
-									bandwidth = fBw[sourceIndex];
+									bandwidth = fBw[sourceIndex];*/
 								
 								latency += edge.getWeight();
 							}
@@ -382,9 +382,9 @@ public abstract class Algorithm {
 		return fMemPrice;
 	}
 
-	public double[] getfBwPrice() {
+	/*public double[] getfBwPrice() {
 		return fBwPrice;
-	}
+	}*/
 	
 	public int[] getfId() {
 		return fId;
@@ -406,9 +406,9 @@ public abstract class Algorithm {
 		return fMem;
 	}
 
-	public double[] getfBw() {
+	/*public double[] getfBw() {
 		return fBw;
-	}
+	}*/
 
 	public String[] getmName() {
 		return mName;

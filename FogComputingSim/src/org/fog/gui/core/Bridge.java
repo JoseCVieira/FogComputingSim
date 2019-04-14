@@ -54,7 +54,6 @@ public class Bridge {
 					double mips = (Double) node.get("mips");
 					int ram = new BigDecimal((Long)node.get("ram")).intValue();
 					long mem = (Long) node.get("mem");
-					double bw = (Double) node.get("bw");
 					double rateMips = (Double) node.get("ratePerMips");
 					double rateRam = (Double) node.get("ratePerRam");
 					double rateStorage = (Double) node.get("ratePerMem");
@@ -63,7 +62,7 @@ public class Bridge {
 					double busyPower = (Double) node.get("busyPower");
 					double cost = (Double) node.get("cost");
 
-					Node fogDevice = new FogDeviceGui(nodeName, level, mips, ram, mem, bw, rateMips, rateRam,
+					Node fogDevice = new FogDeviceGui(nodeName, level, mips, ram, mem, rateMips, rateRam,
 							rateStorage, rateBw, idlePower, busyPower, cost, application);
 					graph.addNode(fogDevice);
 				} else if(nodeType.equals(Config.SENSOR_TYPE)){
@@ -96,12 +95,13 @@ public class Bridge {
 				String src = (String) link.get("source");  
 				String dst = (String) link.get("destination");
 				double lat = (Double) link.get("latency");
+				double bw = (Double) link.get("bw");
 				
 				Node source = (Node) getNode(graph, src);
 				Node target = (Node) getNode(graph, dst);
 				
 				if(source!=null && target!=null){
-					Link edge = new Link(target, lat);
+					Link edge = new Link(target, lat, bw);
 					graph.addEdge(source, edge);
 				}
 			}
@@ -237,7 +237,6 @@ public class Bridge {
 					jobj.put("mips", fogDevice.getMips());
 					jobj.put("ram", fogDevice.getRam());
 					jobj.put("mem", fogDevice.getStorage());
-					jobj.put("bw", fogDevice.getBw());
 					jobj.put("level", fogDevice.getLevel());
 					jobj.put("ratePerMips", fogDevice.getRateMips());
 					jobj.put("ratePerRam", fogDevice.getRateRam());
@@ -264,6 +263,7 @@ public class Bridge {
 				if(Config.FOG_TYPE == destNode.getType() || Config.SENSOR_TYPE == destNode.getType() ||
 						Config.ACTUATOR_TYPE == destNode.getType()){
 					jobj2.put("latency", edge.getLatency());
+					jobj2.put("bw", edge.getBandwidth());
 				}
 				links.add(jobj2);
 				
