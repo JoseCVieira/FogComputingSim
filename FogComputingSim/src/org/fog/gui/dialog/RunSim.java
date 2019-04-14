@@ -27,7 +27,6 @@ import org.cloudbus.cloudsim.Pe;
 import org.cloudbus.cloudsim.Storage;
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.power.PowerHost;
-import org.cloudbus.cloudsim.provisioners.BwProvisioner;
 import org.cloudbus.cloudsim.provisioners.PeProvisioner;
 import org.cloudbus.cloudsim.provisioners.RamProvisioner;
 import org.cloudbus.cloudsim.sdn.overbooking.VmSchedulerTimeSharedOverbookingEnergy;
@@ -65,7 +64,7 @@ public class RunSim extends JDialog {
 	private static final long serialVersionUID = -8313194085507492462L;
 	private static final boolean DEBUG_MODE = false;
 	private static final boolean PRINT_PLACEMENT = true;
-	private static final String OPTIMIZATION_ALGORITHM = "LP";
+	private static final String OPTIMIZATION_ALGORITHM = "GA";
 	
 	private static List<Application> applications = new ArrayList<Application>();
 	private static List<FogBroker> fogBrokers = new ArrayList<FogBroker>();
@@ -158,11 +157,12 @@ public class RunSim extends JDialog {
     			
     			Map<String, List<String>> placementMap = null;
     			Map<Map<String, String>, Integer> routingMap = null;
-    			/*try {
+    			try {
 	    			switch (OPTIMIZATION_ALGORITHM) {
 					case "LP":
 						LP lp = new LP(fogDevices, applications, sensors, actuators);
 						placementMap = lp.execute();
+						routingMap = lp.extractRoutingMap(placementMap, fogDevices);
 						break;
 					case "GA":
 						GA ga = new GA(fogDevices, applications, sensors, actuators);
@@ -178,11 +178,7 @@ public class RunSim extends JDialog {
     				System.err.println("Unwanted error happened while running the optimization algorithm");
     				System.err.println("FogComputingSim will terminate abruptally.\n");
     				System.exit(0);
-				}*/
-    			
-    			LP lp = new LP(fogDevices, applications, sensors, actuators);
-				placementMap = lp.execute();
-    			routingMap = lp.extractRoutingMap(placementMap, fogDevices);
+				}
     			
     			if(placementMap == null || routingMap == null) {
     				System.err.println("There is no possible combination to deploy all applications.\n");
@@ -259,8 +255,8 @@ public class RunSim extends JDialog {
 					f2.getLatencyMap().put(f1.getId(), edge.getLatency());
 					f1.getLatencyMap().put(f2.getId(), edge.getLatency());
 					
-					f2.getLatencyMap().put(f1.getId(), edge.getBandwidth());
-					f1.getLatencyMap().put(f2.getId(), edge.getBandwidth());
+					f2.getBandwidthMap().put(f1.getId(), edge.getBandwidth());
+					f1.getBandwidthMap().put(f2.getId(), edge.getBandwidth());
 					
 					f1.getTupleQueue().put(f2.getId(), new LinkedList<Pair<Tuple, Integer>>());
 					f2.getTupleQueue().put(f1.getId(), new LinkedList<Pair<Tuple, Integer>>());

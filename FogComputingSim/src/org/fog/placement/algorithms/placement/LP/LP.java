@@ -43,8 +43,8 @@ public class LP extends Algorithm {
 				for(int j = 0; j < NR_MODULES; j++) {
 					double aux = getfMipsPrice()[i]*getmMips()[j] +
 								 getfRamPrice()[i]*getmRam()[j] +
-								 getfMemPrice()[i]*getmMem()[j]/* +
-								 getfBwPrice()[i]*getmBw()[j]*/;
+								 getfMemPrice()[i]*getmMem()[j] +
+								 getfBwPrice()[i]*getmBw()[j];
 					objective.addTerm(var[i][j], aux);
 				}
 			}

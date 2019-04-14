@@ -30,7 +30,7 @@ public abstract class Algorithm {
 	protected double fMipsPrice[];
 	protected double fRamPrice[];
 	protected double fMemPrice[];
-	//protected double fBwPrice[];
+	protected double fBwPrice[];
 	
 	protected int fId[];
 	protected String fName[];
@@ -73,7 +73,7 @@ public abstract class Algorithm {
 		fMipsPrice = new double[NR_NODES];
 		fRamPrice = new double[NR_NODES];
 		fMemPrice = new double[NR_NODES];
-		//fBwPrice = new double[NR_NODES];
+		fBwPrice = new double[NR_NODES];
 		
 		LinkedHashSet<String> hashSet = new LinkedHashSet<String>();
 		for(Application application : applications) {
@@ -133,8 +133,8 @@ public abstract class Algorithm {
 			fIdlePw[i] = ((FogLinearPowerModel) fogDevice.getHost().getPowerModel()).getStaticPower();
 			fMipsPrice[i] = characteristics.getCostPerMips();
 			fRamPrice[i] = characteristics.getCostPerMem();
-			fMemPrice[i++] = characteristics.getCostPerStorage();
-			//fBwPrice[i++] = characteristics.getCostPerBw();
+			fMemPrice[i] = characteristics.getCostPerStorage();
+			fBwPrice[i++] = characteristics.getCostPerBw();
 		}
 		
 		// sensors and actuators are added to compute tuples latency
@@ -278,8 +278,8 @@ public abstract class Algorithm {
 			for(AppEdge appEdge : application.getEdges()) {
 				int col = getModuleIndexByModuleName(appEdge.getSource());
 				int row = getModuleIndexByModuleName(appEdge.getDestination());
-				dependencyMap[col][row] = 1;
-				nwSizeMap[col][row] = appEdge.getTupleNwLength();
+				dependencyMap[col][row] += 1;
+				nwSizeMap[col][row] += appEdge.getTupleNwLength();
 			}
 		}
 	}
@@ -382,9 +382,9 @@ public abstract class Algorithm {
 		return fMemPrice;
 	}
 
-	/*public double[] getfBwPrice() {
+	public double[] getfBwPrice() {
 		return fBwPrice;
-	}*/
+	}
 	
 	public int[] getfId() {
 		return fId;

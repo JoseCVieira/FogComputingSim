@@ -152,9 +152,12 @@ public class AlgorithmUtils {
 			System.out.println("fMipsPrice: " + al.getfMipsPrice()[i]);
 			System.out.println("fRamPrice: " + al.getfRamPrice()[i]);
 			System.out.println("fMemPrice: " + al.getfMemPrice()[i]);
-			//System.out.println("fBwPrice: " + al.getfBwPrice()[i]);
+			System.out.println("fBwPrice: " + al.getfBwPrice()[i]);
+			System.out.println("fBusyPw: " + al.getfBusyPw()[i]);
+			System.out.println("fIdlePw: " + al.getfIdlePw()[i]);			
 			System.out.println("Neighbors: " +  fDevice.getNeighborsIds());
-			System.out.println("LatencymMap: " + fDevice.getLatencyMap());
+			System.out.println("LatencyMap: " + fDevice.getLatencyMap());
+			System.out.println("BandwidthMap: " + fDevice.getBandwidthMap());
 			
 			if(i < fogDevices.size() -1)
 				System.out.println();

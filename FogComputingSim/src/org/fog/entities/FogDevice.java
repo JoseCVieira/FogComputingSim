@@ -74,6 +74,7 @@ public class FogDevice extends PowerDatacenter {
 		
 		setNeighborsIds(new ArrayList<Integer>());
 		setLatencyMap(new HashMap<Integer, Double>());
+		setBandwidthMap(new HashMap<Integer, Double>());
 		
 		setTupleQueue(new HashMap<Integer, Queue<Pair<Tuple,Integer>>>());
 		setTupleLinkBusy(new HashMap<Integer, Boolean>());
@@ -529,7 +530,7 @@ public class FogDevice extends PowerDatacenter {
 		getTupleLinkBusy().put(destId, true);
 		
 		double latency = getLatencyMap().get(destId);
-		double networkDelay = bandwidthMap.get(destId);
+		double networkDelay = getBandwidthMap().get(destId);
 		
 		send(getId(), networkDelay, FogEvents.UPDATE_TUPLE_QUEUE, destId);
 		send(destId, networkDelay + latency, FogEvents.TUPLE_ARRIVAL, tuple);

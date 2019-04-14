@@ -69,9 +69,7 @@ public class Individual implements Comparable<Individual> {
 			return Double.MAX_VALUE;
 		
 		fitness = calculateOperationalCost();
-		System.out.println("fitness1: " + fitness);
 		fitness += calculateEnergyConsumption();
-		System.out.println("fitness2: " + fitness + "\n\n");
 		/*fitness += calculateProcessingLatency();
 		fitness += calculateTransmittingLatency();*/
 		return fitness;
@@ -106,8 +104,8 @@ public class Individual implements Comparable<Individual> {
 			for(int j = 0; j < chromosome[i].length; j++) {
 				cost += chromosome[i][j] * (ga.getfMipsPrice()[i] * ga.getmMips()[j] +
 						ga.getfRamPrice()[i] * ga.getmRam()[j] +
-						ga.getfMemPrice()[i] * ga.getmMem()[j]/* +
-						ga.getfBwPrice()[i] * ga.getmBw()[j]*/);
+						ga.getfMemPrice()[i] * ga.getmMem()[j] +
+						ga.getfBwPrice()[i] * ga.getmBw()[j]);
 			}
 		}
 		
@@ -125,9 +123,6 @@ public class Individual implements Comparable<Individual> {
 			
 			energy += (ga.getfBusyPw()[i]-ga.getfIdlePw()[i])*(totalMips/ga.getfMips()[i]);
 		}
-		
-		AlgorithmUtils.printMatrix(chromosome);
-		System.out.println("energy: " + energy);
 		
 		return energy;
 	}

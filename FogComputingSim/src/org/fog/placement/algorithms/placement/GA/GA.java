@@ -1,6 +1,8 @@
 package org.fog.placement.algorithms.placement.GA;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -13,9 +15,9 @@ import org.fog.placement.algorithms.placement.Algorithm;
 import org.fog.placement.algorithms.placement.AlgorithmUtils;
 
 public class GA extends Algorithm {
-	private static final int POPULATION_SIZE = 2;
+	private static final int POPULATION_SIZE = 100;
 	private static final double AGREED_BOUNDARY = 0.0;
-	private static final int MAX_ITER = 1;
+	private static final int MAX_ITER = 5000;
 	
 	public GA(final List<FogDevice> fogDevices, final List<Application> applications,
 			final List<Sensor> sensors, final List<Actuator> actuators) {
@@ -100,8 +102,19 @@ public class GA extends Algorithm {
 			    System.out.format("%23s" + repeated + "\n", row);
 	    }
 	    
-	    System.exit(0);
-	    return null;
+	    Map<String, List<String>> resMap = new HashMap<>();
+		
+		for(int i = 0; i < NR_FOG_NODES; i++) {
+			List<String> modules = new ArrayList<String>();
+			
+			for(int j = 0; j < NR_MODULES; j++)
+				if(population[0].getChromosome()[i][j] == 1)
+					modules.add(getmName()[j]);
+			
+			resMap.put(getfName()[i], modules);
+		}
+		
+		return resMap;
 	}
 	
 }
