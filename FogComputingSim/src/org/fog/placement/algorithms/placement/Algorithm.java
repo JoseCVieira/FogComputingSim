@@ -100,6 +100,11 @@ public abstract class Algorithm {
 		mandatoryMap = new double[NR_NODES][NR_MODULES];
 		bandwidthMap = new double[NR_NODES-1][NR_NODES][NR_NODES];
 		
+		for (int i = 0; i < NR_NODES - 1; i++)
+			for (int j = 0; j < NR_NODES; j++)
+				for (int z = 0; z < NR_NODES; z++)
+					bandwidthMap[i][j][z] = Double.MAX_VALUE;
+		
 		routingPaths = new HashMap<Map<Integer,Integer>, LinkedList<Vertex>>();
 		
 		extractDevicesCharacteristics(fogDevices, sensors, actuators);
@@ -247,7 +252,7 @@ public abstract class Algorithm {
 				double latency = 0;
 				if(path != null) {
 					for(int iter = 0; iter < path.size() - 1; iter++) {
-						double bandwidth = 0;
+						double bandwidth = Double.MAX_VALUE;
 						
 						for(Edge edge : edges) {
 							if(edge.getSource().getName().equals(path.get(iter).getName()) &&
@@ -262,7 +267,7 @@ public abstract class Algorithm {
 								try {
 									bandwidth = bwMap.get(connection);
 								} catch (Exception e) {
-									bandwidth = 0;
+									bandwidth = Double.MAX_VALUE;
 								}
 								
 								latency += edge.getWeight();

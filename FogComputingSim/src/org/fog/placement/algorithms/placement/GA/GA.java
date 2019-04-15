@@ -72,7 +72,7 @@ public class GA extends Algorithm {
 	        for(int i = 0; i < POPULATION_SIZE; i++) 
 	        	population[i] = newGeneration[i];
 	        
-	        //System.out.println("Generation: " + generation + "\n" + population[0]);
+	        System.out.println("Generation: " + generation + " fitness: " + population[0].getFitness());
 	        		
 	        generation++;
 	    }

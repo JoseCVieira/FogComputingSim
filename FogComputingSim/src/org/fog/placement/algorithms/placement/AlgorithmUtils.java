@@ -9,6 +9,26 @@ import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 
 public class AlgorithmUtils {
+	
+	public static double[][] vectorToHorizontalMatrix(double [] vector) throws IllegalArgumentException {
+		if(vector == null)
+			throw new IllegalArgumentException("Invalid argument");
+		
+		double[][] ret = new double[1][vector.length];
+        for (int i = 0; i < vector.length; i++)
+        	ret[1][i] = vector[i];
+        return ret;
+    }
+	
+	public static double[][] vectorToVerticalMatrix(double [] vector) throws IllegalArgumentException {
+		if(vector == null)
+			throw new IllegalArgumentException("Invalid argument");
+		
+		double[][] ret = new double[vector.length][1];
+        for (int i = 0; i < vector.length; i++)
+        	ret[i][1] = vector[i];
+        return ret;
+    }
 
 	public static double[][] multiplyMatrices(double[][] firstMatrix, double[][] secondMatrix)
 			throws IllegalArgumentException {
@@ -64,6 +84,29 @@ public class AlgorithmUtils {
         for(int i = 0; i < r1; i++)
             for (int j = 0; j < c1; j++)
                     product[i][j] = firstMatrix[i][j] * secondMatrix[i][j];
+        
+        return product;
+	}
+	
+	public static double[][] dotDivisionMatrices(double[][] firstMatrix, double[][] secondMatrix)
+			throws IllegalArgumentException {
+		
+		if(firstMatrix == null || secondMatrix == null)
+			throw new IllegalArgumentException("Some of the received arguments are null");
+		
+		int r1 = firstMatrix.length;
+		int c1 = firstMatrix[0].length;
+		int r2 = secondMatrix.length;
+		int c2 = secondMatrix[0].length;
+		
+		if(r1 != r2 || c1 != c2)
+			throw new IllegalArgumentException("Impossible to preform the required dot product");
+		
+		double[][] product = new double[r1][c1];
+        
+        for(int i = 0; i < r1; i++)
+            for (int j = 0; j < c1; j++)
+                    product[i][j] = firstMatrix[i][j] / secondMatrix[i][j];
         
         return product;
 	}

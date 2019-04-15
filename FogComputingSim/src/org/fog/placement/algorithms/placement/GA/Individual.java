@@ -70,8 +70,9 @@ public class Individual implements Comparable<Individual> {
 		
 		fitness = calculateOperationalCost();
 		fitness += calculateEnergyConsumption();
-		/*fitness += calculateProcessingLatency();
-		fitness += calculateTransmittingLatency();*/
+		fitness += calculateProcessingLatency();
+		fitness += calculateTransmittingLatency();
+		
 		return fitness;
 	}
 	
@@ -97,18 +98,18 @@ public class Individual implements Comparable<Individual> {
 		return true;
 	}
 	
-	private double calculateOperationalCost() {
+	private double calculateOperationalCost() {		
 		double cost = 0;
-		
 		for(int i = 0; i < chromosome.length; i++) {
 			for(int j = 0; j < chromosome[i].length; j++) {
-				cost += chromosome[i][j] * (ga.getfMipsPrice()[i] * ga.getmMips()[j] +
+				
+				cost += chromosome[i][j]*(
+						ga.getfMipsPrice()[i] * ga.getmMips()[j] +
 						ga.getfRamPrice()[i] * ga.getmRam()[j] +
 						ga.getfMemPrice()[i] * ga.getmMem()[j] +
 						ga.getfBwPrice()[i] * ga.getmBw()[j]);
 			}
 		}
-		
 		return cost;
 	}
 	
@@ -140,7 +141,10 @@ public class Individual implements Comparable<Individual> {
 			}
 			
 			double unnusedMips = ga.getfMips()[i] - totalMips;
-			double mipsPie = unnusedMips/nrModules;
+			double mipsPie = 1; // irrelevant value
+			if(nrModules != 0 && unnusedMips != 0)
+				mipsPie = unnusedMips/nrModules;
+			
 			for(int j = 0; j < chromosome[i].length; j++)
 				latency += chromosome[i][j] * ga.getmCpuSize()[j] / (ga.getmMips()[j] + mipsPie);
 		}
@@ -157,10 +161,10 @@ public class Individual implements Comparable<Individual> {
 			
 			//link latency
 			try {
-				aux1 = AlgorithmUtils.multiplyMatrices(chromosome, ga.getDependencyMap());
+				aux1 = AlgorithmUtils.multiplyMatrices(chromosome, ga.getDependencyMap());				
 				aux1 = AlgorithmUtils.multiplyMatrices(aux1, AlgorithmUtils.transposeMatrix(chromosome));
-				aux1 = AlgorithmUtils.dotProductMatrices(aux1, ga.getLatencyMap());
-				latency = AlgorithmUtils.sumAllElementsMatrix(aux1);
+				aux1 = AlgorithmUtils.dotProductMatrices(aux1, ga.getLatencyMap());				
+				latency = AlgorithmUtils.sumAllElementsMatrix(aux1);				
 			} catch (Exception e) {
 				System.err.println(e);
 				System.err.println("FogComputingSim will terminate abruptally.\n");
@@ -173,7 +177,7 @@ public class Individual implements Comparable<Individual> {
 				aux1 = AlgorithmUtils.multiplyMatrices(aux1, AlgorithmUtils.transposeMatrix(chromosome));
 				
 				for(int i = 0; i < ga.getfName().length-1; i++) {
-					aux2 = AlgorithmUtils.dotProductMatrices(aux1, ga.getBandwidthMap(i));
+					aux2 = AlgorithmUtils.dotDivisionMatrices(aux1, ga.getBandwidthMap(i));
 					latency += AlgorithmUtils.sumAllElementsMatrix(aux2);
 				}
 			} catch (Exception e) {
