@@ -191,6 +191,7 @@ public abstract class Algorithm {
 	private void computeLatencyMap(final List<FogDevice> fogDevices,
 			final List<Sensor> sensors, final List<Actuator> actuators) {
 		Map<Integer, Vertex> mapNodes = new HashMap<Integer, Vertex>();
+		Map<Map<Integer, Integer>, Double> bwMap = new HashMap<Map<Integer,Integer>, Double>();
 		List<Edge> edges = new ArrayList<Edge>();
 		
 		for(int i = 0; i < NR_NODES; i++)
@@ -202,6 +203,10 @@ public abstract class Algorithm {
 			for(int neighborId : fogDevice.getNeighborsIds()) {
 				int lat = fogDevice.getLatencyMap().get(neighborId).intValue();
 				edges.add(new Edge(mapNodes.get(dId), mapNodes.get(neighborId), lat));
+				
+				Map<Integer, Integer> connection = new HashMap<Integer, Integer>();
+				connection.put(dId, neighborId);
+				bwMap.put(connection, fogDevice.getBandwidthMap().get(neighborId));
 			}
 		}
 		
@@ -248,17 +253,20 @@ public abstract class Algorithm {
 							if(edge.getSource().getName().equals(path.get(iter).getName()) &&
 								edge.getDestination().getName().equals(path.get(iter+1).getName())) {
 								
-								/*int sourceId = Integer.parseInt(edge.getSource().getName());
-								int destinationId = Integer.parseInt(edge.getSource().getName());
+								int sourceId = Integer.parseInt(edge.getSource().getName());
+								int destinationId = Integer.parseInt(edge.getDestination().getName());
 								
-								int sourceIndex = getNodeIndexByNodeId(sourceId);
-								int destinationIndex = getNodeIndexByNodeId(destinationId);
+								connection = new HashMap<Integer, Integer>();
+								connection.put(sourceId, destinationId);
 								
-								// tuples from sensors/ to actuators only have latency
-								if(fBw[sourceIndex] != 0 && fBw[destinationIndex] != 0)
-									bandwidth = fBw[sourceIndex];*/
+								try {
+									bandwidth = bwMap.get(connection);
+								} catch (Exception e) {
+									bandwidth = 0;
+								}
 								
 								latency += edge.getWeight();
+								break;
 							}
 						}
 					
@@ -287,32 +295,27 @@ public abstract class Algorithm {
 	public abstract Map<String, List<String>> execute();
 	
 	public Map<Map<String, String>, Integer> extractRoutingMap(final Map<String, List<String>> moduleToNodeMap,
-			final List<FogDevice> fogDevices) {
+			final List<FogDevice> fogDevices, final List<Sensor> sensors, final List<Actuator> actuators) {
 		Map<Map<String, String>, Integer> parsedPaths = new HashMap<Map<String,String>, Integer>();
 		int destinationModuleIndex = -1, sourceNodeIndex = -1, destinationNodeIndex = -1;
-		String destinyModuleName = "";
-		
+
 		for(String node : moduleToNodeMap.keySet()) {
 			for(String module : moduleToNodeMap.get(node)) {
-				destinyModuleName = module;
 				destinationModuleIndex = getModuleIndexByModuleName(module);
+				destinationNodeIndex = getNodeIndexByNodeName(node);
 				
-				for(int i = 0; i < mName.length; i++) {
-					if(dependencyMap[i][destinationModuleIndex] == 1) {
+				for(int i = 0; i < NR_MODULES; i++) {
+					if(dependencyMap[i][destinationModuleIndex] > 0) {
 						
-						for(String nodeName : moduleToNodeMap.keySet()) {
+						for(String nodeName : moduleToNodeMap.keySet())
 							if(moduleToNodeMap.get(nodeName).contains(mName[i]))
 								sourceNodeIndex = getNodeIndexByNodeName(nodeName);
-							
-							if(moduleToNodeMap.get(nodeName).contains(mName[destinationModuleIndex]))
-								destinationNodeIndex = getNodeIndexByNodeName(nodeName);
-						}
 						
 						Map<Integer, Integer> connection1 = new HashMap<Integer, Integer>();
 						connection1.put(sourceNodeIndex, destinationNodeIndex);
 						
 						List<Vertex> path = routingPaths.get(connection1);
-						if(path == null) // both modules inside the same node
+						if(path == null) // both modules are within the same node
 							continue;
 						
 						int iter = 0;
@@ -324,14 +327,32 @@ public abstract class Algorithm {
 							String nodeName = "";
 							
 							for(FogDevice fogDevice : fogDevices) {
-								if(Integer.parseInt(v.getName()) == fogDevice.getId())
+								if(Integer.parseInt(v.getName()) == fogDevice.getId()) {
 									nodeName = fogDevice.getName();
+									break;
+								}
 							}
 							
-							connection2.put(nodeName, destinyModuleName);
-							parsedPaths.put(connection2,
-									Integer.parseInt(routingPaths.get(connection1).get(iter+1).getName()));
+							if(nodeName == "") {
+								for(Sensor sensor : sensors) {
+									if(Integer.parseInt(v.getName()) == sensor.getId()) {
+										nodeName = sensor.getName();
+										break;
+									}
+								}
+							}
 							
+							if(nodeName == "") {
+								for(Actuator actuator : actuators) {
+									if(Integer.parseInt(v.getName()) == actuator.getId()) {
+										nodeName = actuator.getName();
+										break;
+									}
+								}
+							}
+							
+							connection2.put(nodeName, module);
+							parsedPaths.put(connection2, Integer.parseInt(routingPaths.get(connection1).get(iter+1).getName()));
 							iter++;
 						}						
 					}

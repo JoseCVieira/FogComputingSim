@@ -75,6 +75,7 @@ public class FogDevice extends PowerDatacenter {
 		setNeighborsIds(new ArrayList<Integer>());
 		setLatencyMap(new HashMap<Integer, Double>());
 		setBandwidthMap(new HashMap<Integer, Double>());
+		setRoutingMap(new HashMap<String, Integer>());
 		
 		setTupleQueue(new HashMap<Integer, Queue<Pair<Tuple,Integer>>>());
 		setTupleLinkBusy(new HashMap<Integer, Boolean>());
@@ -386,7 +387,7 @@ public class FogDevice extends PowerDatacenter {
 		}
 		
 		if(PRINT_COMMUNICATION_DETAILS) printCommunication(tuple);
-		sendTo(tuple, routingMap.get(tuple.getDestModuleName())/*findNextHopCommunication(tuple)*/);
+		sendTo(tuple, routingMap.get(tuple.getDestModuleName()));
 	}
 
 	protected void processTupleArrival(SimEvent ev){
@@ -431,7 +432,7 @@ public class FogDevice extends PowerDatacenter {
 			executeTuple(ev, tuple.getDestModuleName());
 		}else{
 			if(PRINT_COMMUNICATION_DETAILS) printCommunication(tuple);
-			sendTo(tuple, routingMap.get(tuple.getDestModuleName())/*findNextHopCommunication(tuple)*/);
+			sendTo(tuple, routingMap.get(tuple.getDestModuleName()));
 		}
 	}
 
@@ -530,7 +531,7 @@ public class FogDevice extends PowerDatacenter {
 		getTupleLinkBusy().put(destId, true);
 		
 		double latency = getLatencyMap().get(destId);
-		double networkDelay = getBandwidthMap().get(destId);
+		double networkDelay = (double)tuple.getCloudletFileSize()/getBandwidthMap().get(destId);
 		
 		send(getId(), networkDelay, FogEvents.UPDATE_TUPLE_QUEUE, destId);
 		send(destId, networkDelay + latency, FogEvents.TUPLE_ARRIVAL, tuple);
@@ -552,7 +553,7 @@ public class FogDevice extends PowerDatacenter {
 	private void printCommunication(Tuple tuple){
 		System.out.println("Tuple" + tuple);
 		System.out.println("From: " + getId());
-		System.out.println("To: " + routingMap.get(tuple.getDestModuleName())/*findNextHopCommunication(tuple)*/ + "\n\n");
+		System.out.println("To: " + routingMap.get(tuple.getDestModuleName()) + "\n\n");
 	}
 	
 	private void printCost() {

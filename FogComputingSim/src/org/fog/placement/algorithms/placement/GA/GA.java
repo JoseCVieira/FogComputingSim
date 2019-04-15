@@ -15,9 +15,9 @@ import org.fog.placement.algorithms.placement.Algorithm;
 import org.fog.placement.algorithms.placement.AlgorithmUtils;
 
 public class GA extends Algorithm {
-	private static final int POPULATION_SIZE = 100;
+	private static final int POPULATION_SIZE = 10;
 	private static final double AGREED_BOUNDARY = 0.0;
-	private static final int MAX_ITER = 5000;
+	private static final int MAX_ITER = 1000;
 	
 	public GA(final List<FogDevice> fogDevices, final List<Application> applications,
 			final List<Sensor> sensors, final List<Actuator> actuators) {

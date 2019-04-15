@@ -162,12 +162,12 @@ public class RunSim extends JDialog {
 					case "LP":
 						LP lp = new LP(fogDevices, applications, sensors, actuators);
 						placementMap = lp.execute();
-						routingMap = lp.extractRoutingMap(placementMap, fogDevices);
+						routingMap = lp.extractRoutingMap(placementMap, fogDevices, sensors, actuators);
 						break;
 					case "GA":
 						GA ga = new GA(fogDevices, applications, sensors, actuators);
 						placementMap = ga.execute();
-						routingMap = ga.extractRoutingMap(placementMap, fogDevices);
+						routingMap = ga.extractRoutingMap(placementMap, fogDevices, sensors, actuators);
 						break;
 					default:
 	    				System.err.println("Unknown algorithm.\nFogComputingSim will terminate abruptally.\n");
@@ -190,8 +190,20 @@ public class RunSim extends JDialog {
     				printPlacement(placementMap);
     				printRouting(routingMap);
     			}
-    			
-    			System.exit(0);
+
+    			for(Map<String, String> map : routingMap.keySet()) {
+    				for(String node : map.keySet()) {
+    					String module = map.get(node);
+    					
+    					try {
+    						FogDevice fogDevice = getFogDeviceByName(node);
+    						fogDevice.getRoutingMap().put(module, routingMap.get(map));
+						} catch (Exception e) { //sensor and actuators do not need routing map
+							continue;
+						}
+    					
+    				}
+    			}
     			
     			for(FogDeviceGui fog : clients) {
     				FogBroker broker = getFogBrokerByName(fog.getName());
@@ -440,7 +452,9 @@ public class RunSim extends JDialog {
 		}
 		
 		private void printPlacement(Map<String, List<String>> map) {
-			System.out.println("\n\nMODULE PLACEMENT:");
+			System.out.println("\n*******************************************************");
+			System.out.println("\t\tMODULE PLACEMENT:");
+			System.out.println("*******************************************************");
 			for(String fogDevName : map.keySet()) {
 				System.out.print("\n" + fogDevName + ":");
 				for(String modName : map.get(fogDevName))
@@ -450,7 +464,9 @@ public class RunSim extends JDialog {
 		}
 		
 		private void printRouting(Map<Map<String, String>, Integer> map) {
-			System.out.println("\n\nROUTING MAP:");
+			System.out.println("\n*******************************************************");
+			System.out.println("\t\tROUTING MAPS:");
+			System.out.println("*******************************************************");
 			for(Map<String, String> map2 : map.keySet()) {
 				for(String node : map2.keySet())
 					System.out.print("\nFog Node: " + node + " | Module: " +
