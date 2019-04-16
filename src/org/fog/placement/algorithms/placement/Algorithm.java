@@ -267,7 +267,7 @@ public abstract class Algorithm {
 								try {
 									bandwidth = bwMap.get(connection);
 								} catch (Exception e) {
-									bandwidth = Double.MAX_VALUE;
+									bandwidth = Double.MAX_VALUE; // connection so a sensor or actuator only has latency
 								}
 								
 								latency += edge.getWeight();
@@ -277,7 +277,7 @@ public abstract class Algorithm {
 					
 						bandwidthMap[iter][row][col] = bandwidth;
 					}
-				}
+				}					
 				
 				int c = getNodeIndexByNodeId(Integer.parseInt(v1.getName()));
 				int r = getNodeIndexByNodeId(Integer.parseInt(v2.getName()));

@@ -288,10 +288,10 @@ public class AlgorithmUtils {
 					table[i+1][j+1] = Double.toString(al.getBandwidthMap(iter)[i][j]);
 			}
 			
-			repeated = repeate(al.getfId().length, "%13s");
+			repeated = repeate(al.getfId().length, "%15s ");
 			
 			for (final Object[] r : table)
-			    System.out.format("%23s" + repeated + "\n", r);
+			    System.out.format("%25s" + repeated + "\n", r);
 			
 			if(iter < al.getfId().length-2)
 				System.out.println();

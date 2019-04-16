@@ -15,7 +15,7 @@ import org.fog.placement.algorithms.placement.Algorithm;
 import org.fog.placement.algorithms.placement.AlgorithmUtils;
 
 public class GA extends Algorithm {
-	private static final int POPULATION_SIZE = 10;
+	private static final int POPULATION_SIZE = 100;
 	private static final double AGREED_BOUNDARY = 0.0;
 	private static final int MAX_ITER = 1000;
 	
@@ -76,6 +76,9 @@ public class GA extends Algorithm {
 	        		
 	        generation++;
 	    }
+	    
+	    if(population[0].getFitness() == Double.MAX_VALUE)
+	    	return null;
 	  
 	    if(PRINT_DETAILS) {
 	    	System.out.println("\n*******************************************************");
