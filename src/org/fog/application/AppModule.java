@@ -68,6 +68,12 @@ public class AppModule extends PowerVm{
 		setSize(size);
 	}
 	
+	public void setValues(String name, int ram, long size) { //Added
+		setName(name);
+		setRam(ram);
+		setSize(size);
+	}
+	
 	public String getName() {
 		return name;
 	}

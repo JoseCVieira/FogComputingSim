@@ -31,10 +31,8 @@ public class AddAppModule extends JDialog {
 	private final ApplicationGui app;
 	
 	private JTextField moduleName;
-	private JTextField moduleMips;
 	private JTextField moduleRam;
 	private JTextField moduleSize;
-	private JTextField moduleBw;
 	
 	public AddAppModule(final JFrame frame, final ApplicationGui app, final AppModule module) {
 		this.app = app;
@@ -46,7 +44,7 @@ public class AddAppModule extends JDialog {
 
 		setTitle(module == null ? "  Add Application Module" : "  Edit Application Module");
 		setModal(true);
-		setPreferredSize(new Dimension(500, 300));
+		setPreferredSize(new Dimension(500, 250));
 		setResizable(false);
 		pack();
 		setLocationRelativeTo(frame);
@@ -95,9 +93,8 @@ public class AddAppModule extends JDialog {
 		okBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				String error_msg = "", name_ = "";
-				double mips_ = -1;
 				int ram_ = -1;
-				long size_ = -1, bw_ = -1;
+				long size_ = -1;
 				
 				if (Util.validString(moduleName.getText())) {
 					if(module == null || (module != null && !module.getName().equals(moduleName.getText()))) {		
@@ -111,22 +108,18 @@ public class AddAppModule extends JDialog {
 				if(moduleName.getText().contains(" "))
 					error_msg += "Name cannot contain spaces\n";
 				
-				if (!Util.validString(moduleMips.getText())) error_msg += "Missing Mips\n";
 				if (!Util.validString(moduleRam.getText())) error_msg += "Missing Ram\n";
 				if (!Util.validString(moduleSize.getText())) error_msg += "Missing Mem\n";
-				if (!Util.validString(moduleBw.getText())) error_msg += "Missing Bw\n";
 
 				name_ = moduleName.getText();
-				if((mips_ = Util.stringToDouble(moduleMips.getText())) < 0) error_msg += "\nMips should be a positive number";
 				if((ram_ = Util.stringToInt(moduleRam.getText())) < 0) error_msg += "\nRam should be a positive number";
 				if((size_ = Util.stringToLong(moduleSize.getText())) < 0) error_msg += "\nMem should be a positive number";
-				if((bw_ = Util.stringToLong(moduleBw.getText())) < 0) error_msg += "\nBw should be a positive number";
 				
 				if(error_msg == ""){
 					if(module != null)
-						module.setValues(name_, mips_, ram_, size_, bw_);
+						module.setValues(name_, ram_, size_);
 					else 
-						app.addAppModule(name_, mips_, ram_, size_, bw_);
+						app.addAppModule(name_, ram_, size_);
 					setVisible(false);
 				}else
 					Util.prompt(AddAppModule.this, error_msg, "Error");
@@ -151,13 +144,11 @@ public class AddAppModule extends JDialog {
         springPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 		
         moduleName = Util.createInput(springPanel, moduleName, "Name: ", module == null ? "" : module.getName());
-        moduleMips = Util.createInput(springPanel, moduleMips, "Mips: ", module == null ? Double.toString(Config.MODULE_MIPS) : Double.toString(module.getMips()));
         moduleRam = Util.createInput(springPanel, moduleRam, "Ram: ", module == null ? Integer.toString(Config.MODULE_RAM) : Integer.toString(module.getRam()));
         moduleSize = Util.createInput(springPanel, moduleSize, "Mem: ", module == null ? Long.toString(Config.MODULE_SIZE) : Long.toString(module.getSize()));
-        moduleBw = Util.createInput(springPanel, moduleBw, "Bw: ", module == null ? Long.toString(Config.MODULE_BW) : Long.toString(module.getBw()));
-
+        
 		//rows, cols, initX, initY, xPad, yPad
-        SpringUtilities.makeCompactGrid(springPanel, 5, 2, 6, 6, 6, 6);
+        SpringUtilities.makeCompactGrid(springPanel, 3, 2, 6, 6, 6, 6);
 		return springPanel;
 	}
 }

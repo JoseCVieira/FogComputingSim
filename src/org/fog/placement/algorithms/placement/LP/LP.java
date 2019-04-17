@@ -32,6 +32,9 @@ public class LP extends Algorithm {
 			
 			// variables
 			IloNumVar[][] var = new IloNumVar[NR_FOG_NODES][NR_MODULES];
+			
+			IloNumVar[][][] va2r = new IloNumVar[NR_FOG_NODES][NR_MODULES][NR_MODULES];
+			
 			for(int i = 0; i < NR_FOG_NODES; i++)
 				for(int j = 0; j < NR_MODULES; j++)
 					var[i][j] = cplex.boolVar();
@@ -49,7 +52,6 @@ public class LP extends Algorithm {
 				}
 			}
 			
-			//cplex.addMaximize(objective);
 			cplex.addMinimize(objective);
 
 			// define constraints

@@ -122,14 +122,12 @@ public class Bridge {
 				
 				String appId = (String) model.get("appId");
 				String name = (String) model.get("name");
-				double mips = (Double) model.get("mips");
 				int ram = ((Long) model.get("ram")).intValue();
 				long mem = (Long) model.get("mem");
-				long bw = (Long) model.get("bw");
 				
 				for(ApplicationGui app : graph.getAppList()) {
 					if(app.getAppId().equals(appId)) {
-						app.addAppModule(name, mips, ram, mem, bw);
+						app.addAppModule(name, ram, mem);
 						break;
 					}
 				}
@@ -295,10 +293,8 @@ public class Bridge {
 				jobj = new JSONObject();
 				jobj.put("appId", appModule.getAppId());
 				jobj.put("name", appModule.getName());
-				jobj.put("mips", appModule.getMips());
 				jobj.put("ram", appModule.getRam());
 				jobj.put("mem", appModule.getSize());
-				jobj.put("bw", appModule.getBw());
 				modules.add(jobj);
 				
 				for(Pair<String, String> pair : appModule.getSelectivityMap().keySet()) {

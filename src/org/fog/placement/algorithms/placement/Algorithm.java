@@ -45,14 +45,21 @@ public abstract class Algorithm {
 	protected double mMips[];
 	protected double mRam[];
 	protected double mMem[];
-	protected double mBw[];
+	//protected double mBw[];
+	protected double mCpuSize[];
 	
+	// Node to Node
 	protected double[][] latencyMap;
+	private double[][] bwCapacityMap;
+	protected double[][][] bandwidthMap;
+	
+	// Node to Module
+	protected double[][] mandatoryMap;
+	
+	// Module to Module
 	protected double[][] dependencyMap;
 	protected double[][] nwSizeMap;
-	protected double[] mCpuSize;
-	protected double[][] mandatoryMap;
-	protected double[][][] bandwidthMap;
+	
 	protected Map<Map<Integer, Integer>, LinkedList<Vertex>> routingPaths;
 	
 	public Algorithm(final List<FogDevice> fogDevices, final List<Application> applications,
@@ -91,14 +98,17 @@ public abstract class Algorithm {
 		mMips = new double[NR_MODULES];
 		mRam = new double[NR_MODULES];
 		mMem = new double[NR_MODULES];
-		mBw = new double[NR_MODULES];
+		//mBw = new double[NR_MODULES];
 		mCpuSize = new double[NR_MODULES];
 				
 		latencyMap = new double[NR_NODES][NR_NODES];
+		setBwCapacityMap(new double[NR_NODES][NR_NODES]);
+		bandwidthMap = new double[NR_NODES-1][NR_NODES][NR_NODES];
+		
+		mandatoryMap = new double[NR_NODES][NR_MODULES];
+		
 		dependencyMap = new double[NR_MODULES][NR_MODULES];
 		nwSizeMap = new double[NR_MODULES][NR_MODULES];
-		mandatoryMap = new double[NR_NODES][NR_MODULES];
-		bandwidthMap = new double[NR_NODES-1][NR_NODES][NR_NODES];
 		
 		for (int i = 0; i < NR_NODES - 1; i++)
 			for (int j = 0; j < NR_NODES; j++)
@@ -114,6 +124,8 @@ public abstract class Algorithm {
 		
 		if(PRINT_DETAILS)
 			AlgorithmUtils.printDetails(this, fogDevices, applications, sensors, actuators);
+		
+		System.exit(0);
 	}
 	
 	private void extractDevicesCharacteristics (final List<FogDevice> fogDevices,
@@ -165,8 +177,8 @@ public abstract class Algorithm {
 				mName[i] = module.getName();
 				mMips[i] = module.getMips();
 				mRam[i] = module.getRam();
-				mMem[i] = module.getSize();
-				mBw[i++] = module.getBw();
+				mMem[i++] = module.getSize();
+				//mBw[i++] = module.getBw();
 			}
 			
 			// sensors and actuators are added to compute tuples latency
@@ -207,13 +219,20 @@ public abstract class Algorithm {
 			
 			for(int neighborId : fogDevice.getNeighborsIds()) {
 				int lat = fogDevice.getLatencyMap().get(neighborId).intValue();
+				double bw = fogDevice.getBandwidthMap().get(neighborId);
+				
 				edges.add(new Edge(mapNodes.get(dId), mapNodes.get(neighborId), lat));
 				
 				Map<Integer, Integer> connection = new HashMap<Integer, Integer>();
 				connection.put(dId, neighborId);
-				bwMap.put(connection, fogDevice.getBandwidthMap().get(neighborId));
+				bwMap.put(connection, bw);
+				
+				getBwCapacityMap()[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(neighborId)] = bw;
 			}
+			
+			getBwCapacityMap()[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(dId)] = Double.MAX_VALUE;
 		}
+		
 		
 		for(Sensor sensor : sensors) {
 			int id1 = sensor.getId();
@@ -222,6 +241,10 @@ public abstract class Algorithm {
 			
 			edges.add(new Edge(mapNodes.get(id1), mapNodes.get(id2), lat));
 			edges.add(new Edge(mapNodes.get(id2), mapNodes.get(id1), lat));
+			
+			getBwCapacityMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id2)] = Double.MAX_VALUE; //sensor and act only have latency
+			getBwCapacityMap()[getNodeIndexByNodeId(id2)][getNodeIndexByNodeId(id1)] = Double.MAX_VALUE;
+			getBwCapacityMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id1)] = Double.MAX_VALUE;
 		}
 		
 		for(Actuator actuator : actuators) {
@@ -231,6 +254,10 @@ public abstract class Algorithm {
 			
 			edges.add(new Edge(mapNodes.get(id1), mapNodes.get(id2), lat));
 			edges.add(new Edge(mapNodes.get(id2), mapNodes.get(id1), lat));
+			
+			getBwCapacityMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id2)] = Double.MAX_VALUE;
+			getBwCapacityMap()[getNodeIndexByNodeId(id2)][getNodeIndexByNodeId(id1)] = Double.MAX_VALUE;
+			getBwCapacityMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id1)] = Double.MAX_VALUE;
 		}
 
 		Graph graph = new Graph(new ArrayList<Vertex>(mapNodes.values()), edges);
@@ -452,9 +479,9 @@ public abstract class Algorithm {
 		return mMem;
 	}
 
-	public double[] getmBw() {
+	/*public double[] getmBw() {
 		return mBw;
-	}
+	}*/
 	
 	public double[] getmCpuSize(){
 		return mCpuSize;
@@ -486,6 +513,14 @@ public abstract class Algorithm {
 	
 	public double[][] getNwSizeMap(){
 		return nwSizeMap;
+	}
+
+	public double[][] getBwCapacityMap() {
+		return bwCapacityMap;
+	}
+
+	public void setBwCapacityMap(double[][] bwCapacityMap) {
+		this.bwCapacityMap = bwCapacityMap;
 	}
 	
 }

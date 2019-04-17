@@ -216,19 +216,40 @@ public class AlgorithmUtils {
 			System.out.println("mMips: " + al.getmMips()[i]);
 			System.out.println("mRam: " + al.getmRam()[i]);
 			System.out.println("mMem: " + al.getmMem()[i]);
-			System.out.println("mBw: " + al.getmBw()[i]);
+			//System.out.println("mBw: " + al.getmBw()[i]);
 			System.out.println("mCpuSize: " + al.getmCpuSize()[i]);
 			
 			if(i < al.getmName().length -1)
 				System.out.println();
 		}
 		
+		System.out.println("\n*******************************************************");
+		System.out.println("\t\tBW CAPACITY MAP:");
+		System.out.println("*******************************************************\n");
+		String[][] table = new String[al.getfName().length+1][al.getfName().length+1];
+		
+		table[0][0] = " ";
+		for(int i = 0; i < al.getfName().length; i++)
+			table[0][i+1] = al.getfName()[i];
+		
+		for(int i = 0; i < al.getfName().length; i++) {
+			table[i+1][0] = al.getfName()[i];
+			
+			for(int j = 0; j < al.getfName().length; j++)
+				table[i+1][j+1] = Double.toString(al.getBwCapacityMap()[i][j]);
+		}
+		
+		String repeated = repeate(al.getfName().length, " %25s ");
+		
+		for (final Object[] row : table)
+		    System.out.format("%23s" + repeated + "\n", row);
+		
 		
 		System.out.println("\n*******************************************************");
 		System.out.println("\t\tMANDATORY POSITIONING:");
 		System.out.println("*******************************************************\n");
 		
-		String[][] table = new String[al.getfName().length+1][al.getmName().length+1];
+		table = new String[al.getfName().length+1][al.getmName().length+1];
 		
 		table[0][0] = " ";
 		for(int i = 0; i < al.getmName().length; i++)
@@ -241,7 +262,7 @@ public class AlgorithmUtils {
 				table[i+1][j+1] = Double.toString(al.getMandatoryMap()[i][j]);
 		}
 		
-		String repeated = repeate(al.getmName().length, "%17s");
+		repeated = repeate(al.getmName().length, "%17s");
 		
 		for (final Object[] row : table)
 		    System.out.format("%23s" + repeated + "\n", row);
