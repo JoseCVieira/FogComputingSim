@@ -6,11 +6,15 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+import java.util.Map.Entry;
 
+import org.apache.commons.math3.util.Pair;
 import org.cloudbus.cloudsim.Pe;
 import org.fog.application.AppEdge;
 import org.fog.application.AppModule;
 import org.fog.application.Application;
+import org.fog.application.selectivity.FractionalSelectivity;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
 import org.fog.entities.FogDeviceCharacteristics;
@@ -20,6 +24,10 @@ import org.fog.placement.algorithms.routing.Edge;
 import org.fog.placement.algorithms.routing.Graph;
 import org.fog.placement.algorithms.routing.Vertex;
 import org.fog.utils.FogLinearPowerModel;
+import org.fog.utils.distribution.DeterministicDistribution;
+import org.fog.utils.distribution.Distribution;
+import org.fog.utils.distribution.NormalDistribution;
+import org.fog.utils.distribution.UniformDistribution;
 
 public abstract class Algorithm {
 	protected static final boolean PRINT_DETAILS = true;
@@ -58,7 +66,7 @@ public abstract class Algorithm {
 	
 	// Module to Module
 	protected double[][] dependencyMap;
-	protected double[][] nwSizeMap;
+	protected double[][] bwMap;
 	
 	protected Map<Map<Integer, Integer>, LinkedList<Vertex>> routingPaths;
 	
@@ -102,13 +110,13 @@ public abstract class Algorithm {
 		mCpuSize = new double[NR_MODULES];
 				
 		latencyMap = new double[NR_NODES][NR_NODES];
-		setBwCapacityMap(new double[NR_NODES][NR_NODES]);
+		bwCapacityMap = new double[NR_NODES][NR_NODES];
 		bandwidthMap = new double[NR_NODES-1][NR_NODES][NR_NODES];
 		
 		mandatoryMap = new double[NR_NODES][NR_MODULES];
 		
 		dependencyMap = new double[NR_MODULES][NR_MODULES];
-		nwSizeMap = new double[NR_MODULES][NR_MODULES];
+		bwMap = new double[NR_MODULES][NR_MODULES];
 		
 		for (int i = 0; i < NR_NODES - 1; i++)
 			for (int j = 0; j < NR_NODES; j++)
@@ -119,6 +127,7 @@ public abstract class Algorithm {
 		
 		extractDevicesCharacteristics(fogDevices, sensors, actuators);
 		extractAppCharacteristics(applications, sensors, actuators);
+		computeApplicationCharacteristics(applications, sensors);
 		computeLatencyMap(fogDevices, sensors, actuators);
 		computeDependencyMap(applications);
 		
@@ -165,6 +174,80 @@ public abstract class Algorithm {
 			fId[i] = actuator.getId();
 			fName[i] = actuator.getName();
 			fMips[i++] = 1.0; // its value is irrelevant but needs to be different from 0
+		}
+	}
+	
+	private void computeApplicationCharacteristics(final List<Application> applications, final List<Sensor> sensors) {
+		Sensor sensor = null;		
+		for(Application application : applications) {
+			for(Sensor s : sensors)
+				if(s.getAppId().equals(application.getAppId()))
+					sensor = s;
+		
+			TreeMap<String, Double> producers = new TreeMap<String, Double>();
+	
+			Distribution distribution = sensor.getTransmitDistribution();
+			double avg = 0.0;
+			if(distribution.getDistributionType() == Distribution.DETERMINISTIC)
+				avg = ((DeterministicDistribution)distribution).getValue();
+			else if(distribution.getDistributionType() == Distribution.NORMAL)
+				avg = ((NormalDistribution)distribution).getMean() - 3*((NormalDistribution)distribution).getStdDev();
+			else
+				avg = ((UniformDistribution)distribution).getMin();
+			
+			producers.put(sensor.getTupleType(), avg);
+			
+			for(AppEdge appEdge : application.getEdges())
+				if(appEdge.isPeriodic())
+					producers.put(appEdge.getTupleType(), appEdge.getPeriodicity());
+			
+			int nrEdges = application.getEdges().size();
+			int processed = 0;
+			double interval = 0;
+			AppModule module = null;
+			String toProcess = "";
+			boolean found = false;
+			
+			while(processed < nrEdges) {
+				if(toProcess.isEmpty() || !found) {
+					Entry<String, Double> entry = producers.pollFirstEntry();
+					toProcess = entry.getKey();
+					interval = entry.getValue();
+				}else
+					found = false;
+				
+				for(AppEdge appEdge : application.getEdges()) {
+					if(appEdge.getTupleType().equals(toProcess)) {
+						for(AppModule appModule : application.getModules()) { // BW to sensors and actuatores is not used
+							if(appModule.getName().equals(appEdge.getDestination())) {
+								appModule.setMips(appModule.getMips() + appEdge.getTupleCpuLength()/interval);
+								
+								int edgeSourceIndex = getModuleIndexByModuleName(appEdge.getSource());
+								int edgeDestIndex = getModuleIndexByModuleName(appEdge.getDestination());
+								
+								bwMap[edgeSourceIndex][edgeDestIndex] += appEdge.getTupleNwLength()/interval;
+								mMips[edgeDestIndex] += appEdge.getTupleCpuLength()/interval;
+								
+								module = appModule;
+								break;
+							}
+						}
+						
+						processed++;
+						break;
+					}
+				}
+				
+				for(Pair<String, String> pair : module.getSelectivityMap().keySet()) {
+					if(pair.getFirst().equals(toProcess)) {
+						FractionalSelectivity fractionalSelectivity = ((FractionalSelectivity)module.getSelectivityMap().get(pair));
+						found = true;
+						toProcess = pair.getSecond();
+						interval *= fractionalSelectivity.getSelectivity();
+						break;
+					}
+				}
+			}
 		}
 	}
 	
@@ -319,7 +402,6 @@ public abstract class Algorithm {
 				int col = getModuleIndexByModuleName(appEdge.getSource());
 				int row = getModuleIndexByModuleName(appEdge.getDestination());
 				dependencyMap[col][row] += 1;
-				nwSizeMap[col][row] += appEdge.getTupleNwLength();
 			}
 		}
 	}
@@ -511,16 +593,12 @@ public abstract class Algorithm {
 		return bandwidthMap[iter];
 	}
 	
-	public double[][] getNwSizeMap(){
-		return nwSizeMap;
+	public double[][] getBwMap(){
+		return bwMap;
 	}
 
 	public double[][] getBwCapacityMap() {
 		return bwCapacityMap;
-	}
-
-	public void setBwCapacityMap(double[][] bwCapacityMap) {
-		this.bwCapacityMap = bwCapacityMap;
 	}
 	
 }

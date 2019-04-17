@@ -8,7 +8,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.TreeMap;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -58,10 +57,6 @@ import org.fog.utils.FogLinearPowerModel;
 import org.fog.utils.FogUtils;
 import org.fog.utils.Logger;
 import org.fog.utils.TimeKeeper;
-import org.fog.utils.distribution.DeterministicDistribution;
-import org.fog.utils.distribution.Distribution;
-import org.fog.utils.distribution.NormalDistribution;
-import org.fog.utils.distribution.UniformDistribution;
 import org.fog.placement.algorithms.placement.GA.GA;
 import org.fog.placement.algorithms.placement.LP.LP;
 
@@ -157,14 +152,6 @@ public class RunSim extends JDialog {
     				FogBroker broker = getFogBrokerByName(fog.getName());
     				Application application = createApplication(graph, fog.getApplication(), broker.getId());
     				application.setClientId(getFogDeviceByName(fog.getName()).getId());
-    				
-    				for(Sensor sensor : sensors) {
-    					if(broker.getId() == sensor.getUserId()) {
-    						updateAppModulesMips(application, sensor);
-    						break;
-    					}
-    				}
-    				
     				applications.add(application);
     			}
     			
@@ -360,65 +347,6 @@ public class RunSim extends JDialog {
 			application.setLoops(loops);
 			
 			return application;
-		}
-		
-		private void updateAppModulesMips(Application application, Sensor sensor) {			
-			TreeMap<String, Double> producers = new TreeMap<String, Double>();
-
-			Distribution distribution = sensor.getTransmitDistribution();
-			double avg = 0.0;
-			if(distribution.getDistributionType() == Distribution.DETERMINISTIC)
-				avg = ((DeterministicDistribution)distribution).getValue();
-			else if(distribution.getDistributionType() == Distribution.NORMAL)
-				avg = ((NormalDistribution)distribution).getMean() - 3*((NormalDistribution)distribution).getStdDev();
-			else
-				avg = ((UniformDistribution)distribution).getMin();
-			
-			producers.put(sensor.getTupleType(), avg);
-			
-			for(AppEdge appEdge : application.getEdges())
-				if(appEdge.isPeriodic())
-					producers.put(appEdge.getTupleType(), appEdge.getPeriodicity());
-			
-			int nrEdges = application.getEdges().size();
-			int processed = 0;
-			double interval = 0;
-			AppModule module = null;
-			String toProcess = "";
-			boolean found = false;
-			
-			while(processed < nrEdges) {
-				if(toProcess.isEmpty() || !found) {
-					Entry<String, Double> entry = producers.pollFirstEntry();
-					toProcess = entry.getKey();
-					interval = entry.getValue();
-				}else
-					found = false;
-				
-				for(AppEdge appEdge : application.getEdges()) {
-					if(appEdge.getTupleType().equals(toProcess)) {
-						for(AppModule appModule : application.getModules()) {
-							if(appModule.getName().equals(appEdge.getDestination())) {
-								appModule.setMips(appModule.getMips() + appEdge.getTupleCpuLength()/interval);
-								module = appModule;
-								break;
-							}
-						}
-						processed++;
-						break;
-					}
-				}
-				
-				for(Pair<String, String> pair : module.getSelectivityMap().keySet()) {
-					if(pair.getFirst().equals(toProcess)) {
-						FractionalSelectivity fractionalSelectivity = ((FractionalSelectivity)module.getSelectivityMap().get(pair));
-						found = true;
-						toProcess = pair.getSecond();
-						interval *= fractionalSelectivity.getSelectivity();
-						break;
-					}
-				}
-			}			
 		}
 		
 		private void createSensorActuator(Graph graph, String clientName, int userId, String appId) {

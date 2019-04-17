@@ -224,9 +224,32 @@ public class AlgorithmUtils {
 		}
 		
 		System.out.println("\n*******************************************************");
+		System.out.println("\t\tBW MAP (Between modules):");
+		System.out.println("*******************************************************\n");
+		
+		String[][] table = new String[al.getmName().length+1][al.getmName().length+1];
+		
+		table[0][0] = " ";
+		for(int i = 0; i < al.getmName().length; i++)
+			table[0][i+1] = al.getmName()[i];
+		
+		for(int i = 0; i < al.getmName().length; i++) {
+			table[i+1][0] = al.getmName()[i];
+			
+			for(int j = 0; j < al.getmName().length; j++)
+				table[i+1][j+1] = Double.toString(al.getBwMap()[i][j]);
+		}
+		
+		String repeated = repeate(al.getmName().length, " %25s ");
+		
+		for (final Object[] row : table)
+		    System.out.format("%23s" + repeated + "\n", row);
+		
+		
+		System.out.println("\n*******************************************************");
 		System.out.println("\t\tBW CAPACITY MAP:");
 		System.out.println("*******************************************************\n");
-		String[][] table = new String[al.getfName().length+1][al.getfName().length+1];
+		table = new String[al.getfName().length+1][al.getfName().length+1];
 		
 		table[0][0] = " ";
 		for(int i = 0; i < al.getfName().length; i++)
@@ -239,7 +262,7 @@ public class AlgorithmUtils {
 				table[i+1][j+1] = Double.toString(al.getBwCapacityMap()[i][j]);
 		}
 		
-		String repeated = repeate(al.getfName().length, " %25s ");
+		repeated = repeate(al.getfName().length, " %25s ");
 		
 		for (final Object[] row : table)
 		    System.out.format("%23s" + repeated + "\n", row);
@@ -334,28 +357,6 @@ public class AlgorithmUtils {
 			
 			for(int j = 0; j < al.getmName().length; j++)
 				table[i+1][j+1] = Double.toString(al.getDependencyMap()[i][j]);
-		}
-		
-		repeated = repeate(al.getmName().length, "%17s");
-		
-		for (final Object[] row : table)
-		    System.out.format("%23s" + repeated + "\n", row);
-		
-		System.out.println("\n*******************************************************");
-		System.out.println("\t\tNW SIZE MAP:");
-		System.out.println("*******************************************************\n");
-		
-		table = new String[al.getmName().length+1][al.getmName().length+1];
-		
-		table[0][0] = " ";
-		for(int i = 0; i < al.getmName().length; i++)
-			table[0][i+1] = al.getmName()[i];
-		
-		for(int i = 0; i < al.getmName().length; i++) {
-			table[i+1][0] = al.getmName()[i];
-			
-			for(int j = 0; j < al.getmName().length; j++)
-				table[i+1][j+1] = Double.toString(al.getNwSizeMap()[i][j]);
 		}
 		
 		repeated = repeate(al.getmName().length, "%17s");
