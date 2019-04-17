@@ -15,9 +15,11 @@ public class FractionalSelectivity implements SelectivityModel{
 	public FractionalSelectivity(double selectivity){
 		setSelectivity(selectivity);
 	}
+	
 	public double getSelectivity() {
 		return selectivity;
 	}
+	
 	public void setSelectivity(double selectivity) {
 		this.selectivity = selectivity;
 	}

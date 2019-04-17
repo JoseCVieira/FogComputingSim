@@ -57,6 +57,10 @@ public class Application {
 			new HashMap<Pair<String, String>, SelectivityModel>());
 		getModules().add(module);
 	}
+	
+	public void updateAppModuleMips(AppModule m){
+		
+	}
 
 	/**
 	 * Adds a non-periodic edge to the application model.
