@@ -125,7 +125,7 @@ public class Host {
 				System.exit(0);
 			}
 
-			if (getBwProvisioner() != null && !getBwProvisioner().allocateResourcesForVm(vm, vm.getCurrentRequestedBw())) {
+			if (!getBwProvisioner().allocateResourcesForVm(vm, vm.getCurrentRequestedBw())) {
 				Log.printLine("[VmScheduler.addMigratingInVm] Allocation of VM #" + vm.getId() + " to Host #"
 						+ getId() + " failed by BW");
 				System.exit(0);
@@ -172,8 +172,7 @@ public class Host {
 				getVmScheduler().getVmsMigratingIn().add(vm.getUid());
 			}
 			getRamProvisioner().allocateResourcesForVm(vm, vm.getCurrentRequestedRam());
-			if (getBwProvisioner() != null)
-				getBwProvisioner().allocateResourcesForVm(vm, vm.getCurrentRequestedBw());
+			getBwProvisioner().allocateResourcesForVm(vm, vm.getCurrentRequestedBw());
 			getVmScheduler().allocatePesForVm(vm, vm.getCurrentRequestedMips());
 			setStorage(getStorage() - vm.getSize());
 		}
@@ -186,17 +185,10 @@ public class Host {
 	 * @return true, if is suitable for vm
 	 */
 	public boolean isSuitableForVm(Vm vm) {
-		if (getBwProvisioner() != null)
-			return (getVmScheduler().getPeCapacity() >= vm.getCurrentRequestedMaxMips()
-					&& getVmScheduler().getAvailableMips() >= vm.getCurrentRequestedTotalMips()
-					&& getRamProvisioner().isSuitableForVm(vm, vm.getCurrentRequestedRam())
-					&& getBwProvisioner().isSuitableForVm(vm, vm.getCurrentRequestedBw())
-					&& getStorage() < vm.getSize());
-		
-		else
-			return (getVmScheduler().getPeCapacity() >= vm.getCurrentRequestedMaxMips()
+		return (getVmScheduler().getPeCapacity() >= vm.getCurrentRequestedMaxMips()
 				&& getVmScheduler().getAvailableMips() >= vm.getCurrentRequestedTotalMips()
 				&& getRamProvisioner().isSuitableForVm(vm, vm.getCurrentRequestedRam())
+				&& getBwProvisioner().isSuitableForVm(vm, vm.getCurrentRequestedBw())
 				&& getStorage() < vm.getSize());
 	}
 
@@ -223,7 +215,7 @@ public class Host {
 			return false;
 		}
 
-		if (getBwProvisioner() != null && !getBwProvisioner().allocateResourcesForVm(vm, vm.getCurrentRequestedBw())) {
+		if (!getBwProvisioner().allocateResourcesForVm(vm, vm.getCurrentRequestedBw())) {
 			Log.printLine("[VmScheduler.vmCreate] Allocation of VM #" + vm.getId() + " to Host #" + getId()
 					+ " failed by BW");
 			getRamProvisioner().deallocateResourcesForVm(vm);
@@ -235,9 +227,7 @@ public class Host {
 			Log.printLine("[VmScheduler.vmCreate] Allocation of VM #" + vm.getId() + " to Host #" + getId()
 					+ " failed by MIPS");
 			getRamProvisioner().deallocateResourcesForVm(vm);
-			
-			if (getBwProvisioner() != null)
-				getBwProvisioner().deallocateResourcesForVm(vm);
+			getBwProvisioner().deallocateResourcesForVm(vm);
 			CloudSim.abruptallyTerminate();
 			return false;
 		}
@@ -271,8 +261,7 @@ public class Host {
 	 */
 	public void vmDestroyAll() {
 		getRamProvisioner().deallocateResourcesForAllVms();
-		if (getBwProvisioner() != null)
-			getBwProvisioner().deallocateResourcesForAllVms();
+		getBwProvisioner().deallocateResourcesForAllVms();
 		getVmScheduler().deallocatePesForAllVms();
 		
 		for (Vm vm : getVmList()) {
@@ -289,8 +278,7 @@ public class Host {
 	 */
 	protected void vmDeallocate(Vm vm) {
 		getRamProvisioner().deallocateResourcesForVm(vm);
-		if (getBwProvisioner() != null)
-			getBwProvisioner().deallocateResourcesForVm(vm);
+		getBwProvisioner().deallocateResourcesForVm(vm);
 		getVmScheduler().deallocatePesForVm(vm);
 		setStorage(getStorage() + vm.getSize());
 	}

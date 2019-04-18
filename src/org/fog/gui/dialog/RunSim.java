@@ -27,6 +27,7 @@ import org.cloudbus.cloudsim.Pe;
 import org.cloudbus.cloudsim.Storage;
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.power.PowerHost;
+import org.cloudbus.cloudsim.provisioners.BwProvisioner;
 import org.cloudbus.cloudsim.provisioners.PeProvisioner;
 import org.cloudbus.cloudsim.provisioners.RamProvisioner;
 import org.cloudbus.cloudsim.sdn.overbooking.VmSchedulerTimeSharedOverbookingEnergy;
@@ -167,6 +168,7 @@ public class RunSim extends JDialog {
 						break;
 					case "GA":
 						GA ga = new GA(fogDevices, applications, sensors, actuators);
+						System.exit(0);
 						placementMap = ga.execute();
 						if(placementMap == null) break;
 						routingMap = ga.extractRoutingMap(placementMap, fogDevices, sensors, actuators);
@@ -288,7 +290,7 @@ public class RunSim extends JDialog {
 			PowerHost host = new PowerHost(
 					FogUtils.generateEntityId(),
 					new RamProvisioner(fog.getRam()),
-					null, // bandwidth is defined in each link instead of in each node
+					new BwProvisioner((long) fog.getBw()),
 					fog.getStorage(),
 					processingElementsList,
 					new VmSchedulerTimeSharedOverbookingEnergy(processingElementsList),

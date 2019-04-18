@@ -191,7 +191,7 @@ public class AlgorithmUtils {
 			System.out.println("fMips: " + al.getfMips()[i]);
 			System.out.println("fRam: " + al.getfRam()[i]);
 			System.out.println("fMem: " + al.getfMem()[i]);
-			//System.out.println("fBw: " + al.getfBw()[i]);
+			System.out.println("fBw: " + al.getfBw()[i]);
 			System.out.println("fMipsPrice: " + al.getfMipsPrice()[i]);
 			System.out.println("fRamPrice: " + al.getfRamPrice()[i]);
 			System.out.println("fMemPrice: " + al.getfMemPrice()[i]);
@@ -216,7 +216,7 @@ public class AlgorithmUtils {
 			System.out.println("mMips: " + al.getmMips()[i]);
 			System.out.println("mRam: " + al.getmRam()[i]);
 			System.out.println("mMem: " + al.getmMem()[i]);
-			//System.out.println("mBw: " + al.getmBw()[i]);
+			System.out.println("mBw: " + al.getmBw()[i]);
 			System.out.println("mCpuSize: " + al.getmCpuSize()[i]);
 			
 			if(i < al.getmName().length -1)

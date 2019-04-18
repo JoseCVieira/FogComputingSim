@@ -54,6 +54,7 @@ public class Bridge {
 					double mips = (Double) node.get("mips");
 					int ram = new BigDecimal((Long)node.get("ram")).intValue();
 					long mem = (Long) node.get("mem");
+					double bw = (Double) node.get("bw");
 					double rateMips = (Double) node.get("ratePerMips");
 					double rateRam = (Double) node.get("ratePerRam");
 					double rateStorage = (Double) node.get("ratePerMem");
@@ -62,7 +63,7 @@ public class Bridge {
 					double busyPower = (Double) node.get("busyPower");
 					double cost = (Double) node.get("cost");
 
-					Node fogDevice = new FogDeviceGui(nodeName, level, mips, ram, mem, rateMips, rateRam,
+					Node fogDevice = new FogDeviceGui(nodeName, level, mips, ram, mem, bw, rateMips, rateRam,
 							rateStorage, rateBw, idlePower, busyPower, cost, application);
 					graph.addNode(fogDevice);
 				} else if(nodeType.equals(Config.SENSOR_TYPE)){
@@ -235,6 +236,7 @@ public class Bridge {
 					jobj.put("mips", fogDevice.getMips());
 					jobj.put("ram", fogDevice.getRam());
 					jobj.put("mem", fogDevice.getStorage());
+					jobj.put("bw", fogDevice.getBw());
 					jobj.put("level", fogDevice.getLevel());
 					jobj.put("ratePerMips", fogDevice.getRateMips());
 					jobj.put("ratePerRam", fogDevice.getRateRam());

@@ -92,7 +92,7 @@ public class Individual implements Comparable<Individual> {
 			}
 			
 			if(totalMips > ga.getfMips()[i] || totalRam > ga.getfRam()[i] ||
-					totalMem > ga.getfMem()[i]/* || totalBw > ga.getfBw()[i]*/)
+					totalMem > ga.getfMem()[i] || totalBw > ga.getfBw()[i])
 				return false;
 		}
 		return true;

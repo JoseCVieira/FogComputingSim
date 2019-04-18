@@ -45,7 +45,7 @@ public abstract class Algorithm {
 	protected double fMips[];
 	protected double fRam[];
 	protected double fMem[];
-	//protected double fBw[];
+	protected double fBw[];
 	protected double fBusyPw[];
 	protected double fIdlePw[];
 	
@@ -53,7 +53,7 @@ public abstract class Algorithm {
 	protected double mMips[];
 	protected double mRam[];
 	protected double mMem[];
-	//protected double mBw[];
+	protected double mBw[];
 	protected double mCpuSize[];
 	
 	// Node to Node
@@ -82,7 +82,7 @@ public abstract class Algorithm {
 		fMips = new double[NR_NODES];
 		fRam = new double[NR_NODES];
 		fMem = new double[NR_NODES];
-		//fBw = new double[NR_NODES];
+		fBw = new double[NR_NODES];
 		fBusyPw = new double[NR_NODES];
 		fIdlePw = new double[NR_NODES];
 		fMipsPrice = new double[NR_NODES];
@@ -106,7 +106,7 @@ public abstract class Algorithm {
 		mMips = new double[NR_MODULES];
 		mRam = new double[NR_MODULES];
 		mMem = new double[NR_MODULES];
-		//mBw = new double[NR_MODULES];
+		mBw = new double[NR_MODULES];
 		mCpuSize = new double[NR_MODULES];
 				
 		latencyMap = new double[NR_NODES][NR_NODES];
@@ -154,7 +154,7 @@ public abstract class Algorithm {
 			fMips[i] = totalMips;
 			fRam[i] = fogDevice.getHost().getRam();
 			fMem[i] = fogDevice.getHost().getStorage();
-			//fBw[i] = fogDevice.getHost().getBw();
+			fBw[i] = fogDevice.getHost().getBw();
 			fBusyPw[i] = ((FogLinearPowerModel) fogDevice.getHost().getPowerModel()).getBusyPower();
 			fIdlePw[i] = ((FogLinearPowerModel) fogDevice.getHost().getPowerModel()).getStaticPower();
 			fMipsPrice[i] = characteristics.getCostPerMips();
@@ -174,6 +174,43 @@ public abstract class Algorithm {
 			fId[i] = actuator.getId();
 			fName[i] = actuator.getName();
 			fMips[i++] = 1.0; // its value is irrelevant but needs to be different from 0
+		}
+	}
+	
+	private void extractAppCharacteristics(final List<Application> applications,
+			final List<Sensor> sensors, final List<Actuator> actuators) {
+		
+		int i = 0;
+		for(Application application : applications) {
+			for(AppModule module : application.getModules()) {
+				mName[i] = module.getName();
+				mMips[i] = module.getMips();
+				mRam[i] = module.getRam();
+				mMem[i] = module.getSize();
+				mBw[i++] = module.getBw();
+			}
+			
+			// sensors and actuators are added to compute tuples latency
+			for(AppEdge appEdge : application.getEdges()) {
+				if(getModuleIndexByModuleName(appEdge.getSource()) == -1) {
+					for(Sensor sensor : sensors)
+						if(sensor.getAppId().equals(application.getAppId()))
+							mandatoryMap[getNodeIndexByNodeName(sensor.getName())][i] = 1;
+					
+					mName[i++] = appEdge.getSource();
+				}
+				
+				if(getModuleIndexByModuleName(appEdge.getDestination()) == -1) {
+					for(Actuator actuator : actuators)
+						if(actuator.getAppId().equals(application.getAppId()))
+							mandatoryMap[getNodeIndexByNodeName(actuator.getName())][i] = 1;
+					
+					mName[i++] = appEdge.getDestination();
+				}
+				
+				int index = getModuleIndexByModuleName(appEdge.getDestination());
+				mCpuSize[index] += appEdge.getTupleCpuLength();
+			}
 		}
 	}
 	
@@ -218,15 +255,20 @@ public abstract class Algorithm {
 				
 				for(AppEdge appEdge : application.getEdges()) {
 					if(appEdge.getTupleType().equals(toProcess)) {
-						for(AppModule appModule : application.getModules()) { // BW to sensors and actuatores is not used
+						// BW and MIPS to sensors and actuators are not used
+						for(AppModule appModule : application.getModules()) {
 							if(appModule.getName().equals(appEdge.getDestination())) {
-								appModule.setMips(appModule.getMips() + appEdge.getTupleCpuLength()/interval);
-								
 								int edgeSourceIndex = getModuleIndexByModuleName(appEdge.getSource());
 								int edgeDestIndex = getModuleIndexByModuleName(appEdge.getDestination());
 								
-								bwMap[edgeSourceIndex][edgeDestIndex] += appEdge.getTupleNwLength()/interval;
+								appModule.setMips(appModule.getMips() + appEdge.getTupleCpuLength()/interval);
 								mMips[edgeDestIndex] += appEdge.getTupleCpuLength()/interval;
+								
+								if(!isSensorTuple(sensors, appEdge.getTupleType())) {
+									appModule.setBw((long) (appModule.getBw() + appEdge.getTupleNwLength()/interval));
+									bwMap[edgeSourceIndex][edgeDestIndex] += appEdge.getTupleNwLength()/interval;
+									mBw[edgeSourceIndex] += appEdge.getTupleNwLength()/interval;
+								}
 								
 								module = appModule;
 								break;
@@ -247,43 +289,6 @@ public abstract class Algorithm {
 						break;
 					}
 				}
-			}
-		}
-	}
-	
-	private void extractAppCharacteristics(final List<Application> applications,
-			final List<Sensor> sensors, final List<Actuator> actuators) {
-		
-		int i = 0;
-		for(Application application : applications) {
-			for(AppModule module : application.getModules()) {
-				mName[i] = module.getName();
-				mMips[i] = module.getMips();
-				mRam[i] = module.getRam();
-				mMem[i++] = module.getSize();
-				//mBw[i++] = module.getBw();
-			}
-			
-			// sensors and actuators are added to compute tuples latency
-			for(AppEdge appEdge : application.getEdges()) {
-				if(getModuleIndexByModuleName(appEdge.getSource()) == -1) {
-					for(Sensor sensor : sensors)
-						if(sensor.getAppId().equals(application.getAppId()))
-							mandatoryMap[getNodeIndexByNodeName(sensor.getName())][i] = 1;
-					
-					mName[i++] = appEdge.getSource();
-				}
-				
-				if(getModuleIndexByModuleName(appEdge.getDestination()) == -1) {
-					for(Actuator actuator : actuators)
-						if(actuator.getAppId().equals(application.getAppId()))
-							mandatoryMap[getNodeIndexByNodeName(actuator.getName())][i] = 1;
-					
-					mName[i++] = appEdge.getDestination();
-				}
-				
-				int index = getModuleIndexByModuleName(appEdge.getDestination());
-				mCpuSize[index] += appEdge.getTupleCpuLength();
 			}
 		}
 	}
@@ -498,6 +503,13 @@ public abstract class Algorithm {
 		return -1;
 	}
 	
+	private boolean isSensorTuple(List<Sensor> sensors, String tupleType) {
+		for(Sensor sensor : sensors)
+			if(sensor.getTupleType().equals(tupleType))
+				return true;
+		return false;
+	}
+	
 	public int moduleHasMandatoryPositioning(int col) {
 		for(int i = 0; i < NR_NODES; i++)
 			if(mandatoryMap[i][col] == 1)
@@ -541,9 +553,9 @@ public abstract class Algorithm {
 		return fMem;
 	}
 
-	/*public double[] getfBw() {
+	public double[] getfBw() {
 		return fBw;
-	}*/
+	}
 
 	public String[] getmName() {
 		return mName;
@@ -561,9 +573,9 @@ public abstract class Algorithm {
 		return mMem;
 	}
 
-	/*public double[] getmBw() {
+	public double[] getmBw() {
 		return mBw;
-	}*/
+	}
 	
 	public double[] getmCpuSize(){
 		return mCpuSize;
