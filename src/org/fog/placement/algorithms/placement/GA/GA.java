@@ -72,7 +72,7 @@ public class GA extends Algorithm {
 	        for(int i = 0; i < POPULATION_SIZE; i++) 
 	        	population[i] = newGeneration[i];
 	        
-	        System.out.println("Generation: " + generation + " fitness: " + population[0].getFitness());
+	        //System.out.println("Generation: " + generation + " fitness: " + population[0].getFitness());
 	        		
 	        generation++;
 	    }
@@ -86,23 +86,21 @@ public class GA extends Algorithm {
 					population[0].getFitness() + "):");
 			System.out.println("*******************************************************\n");
 			
-			final String[][] table = new String[getfName().length+1][getmName().length+1];
+			System.out.format(AlgorithmUtils.centerString(15, " "));
+			for (int i = 0; i < getmName().length; i++)
+				System.out.format(AlgorithmUtils.centerString(15, getmName()[i]));
+			System.out.println();
 			
-			table[0][0] = " ";
-			for(int i = 0; i < getmName().length; i++)
-				table[0][i+1] = getmName()[i];
-			
-			for(int i = 0; i < getfName().length; i++) {
-				table[i+1][0] = getfName()[i];
-				
-				for(int j = 0; j < getmName().length; j++)
-					table[i+1][j+1] = Double.toString(population[0].getChromosome()[i][j]);
+			for (int i = 0; i < getfName().length; i++) {
+				System.out.format(AlgorithmUtils.centerString(15, getfName()[i]));
+				for (int j = 0; j < getmName().length; j++) {
+					if(population[0].getChromosome()[i][j] != 0)
+						System.out.format(AlgorithmUtils.centerString(15, Integer.toString((int)population[0].getChromosome()[i][j])));
+					else
+						System.out.format(AlgorithmUtils.centerString(15, "-"));
+				}
+				System.out.println();
 			}
-			
-			String repeated = AlgorithmUtils.repeate(getmName().length, "%17s");
-			
-			for (final Object[] row : table)
-			    System.out.format("%23s" + repeated + "\n", row);
 	    }
 	    
 	    Map<String, List<String>> resMap = new HashMap<>();

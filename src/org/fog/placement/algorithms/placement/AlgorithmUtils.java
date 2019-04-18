@@ -227,149 +227,131 @@ public class AlgorithmUtils {
 		System.out.println("\t\tBW MAP (Between modules):");
 		System.out.println("*******************************************************\n");
 		
-		String[][] table = new String[al.getmName().length+1][al.getmName().length+1];
+		System.out.format(centerString(20, " "));
+		for (int i = 0; i < al.getmName().length; i++)
+			System.out.format(centerString(20, al.getmName()[i]));
+		System.out.println();
 		
-		table[0][0] = " ";
-		for(int i = 0; i < al.getmName().length; i++)
-			table[0][i+1] = al.getmName()[i];
-		
-		for(int i = 0; i < al.getmName().length; i++) {
-			table[i+1][0] = al.getmName()[i];
-			
-			for(int j = 0; j < al.getmName().length; j++)
-				table[i+1][j+1] = Double.toString(al.getBwMap()[i][j]);
+		for (int i = 0; i < al.getmName().length; i++) {
+			System.out.format(centerString(20, al.getmName()[i]));
+			for (int j = 0; j < al.getmName().length; j++) {
+				if(al.getBwMap()[i][j] != 0)
+					System.out.format(centerString(20, String.format("%.2f", al.getBwMap()[i][j])));
+				else
+					System.out.format(AlgorithmUtils.centerString(20, "-"));
+			}
+			System.out.println();
 		}
-		
-		String repeated = repeate(al.getmName().length, " %25s ");
-		
-		for (final Object[] row : table)
-		    System.out.format("%23s" + repeated + "\n", row);
-		
 		
 		System.out.println("\n*******************************************************");
-		System.out.println("\t\tBW CAPACITY MAP:");
+		System.out.println("\t\tDEPENDENCY MAP (Between modules):");
 		System.out.println("*******************************************************\n");
-		table = new String[al.getfName().length+1][al.getfName().length+1];
 		
-		table[0][0] = " ";
-		for(int i = 0; i < al.getfName().length; i++)
-			table[0][i+1] = al.getfName()[i];
+		System.out.format(centerString(20, " "));
+		for (int i = 0; i < al.getmName().length; i++)
+			System.out.format(centerString(20, al.getmName()[i]));
+		System.out.println();
 		
-		for(int i = 0; i < al.getfName().length; i++) {
-			table[i+1][0] = al.getfName()[i];
-			
-			for(int j = 0; j < al.getfName().length; j++)
-				table[i+1][j+1] = Double.toString(al.getBwCapacityMap()[i][j]);
+		for (int i = 0; i < al.getmName().length; i++) {
+			System.out.format(centerString(20, al.getmName()[i]));
+			for (int j = 0; j < al.getmName().length; j++)
+				if(al.getDependencyMap()[i][j] != 0)
+					System.out.format(centerString(20, Integer.toString((int)al.getDependencyMap()[i][j])));
+				else
+					System.out.format(AlgorithmUtils.centerString(20, "-"));
+			System.out.println();
 		}
-		
-		repeated = repeate(al.getfName().length, " %25s ");
-		
-		for (final Object[] row : table)
-		    System.out.format("%23s" + repeated + "\n", row);
-		
 		
 		System.out.println("\n*******************************************************");
 		System.out.println("\t\tMANDATORY POSITIONING:");
 		System.out.println("*******************************************************\n");
+
+		System.out.format(centerString(20, " "));
+		for (int i = 0; i < al.getmName().length; i++)
+			System.out.format(centerString(20, al.getmName()[i]));
+		System.out.println();
 		
-		table = new String[al.getfName().length+1][al.getmName().length+1];
-		
-		table[0][0] = " ";
-		for(int i = 0; i < al.getmName().length; i++)
-			table[0][i+1] = al.getmName()[i];
-		
-		for(int i = 0; i < al.getfName().length; i++) {
-			table[i+1][0] = al.getfName()[i];
-			
-			for(int j = 0; j < al.getmName().length; j++)
-				table[i+1][j+1] = Double.toString(al.getMandatoryMap()[i][j]);
+		for (int i = 0; i < al.getfName().length; i++) {
+			System.out.format(centerString(20, al.getfName()[i]));
+			for (int j = 0; j < al.getmName().length; j++)
+				if(al.getMandatoryMap()[i][j] != 0)
+					System.out.format(centerString(20, Integer.toString((int)al.getMandatoryMap()[i][j])));
+				else
+					System.out.format(AlgorithmUtils.centerString(20, "-"));
+			System.out.println();
 		}
-		
-		repeated = repeate(al.getmName().length, "%17s");
-		
-		for (final Object[] row : table)
-		    System.out.format("%23s" + repeated + "\n", row);
-		
 		
 		System.out.println("\n*******************************************************");
-		System.out.println("\t\tLATENCY MAP:");
+		System.out.println("\t\tBW CAPACITY MAP (Between directed nodes):");
 		System.out.println("*******************************************************\n");
 		
-		table = new String[al.getfId().length+1][al.getfId().length+1];
+		System.out.format(centerString(20, " "));
+		for (int i = 0; i < al.getfName().length; i++)
+			System.out.format(centerString(20, al.getfName()[i]));
+		System.out.println();
 		
-		table[0][0] = " ";
-		for(int i = 0; i < al.getfId().length; i++)
-			table[0][i+1] = al.getfName()[i];
+		for (int i = 0; i < al.getfName().length; i++) {
+			System.out.format(centerString(20, al.getfName()[i]));
+			for (int j = 0; j < al.getfName().length; j++) {
+				if(al.getBwCapacityMap()[i][j] == Double.MAX_VALUE)
+					System.out.format(centerString(20, String.format("%.2E", al.getBwCapacityMap()[i][j])));
+				else if(al.getBwCapacityMap()[i][j] == 0)
+					System.out.format(AlgorithmUtils.centerString(20, "-"));
+				else
+					System.out.format(centerString(20, String.format("%.2f", al.getBwCapacityMap()[i][j])));
+			}
+			System.out.println();
+		}		
 		
-		for(int i = 0; i < al.getfId().length; i++) {
-			table[i+1][0] = al.getfName()[i];
-			
-			for(int j = 0; j < al.getfId().length; j++)
-				table[i+1][j+1] = Double.toString(al.getLatencyMap()[i][j]);
+		System.out.println("\n*******************************************************");
+		System.out.println("\t\tLATENCY MAP (Between nodes):");
+		System.out.println("*******************************************************\n");
+		
+		System.out.format(centerString(20, " "));
+		for (int i = 0; i < al.getfName().length; i++)
+			System.out.format(centerString(20, al.getfName()[i]));
+		System.out.println();
+		
+		for (int i = 0; i < al.getfName().length; i++) {
+			System.out.format(centerString(20, al.getfName()[i]));
+			for (int j = 0; j < al.getfName().length; j++) {
+				if(al.getLatencyMap()[i][j] != 0)
+					System.out.format(centerString(20, Double.toString(al.getLatencyMap()[i][j])));
+				else
+					System.out.format(AlgorithmUtils.centerString(20, "-"));
+			}
+			System.out.println();
 		}
-		
-		repeated = repeate(al.getfId().length, "%13s");
-		
-		for (final Object[] r : table)
-		    System.out.format("%23s" + repeated + "\n", r);
-		
 		
 		System.out.println("\n*******************************************************");
 		System.out.println("\t\tBANDWIDTH MAP:");
 		System.out.println("*******************************************************\n");
 		
 		for(int iter = 0; iter < al.getfId().length-1; iter++) {
-			table = new String[al.getfId().length+1][al.getfId().length+1];
+			System.out.format(centerString(20, " "));
+			for (int i = 0; i < al.getfName().length; i++)
+				System.out.format(centerString(20, al.getfName()[i]));
+			System.out.println();
 			
-			table[0][0] = " ";
-			for(int i = 0; i < al.getfId().length; i++)
-				table[0][i+1] = al.getfName()[i];
-			
-			for(int i = 0; i < al.getfId().length; i++) {
-				table[i+1][0] = al.getfName()[i];
-				
-				for(int j = 0; j < al.getfId().length; j++)
-					table[i+1][j+1] = Double.toString(al.getBandwidthMap(iter)[i][j]);
-			}
-			
-			repeated = repeate(al.getfId().length, "%15s ");
-			
-			for (final Object[] r : table)
-			    System.out.format("%25s" + repeated + "\n", r);
-			
-			if(iter < al.getfId().length-2)
+			for (int i = 0; i < al.getfName().length; i++) {
+				System.out.format(centerString(20, al.getfName()[i]));
+				for (int j = 0; j < al.getfName().length; j++) {
+					if(al.getBandwidthMap(iter)[i][j] == Double.MAX_VALUE)
+						System.out.format(centerString(20, String.format("%.2E", al.getBandwidthMap(iter)[i][j])));
+					else if(al.getBandwidthMap(iter)[i][j] == 0)
+						System.out.format(AlgorithmUtils.centerString(20, "-"));
+					else
+						System.out.format(centerString(20, String.format("%.2f", al.getBandwidthMap(iter)[i][j])));
+				}
 				System.out.println();
+			}
+			System.out.println();
 		}
-		
-		
-		System.out.println("\n*******************************************************");
-		System.out.println("\t\tDEPENDENCY MAP:");
-		System.out.println("*******************************************************\n");
-		
-		table = new String[al.getmName().length+1][al.getmName().length+1];
-		
-		table[0][0] = " ";
-		for(int i = 0; i < al.getmName().length; i++)
-			table[0][i+1] = al.getmName()[i];
-		
-		for(int i = 0; i < al.getmName().length; i++) {
-			table[i+1][0] = al.getmName()[i];
-			
-			for(int j = 0; j < al.getmName().length; j++)
-				table[i+1][j+1] = Double.toString(al.getDependencyMap()[i][j]);
-		}
-		
-		repeated = repeate(al.getmName().length, "%17s");
-		
-		for (final Object[] row : table)
-		    System.out.format("%23s" + repeated + "\n", row);
 	}
 	
-	public static String repeate(int i, String s) {
-		StringBuilder sb = new StringBuilder();
-		for (int j = 0; j < i; j++)
-			sb.append(s);
-		return sb.toString();
-    }
+	public static String centerString (int width, String s) {
+	    return String.format("%-" + width  + "s",
+	    		String.format("%" + (s.length() + (width - s.length()) / 2) + "s", s));
+	}
 	
 }

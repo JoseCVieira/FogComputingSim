@@ -213,14 +213,18 @@ public abstract class Algorithm {
 	}
 	
 	private void computeApplicationCharacteristics(final List<Application> applications, final List<Sensor> sensors) {
+		final int INTERVAL = 0;
+		final int PROBABILITY = 1;
+		
 		Sensor sensor = null;		
 		for(Application application : applications) {
 			for(Sensor s : sensors)
 				if(s.getAppId().equals(application.getAppId()))
 					sensor = s;
 		
-			TreeMap<String, Double> producers = new TreeMap<String, Double>();
-	
+			TreeMap<String, List<Double>> producers = new TreeMap<String, List<Double>>();
+			List<Double> values;
+			
 			Distribution distribution = sensor.getTransmitDistribution();
 			double avg = 0.0;
 			if(distribution.getDistributionType() == Distribution.DETERMINISTIC)
@@ -230,42 +234,48 @@ public abstract class Algorithm {
 			else
 				avg = ((UniformDistribution)distribution).getMin();
 			
-			producers.put(sensor.getTupleType(), avg);
+			values = new ArrayList<Double>();
+			values.add(avg);
+			values.add(1.0);
+			producers.put(sensor.getTupleType(), values);
 			
-			for(AppEdge appEdge : application.getEdges())
-				if(appEdge.isPeriodic())
-					producers.put(appEdge.getTupleType(), appEdge.getPeriodicity());
+			for(AppEdge appEdge : application.getEdges()) {
+				if(appEdge.isPeriodic()) {
+					values = new ArrayList<Double>();
+					values.add(appEdge.getPeriodicity());
+					values.add(1.0);
+					producers.put(appEdge.getTupleType(), values);
+				}
+			}
 			
 			int nrEdges = application.getEdges().size();
 			int processed = 0;
 			double interval = 0;
+			double probability = 0;
 			AppModule module = null;
 			String toProcess = "";
-			boolean found = false;
 			
 			while(processed < nrEdges) {
-				if(toProcess.isEmpty() || !found) {
-					Entry<String, Double> entry = producers.pollFirstEntry();
-					toProcess = entry.getKey();
-					interval = entry.getValue();
-				}else
-					found = false;
+				Entry<String, List<Double>> entry = producers.pollFirstEntry();
+				toProcess = entry.getKey();
+				interval = entry.getValue().get(INTERVAL);
+				probability = entry.getValue().get(PROBABILITY);
 				
 				for(AppEdge appEdge : application.getEdges()) {
 					if(appEdge.getTupleType().equals(toProcess)) {
-						// BW and MIPS to sensors and actuators are not used
-						for(AppModule appModule : application.getModules()) {
+						
+						for(AppModule appModule : application.getModules()) { // BW and MIPS to sensors and actuators are not used
 							if(appModule.getName().equals(appEdge.getDestination())) {
 								int edgeSourceIndex = getModuleIndexByModuleName(appEdge.getSource());
 								int edgeDestIndex = getModuleIndexByModuleName(appEdge.getDestination());
 								
-								appModule.setMips(appModule.getMips() + appEdge.getTupleCpuLength()/interval);
-								mMips[edgeDestIndex] += appEdge.getTupleCpuLength()/interval;
+								appModule.setMips(appModule.getMips() + probability*appEdge.getTupleCpuLength()/interval);
+								mMips[edgeDestIndex] += probability*appEdge.getTupleCpuLength()/interval;
 								
-								if(!isSensorTuple(sensors, appEdge.getTupleType())) {
-									appModule.setBw((long) (appModule.getBw() + appEdge.getTupleNwLength()/interval));
-									bwMap[edgeSourceIndex][edgeDestIndex] += appEdge.getTupleNwLength()/interval;
-									mBw[edgeSourceIndex] += appEdge.getTupleNwLength()/interval;
+								if(!isSensorTuple(sensors, appEdge.getTupleType())) {									
+									appModule.setBw((long) (appModule.getBw() + probability*appEdge.getTupleNwLength()/interval));
+									bwMap[edgeSourceIndex][edgeDestIndex] += probability*appEdge.getTupleNwLength()/interval;
+									mBw[edgeSourceIndex] += probability*appEdge.getTupleNwLength()/interval;
 								}
 								
 								module = appModule;
@@ -281,10 +291,10 @@ public abstract class Algorithm {
 				for(Pair<String, String> pair : module.getSelectivityMap().keySet()) {
 					if(pair.getFirst().equals(toProcess)) {
 						FractionalSelectivity fractionalSelectivity = ((FractionalSelectivity)module.getSelectivityMap().get(pair));
-						found = true;
-						toProcess = pair.getSecond();
-						interval *= fractionalSelectivity.getSelectivity();
-						break;
+						values = new ArrayList<Double>();
+						values.add(interval);
+						values.add(probability*fractionalSelectivity.getSelectivity());
+						producers.put(pair.getSecond(), values);
 					}
 				}
 			}
