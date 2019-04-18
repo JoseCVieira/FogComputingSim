@@ -168,7 +168,6 @@ public class RunSim extends JDialog {
 						break;
 					case "GA":
 						GA ga = new GA(fogDevices, applications, sensors, actuators);
-						System.exit(0);
 						placementMap = ga.execute();
 						if(placementMap == null) break;
 						routingMap = ga.extractRoutingMap(placementMap, fogDevices, sensors, actuators);

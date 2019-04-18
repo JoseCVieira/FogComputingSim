@@ -133,8 +133,6 @@ public abstract class Algorithm {
 		
 		if(PRINT_DETAILS)
 			AlgorithmUtils.printDetails(this, fogDevices, applications, sensors, actuators);
-		
-		System.exit(0);
 	}
 	
 	private void extractDevicesCharacteristics (final List<FogDevice> fogDevices,

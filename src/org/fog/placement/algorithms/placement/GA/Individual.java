@@ -24,9 +24,8 @@ public class Individual implements Comparable<Individual> {
 			if((result = ga.moduleHasMandatoryPositioning(i)) != -1) {
 				chromosome[result][i] = 1;
 				continue;
-			}
-			
-			chromosome[new Random().nextInt(nrFogNodes)][i] = 1;
+			}else
+				chromosome[new Random().nextInt(nrFogNodes)][i] = 1;
 		}
 		
         return chromosome;
@@ -67,11 +66,12 @@ public class Individual implements Comparable<Individual> {
 		
 		if(!isPossibleCombination())
 			return Double.MAX_VALUE;
-		
+
 		fitness = calculateOperationalCost();
 		fitness += calculateEnergyConsumption();
-		fitness += calculateProcessingLatency();
-		fitness += calculateTransmittingLatency();
+		
+		/*fitness += calculateProcessingLatency();
+		fitness += calculateTransmittingLatency();*/
 		
 		return fitness;
 	}
