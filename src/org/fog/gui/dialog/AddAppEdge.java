@@ -171,6 +171,27 @@ public class AddAppEdge extends JDialog {
 			if(!edge.isPeriodic()) periodicity.setVisible(false);
 		}
 		
+		if(edge != null && edge.getEdgeType() != AppEdge.SENSOR) {
+			for(AppModule appModule : app.getModules()) {
+				if(appModule.getName().equals(edge.getSource())) {
+					sourceModel.setSelectedItem(appModule);
+					break;
+				}
+			}
+		}else if(edge == null) {
+			sourceModel.setSelectedItem(null);
+			targetModel.setSelectedItem(null);
+		}
+		
+		if(edge != null && edge.getEdgeType() != AppEdge.ACTUATOR) {
+			for(AppModule appModule : app.getModules()) {
+				if(appModule.getName().equals(edge.getDestination())) {
+					targetModel.setSelectedItem(appModule);
+					break;
+				}
+			}
+		}
+		
 		sourceNode.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -234,27 +255,6 @@ public class AddAppEdge extends JDialog {
 				}
 			}
 		});
-		
-		if(edge != null && edge.getEdgeType() != AppEdge.SENSOR) {
-			for(AppModule appModule : app.getModules()) {
-				if(appModule.getName().equals(edge.getSource())) {
-					sourceModel.setSelectedItem(appModule);
-					break;
-				}
-			}
-		}else if(edge == null) {
-			sourceModel.setSelectedItem(null);
-			targetModel.setSelectedItem(null);
-		}
-		
-		if(edge != null && edge.getEdgeType() != AppEdge.ACTUATOR) {
-			for(AppModule appModule : app.getModules()) {
-				if(appModule.getName().equals(edge.getDestination())) {
-					targetModel.setSelectedItem(appModule);
-					break;
-				}
-			}
-		}
 		
 		SpringUtilities.makeCompactGrid(springPanel, 10, 2, 6, 6, 6, 6);
 		return springPanel;
