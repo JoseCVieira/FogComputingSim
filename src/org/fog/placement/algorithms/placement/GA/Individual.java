@@ -69,6 +69,7 @@ public class Individual implements Comparable<Individual> {
 
 		fitness = calculateOperationalCost();
 		fitness += calculateEnergyConsumption();
+		fitness += calculateTransmittingCost();
 		
 		/*fitness += calculateProcessingLatency();
 		fitness += calculateTransmittingLatency();*/
@@ -152,7 +153,7 @@ public class Individual implements Comparable<Individual> {
 		return latency;
 	}
 	
-	private double calculateTransmittingLatency() {
+	private double calculateTransmittingCost() {
 		double latency = 0;
 		
 		if(fitness != Double.MAX_VALUE) {

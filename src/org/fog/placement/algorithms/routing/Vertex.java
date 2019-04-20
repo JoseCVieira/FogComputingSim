@@ -3,7 +3,6 @@ package org.fog.placement.algorithms.routing;
 public class Vertex {
     final private String name;
 
-
     public Vertex(String name) {
         this.name = name;
     }
