@@ -19,9 +19,6 @@ import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
 import org.fog.entities.FogDeviceCharacteristics;
 import org.fog.entities.Sensor;
-import org.fog.placement.algorithms.routing.DijkstraAlgorithm;
-import org.fog.placement.algorithms.routing.Edge;
-import org.fog.placement.algorithms.routing.Graph;
 import org.fog.placement.algorithms.routing.Vertex;
 import org.fog.utils.FogLinearPowerModel;
 import org.fog.utils.distribution.DeterministicDistribution;
@@ -34,7 +31,8 @@ public abstract class Algorithm {
 	
 	protected final int NR_NODES;
 	protected final int NR_MODULES;
-	
+
+	// Node
 	protected double fMipsPrice[];
 	protected double fRamPrice[];
 	protected double fMemPrice[];
@@ -49,24 +47,23 @@ public abstract class Algorithm {
 	protected double fBusyPw[];
 	protected double fIdlePw[];
 	
+	// Module
 	protected String mName[];
 	protected double mMips[];
 	protected double mRam[];
 	protected double mMem[];
 	protected double mBw[];
-	protected double mCpuSize[];
 	
 	// Node to Node
-	protected double[][] latencyMap;
-	private double[][] bwCapacityMap;
-	protected double[][][] bandwidthMap;
+	protected double[][] fLatencyMap;
+	private double[][] fBandwidthMap;
+	
+	// Module to Module
+	protected double[][] mDependencyMap;
+	protected double[][] mBandwidthMap;
 	
 	// Node to Module
 	protected double[][] mandatoryMap;
-	
-	// Module to Module
-	protected double[][] dependencyMap;
-	protected double[][] bwMap;
 	
 	protected Map<Map<Integer, Integer>, LinkedList<Vertex>> routingPaths;
 	
@@ -107,21 +104,18 @@ public abstract class Algorithm {
 		mRam = new double[NR_MODULES];
 		mMem = new double[NR_MODULES];
 		mBw = new double[NR_MODULES];
-		mCpuSize = new double[NR_MODULES];
 				
-		latencyMap = new double[NR_NODES][NR_NODES];
-		bwCapacityMap = new double[NR_NODES][NR_NODES];
-		bandwidthMap = new double[NR_NODES-1][NR_NODES][NR_NODES];
+		fLatencyMap = new double[NR_NODES][NR_NODES];
+		fBandwidthMap = new double[NR_NODES][NR_NODES];
+		
+		for (int i = 0; i < NR_NODES; i++)
+			for (int j = 0; j < NR_NODES; j++)
+				fLatencyMap[i][j] = Double.MAX_VALUE;
 		
 		mandatoryMap = new double[NR_NODES][NR_MODULES];
 		
-		dependencyMap = new double[NR_MODULES][NR_MODULES];
-		bwMap = new double[NR_MODULES][NR_MODULES];
-		
-		for (int i = 0; i < NR_NODES - 1; i++)
-			for (int j = 0; j < NR_NODES; j++)
-				for (int z = 0; z < NR_NODES; z++)
-					bandwidthMap[i][j][z] = Double.MAX_VALUE;
+		mDependencyMap = new double[NR_MODULES][NR_MODULES];
+		mBandwidthMap = new double[NR_MODULES][NR_MODULES];
 		
 		routingPaths = new HashMap<Map<Integer,Integer>, LinkedList<Vertex>>();
 		
@@ -205,9 +199,6 @@ public abstract class Algorithm {
 					
 					mName[i++] = appEdge.getDestination();
 				}
-				
-				int index = getModuleIndexByModuleName(appEdge.getDestination());
-				mCpuSize[index] += appEdge.getTupleCpuLength();
 			}
 		}
 	}
@@ -264,6 +255,10 @@ public abstract class Algorithm {
 				for(AppEdge appEdge : application.getEdges()) {
 					if(appEdge.getTupleType().equals(toProcess)) {
 						
+						int col = getModuleIndexByModuleName(appEdge.getSource());
+						int row = getModuleIndexByModuleName(appEdge.getDestination());
+						mDependencyMap[col][row] += probability/interval;
+						
 						for(AppModule appModule : application.getModules()) { // BW and MIPS to sensors and actuators are not used
 							if(appModule.getName().equals(appEdge.getDestination())) {
 								int edgeSourceIndex = getModuleIndexByModuleName(appEdge.getSource());
@@ -274,7 +269,7 @@ public abstract class Algorithm {
 								
 								if(!isSensorTuple(sensors, appEdge.getTupleType())) {									
 									appModule.setBw((long) (appModule.getBw() + probability*appEdge.getTupleNwLength()/interval));
-									bwMap[edgeSourceIndex][edgeDestIndex] += probability*appEdge.getTupleNwLength()/interval;
+									mBandwidthMap[edgeSourceIndex][edgeDestIndex] += probability*appEdge.getTupleNwLength()/interval;
 									mBw[edgeSourceIndex] += probability*appEdge.getTupleNwLength()/interval;
 								}
 								
@@ -303,12 +298,6 @@ public abstract class Algorithm {
 	
 	private void computeLatencyMap(final List<FogDevice> fogDevices,
 			final List<Sensor> sensors, final List<Actuator> actuators) {
-		Map<Integer, Vertex> mapNodes = new HashMap<Integer, Vertex>();
-		Map<Map<Integer, Integer>, Double> bwMap = new HashMap<Map<Integer,Integer>, Double>();
-		List<Edge> edges = new ArrayList<Edge>();
-		
-		for(int i = 0; i < NR_NODES; i++)
-			mapNodes.put(fId[i], new Vertex(Integer.toString(fId[i])));
 		
 		for(FogDevice fogDevice : fogDevices) {
 			int dId = fogDevice.getId();
@@ -317,16 +306,12 @@ public abstract class Algorithm {
 				int lat = fogDevice.getLatencyMap().get(neighborId).intValue();
 				double bw = fogDevice.getBandwidthMap().get(neighborId);
 				
-				edges.add(new Edge(mapNodes.get(dId), mapNodes.get(neighborId), lat));
-				
-				Map<Integer, Integer> connection = new HashMap<Integer, Integer>();
-				connection.put(dId, neighborId);
-				bwMap.put(connection, bw);
-				
-				getBwCapacityMap()[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(neighborId)] = bw;
+				getfLatencyMap()[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(neighborId)] = lat;
+				getfBandwidthMap()[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(neighborId)] = bw;
 			}
 			
-			getBwCapacityMap()[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(dId)] = Double.MAX_VALUE;
+			getfLatencyMap()[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(dId)] = 0;
+			getfBandwidthMap()[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(dId)] = Double.MAX_VALUE;
 		}
 		
 		
@@ -335,12 +320,13 @@ public abstract class Algorithm {
 			int id2 = sensor.getGatewayDeviceId();
 			double lat = sensor.getLatency();
 			
-			edges.add(new Edge(mapNodes.get(id1), mapNodes.get(id2), lat));
-			edges.add(new Edge(mapNodes.get(id2), mapNodes.get(id1), lat));
+			getfBandwidthMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id2)] = Double.MAX_VALUE; //sensor and act only have latency
+			getfBandwidthMap()[getNodeIndexByNodeId(id2)][getNodeIndexByNodeId(id1)] = Double.MAX_VALUE;
+			getfBandwidthMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id1)] = Double.MAX_VALUE;
 			
-			getBwCapacityMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id2)] = Double.MAX_VALUE; //sensor and act only have latency
-			getBwCapacityMap()[getNodeIndexByNodeId(id2)][getNodeIndexByNodeId(id1)] = Double.MAX_VALUE;
-			getBwCapacityMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id1)] = Double.MAX_VALUE;
+			getfLatencyMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id2)] = lat;
+			getfLatencyMap()[getNodeIndexByNodeId(id2)][getNodeIndexByNodeId(id1)] = lat;
+			getfLatencyMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id1)] = 0;
 		}
 		
 		for(Actuator actuator : actuators) {
@@ -348,75 +334,24 @@ public abstract class Algorithm {
 			int id2 = actuator.getGatewayDeviceId();
 			double lat = actuator.getLatency();
 			
-			edges.add(new Edge(mapNodes.get(id1), mapNodes.get(id2), lat));
-			edges.add(new Edge(mapNodes.get(id2), mapNodes.get(id1), lat));
+			getfBandwidthMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id2)] = Double.MAX_VALUE;
+			getfBandwidthMap()[getNodeIndexByNodeId(id2)][getNodeIndexByNodeId(id1)] = Double.MAX_VALUE;
+			getfBandwidthMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id1)] = Double.MAX_VALUE;
 			
-			getBwCapacityMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id2)] = Double.MAX_VALUE;
-			getBwCapacityMap()[getNodeIndexByNodeId(id2)][getNodeIndexByNodeId(id1)] = Double.MAX_VALUE;
-			getBwCapacityMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id1)] = Double.MAX_VALUE;
-		}
-
-		Graph graph = new Graph(new ArrayList<Vertex>(mapNodes.values()), edges);
-		DijkstraAlgorithm dijkstra = new DijkstraAlgorithm(graph);
-		
-		for(Vertex v1 : dijkstra.getNodes()) {
-			int row = getNodeIndexByNodeId(Integer.parseInt(v1.getName()));
-			
-			for(Vertex v2 : dijkstra.getNodes()) {
-				int col = getNodeIndexByNodeId(Integer.parseInt(v2.getName()));
-				
-				dijkstra.execute(v1);
-				LinkedList<Vertex> path = dijkstra.getPath(v2);
-				
-				Map<Integer, Integer> connection = new HashMap<Integer, Integer>();
-				connection.put(row, col);
-				routingPaths.put(connection, path);
-				
-				double latency = 0;
-				if(path != null) {
-					for(int iter = 0; iter < path.size() - 1; iter++) {
-						double bandwidth = Double.MAX_VALUE;
-						
-						for(Edge edge : edges) {
-							if(edge.getSource().getName().equals(path.get(iter).getName()) &&
-								edge.getDestination().getName().equals(path.get(iter+1).getName())) {
-								
-								int sourceId = Integer.parseInt(edge.getSource().getName());
-								int destinationId = Integer.parseInt(edge.getDestination().getName());
-								
-								connection = new HashMap<Integer, Integer>();
-								connection.put(sourceId, destinationId);
-								
-								try {
-									bandwidth = bwMap.get(connection);
-								} catch (Exception e) {
-									bandwidth = Double.MAX_VALUE; // connection so a sensor or actuator only has latency
-								}
-								
-								latency += edge.getWeight();
-								break;
-							}
-						}
-					
-						bandwidthMap[iter][row][col] = bandwidth;
-					}
-				}					
-				
-				int c = getNodeIndexByNodeId(Integer.parseInt(v1.getName()));
-				int r = getNodeIndexByNodeId(Integer.parseInt(v2.getName()));
-				latencyMap[c][r] = latency;
-			}
+			getfLatencyMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id2)] = lat;
+			getfLatencyMap()[getNodeIndexByNodeId(id2)][getNodeIndexByNodeId(id1)] = lat;
+			getfLatencyMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id1)] = 0;
 		}
 	}
 	
 	private void computeDependencyMap(final List<Application> applications) {
-		for(Application application : applications) {
+		/*for(Application application : applications) {
 			for(AppEdge appEdge : application.getEdges()) {
 				int col = getModuleIndexByModuleName(appEdge.getSource());
 				int row = getModuleIndexByModuleName(appEdge.getDestination());
-				dependencyMap[col][row] += 1;
+				mDependencyMap[col][row] += 1;
 			}
-		}
+		}*/
 	}
 	
 	public abstract Map<String, List<String>> execute();
@@ -432,7 +367,7 @@ public abstract class Algorithm {
 				destinationNodeIndex = getNodeIndexByNodeName(node);
 				
 				for(int i = 0; i < NR_MODULES; i++) {
-					if(dependencyMap[i][destinationModuleIndex] > 0) {
+					if(mDependencyMap[i][destinationModuleIndex] > 0) {
 						
 						for(String nodeName : moduleToNodeMap.keySet())
 							if(moduleToNodeMap.get(nodeName).contains(mName[i]))
@@ -584,10 +519,6 @@ public abstract class Algorithm {
 	public double[] getmBw() {
 		return mBw;
 	}
-	
-	public double[] getmCpuSize(){
-		return mCpuSize;
-	}
 
 	public double[] getfBusyPw() {
 		return fBusyPw;
@@ -597,28 +528,24 @@ public abstract class Algorithm {
 		return fIdlePw;
 	}
 	
-	public double[][] getLatencyMap() {
-		return latencyMap;
+	public double[][] getfLatencyMap() {
+		return fLatencyMap;
 	}
 	
-	public double[][] getDependencyMap() {
-		return dependencyMap;
+	public double[][] getmDependencyMap() {
+		return mDependencyMap;
 	}
 	
 	public double[][] getMandatoryMap() {
 		return mandatoryMap;
 	}
 	
-	public double[][] getBandwidthMap(int iter){
-		return bandwidthMap[iter];
-	}
-	
-	public double[][] getBwMap(){
-		return bwMap;
+	public double[][] getmBandwidthMap(){
+		return mBandwidthMap;
 	}
 
-	public double[][] getBwCapacityMap() {
-		return bwCapacityMap;
+	public double[][] getfBandwidthMap() {
+		return fBandwidthMap;
 	}
 	
 }

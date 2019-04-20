@@ -158,7 +158,7 @@ public class RunSim extends JDialog {
     			
     			Map<String, List<String>> placementMap = null;
     			Map<Map<String, String>, Integer> routingMap = null;
-    			try {
+    			//try {
 	    			switch (OPTIMIZATION_ALGORITHM) {
 					case "LP":
 						LP lp = new LP(fogDevices, applications, sensors, actuators);
@@ -169,6 +169,9 @@ public class RunSim extends JDialog {
 					case "GA":
 						GA ga = new GA(fogDevices, applications, sensors, actuators);
 						placementMap = ga.execute();
+						
+						System.exit(0);
+						
 						if(placementMap == null) break;
 						routingMap = ga.extractRoutingMap(placementMap, fogDevices, sensors, actuators);
 						break;
@@ -176,12 +179,12 @@ public class RunSim extends JDialog {
 	    				System.err.println("Unknown algorithm.\nFogComputingSim will terminate abruptally.\n");
 	    				System.exit(0);
 					}
-    			} catch (Exception e) {
+    			/*} catch (Exception e) {
     				System.err.println(e);
     				System.err.println("Unwanted error happened while running the optimization algorithm");
     				System.err.println("FogComputingSim will terminate abruptally.\n");
     				System.exit(0);
-				}
+				}*/
     			
     			if(placementMap == null || routingMap == null) {
     				System.err.println("There is no possible combination to deploy all applications.\n");

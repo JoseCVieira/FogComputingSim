@@ -36,9 +36,8 @@ public class GA extends Algorithm {
 		 
 	    // create initial population
 	    for (int i = 0; i < POPULATION_SIZE; i++) {
-	    	double[][] chromosome = Individual.createChromosome(this, NR_FOG_NODES, NR_MODULES);
-	    	Individual individual = new Individual(this, chromosome);
-	    	population[i] = individual;
+	    	Chromosome chromosome = new Chromosome(this, NR_FOG_NODES, NR_MODULES);
+	    	population[i] = new Individual(this, chromosome);
 	    }
 	    
 	    while (!found && generation <= MAX_ITER) {
@@ -72,13 +71,15 @@ public class GA extends Algorithm {
 	        for(int i = 0; i < POPULATION_SIZE; i++) 
 	        	population[i] = newGeneration[i];
 	        
-	        //System.out.println("Generation: " + generation + " fitness: " + population[0].getFitness());
+	        //System.out.println(population[0]);
 	        		
 	        generation++;
 	    }
 	    
 	    if(population[0].getFitness() == Double.MAX_VALUE)
 	    	return null;
+	    
+	    System.out.println(population[0]);
 	  
 	    if(PRINT_DETAILS) {
 	    	System.out.println("\n*******************************************************");
@@ -94,8 +95,8 @@ public class GA extends Algorithm {
 			for (int i = 0; i < getfName().length; i++) {
 				System.out.format(AlgorithmUtils.centerString(15, getfName()[i]));
 				for (int j = 0; j < getmName().length; j++) {
-					if(population[0].getChromosome()[i][j] != 0)
-						System.out.format(AlgorithmUtils.centerString(15, Integer.toString((int)population[0].getChromosome()[i][j])));
+					if(population[0].getChromosome().getModulePlacementMap()[i][j] != 0)
+						System.out.format(AlgorithmUtils.centerString(15, Integer.toString((int)population[0].getChromosome().getModulePlacementMap()[i][j])));
 					else
 						System.out.format(AlgorithmUtils.centerString(15, "-"));
 				}
@@ -109,7 +110,7 @@ public class GA extends Algorithm {
 			List<String> modules = new ArrayList<String>();
 			
 			for(int j = 0; j < NR_MODULES; j++)
-				if(population[0].getChromosome()[i][j] == 1)
+				if(population[0].getChromosome().getModulePlacementMap()[i][j] == 1)
 					modules.add(getmName()[j]);
 			
 			resMap.put(getfName()[i], modules);

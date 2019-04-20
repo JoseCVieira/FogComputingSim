@@ -217,7 +217,6 @@ public class AlgorithmUtils {
 			System.out.println("mRam: " + al.getmRam()[i]);
 			System.out.println("mMem: " + al.getmMem()[i]);
 			System.out.println("mBw: " + al.getmBw()[i]);
-			System.out.println("mCpuSize: " + al.getmCpuSize()[i]);
 			
 			if(i < al.getmName().length -1)
 				System.out.println();
@@ -235,8 +234,8 @@ public class AlgorithmUtils {
 		for (int i = 0; i < al.getmName().length; i++) {
 			System.out.format(centerString(20, al.getmName()[i]));
 			for (int j = 0; j < al.getmName().length; j++) {
-				if(al.getBwMap()[i][j] != 0)
-					System.out.format(centerString(20, String.format("%.2f", al.getBwMap()[i][j])));
+				if(al.getmBandwidthMap()[i][j] != 0)
+					System.out.format(centerString(20, String.format("%.2f", al.getmBandwidthMap()[i][j])));
 				else
 					System.out.format(AlgorithmUtils.centerString(20, "-"));
 			}
@@ -255,8 +254,8 @@ public class AlgorithmUtils {
 		for (int i = 0; i < al.getmName().length; i++) {
 			System.out.format(centerString(20, al.getmName()[i]));
 			for (int j = 0; j < al.getmName().length; j++)
-				if(al.getDependencyMap()[i][j] != 0)
-					System.out.format(centerString(20, Integer.toString((int)al.getDependencyMap()[i][j])));
+				if(al.getmDependencyMap()[i][j] != 0.0)
+					System.out.format(centerString(20, String.format("%.2f", al.getmDependencyMap()[i][j])));
 				else
 					System.out.format(AlgorithmUtils.centerString(20, "-"));
 			System.out.println();
@@ -282,7 +281,7 @@ public class AlgorithmUtils {
 		}
 		
 		System.out.println("\n*******************************************************");
-		System.out.println("\t\tBW CAPACITY MAP (Between directed nodes):");
+		System.out.println("\t\tBANDWIDTH MAP (Between directed nodes):");
 		System.out.println("*******************************************************\n");
 		
 		System.out.format(centerString(20, " "));
@@ -293,18 +292,18 @@ public class AlgorithmUtils {
 		for (int i = 0; i < al.getfName().length; i++) {
 			System.out.format(centerString(20, al.getfName()[i]));
 			for (int j = 0; j < al.getfName().length; j++) {
-				if(al.getBwCapacityMap()[i][j] == Double.MAX_VALUE)
-					System.out.format(centerString(20, String.format("%.2E", al.getBwCapacityMap()[i][j])));
-				else if(al.getBwCapacityMap()[i][j] == 0)
+				if(al.getfBandwidthMap()[i][j] == Double.MAX_VALUE)
+					System.out.format(centerString(20, "Inf"));
+				else if(al.getfBandwidthMap()[i][j] == 0)
 					System.out.format(AlgorithmUtils.centerString(20, "-"));
 				else
-					System.out.format(centerString(20, String.format("%.2f", al.getBwCapacityMap()[i][j])));
+					System.out.format(centerString(20, String.format("%.2f", al.getfBandwidthMap()[i][j])));
 			}
 			System.out.println();
 		}		
 		
 		System.out.println("\n*******************************************************");
-		System.out.println("\t\tLATENCY MAP (Between nodes):");
+		System.out.println("\t\tLATENCY MAP (Between directed nodes):");
 		System.out.println("*******************************************************\n");
 		
 		System.out.format(centerString(20, " "));
@@ -315,35 +314,12 @@ public class AlgorithmUtils {
 		for (int i = 0; i < al.getfName().length; i++) {
 			System.out.format(centerString(20, al.getfName()[i]));
 			for (int j = 0; j < al.getfName().length; j++) {
-				if(al.getLatencyMap()[i][j] != 0)
-					System.out.format(centerString(20, Double.toString(al.getLatencyMap()[i][j])));
-				else
+				if(al.getfLatencyMap()[i][j] == Double.MAX_VALUE)
+					System.out.format(centerString(20, "Inf"));
+				else if(al.getfLatencyMap()[i][j] == 0)
 					System.out.format(AlgorithmUtils.centerString(20, "-"));
-			}
-			System.out.println();
-		}
-		
-		System.out.println("\n*******************************************************");
-		System.out.println("\t\tBANDWIDTH MAP:");
-		System.out.println("*******************************************************\n");
-		
-		for(int iter = 0; iter < al.getfId().length-1; iter++) {
-			System.out.format(centerString(20, " "));
-			for (int i = 0; i < al.getfName().length; i++)
-				System.out.format(centerString(20, al.getfName()[i]));
-			System.out.println();
-			
-			for (int i = 0; i < al.getfName().length; i++) {
-				System.out.format(centerString(20, al.getfName()[i]));
-				for (int j = 0; j < al.getfName().length; j++) {
-					if(al.getBandwidthMap(iter)[i][j] == Double.MAX_VALUE)
-						System.out.format(centerString(20, String.format("%.2E", al.getBandwidthMap(iter)[i][j])));
-					else if(al.getBandwidthMap(iter)[i][j] == 0)
-						System.out.format(AlgorithmUtils.centerString(20, "-"));
-					else
-						System.out.format(centerString(20, String.format("%.2f", al.getBandwidthMap(iter)[i][j])));
-				}
-				System.out.println();
+				else
+					System.out.format(centerString(20, String.format("%.2f", al.getfLatencyMap()[i][j])));
 			}
 			System.out.println();
 		}
