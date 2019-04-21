@@ -46,13 +46,14 @@ public class RandomTopology {
 	private static final boolean PRINT_PLACEMENT = true;
 	private static final String OPTIMIZATION_ALGORITHM = "GA";
 	
-	private static final int NR_FOG_DEVICES = 3;
+	private static final String CLOUD_NAME = "Cloud";
+	private static final int NR_FOG_DEVICES = 4;
 	
 	private static final double MAX_CONN_LAT = 100;
 	private static final double MAX_CONN_BW = 10000;
 	
 	private static final double CONNECTION_PROB = 0.4;
-	private static final double DEPLOY_APP_PROB = 1;
+	private static final double DEPLOY_APP_PROB = 0.5;
 	
 	private static final double RESOURCES_DEV = 100;
 	private static final double ENERGY_DEV = 5;
@@ -90,13 +91,13 @@ public class RandomTopology {
 		
 		switch (OPTIMIZATION_ALGORITHM) {
 		case "LP":
-			LP lp = new LP(fogDevices, applications, sensors, actuators);
+			LP lp = new LP(fogBrokers, fogDevices, applications, sensors, actuators);
 			placementMap = lp.execute();
 			if(placementMap == null) break;
 			routingMap = lp.extractRoutingMap(placementMap, fogDevices, sensors, actuators);
 			break;
 		case "GA":
-			GA ga = new GA(fogDevices, applications, sensors, actuators);
+			GA ga = new GA(fogBrokers, fogDevices, applications, sensors, actuators);
 			placementMap = ga.execute();
 			
 			System.exit(0);
@@ -141,7 +142,7 @@ public class RandomTopology {
 	}
 	
 	private static void createFogDevices() {
-		FogDevice cloud = createFogDevice("Cloud", Double.MAX_VALUE, Integer.MAX_VALUE, Long.MAX_VALUE, Long.MAX_VALUE,
+		FogDevice cloud = createFogDevice(CLOUD_NAME, Short.MAX_VALUE, Short.MAX_VALUE, Short.MAX_VALUE, Short.MAX_VALUE,
 				16*Config.BUSY_POWER, 16*Config.IDLE_POWER, Config.COST_PER_SEC, Config.RATE_MIPS, Config.RATE_RAM,
 				Config.RATE_MEM, Config.RATE_BW);
 		
@@ -250,45 +251,52 @@ public class RandomTopology {
 	}
 	
 	private static void createClients() {
-		for(FogDevice fogDevice : fogDevices) {
-			if(new Random().nextFloat() < DEPLOY_APP_PROB) {
+		int nrApps = 0;
+		
+		while(nrApps == 0) {
+			for(FogDevice fogDevice : fogDevices) {
+				if(fogDevice.getName().equals(CLOUD_NAME)) continue;
 				
-				FogBroker broker = null;
-				try {
-					broker = new FogBroker(fogDevice.getName());
-				} catch (Exception e) {
-					e.printStackTrace();
-					System.err.println("Unwanted errors happen\nFogComputingSim will terminate abruptally.\n");
-					System.exit(0);
+				if(new Random().nextFloat() < DEPLOY_APP_PROB) {
+					nrApps++;
+					
+					FogBroker broker = null;
+					try {
+						broker = new FogBroker(fogDevice.getName());
+					} catch (Exception e) {
+						e.printStackTrace();
+						System.err.println("Unwanted errors happen\nFogComputingSim will terminate abruptally.\n");
+						System.exit(0);
+					}
+					
+					int appIndex = new Random().nextInt(examplesApplications.size());
+					int gatewayDeviceId = fogDevice.getId();
+					String clientName = fogDevice.getName();
+					int userId = broker.getId();
+					
+					String appName = examplesApplications.get(appIndex).getAppId();
+					String sensorType = "", actuatorType = "";
+					
+					for(AppEdge appEdge : examplesApplications.get(appIndex).getEdges()) {
+						if(appEdge.getEdgeType() == AppEdge.SENSOR)
+							sensorType = appEdge.getSource();
+						else if(appEdge.getEdgeType() == AppEdge.ACTUATOR)
+							actuatorType = appEdge.getDestination();
+					}
+					
+					Distribution sensorDist = new DeterministicDistribution(getNormalRandomNumber(Config.SENSOR_DESTRIBUTION, 1)); //TODO: test other distributions
+					double sensorLat = getNormalRandomNumber(Config.SENSOR_LATENCY, 1);
+					double actuatorLat = getNormalRandomNumber(Config.ACTUATOR_LATENCY, 1);
+					
+					sensors.add(new Sensor("Sensor:" + clientName, sensorType + "_" + userId, userId, appName + "_" + userId,
+							sensorDist, gatewayDeviceId, sensorLat));
+	
+					actuators.add(new Actuator("Actuator:" + clientName, userId, appName + "_" + userId,
+							gatewayDeviceId, actuatorLat, actuatorType + "_" + userId));
+					
+					fogDevice.getActiveApplications().add(appName);
+					fogBrokers.add(broker);
 				}
-				
-				int appIndex = new Random().nextInt(examplesApplications.size());
-				int gatewayDeviceId = fogDevice.getId();
-				String clientName = fogDevice.getName();
-				int userId = broker.getId();
-				
-				String appName = examplesApplications.get(appIndex).getAppId();
-				String sensorType = "", actuatorType = "";
-				
-				for(AppEdge appEdge : examplesApplications.get(appIndex).getEdges()) {
-					if(appEdge.getEdgeType() == AppEdge.SENSOR)
-						sensorType = appEdge.getSource();
-					else if(appEdge.getEdgeType() == AppEdge.ACTUATOR)
-						actuatorType = appEdge.getDestination();
-				}
-				
-				Distribution sensorDist = new DeterministicDistribution(getNormalRandomNumber(Config.SENSOR_DESTRIBUTION, 1)); //TODO: test other distributions
-				double sensorLat = getNormalRandomNumber(Config.SENSOR_LATENCY, 1);
-				double actuatorLat = getNormalRandomNumber(Config.ACTUATOR_LATENCY, 1);
-				
-				sensors.add(new Sensor("Sensor:" + clientName, sensorType + "_" + userId, userId, appName + "_" + userId,
-						sensorDist, gatewayDeviceId, sensorLat));
-
-				actuators.add(new Actuator("Actuator:" + clientName, userId, appName + "_" + userId,
-						gatewayDeviceId, actuatorLat, actuatorType + "_" + userId));
-				
-				fogDevice.getActiveApplications().add(appName);
-				fogBrokers.add(broker);
 			}
 		}
 	}
@@ -325,7 +333,7 @@ public class RandomTopology {
 		application.setLoops(loops);
 		examplesApplications.add(application);
 		
-		/*application = new Application("DCNS", -1);
+		application = new Application("DCNS", -1);
 		application.addAppModule("object_detector", 100);
 		application.addAppModule("motion_detector", 100);
 		application.addAppModule("object_tracker", 100);
@@ -368,7 +376,7 @@ public class RandomTopology {
 		final AppLoop loop5 = new AppLoop(new ArrayList<String>(){{add("classifier");add("tuner");add("classifier");}});
 		loops = new ArrayList<AppLoop>(){{add(loop4);add(loop5);}};
 		application.setLoops(loops);
-		examplesApplications.add(application);*/
+		examplesApplications.add(application);
 	}
 	
 	private static void deployApplications(){

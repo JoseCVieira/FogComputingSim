@@ -16,6 +16,7 @@ import org.fog.application.AppModule;
 import org.fog.application.Application;
 import org.fog.application.selectivity.FractionalSelectivity;
 import org.fog.entities.Actuator;
+import org.fog.entities.FogBroker;
 import org.fog.entities.FogDevice;
 import org.fog.entities.FogDeviceCharacteristics;
 import org.fog.entities.Sensor;
@@ -63,14 +64,14 @@ public abstract class Algorithm {
 	protected double[][] mBandwidthMap;
 	
 	// Node to Module
-	protected double[][] mandatoryMap;
+	protected double[][] possibleDeployment;
 	
 	protected Map<Map<Integer, Integer>, LinkedList<Vertex>> routingPaths;
 	
-	public Algorithm(final List<FogDevice> fogDevices, final List<Application> applications,
+	public Algorithm(final List<FogBroker> fogBrokers, final List<FogDevice> fogDevices, final List<Application> applications,
 			final List<Sensor> sensors, final List<Actuator> actuators) throws IllegalArgumentException {
 		
-		if(applications == null || sensors == null || actuators == null)
+		if(fogBrokers == null || applications == null || sensors == null || actuators == null)
 			throw new IllegalArgumentException("Some of the received arguments are null");
 		
 		NR_NODES = fogDevices.size() + sensors.size() + actuators.size();
@@ -112,7 +113,7 @@ public abstract class Algorithm {
 			for (int j = 0; j < NR_NODES; j++)
 				fLatencyMap[i][j] = Double.MAX_VALUE;
 		
-		mandatoryMap = new double[NR_NODES][NR_MODULES];
+		possibleDeployment = new double[NR_NODES][NR_MODULES];
 		
 		mDependencyMap = new double[NR_MODULES][NR_MODULES];
 		mBandwidthMap = new double[NR_MODULES][NR_MODULES];
@@ -120,7 +121,7 @@ public abstract class Algorithm {
 		routingPaths = new HashMap<Map<Integer,Integer>, LinkedList<Vertex>>();
 		
 		extractDevicesCharacteristics(fogDevices, sensors, actuators);
-		extractAppCharacteristics(applications, sensors, actuators);
+		extractAppCharacteristics(fogBrokers, fogDevices, applications, sensors, actuators);
 		computeApplicationCharacteristics(applications, sensors);
 		computeLatencyMap(fogDevices, sensors, actuators);
 		
@@ -168,8 +169,12 @@ public abstract class Algorithm {
 		}
 	}
 	
-	private void extractAppCharacteristics(final List<Application> applications,
-			final List<Sensor> sensors, final List<Actuator> actuators) {
+	private void extractAppCharacteristics(final List<FogBroker> fogBrokers, final List<FogDevice> fogDevices,
+			final List<Application> applications, final List<Sensor> sensors, final List<Actuator> actuators) {
+		
+		for(int i  = 0; i < NR_NODES; i++)
+			for(int j  = 0; j < NR_MODULES; j++)
+				possibleDeployment[i][j] = 1;
 		
 		int i = 0;
 		for(Application application : applications) {
@@ -184,22 +189,72 @@ public abstract class Algorithm {
 			// sensors and actuators are added to compute tuples latency
 			for(AppEdge appEdge : application.getEdges()) {
 				if(getModuleIndexByModuleName(appEdge.getSource()) == -1) {
-					for(Sensor sensor : sensors)
-						if(sensor.getAppId().equals(application.getAppId()))
-							mandatoryMap[getNodeIndexByNodeName(sensor.getName())][i] = 1;
+					for(Sensor sensor : sensors) {
+						int sensorIndex = getNodeIndexByNodeName(sensor.getName());
+						
+						if(sensor.getAppId().equals(application.getAppId())) {
+							for(int z = 0; z < NR_NODES; z++)
+								if(z != getNodeIndexByNodeName(sensor.getName()))
+									possibleDeployment[z][i] = 0;
 					
+							for(int z = 0; z < NR_MODULES; z++)
+								if(z != i)
+									possibleDeployment[sensorIndex][z] = 0;
+							
+							break;
+						}
+					}
 					mName[i++] = appEdge.getSource();
 				}
 				
 				if(getModuleIndexByModuleName(appEdge.getDestination()) == -1) {
-					for(Actuator actuator : actuators)
-						if(actuator.getAppId().equals(application.getAppId()))
-							mandatoryMap[getNodeIndexByNodeName(actuator.getName())][i] = 1;
+					for(Actuator actuator : actuators) {
+						int actuatorIndex = getNodeIndexByNodeName(actuator.getName());
+								
+						if(actuator.getAppId().equals(application.getAppId())) {
+							for(int z = 0; z < NR_NODES; z++)
+								if(z != actuatorIndex)
+									possibleDeployment[z][i] = 0;
+						
+							for(int z = 0; z < NR_MODULES; z++)
+								if(z != i)
+									possibleDeployment[actuatorIndex][z] = 0;
+							
+							break;
+						}
+					}
 					
 					mName[i++] = appEdge.getDestination();
 				}
 			}
 		}
+		
+		for(FogDevice fogDevice : fogDevices) {
+			FogBroker fogBroker = null;
+			
+			for(FogBroker broker : fogBrokers)
+				if(broker.getName().equals(fogDevice.getName()))
+					fogBroker = broker;
+			
+			if(fogBroker == null) continue;
+			
+			int clientIndex = -1;
+			List<Application> userApps = new ArrayList<Application>();
+			
+			for(Application application : applications) {
+				if(fogBroker.getId() == application.getUserId()) {
+					clientIndex = getNodeIndexByNodeId(fogDevice.getId());
+					userApps.add(application);
+				}
+			}
+			
+			if(!userApps.isEmpty()) // Is a client and not a fog node
+				for(Application app : applications) // Is not one of its own applications
+					if(!userApps.contains(app))
+						for(AppModule module : app.getModules())
+							possibleDeployment[clientIndex][getModuleIndexByModuleName(module.getName())] = 0;
+		}
+		
 	}
 	
 	private void computeApplicationCharacteristics(final List<Application> applications, final List<Sensor> sensors) {
@@ -441,13 +496,6 @@ public abstract class Algorithm {
 				return true;
 		return false;
 	}
-	
-	public int moduleHasMandatoryPositioning(int col) {
-		for(int i = 0; i < NR_NODES; i++)
-			if(mandatoryMap[i][col] == 1)
-				return i;
-		return -1;
-	}
 
 	public double[] getfMipsPrice() {
 		return fMipsPrice;
@@ -525,8 +573,8 @@ public abstract class Algorithm {
 		return mDependencyMap;
 	}
 	
-	public double[][] getMandatoryMap() {
-		return mandatoryMap;
+	public double[][] getPossibleDeployment() {
+		return possibleDeployment;
 	}
 	
 	public double[][] getmBandwidthMap(){

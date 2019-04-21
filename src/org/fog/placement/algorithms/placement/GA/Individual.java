@@ -24,12 +24,6 @@ public class Individual implements Comparable<Individual> {
 		double[][] childModulePlacementMap = new double[modulePlacementMap.length][modulePlacementMap[0].length];
 		
 		for(int i = 0; i < modulePlacementMap[0].length; i++) {
-			int result;
-			if((result = ga.moduleHasMandatoryPositioning(i)) != -1) {
-				childModulePlacementMap[result][i] = 1;
-				continue;
-			}
-			
         	float prob = new Random().nextFloat();
         	
         	// if prob is less than 0.45, insert gene from parent 1
@@ -39,8 +33,18 @@ public class Individual implements Comparable<Individual> {
             else if (prob < 0.90)
             	childModulePlacementMap[findModulePlacement(parModulePlacementMap, i)][i] = 1;
             // otherwise insert random gene(mutate), for maintaining diversity
-            else
-            	childModulePlacementMap[new Random().nextInt(modulePlacementMap.length)][i] = 1;
+            else {
+            	double[][] possibleDeployment = ga.getPossibleDeployment();
+        		
+    			List<Integer> validValues = new ArrayList<Integer>();
+    			
+    			for(int j = 0; j < possibleDeployment.length; j++)
+    				if(possibleDeployment[j][i] == 1)
+    					validValues.add(j);
+    			
+    			childModulePlacementMap[validValues.get(new Random().nextInt(validValues.size()))][i] = 1;
+            }
+            	
 		}
 		
 		double[][] routingMap = chromosome.getRoutingMap();
@@ -72,13 +76,13 @@ public class Individual implements Comparable<Individual> {
 		            else if (prob < 0.90)
 		            	childRoutingMap[i][j] = parRoutingMap[i][j];
 		            else {
-						List<Integer> valid_values = new ArrayList<Integer>();
+						List<Integer> validValues = new ArrayList<Integer>();
 						
 						for(int z = 0; z < routingMap[0].length + 1; z++)
 							if(ga.getfLatencyMap()[(int) routingMap[i][j-1]][z] < Double.MAX_VALUE)
-								valid_values.add(z);
+								validValues.add(z);
 						
-						childRoutingMap[i][j] = valid_values.get(new Random().nextInt(valid_values.size()));
+						childRoutingMap[i][j] = validValues.get(new Random().nextInt(validValues.size()));
 		            }
 				}
 			}
@@ -131,6 +135,7 @@ public class Individual implements Comparable<Individual> {
 	
 	private double calculateOperationalCost(double[][] modulePlacementMap) {
 		double cost = 0;
+		
 		for(int i = 0; i < modulePlacementMap.length; i++) {
 			for(int j = 0; j < modulePlacementMap[i].length; j++) {
 				
@@ -140,6 +145,7 @@ public class Individual implements Comparable<Individual> {
 						ga.getfMemPrice()[i] * ga.getmMem()[j]);
 			}
 		}
+		
 		return cost;
 	}
 	

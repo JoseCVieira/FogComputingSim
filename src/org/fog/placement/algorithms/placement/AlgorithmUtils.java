@@ -262,7 +262,7 @@ public class AlgorithmUtils {
 		}
 		
 		System.out.println("\n*******************************************************");
-		System.out.println("\t\tMANDATORY POSITIONING:");
+		System.out.println("\t\tPOSSIBLE POSITIONING:");
 		System.out.println("*******************************************************\n");
 
 		System.out.format(centerString(20, " "));
@@ -273,10 +273,10 @@ public class AlgorithmUtils {
 		for (int i = 0; i < al.getfName().length; i++) {
 			System.out.format(centerString(20, al.getfName()[i]));
 			for (int j = 0; j < al.getmName().length; j++)
-				if(al.getMandatoryMap()[i][j] != 0)
-					System.out.format(centerString(20, Integer.toString((int)al.getMandatoryMap()[i][j])));
+				if(al.getPossibleDeployment()[i][j] != 0.0)
+					System.out.format(centerString(20, Integer.toString((int) al.getPossibleDeployment()[i][j])));
 				else
-					System.out.format(AlgorithmUtils.centerString(20, "-"));
+					System.out.format(centerString(20, "-"));
 			System.out.println();
 		}
 		

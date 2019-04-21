@@ -20,14 +20,16 @@ public class Chromosome {
 	
 	double[][] createModulePlacementMap(GA ga, int nrFogNodes, int nrModules) {
 		double[][] modulePlacementMap = new double[nrFogNodes][nrModules];
+		double[][] possibleDeployment = ga.getPossibleDeployment();
 		
 		for(int i = 0; i < nrModules; i++) {
-			int result;
-			if((result = ga.moduleHasMandatoryPositioning(i)) != -1) {
-				modulePlacementMap[result][i] = 1;
-				continue;
-			}else
-				modulePlacementMap[new Random().nextInt(nrFogNodes)][i] = 1;
+			List<Integer> validValues = new ArrayList<Integer>();
+			
+			for(int j = 0; j < nrFogNodes; j++)
+				if(possibleDeployment[j][i] == 1)
+					validValues.add(j);
+			
+			modulePlacementMap[validValues.get(new Random().nextInt(validValues.size()))][i] = 1;
 		}
 		
         return modulePlacementMap;
@@ -55,13 +57,13 @@ public class Chromosome {
 				else if(j == nrConnections -1)
 					routingMap[i][j] = finalNodes.get(i);
 				else {
-					List<Integer> valid_values = new ArrayList<Integer>();
+					List<Integer> validValues = new ArrayList<Integer>();
 					
 					for(int z = 0; z < nrConnections + 1; z++)
 						if(ga.getfLatencyMap()[(int) routingMap[i][j-1]][z] < Double.MAX_VALUE)
-							valid_values.add(z);
+							validValues.add(z);
 							
-					routingMap[i][j] = valid_values.get(new Random().nextInt(valid_values.size()));
+					routingMap[i][j] = validValues.get(new Random().nextInt(validValues.size()));
 				}
 			}
 		}

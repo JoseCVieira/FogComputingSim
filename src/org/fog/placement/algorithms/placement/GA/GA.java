@@ -9,6 +9,7 @@ import java.util.Random;
 
 import org.fog.application.Application;
 import org.fog.entities.Actuator;
+import org.fog.entities.FogBroker;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.placement.algorithms.placement.Algorithm;
@@ -19,9 +20,9 @@ public class GA extends Algorithm {
 	private static final double AGREED_BOUNDARY = 0.0;
 	private static final int MAX_ITER = 3000;
 	
-	public GA(final List<FogDevice> fogDevices, final List<Application> applications,
+	public GA(final List<FogBroker> fogBrokers, final List<FogDevice> fogDevices, final List<Application> applications,
 			final List<Sensor> sensors, final List<Actuator> actuators) {
-		super(fogDevices, applications, sensors, actuators);
+		super(fogBrokers, fogDevices, applications, sensors, actuators);
 	}
 	
 	@Override
@@ -87,18 +88,18 @@ public class GA extends Algorithm {
 					population[0].getFitness() + "):");
 			System.out.println("*******************************************************\n");
 			
-			System.out.format(AlgorithmUtils.centerString(15, " "));
+			System.out.format(AlgorithmUtils.centerString(20, " "));
 			for (int i = 0; i < getmName().length; i++)
-				System.out.format(AlgorithmUtils.centerString(15, getmName()[i]));
+				System.out.format(AlgorithmUtils.centerString(20, getmName()[i]));
 			System.out.println();
 			
 			for (int i = 0; i < getfName().length; i++) {
-				System.out.format(AlgorithmUtils.centerString(15, getfName()[i]));
+				System.out.format(AlgorithmUtils.centerString(20, getfName()[i]));
 				for (int j = 0; j < getmName().length; j++) {
 					if(population[0].getChromosome().getModulePlacementMap()[i][j] != 0)
-						System.out.format(AlgorithmUtils.centerString(15, Integer.toString((int)population[0].getChromosome().getModulePlacementMap()[i][j])));
+						System.out.format(AlgorithmUtils.centerString(20, Integer.toString((int)population[0].getChromosome().getModulePlacementMap()[i][j])));
 					else
-						System.out.format(AlgorithmUtils.centerString(15, "-"));
+						System.out.format(AlgorithmUtils.centerString(20, "-"));
 				}
 				System.out.println();
 			}
