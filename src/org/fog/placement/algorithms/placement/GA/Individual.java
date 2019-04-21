@@ -91,12 +91,19 @@ public class Individual implements Comparable<Individual> {
 	private double calculateFitness() {
 		double[][] modulePlacementMap = chromosome.getModulePlacementMap();
 		
-		double fitness = isPossibleCombination(modulePlacementMap) == false ? Short.MAX_VALUE : 0;
+		if(isPossibleCombination(modulePlacementMap) == false) return Double.MAX_VALUE - 1;
+			
+		double fitness = /*isPossibleCombination(modulePlacementMap) == false ? Short.MAX_VALUE :*/ 0;
 
 		fitness += calculateOperationalCost(modulePlacementMap);
 		fitness += calculateEnergyConsumption(modulePlacementMap);
+		//System.out.println("fitness1: " + fitness);
+		
 		//fitness += calculateProcessingLatency();
 		fitness += calculateTransmittingCost(modulePlacementMap);
+		//System.out.println("fitness2: " + fitness + "\n");
+		
+		//System.exit(0);
 		
 		return fitness;
 	}
@@ -204,7 +211,11 @@ public class Individual implements Comparable<Individual> {
 				bwMap[from][to] += bwNeeded;
 				transmittingCost += ga.getfLatencyMap()[from][to]*dependencies;
 				transmittingCost += ga.getfBwPrice()[from]*bwNeeded;
-				transmittingCost += bwNeeded/ga.getfBandwidthMap()[from][to];
+				
+				if(ga.getfBandwidthMap()[from][to] == 0)
+					transmittingCost += Short.MAX_VALUE;
+				else
+					transmittingCost += bwNeeded/ga.getfBandwidthMap()[from][to];
 			}
 		}
 		

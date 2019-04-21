@@ -25,7 +25,7 @@ public class Config {
 	public static final double RATE_MEM = 5E-11;
 	public static final double RATE_BW = 3.9E-05;
 	public static final double IDLE_POWER = 83.4333;
-	public static final double BUSY_POWER = 107.339;
+	public static final double BUSY_POWER = 127.339;
 	public static final double COST_PER_SEC = 3.0;
 	
 	public static final int MODULE_RAM = 8192;
@@ -34,6 +34,11 @@ public class Config {
 	public static final double EDGE_CPU_LENGTH = 3000;
 	public static final double EDGE_NW_LENGTH = 500;
 	public static final double EDGE_PERIODICITY = 1000;
+	
+	public static final double SENSOR_LATENCY = 6;
+	public static final double ACTUATOR_LATENCY = 4;
+	
+	public static final double SENSOR_DESTRIBUTION = 5.1;
 	
 	public static final double RESOURCE_MGMT_INTERVAL = 100;
 	public static final int MAX_SIMULATION_TIME = 10000; //50000;

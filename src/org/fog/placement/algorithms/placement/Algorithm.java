@@ -123,7 +123,6 @@ public abstract class Algorithm {
 		extractAppCharacteristics(applications, sensors, actuators);
 		computeApplicationCharacteristics(applications, sensors);
 		computeLatencyMap(fogDevices, sensors, actuators);
-		computeDependencyMap(applications);
 		
 		if(PRINT_DETAILS)
 			AlgorithmUtils.printDetails(this, fogDevices, applications, sensors, actuators);
@@ -159,13 +158,13 @@ public abstract class Algorithm {
 		for(Sensor sensor : sensors) {
 			fId[i] = sensor.getId();
 			fName[i] = sensor.getName();
-			fMips[i++] = 1.0; // its value is irrelevant but needs to be different from 0
+			fMips[i++] = 1.0; // TODO its value is irrelevant but needs to be different from 0
 		}
 		
 		for(Actuator actuator : actuators) {
 			fId[i] = actuator.getId();
 			fName[i] = actuator.getName();
-			fMips[i++] = 1.0; // its value is irrelevant but needs to be different from 0
+			fMips[i++] = 1.0; // TODO its value is irrelevant but needs to be different from 0
 		}
 	}
 	
@@ -260,7 +259,7 @@ public abstract class Algorithm {
 						mDependencyMap[col][row] += probability/interval;
 						
 						for(AppModule appModule : application.getModules()) { // BW and MIPS to sensors and actuators are not used
-							if(appModule.getName().equals(appEdge.getDestination())) {
+							if(appModule.getName().equals(appEdge.getDestination())) {								
 								int edgeSourceIndex = getModuleIndexByModuleName(appEdge.getSource());
 								int edgeDestIndex = getModuleIndexByModuleName(appEdge.getDestination());
 								
@@ -342,16 +341,6 @@ public abstract class Algorithm {
 			getfLatencyMap()[getNodeIndexByNodeId(id2)][getNodeIndexByNodeId(id1)] = lat;
 			getfLatencyMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id1)] = 0;
 		}
-	}
-	
-	private void computeDependencyMap(final List<Application> applications) {
-		/*for(Application application : applications) {
-			for(AppEdge appEdge : application.getEdges()) {
-				int col = getModuleIndexByModuleName(appEdge.getSource());
-				int row = getModuleIndexByModuleName(appEdge.getDestination());
-				mDependencyMap[col][row] += 1;
-			}
-		}*/
 	}
 	
 	public abstract Map<String, List<String>> execute();
