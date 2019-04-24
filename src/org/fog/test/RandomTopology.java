@@ -30,6 +30,11 @@ import org.fog.entities.FogDeviceCharacteristics;
 import org.fog.entities.Sensor;
 import org.fog.entities.Tuple;
 import org.fog.placement.Controller;
+import org.fog.placement.ModuleMapping;
+import org.fog.placement.ModulePlacementMapping;
+import org.fog.placement.algorithms.placement.Algorithm;
+import org.fog.placement.algorithms.placement.Job;
+import org.fog.placement.algorithms.placement.BF.BF;
 import org.fog.placement.algorithms.placement.GA.GA;
 import org.fog.placement.algorithms.placement.LP.LP;
 import org.fog.policy.AppModuleAllocationPolicy;
@@ -43,17 +48,17 @@ import org.fog.utils.distribution.Distribution;
 
 public class RandomTopology {
 	private static final boolean DEBUG_MODE = false;
-	private static final boolean PRINT_PLACEMENT = true;
-	private static final String OPTIMIZATION_ALGORITHM = "GA";
+	private static final boolean COMPARE_WITH_BRUTE_FORCE = false;
+	private static final String OPTIMIZATION_ALGORITHM = "BF";
 	
 	private static final String CLOUD_NAME = "Cloud";
-	private static final int NR_FOG_DEVICES = 4;
+	private static final int NR_FOG_DEVICES = 3;
 	
 	private static final double MAX_CONN_LAT = 100;
 	private static final double MAX_CONN_BW = 10000;
 	
 	private static final double CONNECTION_PROB = 0.4;
-	private static final double DEPLOY_APP_PROB = 0.5;
+	private static final double DEPLOY_APP_PROB = 0.35;
 	
 	private static final double RESOURCES_DEV = 100;
 	private static final double ENERGY_DEV = 5;
@@ -65,6 +70,7 @@ public class RandomTopology {
 	private static List<FogDevice> fogDevices = new ArrayList<FogDevice>();
 	private static List<Actuator> actuators = new ArrayList<Actuator>();
 	private static List<Sensor> sensors = new ArrayList<Sensor>();
+	private static Controller controller;
 	
 	public static void main(String[] args) {
 		System.out.println("Generating a new random topology...");
@@ -77,59 +83,48 @@ public class RandomTopology {
 		
 		CloudSim.init(Calendar.getInstance());
 		
-		createApplications();
+		createExampleApplications();
 		createFogDevices();
 		connectFogDevices();
 		createClients();
 		createController();
-		deployApplications();
+		createApplications();
 		
-		System.out.println("Running the optimization algorithm...");
-		
-		Map<String, List<String>> placementMap = null;
-		Map<Map<String, String>, Integer> routingMap = null;
-		
+		Job solution = null;
+		Algorithm algorithm = null;
 		switch (OPTIMIZATION_ALGORITHM) {
-		case "LP":
-			LP lp = new LP(fogBrokers, fogDevices, applications, sensors, actuators);
-			placementMap = lp.execute();
-			if(placementMap == null) break;
-			routingMap = lp.extractRoutingMap(placementMap, fogDevices, sensors, actuators);
-			break;
-		case "GA":
-			GA ga = new GA(fogBrokers, fogDevices, applications, sensors, actuators);
-			placementMap = ga.execute();
-			
-			System.exit(0);
-			
-			if(placementMap == null) break;
-			routingMap = ga.extractRoutingMap(placementMap, fogDevices, sensors, actuators);
-			break;
-		default:
-			System.err.println("Unknown algorithm.\nFogComputingSim will terminate abruptally.\n");
-			System.exit(0);
+			case "BF":
+				System.out.println("Running the optimization algorithm: Brute Force.");
+				algorithm = new BF(fogBrokers, fogDevices, applications, sensors, actuators);
+				break;
+			case "LP":
+				System.out.println("Running the optimization algorithm: Linear programming.");
+				algorithm = new LP(fogBrokers, fogDevices, applications, sensors, actuators);
+				break;
+			case "GA":
+				System.out.println("Running the optimization algorithm: Genetic Algorithm.");
+				algorithm = new GA(fogBrokers, fogDevices, applications, sensors, actuators);
+				break;
+			default:
+				System.err.println("Unknown algorithm.\nFogComputingSim will terminate abruptally.\n");
+				System.exit(0);
 		}
 		
-		if(placementMap == null || routingMap == null) {
+		solution = algorithm.execute();
+		
+		if(solution == null || solution.getModulePlacementMap() == null || solution.getRoutingMap() == null) {
 			System.err.println("There is no possible combination to deploy all applications.\n");
 			System.err.println("FogComputingSim will terminate abruptally.\n");
 			System.exit(0);
 		}
 		
-		if(PRINT_PLACEMENT) {
-			printPlacement(placementMap);
-			printRouting(routingMap);
+		if(COMPARE_WITH_BRUTE_FORCE) {
+			System.out.println("Running the optimization algorithm: Brute Force...");
+			new BF(fogBrokers, fogDevices, applications, sensors, actuators).execute();
 		}
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
+		
+		deployApplications(algorithm.extractPlacementMap(solution.getModulePlacementMap()));
+		createRoutingTables(algorithm, solution.getRoutingMap());
 			
 		System.out.println("Starting simulation...");
 	
@@ -138,7 +133,7 @@ public class RandomTopology {
 		CloudSim.startSimulation();
 		CloudSim.stopSimulation();
 		
-		System.out.println("Simulation finished...");
+		System.out.println("Simulation finished.");
 	}
 	
 	private static void createFogDevices() {
@@ -284,9 +279,9 @@ public class RandomTopology {
 							actuatorType = appEdge.getDestination();
 					}
 					
-					Distribution sensorDist = new DeterministicDistribution(getNormalRandomNumber(Config.SENSOR_DESTRIBUTION, 1)); //TODO: test other distributions
+					Distribution sensorDist = new DeterministicDistribution(Config.SENSOR_DESTRIBUTION/*getNormalRandomNumber(Config.SENSOR_DESTRIBUTION, 1)*/); //TODO: test other distributions
 					double sensorLat = getNormalRandomNumber(Config.SENSOR_LATENCY, 1);
-					double actuatorLat = getNormalRandomNumber(Config.ACTUATOR_LATENCY, 1);
+					double actuatorLat = getNormalRandomNumber(Config.ACTUATOR_LATENCY, 0.1);
 					
 					sensors.add(new Sensor("Sensor:" + clientName, sensorType + "_" + userId, userId, appName + "_" + userId,
 							sensorDist, gatewayDeviceId, sensorLat));
@@ -302,14 +297,14 @@ public class RandomTopology {
 	}
 	
 	private static void createController() {
-		Controller controller = new Controller("master-controller", fogDevices, sensors, actuators);
+		controller = new Controller("master-controller", fogDevices, sensors, actuators);
 		
 		for(FogDevice fogDevice : fogDevices)
 			fogDevice.setController(controller);
 	}
 	
 	@SuppressWarnings("serial")
-	private static void createApplications(){		
+	private static void createExampleApplications() {		
 		Application application = new Application("VRGame", -1);
 		application.addAppModule("client", 100);
 		application.addAppModule("calculator", 100);
@@ -379,20 +374,60 @@ public class RandomTopology {
 		examplesApplications.add(application);
 	}
 	
-	private static void deployApplications(){
+	private static void createApplications() {
 		for(FogDevice fogDevice : fogDevices) {
 			FogBroker broker = getFogBrokerByName(fogDevice.getName());
 			
-			if(fogDevice.getActiveApplications().isEmpty())
-				continue;
-			
-			Application application = createApplication(fogDevice.getActiveApplications().get(0), broker.getId());
-			application.setClientId(fogDevice.getId());
-			applications.add(application);
+			for(String app : fogDevice.getActiveApplications()) {
+				Application application = createApplication(app, broker.getId());
+				application.setClientId(fogDevice.getId());
+				applications.add(application);
+			}
 		}
 	}
 	
-	private static Application createApplication(String appId, int userId){
+	private static void deployApplications(Map<String, List<String>> modulePlacementMap) {
+		for(FogDevice fogDevice : fogDevices) {
+			
+			FogBroker broker = getFogBrokerByName(fogDevice.getName());
+			
+			List<String> apps = fogDevice.getActiveApplications();
+			fogDevice.setActiveApplications(new ArrayList<String>());
+			
+			for(String app : apps) {
+				for(Application application : applications) {
+					if(application.getAppId().equals(app + "_" + broker.getId())) {
+						
+						ModuleMapping moduleMapping = ModuleMapping.createModuleMapping();
+						
+						for(AppModule appModule : application.getModules())
+							for(String fogString : modulePlacementMap.keySet())
+								if(modulePlacementMap.get(fogString).contains(appModule.getName()))
+									moduleMapping.addModuleToDevice(appModule.getName(), fogString);
+						
+						controller.submitApplication(application, new ModulePlacementMapping(fogDevices, application, moduleMapping));
+					}
+				}
+			}
+		}
+	}
+	
+	private static void createRoutingTables(Algorithm algorithm, int[][] routingMatrix) {
+		Map<Map<Integer, Map<String, String>>, Integer> routingMap = algorithm.extractRoutingMap(routingMatrix);
+		
+		for(Map<Integer, Map<String, String>> hop : routingMap.keySet()) {
+			for(Integer node : hop.keySet()) {
+
+				FogDevice fogDevice = getFogDeviceById(algorithm.getfId()[node]);
+				if(fogDevice == null) //sensor and actuators do not need routing map
+					continue;
+				
+				fogDevice.getRoutingTable().put(hop.get(node), algorithm.getfId()[routingMap.get(hop)]);
+			}
+		}
+	}
+	
+	private static Application createApplication(String appId, int userId) {
 		Application appExample = null;
 		
 		for(Application app : examplesApplications)
@@ -435,6 +470,13 @@ public class RandomTopology {
 		return null;
 	}
 	
+	private static FogDevice getFogDeviceById(int id) {
+		for(FogDevice fogDevice : fogDevices)
+			if(fogDevice.getId() == id)
+				return fogDevice;
+		return null;
+	}
+	
 	public static int getRandomNumberBetween(int minimum, int maximum) {
 		Random rand = new Random();
 		int randomNumber = minimum + rand.nextInt((maximum - minimum) + 1);
@@ -448,27 +490,4 @@ public class RandomTopology {
 		return randomNumber;
 	}
 	
-	private static void printPlacement(Map<String, List<String>> map) {
-		System.out.println("\n*******************************************************");
-		System.out.println("\t\tMODULE PLACEMENT:");
-		System.out.println("*******************************************************");
-		for(String fogDevName : map.keySet()) {
-			System.out.print("\n" + fogDevName + ":");
-			for(String modName : map.get(fogDevName))
-				System.out.print("  " + modName);
-		}
-		System.out.println("\n");
-	}
-	
-	private static void printRouting(Map<Map<String, String>, Integer> map) {
-		System.out.println("\n*******************************************************");
-		System.out.println("\t\tROUTING MAPS:");
-		System.out.println("*******************************************************");
-		for(Map<String, String> map2 : map.keySet()) {
-			for(String node : map2.keySet())
-				System.out.print("\nFog Node: " + node + " | Module: " +
-			map2.get(node) + " | Next node: " + map.get(map2));
-		}
-		System.out.println("\n");
-	}
 }

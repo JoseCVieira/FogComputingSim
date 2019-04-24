@@ -112,16 +112,14 @@ public class Tuple extends Cloudlet{
 	
 	@Override
 	public String toString() {
-		String str = "";
-		
-		str = "\nappId: " + appId + "\n"+
+		String str = "\nappId: " + appId + "\n"+
 		"tupleType: " + tupleType + "\n"+
 		"TupleCpuLength: " + getCloudletLength() + "\n"+
 		"destModuleName: " + destModuleName + "\n"+
 		"srcModuleName: " + srcModuleName + "\n"+
 		"actualTupleId: " + actualTupleId + "\n"+
 		"direction: " + direction + "\n"+
-		"sourceModuleId: " + sourceModuleId + "\n\n";
+		"sourceModuleId: " + sourceModuleId;
 		return str;
 	}
 	

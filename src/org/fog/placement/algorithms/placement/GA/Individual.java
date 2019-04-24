@@ -5,23 +5,24 @@ import java.util.List;
 import java.util.Random;
 
 import org.fog.placement.algorithms.placement.AlgorithmUtils;
+import org.fog.placement.algorithms.placement.Job;
 
 public class Individual implements Comparable<Individual> {	
 	private GA ga;
-	private Chromosome chromosome;
+	private Job chromosome;
 	private double fitness;
 	
-	Individual(GA ga, Chromosome chromosome) {
+	Individual(GA ga, Job chromosome) {
 		this.ga = ga;
 		this.chromosome = chromosome;
-		this.fitness = calculateFitness();
+		this.fitness = chromosome.getCost();
 	}
 	
 	// perform mating and produce new offspring
 	public Individual mate(Individual par) {
-		double[][] modulePlacementMap = chromosome.getModulePlacementMap();
-		double[][] parModulePlacementMap = par.getChromosome().getModulePlacementMap();
-		double[][] childModulePlacementMap = new double[modulePlacementMap.length][modulePlacementMap[0].length];
+		int[][] modulePlacementMap = chromosome.getModulePlacementMap();
+		int[][] parModulePlacementMap = par.getChromosome().getModulePlacementMap();
+		int[][] childModulePlacementMap = new int[modulePlacementMap.length][modulePlacementMap[0].length];
 		
 		for(int i = 0; i < modulePlacementMap[0].length; i++) {
         	float prob = new Random().nextFloat();
@@ -47,9 +48,9 @@ public class Individual implements Comparable<Individual> {
             	
 		}
 		
-		double[][] routingMap = chromosome.getRoutingMap();
-		double[][] parRoutingMap = par.getChromosome().getRoutingMap();		
-		double[][] childRoutingMap = new double[routingMap.length][routingMap[0].length];
+		int[][] routingMap = chromosome.getRoutingMap();
+		int[][] parRoutingMap = par.getChromosome().getRoutingMap();		
+		int[][] childRoutingMap = new int[routingMap.length][routingMap[0].length];
 		
 		List<Integer> initialNodes = new ArrayList<Integer>();
 		List<Integer> finalNodes = new ArrayList<Integer>();
@@ -88,153 +89,11 @@ public class Individual implements Comparable<Individual> {
 			}
 		}
 		
-        Chromosome childChromosome = new Chromosome(childModulePlacementMap, childRoutingMap);
+		Job childChromosome = new Job(ga, childModulePlacementMap, childRoutingMap);
         return new Individual(ga, childChromosome);
 	}
 	
-	private double calculateFitness() {
-		double[][] modulePlacementMap = chromosome.getModulePlacementMap();
-		
-		if(isPossibleCombination(modulePlacementMap) == false) return Double.MAX_VALUE - 1;
-			
-		double fitness = /*isPossibleCombination(modulePlacementMap) == false ? Short.MAX_VALUE :*/ 0;
-
-		fitness += calculateOperationalCost(modulePlacementMap);
-		fitness += calculateEnergyConsumption(modulePlacementMap);
-		//System.out.println("fitness1: " + fitness);
-		
-		//fitness += calculateProcessingLatency();
-		fitness += calculateTransmittingCost(modulePlacementMap);
-		//System.out.println("fitness2: " + fitness + "\n");
-		
-		//System.exit(0);
-		
-		return fitness;
-	}
-	
-	private boolean isPossibleCombination(double[][] modulePlacementMap) {		
-		for(int i = 0; i < modulePlacementMap.length; i++) {
-			double totalMips = 0;
-			double totalRam = 0;
-			double totalMem = 0;
-			double totalBw = 0;
-			
-			for(int j = 0; j < modulePlacementMap[i].length; j++) {
-				totalMips += modulePlacementMap[i][j] * ga.getmMips()[j];
-				totalRam += modulePlacementMap[i][j] * ga.getmRam()[j];
-				totalMem += modulePlacementMap[i][j] * ga.getmMem()[j];
-				totalBw += modulePlacementMap[i][j] * ga.getmBw()[j];
-			}
-			
-			if(totalMips > ga.getfMips()[i] || totalRam > ga.getfRam()[i] ||
-					totalMem > ga.getfMem()[i] || totalBw > ga.getfBw()[i])
-				return false;
-		}
-		return true;
-	}
-	
-	private double calculateOperationalCost(double[][] modulePlacementMap) {
-		double cost = 0;
-		
-		for(int i = 0; i < modulePlacementMap.length; i++) {
-			for(int j = 0; j < modulePlacementMap[i].length; j++) {
-				
-				cost += modulePlacementMap[i][j]*(
-						ga.getfMipsPrice()[i] * ga.getmMips()[j] +
-						ga.getfRamPrice()[i] * ga.getmRam()[j] +
-						ga.getfMemPrice()[i] * ga.getmMem()[j]);
-			}
-		}
-		
-		return cost;
-	}
-	
-	private double calculateEnergyConsumption(double[][] modulePlacementMap) {
-		double energy = 0;
-		
-		for(int i = 0; i < modulePlacementMap.length; i++) {
-			double totalMips = 0;
-			
-			for(int j = 0; j < modulePlacementMap[i].length; j++)
-				totalMips += modulePlacementMap[i][j] * ga.getmMips()[j];
-			
-			energy += (ga.getfBusyPw()[i]-ga.getfIdlePw()[i])*(totalMips/ga.getfMips()[i]);
-		}
-		
-		return energy;
-	}
-	
-	private double calculateProcessingLatency(double[][] modulePlacementMap) {
-		double latency = 0;
-		
-		for(int i = 0; i < modulePlacementMap.length; i++) {
-			int nrModules = 0;
-			double totalMips = 0;
-			
-			for(int j = 0; j < modulePlacementMap[i].length; j++) {
-				nrModules += modulePlacementMap[i][j];
-				totalMips += modulePlacementMap[i][j] * ga.getmMips()[j];
-			}
-			
-			double unnusedMips = ga.getfMips()[i] - totalMips;
-			double mipsPie = 1; // TODO irrelevant value
-			if(nrModules != 0 && unnusedMips != 0)
-				mipsPie = unnusedMips/nrModules;
-			
-			for(int j = 0; j < modulePlacementMap[i].length; j++)
-				latency += modulePlacementMap[i][j] * ga.getmCpuSize()[j] / (ga.getmMips()[j] + mipsPie);
-		}
-		
-		return latency;
-	}
-	
-	private double calculateTransmittingCost(double[][] modulePlacementMap) {
-		double[][] routingMap = chromosome.getRoutingMap();
-		double[][] bwMap = new double[ga.getfName().length][ga.getfName().length];
-		
-		double transmittingCost = 0;
-		
-		List<Integer> initialModules = new ArrayList<Integer>();
-		List<Integer> finalModules = new ArrayList<Integer>();
-		
-		for(int i = 0; i < ga.getmDependencyMap().length; i++) {
-			for (int j = 0; j < ga.getmDependencyMap()[0].length; j++) {
-				if(ga.getmDependencyMap()[i][j] != 0) {
-					initialModules.add(i);
-					finalModules.add(j);
-				}
-			}
-		}
-		
-		for(int i = 0; i < routingMap.length; i++) {
-			for (int j = 1; j < routingMap[0].length; j++) {
-				int from = (int) routingMap[i][j-1];
-				int to = (int) routingMap[i][j];
-				
-				double dependencies = ga.getmDependencyMap()[initialModules.get(i)][finalModules.get(i)];
-				double bwNeeded = ga.getmBandwidthMap()[initialModules.get(i)][finalModules.get(i)];
-				
-				bwMap[from][to] += bwNeeded;
-				transmittingCost += ga.getfLatencyMap()[from][to]*dependencies;
-				transmittingCost += ga.getfBwPrice()[from]*bwNeeded;
-				
-				if(ga.getfBandwidthMap()[from][to] == 0)
-					transmittingCost += Short.MAX_VALUE;
-				else
-					transmittingCost += bwNeeded/ga.getfBandwidthMap()[from][to];
-			}
-		}
-		
-		for(int i = 0; i < bwMap.length; i++)
-			for (int j = 0; j < bwMap[0].length; j++)
-				if(bwMap[i][j] > ga.getfBandwidthMap()[i][j])
-					transmittingCost += Short.MAX_VALUE;
-		
-		return transmittingCost;
-	}
-	
-	
-	private int findModulePlacement(double[][] chromosome, int colomn) {
+	private int findModulePlacement(int[][] chromosome, int colomn) {
 		for(int i = 0; i < chromosome.length; i++)
 			if(chromosome[i][colomn] == 1)
 				return i;
@@ -250,14 +109,14 @@ public class Individual implements Comparable<Individual> {
 		return fitness;
 	}
 	
-	Chromosome getChromosome() {
+	Job getChromosome() {
 		return chromosome;
 	}
 	
 	@Override
 	public String toString() {
-		double[][] modulePlacementMap = chromosome.getModulePlacementMap();
-		double[][] routingMap = chromosome.getRoutingMap();
+		int[][] modulePlacementMap = chromosome.getModulePlacementMap();
+		int[][] routingMap = chromosome.getRoutingMap();
 		
 		String toReturn = "\nChromosome: \n";
 		

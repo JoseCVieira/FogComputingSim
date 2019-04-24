@@ -2,9 +2,7 @@ package org.fog.placement.algorithms.placement.GA;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 import org.fog.application.Application;
@@ -14,6 +12,7 @@ import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.placement.algorithms.placement.Algorithm;
 import org.fog.placement.algorithms.placement.AlgorithmUtils;
+import org.fog.placement.algorithms.placement.Job;
 
 public class GA extends Algorithm {
 	private static final int POPULATION_SIZE = 100;
@@ -26,9 +25,7 @@ public class GA extends Algorithm {
 	}
 	
 	@Override
-	public Map<String, List<String>> execute() {
-		final int NR_FOG_NODES = getfMips().length;
-		final int NR_MODULES = getmMips().length;
+	public Job execute() {
 		
 		// current generation
 		int generation = 1;
@@ -36,10 +33,8 @@ public class GA extends Algorithm {
 		Individual[] population = new Individual[POPULATION_SIZE];
 		 
 	    // create initial population
-	    for (int i = 0; i < POPULATION_SIZE; i++) {
-	    	Chromosome chromosome = new Chromosome(this, NR_FOG_NODES, NR_MODULES);
-	    	population[i] = new Individual(this, chromosome);
-	    }
+	    for (int i = 0; i < POPULATION_SIZE; i++)
+	    	population[i] = new Individual(this, generateChromosome(NR_NODES, NR_MODULES));
 	    
 	    while (!found && generation <= MAX_ITER) {
 	    	// sort the population in increasing order of fitness score    	
@@ -80,44 +75,73 @@ public class GA extends Algorithm {
 	    if(population[0].getFitness() == Double.MAX_VALUE)
 	    	return null;
 	    
-	    System.out.println(population[0]);
-	  
-	    if(PRINT_DETAILS) {
-	    	System.out.println("\n*******************************************************");
-			System.out.println("\t\tALGORITHM OUTPUT (generation = " + generation + " Cost = " +
-					population[0].getFitness() + "):");
-			System.out.println("*******************************************************\n");
-			
-			System.out.format(AlgorithmUtils.centerString(20, " "));
-			for (int i = 0; i < getmName().length; i++)
-				System.out.format(AlgorithmUtils.centerString(20, getmName()[i]));
-			System.out.println();
-			
-			for (int i = 0; i < getfName().length; i++) {
-				System.out.format(AlgorithmUtils.centerString(20, getfName()[i]));
-				for (int j = 0; j < getmName().length; j++) {
-					if(population[0].getChromosome().getModulePlacementMap()[i][j] != 0)
-						System.out.format(AlgorithmUtils.centerString(20, Integer.toString((int)population[0].getChromosome().getModulePlacementMap()[i][j])));
-					else
-						System.out.format(AlgorithmUtils.centerString(20, "-"));
-				}
-				System.out.println();
-			}
-	    }
+	    int[][] modulePlacementMap = population[0].getChromosome().getModulePlacementMap();
+    	int[][] routingMap =  population[0].getChromosome().getRoutingMap();
+    	
+	    Job solution = new Job(this, modulePlacementMap, routingMap);
 	    
-	    Map<String, List<String>> resMap = new HashMap<>();
+	    if(PRINT_DETAILS)
+	    	AlgorithmUtils.printResults(this, solution);
 		
-		for(int i = 0; i < NR_FOG_NODES; i++) {
-			List<String> modules = new ArrayList<String>();
+		return solution;
+	}
+	
+	private Job generateChromosome(int nrFogNodes, int nrModules){
+		int[][] modulePlacementMap = new int[nrFogNodes][nrModules];
+		double[][] possibleDeployment = getPossibleDeployment();
+		
+		for(int i = 0; i < nrModules; i++) {
+			List<Integer> validValues = new ArrayList<Integer>();
 			
-			for(int j = 0; j < NR_MODULES; j++)
-				if(population[0].getChromosome().getModulePlacementMap()[i][j] == 1)
-					modules.add(getmName()[j]);
+			for(int j = 0; j < nrFogNodes; j++)
+				if(possibleDeployment[j][i] == 1)
+					validValues.add(j);
 			
-			resMap.put(getfName()[i], modules);
+			modulePlacementMap[validValues.get(new Random().nextInt(validValues.size()))][i] = 1;
 		}
 		
-		return resMap;
+		int nrConnections = nrFogNodes-1;
+		
+		List<Integer> initialNodes = new ArrayList<Integer>();
+		List<Integer> finalNodes = new ArrayList<Integer>();
+		
+		for(int i = 0; i < getmDependencyMap().length; i++) {
+			for(int j = 0; j < getmDependencyMap()[0].length; j++) {
+				if(getmDependencyMap()[i][j] != 0) {
+					initialNodes.add(findModulePlacement(modulePlacementMap, i));
+					finalNodes.add(findModulePlacement(modulePlacementMap, j));
+				}
+			}
+		}
+		
+		int[][] routingMap = new int[initialNodes.size()][nrConnections];
+		
+		for(int i  = 0; i < initialNodes.size(); i++) {
+			for(int j = 0; j < nrConnections; j++) {
+				if(j == 0)
+					routingMap[i][j] = initialNodes.get(i);
+				else if(j == nrConnections -1)
+					routingMap[i][j] = finalNodes.get(i);
+				else {
+					List<Integer> validValues = new ArrayList<Integer>();
+					
+					for(int z = 0; z < nrConnections + 1; z++)
+						if(getfLatencyMap()[(int) routingMap[i][j-1]][z] < Double.MAX_VALUE)
+							validValues.add(z);
+							
+					routingMap[i][j] = validValues.get(new Random().nextInt(validValues.size()));
+				}
+			}
+		}
+		
+		return new Job(this, modulePlacementMap, routingMap);
+	}
+	
+	private int findModulePlacement(int[][] chromosome, int colomn) {
+		for(int i = 0; i < chromosome.length; i++)
+			if(chromosome[i][colomn] == 1)
+				return i;
+		return -1;
 	}
 	
 }

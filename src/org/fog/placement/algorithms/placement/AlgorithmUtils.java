@@ -126,7 +126,7 @@ public class AlgorithmUtils {
         return ret;
 	}
 	
-	public static void printMatrix(double[][] matrix) {		
+	public static void printMatrix(int[][] matrix) {		
 		int r = matrix.length;
 		int c = matrix[0].length;
 		
@@ -211,14 +211,14 @@ public class AlgorithmUtils {
 		System.out.println("\t\tAPP MODULES CHARACTERISTICS:");
 		System.out.println("*******************************************************\n");
 		
-		for(int i = 0; i < al.getmName().length; i++) {
+		for(int i = 0; i < al.getNumberOfModules(); i++) {
 			System.out.println("mName: " + al.getmName()[i]);
 			System.out.println("mMips: " + al.getmMips()[i]);
 			System.out.println("mRam: " + al.getmRam()[i]);
 			System.out.println("mMem: " + al.getmMem()[i]);
 			System.out.println("mBw: " + al.getmBw()[i]);
 			
-			if(i < al.getmName().length -1)
+			if(i < al.getNumberOfModules() -1)
 				System.out.println();
 		}
 		
@@ -227,13 +227,13 @@ public class AlgorithmUtils {
 		System.out.println("*******************************************************\n");
 		
 		System.out.format(centerString(20, " "));
-		for (int i = 0; i < al.getmName().length; i++)
+		for (int i = 0; i < al.getNumberOfModules(); i++)
 			System.out.format(centerString(20, al.getmName()[i]));
 		System.out.println();
 		
-		for (int i = 0; i < al.getmName().length; i++) {
+		for (int i = 0; i < al.getNumberOfModules(); i++) {
 			System.out.format(centerString(20, al.getmName()[i]));
-			for (int j = 0; j < al.getmName().length; j++) {
+			for (int j = 0; j < al.getNumberOfModules(); j++) {
 				if(al.getmBandwidthMap()[i][j] != 0)
 					System.out.format(centerString(20, String.format("%.2f", al.getmBandwidthMap()[i][j])));
 				else
@@ -247,13 +247,13 @@ public class AlgorithmUtils {
 		System.out.println("*******************************************************\n");
 		
 		System.out.format(centerString(20, " "));
-		for (int i = 0; i < al.getmName().length; i++)
+		for (int i = 0; i < al.getNumberOfModules(); i++)
 			System.out.format(centerString(20, al.getmName()[i]));
 		System.out.println();
 		
-		for (int i = 0; i < al.getmName().length; i++) {
+		for (int i = 0; i < al.getNumberOfModules(); i++) {
 			System.out.format(centerString(20, al.getmName()[i]));
-			for (int j = 0; j < al.getmName().length; j++)
+			for (int j = 0; j < al.getNumberOfModules(); j++)
 				if(al.getmDependencyMap()[i][j] != 0.0)
 					System.out.format(centerString(20, String.format("%.2f", al.getmDependencyMap()[i][j])));
 				else
@@ -266,13 +266,13 @@ public class AlgorithmUtils {
 		System.out.println("*******************************************************\n");
 
 		System.out.format(centerString(20, " "));
-		for (int i = 0; i < al.getmName().length; i++)
+		for (int i = 0; i < al.getNumberOfModules(); i++)
 			System.out.format(centerString(20, al.getmName()[i]));
 		System.out.println();
 		
-		for (int i = 0; i < al.getfName().length; i++) {
+		for (int i = 0; i < al.getNumberOfNodes(); i++) {
 			System.out.format(centerString(20, al.getfName()[i]));
-			for (int j = 0; j < al.getmName().length; j++)
+			for (int j = 0; j < al.getNumberOfModules(); j++)
 				if(al.getPossibleDeployment()[i][j] != 0.0)
 					System.out.format(centerString(20, Integer.toString((int) al.getPossibleDeployment()[i][j])));
 				else
@@ -285,13 +285,13 @@ public class AlgorithmUtils {
 		System.out.println("*******************************************************\n");
 		
 		System.out.format(centerString(20, " "));
-		for (int i = 0; i < al.getfName().length; i++)
+		for (int i = 0; i < al.getNumberOfNodes(); i++)
 			System.out.format(centerString(20, al.getfName()[i]));
 		System.out.println();
 		
-		for (int i = 0; i < al.getfName().length; i++) {
+		for (int i = 0; i < al.getNumberOfNodes(); i++) {
 			System.out.format(centerString(20, al.getfName()[i]));
-			for (int j = 0; j < al.getfName().length; j++) {
+			for (int j = 0; j < al.getNumberOfNodes(); j++) {
 				if(al.getfBandwidthMap()[i][j] == Double.MAX_VALUE)
 					System.out.format(centerString(20, "Inf"));
 				else if(al.getfBandwidthMap()[i][j] == 0)
@@ -307,19 +307,59 @@ public class AlgorithmUtils {
 		System.out.println("*******************************************************\n");
 		
 		System.out.format(centerString(20, " "));
-		for (int i = 0; i < al.getfName().length; i++)
+		for (int i = 0; i < al.getNumberOfNodes(); i++)
 			System.out.format(centerString(20, al.getfName()[i]));
 		System.out.println();
 		
-		for (int i = 0; i < al.getfName().length; i++) {
+		for (int i = 0; i < al.getNumberOfNodes(); i++) {
 			System.out.format(centerString(20, al.getfName()[i]));
-			for (int j = 0; j < al.getfName().length; j++) {
+			for (int j = 0; j < al.getNumberOfNodes(); j++) {
 				if(al.getfLatencyMap()[i][j] == Double.MAX_VALUE)
 					System.out.format(centerString(20, "Inf"));
 				else if(al.getfLatencyMap()[i][j] == 0)
 					System.out.format(AlgorithmUtils.centerString(20, "-"));
 				else
 					System.out.format(centerString(20, String.format("%.2f", al.getfLatencyMap()[i][j])));
+			}
+			System.out.println();
+		}
+	}
+	
+	public static void printResults(final Algorithm al, final Job job) {
+		System.out.println("\n\n*******************************************************");
+		System.out.println("\t\tALGORITHM OUTPUT (Cost = " + String.format("%.2f", job.getCost()) + "):");
+		System.out.println("*******************************************************\n");
+		
+		System.out.println("**************** MODULE PLACEMENT MAP *****************\n");
+		
+		int[][] modulePlacementMap = job.getModulePlacementMap();
+		
+		System.out.format(AlgorithmUtils.centerString(20, " "));
+		for (int i = 0; i < al.getNumberOfModules(); i++)
+			System.out.format(AlgorithmUtils.centerString(20, al.getmName()[i]));
+		System.out.println();
+		
+		for (int i = 0; i < al.getNumberOfNodes(); i++) {
+			System.out.format(AlgorithmUtils.centerString(20, al.getfName()[i]));
+			for (int j = 0; j < al.getNumberOfModules(); j++) {
+				if(modulePlacementMap[i][j] != 0)
+					System.out.format(AlgorithmUtils.centerString(20, Integer.toString(modulePlacementMap[i][j])));
+				else
+					System.out.format(AlgorithmUtils.centerString(20, "-"));
+			}
+			System.out.println();
+		}
+		
+		System.out.println("\n******************** ROUTING MAP  *********************\n");
+		
+		int[][] routingMap = job.getRoutingMap();
+		
+		for (int i = 0; i < routingMap.length; i++) {
+			for (int j = 0; j < routingMap[0].length; j++) {
+				System.out.format(AlgorithmUtils.centerString(20, al.getfName()[routingMap[i][j]]));
+				
+				if(j < routingMap[0].length - 1)
+					System.out.print(" -> ");
 			}
 			System.out.println();
 		}

@@ -51,7 +51,7 @@ public class FogDevice extends PowerDatacenter {
 	
 	private Map<Integer, Double> latencyMap;
 	private Map<Integer, Double> bandwidthMap;
-	private Map<String, Integer> routingMap;
+	private Map<Map<String, String>, Integer> routingTable;
 	
 	private double lastUtilizationUpdateTime;
 	private double energyConsumption;
@@ -75,7 +75,7 @@ public class FogDevice extends PowerDatacenter {
 		setNeighborsIds(new ArrayList<Integer>());
 		setLatencyMap(new HashMap<Integer, Double>());
 		setBandwidthMap(new HashMap<Integer, Double>());
-		setRoutingMap(new HashMap<String, Integer>());
+		setRoutingTable(new HashMap<Map<String,String>, Integer>());
 		
 		setTupleQueue(new HashMap<Integer, Queue<Pair<Tuple,Integer>>>());
 		setTupleLinkBusy(new HashMap<Integer, Boolean>());
@@ -387,7 +387,10 @@ public class FogDevice extends PowerDatacenter {
 		}
 		
 		if(PRINT_COMMUNICATION_DETAILS) printCommunication(tuple);
-		sendTo(tuple, routingMap.get(tuple.getDestModuleName()));
+		
+		Map<String, String> communication = new HashMap<String, String>();
+		communication.put(tuple.getSrcModuleName(), tuple.getDestModuleName());
+		sendTo(tuple, routingTable.get(communication));
 	}
 
 	protected void processTupleArrival(SimEvent ev){
@@ -432,7 +435,10 @@ public class FogDevice extends PowerDatacenter {
 			executeTuple(ev, tuple.getDestModuleName());
 		}else{
 			if(PRINT_COMMUNICATION_DETAILS) printCommunication(tuple);
-			sendTo(tuple, routingMap.get(tuple.getDestModuleName()));
+			
+			Map<String, String> communication = new HashMap<String, String>();
+			communication.put(tuple.getSrcModuleName(), tuple.getDestModuleName());
+			sendTo(tuple, routingTable.get(communication));
 		}
 	}
 
@@ -526,7 +532,7 @@ public class FogDevice extends PowerDatacenter {
 		}
 	}
 	
-	protected void sendFreeLink(Tuple tuple, int destId){
+	protected void sendFreeLink(Tuple tuple, int destId){		
 		updateEnergyConsumption();
 		getTupleLinkBusy().put(destId, true);
 		
@@ -551,9 +557,12 @@ public class FogDevice extends PowerDatacenter {
 	}
 	
 	private void printCommunication(Tuple tuple){
-		System.out.println("Tuple" + tuple);
+		Map<String, String> communication = new HashMap<String, String>();
+		communication.put(tuple.getSrcModuleName(), tuple.getDestModuleName());
+		
+		System.out.println("\n\nTuple" + tuple);
 		System.out.println("From: " + getId());
-		System.out.println("To: " + routingMap.get(tuple.getDestModuleName()) + "\n\n");
+		System.out.println("To: " + routingTable.get(communication) + "\n\n");
 	}
 	
 	private void printCost() {
@@ -641,12 +650,12 @@ public class FogDevice extends PowerDatacenter {
 		return controller;
 	}
 	
-	public Map<String, Integer> getRoutingMap() {
-		return routingMap;
+	public Map<Map<String, String>, Integer> getRoutingTable() {
+		return routingTable;
 	}
 
-	public void setRoutingMap(Map<String, Integer> routingMap) {
-		this.routingMap = routingMap;
+	public void setRoutingTable(Map<Map<String, String>, Integer> routingTable) {
+		this.routingTable = routingTable;
 	}
 	
 	public Map<Integer, Queue<Pair<Tuple, Integer>>> getTupleQueue() {

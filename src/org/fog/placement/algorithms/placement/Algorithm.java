@@ -3,7 +3,6 @@ package org.fog.placement.algorithms.placement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -20,7 +19,6 @@ import org.fog.entities.FogBroker;
 import org.fog.entities.FogDevice;
 import org.fog.entities.FogDeviceCharacteristics;
 import org.fog.entities.Sensor;
-import org.fog.placement.algorithms.routing.Vertex;
 import org.fog.utils.FogLinearPowerModel;
 import org.fog.utils.distribution.DeterministicDistribution;
 import org.fog.utils.distribution.Distribution;
@@ -65,8 +63,6 @@ public abstract class Algorithm {
 	
 	// Node to Module
 	protected double[][] possibleDeployment;
-	
-	protected Map<Map<Integer, Integer>, LinkedList<Vertex>> routingPaths;
 	
 	public Algorithm(final List<FogBroker> fogBrokers, final List<FogDevice> fogDevices, final List<Application> applications,
 			final List<Sensor> sensors, final List<Actuator> actuators) throws IllegalArgumentException {
@@ -117,8 +113,6 @@ public abstract class Algorithm {
 		
 		mDependencyMap = new double[NR_MODULES][NR_MODULES];
 		mBandwidthMap = new double[NR_MODULES][NR_MODULES];
-		
-		routingPaths = new HashMap<Map<Integer,Integer>, LinkedList<Vertex>>();
 		
 		extractDevicesCharacteristics(fogDevices, sensors, actuators);
 		extractAppCharacteristics(fogBrokers, fogDevices, applications, sensors, actuators);
@@ -178,12 +172,12 @@ public abstract class Algorithm {
 		
 		int i = 0;
 		for(Application application : applications) {
-			for(AppModule module : application.getModules()) {
+			for(AppModule module : application.getModules()) { // Mips and Bw will be computed later
 				mName[i] = module.getName();
-				mMips[i] = module.getMips();
+				mMips[i] = 0;
 				mRam[i] = module.getRam();
 				mMem[i] = module.getSize();
-				mBw[i++] = module.getBw();
+				mBw[i++] = 0;
 			}
 			
 			// sensors and actuators are added to compute tuples latency
@@ -398,75 +392,70 @@ public abstract class Algorithm {
 		}
 	}
 	
-	public abstract Map<String, List<String>> execute();
+	public abstract Job execute();
 	
-	public Map<Map<String, String>, Integer> extractRoutingMap(final Map<String, List<String>> moduleToNodeMap,
-			final List<FogDevice> fogDevices, final List<Sensor> sensors, final List<Actuator> actuators) {
-		Map<Map<String, String>, Integer> parsedPaths = new HashMap<Map<String,String>, Integer>();
-		int destinationModuleIndex = -1, sourceNodeIndex = -1, destinationNodeIndex = -1;
-
-		for(String node : moduleToNodeMap.keySet()) {
-			for(String module : moduleToNodeMap.get(node)) {
-				destinationModuleIndex = getModuleIndexByModuleName(module);
-				destinationNodeIndex = getNodeIndexByNodeName(node);
-				
-				for(int i = 0; i < NR_MODULES; i++) {
-					if(mDependencyMap[i][destinationModuleIndex] > 0) {
-						
-						for(String nodeName : moduleToNodeMap.keySet())
-							if(moduleToNodeMap.get(nodeName).contains(mName[i]))
-								sourceNodeIndex = getNodeIndexByNodeName(nodeName);
-						
-						Map<Integer, Integer> connection1 = new HashMap<Integer, Integer>();
-						connection1.put(sourceNodeIndex, destinationNodeIndex);
-						
-						List<Vertex> path = routingPaths.get(connection1);
-						if(path == null) // both modules are within the same node
-							continue;
-						
-						int iter = 0;
-						for(Vertex v : path) {
-							if(iter >= path.size()-1)
-								break;
+	public Map<String, List<String>> extractPlacementMap(final int[][] placementMap) {
+		Map<String, List<String>> result = new HashMap<>();
+		
+		for(int i = 0; i < NR_NODES; i++) {
+			List<String> modules = new ArrayList<String>();
+			
+			for(int j = 0; j < NR_MODULES; j++)
+				if(placementMap[i][j] == 1)
+					modules.add(getmName()[j]);
+			
+			result.put(getfName()[i], modules);
+		}
+		
+		return result;
+	}
+	
+	public Map<Map<Integer, Map<String, String>>, Integer> extractRoutingMap(final int[][] routingMap) {
+		Map<Map<Integer, Map<String, String>>, Integer> result = new HashMap<Map<Integer,Map<String,String>>, Integer>();
+		
+		int iter = 0;
+		for(int i = 0; i < NR_MODULES; i++) {
+			for(int j = 0; j < NR_MODULES; j++) {
+				if(getmDependencyMap()[i][j] != 0) {
+					Map<String, String> tupleTransmission = new HashMap<String, String>();
+					tupleTransmission.put(mName[i], mName[j]);
+					
+					for(int z = 0; z < routingMap[0].length-1; z++) {
+						if(routingMap[iter][z] != routingMap[iter][z+1]) {
+							Map<Integer, Map<String, String>> hop = new HashMap<Integer, Map<String,String>>();
+							hop.put(routingMap[iter][z], tupleTransmission);
 							
-							Map<String, String> connection2 = new HashMap<String, String>();
-							String nodeName = "";
-							
-							for(FogDevice fogDevice : fogDevices) {
-								if(Integer.parseInt(v.getName()) == fogDevice.getId()) {
-									nodeName = fogDevice.getName();
-									break;
-								}
-							}
-							
-							if(nodeName == "") {
-								for(Sensor sensor : sensors) {
-									if(Integer.parseInt(v.getName()) == sensor.getId()) {
-										nodeName = sensor.getName();
-										break;
-									}
-								}
-							}
-							
-							if(nodeName == "") {
-								for(Actuator actuator : actuators) {
-									if(Integer.parseInt(v.getName()) == actuator.getId()) {
-										nodeName = actuator.getName();
-										break;
-									}
-								}
-							}
-							
-							connection2.put(nodeName, module);
-							parsedPaths.put(connection2, Integer.parseInt(routingPaths.get(connection1).get(iter+1).getName()));
-							iter++;
-						}						
+							result.put(hop, routingMap[iter][z+1]);
+						}
 					}
+					
+					iter++;
 				}
 			}
 		}
 		
-		return parsedPaths;
+		if(PRINT_DETAILS) {
+			System.out.println("\n*******************************************************");
+			System.out.println("\t\tROUTING MAP:");
+			System.out.println("*******************************************************");
+			
+			for(Map<Integer, Map<String, String>> hop : result.keySet()) {
+				for(Integer node : hop.keySet()) {
+					Map<String, String> tupleTransmission = hop.get(node);
+					Integer nextNode = result.get(hop);
+					
+					for(String sourceModule : tupleTransmission.keySet())
+						System.out.println("Node:  ->" + AlgorithmUtils.centerString(20, fName[node]) + "<-  Source Module:  ->" +
+								AlgorithmUtils.centerString(20, sourceModule) + "<-  Destination Module:  ->" +
+								AlgorithmUtils.centerString(20, tupleTransmission.get(sourceModule)) +
+								"<-  Next Node:  ->" + AlgorithmUtils.centerString(20, fName[nextNode]) + "<-");
+				}
+			}
+			
+			System.out.println("\n");
+		}
+		
+		return result;
 	}
 	
 	private int getModuleIndexByModuleName(String name) {
@@ -583,6 +572,14 @@ public abstract class Algorithm {
 
 	public double[][] getfBandwidthMap() {
 		return fBandwidthMap;
+	}
+	
+	public int getNumberOfNodes() {
+		return NR_NODES;
+	}
+	
+	public int getNumberOfModules() {
+		return NR_MODULES;
 	}
 	
 }

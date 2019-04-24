@@ -36,7 +36,7 @@ public class Config {
 	public static final double EDGE_PERIODICITY = 1000;
 	
 	public static final double SENSOR_LATENCY = 6;
-	public static final double ACTUATOR_LATENCY = 4;
+	public static final double ACTUATOR_LATENCY = 1;
 	
 	public static final double SENSOR_DESTRIBUTION = 5.1;
 	
