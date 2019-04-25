@@ -10,6 +10,7 @@ import org.fog.entities.FogBroker;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.placement.algorithms.placement.Algorithm;
+import org.fog.placement.algorithms.placement.AlgorithmConstants;
 import org.fog.placement.algorithms.placement.AlgorithmMathUtils;
 import org.fog.placement.algorithms.placement.AlgorithmUtils;
 import org.fog.placement.algorithms.placement.Job;
@@ -19,12 +20,6 @@ import org.fog.utils.Util;
  * Represents a swarm of particles from the Particle Swarm Optimization algorithm.
  */
 public class PSO extends Algorithm {
-	private static final int NR_PARTICLES = 100;				// Number of particles to create
-	private static final int NR_EPOCHS = 1000; 					// Number of generations
-	private static final double DEFAULT_INERTIA = 0.729844; 	// Particles resistance to change
-	private static final double DEFAULT_COGNITIVE = 1.496180;	// Cognitive component or introversion of the particle
-	private static final double DEFAULT_SOCIAL = 1.496180;		// social component or extroversion of the particle
-
     private double bestEval = Util.INF;
     private Job bestPosition = null;
     
@@ -37,9 +32,9 @@ public class PSO extends Algorithm {
     @Override
 	public Job execute() {
     	// Initialize
-    	Particle[] particles = new Particle[NR_PARTICLES];
+    	Particle[] particles = new Particle[AlgorithmConstants.POPULATION_SIZE];
     	
-    	for (int i = 0; i < NR_PARTICLES; i++) {
+    	for (int i = 0; i < AlgorithmConstants.POPULATION_SIZE; i++) {
             Particle particle = new Particle(this, getNumberOfNodes(), getNumberOfModules());
             particles[i] = particle;
             updateGlobalBest(particle);
@@ -49,7 +44,7 @@ public class PSO extends Algorithm {
         System.out.println("--------------------------EXECUTING-------------------------");
         System.out.println("Global Best Evaluation (Epoch " + 0 + "):\t"  + bestEval);
 
-        for (int i = 0; i < NR_EPOCHS; i++) {
+        for (int i = 0; i < AlgorithmConstants.MAX_ITER; i++) {
 
             if (bestEval < oldEval) {
                 System.out.println("Global Best Evaluation (Epoch " + (i + 1) + "):\t" + bestEval);
@@ -125,21 +120,21 @@ public class PSO extends Algorithm {
     	
         // The first product of the formula
     	Number[] nOldVelocityPlacement = AlgorithmMathUtils.toNumber(Util.copy(oldVelocityPlacement));
-    	double[] newVelocityPlacement = AlgorithmMathUtils.scalarMultiplication(nOldVelocityPlacement, DEFAULT_INERTIA);
+    	double[] newVelocityPlacement = AlgorithmMathUtils.scalarMultiplication(nOldVelocityPlacement, AlgorithmConstants.DEFAULT_INERTIA);
 
         // The second product of the formula
     	Number[] npBestM =  AlgorithmMathUtils.toNumber(parseModulePlacement(pBestM));
     	Number[] nposM =  AlgorithmMathUtils.toNumber(parseModulePlacement(posM));
     	
         double[] aux1 = AlgorithmMathUtils.subtract(npBestM, nposM);
-        aux1 = AlgorithmMathUtils.scalarMultiplication(AlgorithmMathUtils.toNumber(aux1), DEFAULT_COGNITIVE * new Random().nextDouble());
+        aux1 = AlgorithmMathUtils.scalarMultiplication(AlgorithmMathUtils.toNumber(aux1), AlgorithmConstants.DEFAULT_COGNITIVE * new Random().nextDouble());
         newVelocityPlacement = AlgorithmMathUtils.sum(AlgorithmMathUtils.toNumber(newVelocityPlacement), AlgorithmMathUtils.toNumber(aux1));
         		
         // The third product of the formula
         Number[] ngBestM =  AlgorithmMathUtils.toNumber(parseModulePlacement(gBestM));
         
         aux1 = AlgorithmMathUtils.subtract(ngBestM, nposM);
-        aux1 = AlgorithmMathUtils.scalarMultiplication(AlgorithmMathUtils.toNumber(aux1), DEFAULT_SOCIAL * new Random().nextDouble());
+        aux1 = AlgorithmMathUtils.scalarMultiplication(AlgorithmMathUtils.toNumber(aux1), AlgorithmConstants.DEFAULT_SOCIAL * new Random().nextDouble());
         newVelocityPlacement = AlgorithmMathUtils.sum(AlgorithmMathUtils.toNumber(newVelocityPlacement), AlgorithmMathUtils.toNumber(aux1));
         int[] finalVelocityPlacement = verifyPositioning(parseModulePlacement(posM), AlgorithmMathUtils.toInt(newVelocityPlacement));
         
@@ -149,21 +144,21 @@ public class PSO extends Algorithm {
         
         // The first product of the formula
         Number[][] nOldVelocityRouting = AlgorithmMathUtils.toNumber(Util.copy(oldVelocityRouting));
-        double[][] newVelocityRouting = AlgorithmMathUtils.scalarMultiplication(nOldVelocityRouting, DEFAULT_INERTIA);
+        double[][] newVelocityRouting = AlgorithmMathUtils.scalarMultiplication(nOldVelocityRouting, AlgorithmConstants.DEFAULT_INERTIA);
         
         // The second product of the formula   
         Number[][] npBestR =  AlgorithmMathUtils.toNumber(pBestR);
     	Number[][] nposR =  AlgorithmMathUtils.toNumber(posR);
         
         double[][] aux2 = AlgorithmMathUtils.subtract(npBestR, nposR);
-        aux2 = AlgorithmMathUtils.scalarMultiplication(AlgorithmMathUtils.toNumber(aux2), DEFAULT_COGNITIVE * new Random().nextDouble());
+        aux2 = AlgorithmMathUtils.scalarMultiplication(AlgorithmMathUtils.toNumber(aux2), AlgorithmConstants.DEFAULT_COGNITIVE * new Random().nextDouble());
         newVelocityRouting = AlgorithmMathUtils.sum(AlgorithmMathUtils.toNumber(newVelocityRouting), AlgorithmMathUtils.toNumber(aux2));
         
         // The third product of the formula
         Number[][] ngBestR =  AlgorithmMathUtils.toNumber(gBestR);
         
         aux2 = AlgorithmMathUtils.subtract(ngBestR, nposR);
-        aux2 = AlgorithmMathUtils.scalarMultiplication(AlgorithmMathUtils.toNumber(aux2), DEFAULT_SOCIAL * new Random().nextDouble());
+        aux2 = AlgorithmMathUtils.scalarMultiplication(AlgorithmMathUtils.toNumber(aux2), AlgorithmConstants.DEFAULT_SOCIAL * new Random().nextDouble());
         newVelocityRouting = AlgorithmMathUtils.sum(AlgorithmMathUtils.toNumber(newVelocityRouting), AlgorithmMathUtils.toNumber(aux2));
         int[][] finalVelocityRouting = verifyRouting(parseModulePlacement(posM), finalVelocityPlacement, posR,
         		AlgorithmMathUtils.toInt(newVelocityRouting));
