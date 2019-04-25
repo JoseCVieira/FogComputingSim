@@ -50,11 +50,11 @@ import org.fog.utils.distribution.Distribution;
 
 public class RandomTopology {
 	private static final boolean DEBUG_MODE = false;
-	private static final boolean COMPARE_WITH_BRUTE_FORCE = true;
-	private static final String OPTIMIZATION_ALGORITHM = "PSO";
+	private static final boolean COMPARE_WITH_BRUTE_FORCE = false;
+	private static final String OPTIMIZATION_ALGORITHM = "LP";
 	
 	private static final String CLOUD_NAME = "Cloud";
-	private static final int NR_FOG_DEVICES = 3;
+	private static final int NR_FOG_DEVICES = 5;
 	
 	private static final int MAX_CONN_LAT = 100;
 	private static final int MAX_CONN_BW = 10000;
@@ -287,7 +287,7 @@ public class RandomTopology {
 							actuatorType = appEdge.getDestination();
 					}
 					
-					Distribution sensorDist = new DeterministicDistribution(Config.SENSOR_DESTRIBUTION/*getNormalRandomNumber(Config.SENSOR_DESTRIBUTION, 1)*/); //TODO: test other distributions
+					Distribution sensorDist = new DeterministicDistribution(Util.normalRand(Config.SENSOR_DESTRIBUTION, 1.0)); //TODO: test other distributions
 					double sensorLat = Util.normalRand(Config.SENSOR_LATENCY, 1);
 					double actuatorLat = Util.normalRand(Config.ACTUATOR_LATENCY, 0.1);
 					

@@ -23,7 +23,7 @@ public class Job {
 		this.cost = computeCost(algorithm);
 	}
 	
-	public static Job generateRandomJob(Algorithm algorithm, int nrFogNodes, int nrModules){
+	public static Job generateRandomJob(Algorithm algorithm, int nrFogNodes, int nrModules) {
 		int[][] modulePlacementMap = new int[nrFogNodes][nrModules];
 		double[][] possibleDeployment = algorithm.getPossibleDeployment();
 		
@@ -80,7 +80,7 @@ public class Job {
 		
 		double cost = calculateOperationalCost(algorithm);
 		cost += calculateEnergyConsumption(algorithm);
-		cost += calculateProcessingLatency(algorithm);
+		cost += calculateProcessingCost(algorithm);
 		cost += calculateTransmittingCost(algorithm);
 		
 		return cost;
@@ -148,28 +148,23 @@ public class Job {
 		return energy;
 	}
 	
-	private double calculateProcessingLatency(Algorithm algorithm) {
-		double latency = 0;
+	private double calculateProcessingCost(Algorithm algorithm) {
+		double cost = 0;
 		
-		/*for(int i = 0; i < modulePlacementMap.length; i++) {
+		for(int i = 0; i < modulePlacementMap.length; i++) {
 			int nrModules = 0;
 			double totalMips = 0;
 			
 			for(int j = 0; j < modulePlacementMap[i].length; j++) {
 				nrModules += modulePlacementMap[i][j];
-				totalMips += modulePlacementMap[i][j] * getmMips()[j];
+				totalMips += modulePlacementMap[i][j] * algorithm.getmMips()[j];
 			}
 			
-			double unnusedMips = ga.getfMips()[i] - totalMips;
-			double mipsPie = 1; // TODO irrelevant value
-			if(nrModules != 0 && unnusedMips != 0)
-				mipsPie = unnusedMips/nrModules;
-			
-			for(int j = 0; j < modulePlacementMap[i].length; j++)
-				latency += modulePlacementMap[i][j] * getmCpuSize()[j] / (getmMips()[j] + mipsPie);
-		}*/
+			double unnusedMips = algorithm.getfMips()[i] - totalMips;
+			cost += nrModules / (1E-9 + unnusedMips);
+		}
 		
-		return latency;
+		return cost;
 	}
 	
 	private double calculateTransmittingCost(Algorithm algorithm) {

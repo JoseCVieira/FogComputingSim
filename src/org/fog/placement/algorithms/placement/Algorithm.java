@@ -582,4 +582,15 @@ public abstract class Algorithm {
 		return NR_MODULES;
 	}
 	
+	public int getNumberOfDependencies() {
+		int nrDependencies = 0;
+		
+		for(int i = 0; i < NR_MODULES; i++)
+			for(int j = 0; j < NR_MODULES; j++)
+				if(getmDependencyMap()[i][j] != 0)
+					nrDependencies++;
+		
+		return nrDependencies;
+	}
+	
 }
