@@ -11,6 +11,7 @@ import org.fog.entities.Sensor;
 import org.fog.placement.algorithms.placement.Algorithm;
 import org.fog.placement.algorithms.placement.AlgorithmUtils;
 import org.fog.placement.algorithms.placement.Job;
+import org.fog.utils.Util;
 
 public class BF extends Algorithm {
 	private int[][] bestPlacementMap = null;
@@ -79,8 +80,8 @@ public class BF extends Algorithm {
 			
 			if(job.getCost() < bestCost) {
 				bestCost = job.getCost();
-				bestPlacementMap = copyPlacementMap(modulePlacementMap);
-				bestRoutingMap = copyPlacementMap(routingMap);
+				bestPlacementMap = Util.copy(modulePlacementMap);
+				bestRoutingMap = Util.copy(routingMap);
 			}
 		}else {
 			int previousNode = routingMap[row][col-1];
@@ -115,19 +116,6 @@ public class BF extends Algorithm {
 	    }
 	    
 	    return ret;
-	}
-	
-	private int[][] copyPlacementMap(int[][] modulePlacementMap) {
-		int r = modulePlacementMap.length;
-		int c = modulePlacementMap[0].length;
-		
-		int[][] result = new int[r][c];
-		
-		for(int i = 0; i < r ;i++)
-			for(int j = 0; j < c ; j++)
-				result[i][j] = modulePlacementMap[i][j];
-				
-		return result;
 	}
 	
 }

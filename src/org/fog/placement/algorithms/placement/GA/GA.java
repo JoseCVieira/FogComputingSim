@@ -1,6 +1,5 @@
 package org.fog.placement.algorithms.placement.GA;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -34,7 +33,7 @@ public class GA extends Algorithm {
 		 
 	    // create initial population
 	    for (int i = 0; i < POPULATION_SIZE; i++)
-	    	population[i] = new Individual(this, generateChromosome(NR_NODES, NR_MODULES));
+	    	population[i] = new Individual(this, Job.generateRandomJob(this, NR_NODES, NR_MODULES));
 	    
 	    while (!found && generation <= MAX_ITER) {
 	    	// sort the population in increasing order of fitness score    	
@@ -84,64 +83,6 @@ public class GA extends Algorithm {
 	    	AlgorithmUtils.printResults(this, solution);
 		
 		return solution;
-	}
-	
-	private Job generateChromosome(int nrFogNodes, int nrModules){
-		int[][] modulePlacementMap = new int[nrFogNodes][nrModules];
-		double[][] possibleDeployment = getPossibleDeployment();
-		
-		for(int i = 0; i < nrModules; i++) {
-			List<Integer> validValues = new ArrayList<Integer>();
-			
-			for(int j = 0; j < nrFogNodes; j++)
-				if(possibleDeployment[j][i] == 1)
-					validValues.add(j);
-			
-			modulePlacementMap[validValues.get(new Random().nextInt(validValues.size()))][i] = 1;
-		}
-		
-		int nrConnections = nrFogNodes-1;
-		
-		List<Integer> initialNodes = new ArrayList<Integer>();
-		List<Integer> finalNodes = new ArrayList<Integer>();
-		
-		for(int i = 0; i < getmDependencyMap().length; i++) {
-			for(int j = 0; j < getmDependencyMap()[0].length; j++) {
-				if(getmDependencyMap()[i][j] != 0) {
-					initialNodes.add(findModulePlacement(modulePlacementMap, i));
-					finalNodes.add(findModulePlacement(modulePlacementMap, j));
-				}
-			}
-		}
-		
-		int[][] routingMap = new int[initialNodes.size()][nrConnections];
-		
-		for(int i  = 0; i < initialNodes.size(); i++) {
-			for(int j = 0; j < nrConnections; j++) {
-				if(j == 0)
-					routingMap[i][j] = initialNodes.get(i);
-				else if(j == nrConnections -1)
-					routingMap[i][j] = finalNodes.get(i);
-				else {
-					List<Integer> validValues = new ArrayList<Integer>();
-					
-					for(int z = 0; z < nrConnections + 1; z++)
-						if(getfLatencyMap()[(int) routingMap[i][j-1]][z] < Double.MAX_VALUE)
-							validValues.add(z);
-							
-					routingMap[i][j] = validValues.get(new Random().nextInt(validValues.size()));
-				}
-			}
-		}
-		
-		return new Job(this, modulePlacementMap, routingMap);
-	}
-	
-	private int findModulePlacement(int[][] chromosome, int colomn) {
-		for(int i = 0; i < chromosome.length; i++)
-			if(chromosome[i][colomn] == 1)
-				return i;
-		return -1;
 	}
 	
 }

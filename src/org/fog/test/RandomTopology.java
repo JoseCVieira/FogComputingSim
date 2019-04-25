@@ -37,25 +37,27 @@ import org.fog.placement.algorithms.placement.Job;
 import org.fog.placement.algorithms.placement.BF.BF;
 import org.fog.placement.algorithms.placement.GA.GA;
 import org.fog.placement.algorithms.placement.LP.LP;
+import org.fog.placement.algorithms.placement.PSO.PSO;
 import org.fog.policy.AppModuleAllocationPolicy;
 import org.fog.utils.Config;
 import org.fog.utils.FogLinearPowerModel;
 import org.fog.utils.FogUtils;
 import org.fog.utils.Logger;
 import org.fog.utils.TimeKeeper;
+import org.fog.utils.Util;
 import org.fog.utils.distribution.DeterministicDistribution;
 import org.fog.utils.distribution.Distribution;
 
 public class RandomTopology {
 	private static final boolean DEBUG_MODE = false;
-	private static final boolean COMPARE_WITH_BRUTE_FORCE = false;
-	private static final String OPTIMIZATION_ALGORITHM = "BF";
+	private static final boolean COMPARE_WITH_BRUTE_FORCE = true;
+	private static final String OPTIMIZATION_ALGORITHM = "PSO";
 	
 	private static final String CLOUD_NAME = "Cloud";
 	private static final int NR_FOG_DEVICES = 3;
 	
-	private static final double MAX_CONN_LAT = 100;
-	private static final double MAX_CONN_BW = 10000;
+	private static final int MAX_CONN_LAT = 100;
+	private static final int MAX_CONN_BW = 10000;
 	
 	private static final double CONNECTION_PROB = 0.4;
 	private static final double DEPLOY_APP_PROB = 0.35;
@@ -105,6 +107,10 @@ public class RandomTopology {
 				System.out.println("Running the optimization algorithm: Genetic Algorithm.");
 				algorithm = new GA(fogBrokers, fogDevices, applications, sensors, actuators);
 				break;
+			case "PSO":
+				System.out.println("Running the optimization algorithm: Particle Swarm Optimization.");
+				algorithm = new PSO(fogBrokers, fogDevices, applications, sensors, actuators);
+				break;
 			default:
 				System.err.println("Unknown algorithm.\nFogComputingSim will terminate abruptally.\n");
 				System.exit(0);
@@ -125,6 +131,8 @@ public class RandomTopology {
 		
 		deployApplications(algorithm.extractPlacementMap(solution.getModulePlacementMap()));
 		createRoutingTables(algorithm, solution.getRoutingMap());
+		
+		System.exit(0);
 			
 		System.out.println("Starting simulation...");
 	
@@ -147,22 +155,22 @@ public class RandomTopology {
 		int nrFogNodes = NR_FOG_DEVICES - 1;
 		
 		while(nrFogNodes > 0) {
-			int nr = getRandomNumberBetween(0, nrFogNodes);
+			int nr = Util.rand(0, nrFogNodes);
 			nrFogNodes -= nr;
 			
 			for(int i = 0; i < nr; i++) {
-				double mips = getNormalRandomNumber(Config.MIPS/iter, RESOURCES_DEV/iter);
-				double ram = getNormalRandomNumber(Config.RAM/iter, RESOURCES_DEV/iter);
-				double strg = getNormalRandomNumber(Config.MEM/iter, RESOURCES_DEV/iter);
-				double bw = getNormalRandomNumber(Config.BW/iter, RESOURCES_DEV/iter);
+				double mips = Util.normalRand(Config.MIPS/iter, RESOURCES_DEV/iter);
+				double ram = Util.normalRand(Config.RAM/iter, RESOURCES_DEV/iter);
+				double strg = Util.normalRand(Config.MEM/iter, RESOURCES_DEV/iter);
+				double bw = Util.normalRand(Config.BW/iter, RESOURCES_DEV/iter);
 				
-				double bPw = getNormalRandomNumber(Config.BUSY_POWER, ENERGY_DEV);
-				double iPw = getNormalRandomNumber(Config.IDLE_POWER, ENERGY_DEV);
+				double bPw = Util.normalRand(Config.BUSY_POWER, ENERGY_DEV);
+				double iPw = Util.normalRand(Config.IDLE_POWER, ENERGY_DEV);
 				
-				double rateMips = getNormalRandomNumber(Config.RATE_MIPS, COST_DEV);
-				double rateRam = getNormalRandomNumber(Config.RATE_RAM, COST_DEV);
-				double rateStrg = getNormalRandomNumber(Config.RATE_MEM, COST_DEV);
-				double rateBw = getNormalRandomNumber(Config.RATE_BW, COST_DEV);
+				double rateMips = Util.normalRand(Config.RATE_MIPS, COST_DEV);
+				double rateRam = Util.normalRand(Config.RATE_RAM, COST_DEV);
+				double rateStrg = Util.normalRand(Config.RATE_MEM, COST_DEV);
+				double rateBw = Util.normalRand(Config.RATE_BW, COST_DEV);
 				
 				FogDevice fogDevice = createFogDevice("L"+iter+":F"+i, mips, (int) ram, (long) strg, (long) bw, bPw, iPw,
 						Config.COST_PER_SEC, rateMips, rateRam, rateStrg, rateBw);
@@ -224,11 +232,11 @@ public class RandomTopology {
 					fogDevice.getNeighborsIds().add(f.getId());
 					f.getNeighborsIds().add(fogDevice.getId());
 					
-					fogDevice.getLatencyMap().put(f.getId(), (double) getRandomNumberBetween((int) MAX_CONN_LAT/3, (int) MAX_CONN_LAT));
-					f.getLatencyMap().put(fogDevice.getId(), (double) getRandomNumberBetween((int) MAX_CONN_LAT/3, (int) MAX_CONN_LAT));
+					fogDevice.getLatencyMap().put(f.getId(), (double) Util.rand(MAX_CONN_LAT/3, MAX_CONN_LAT));
+					f.getLatencyMap().put(fogDevice.getId(), (double) Util.rand(MAX_CONN_LAT/3, MAX_CONN_LAT));
 					
-					fogDevice.getBandwidthMap().put(f.getId(), (double) getRandomNumberBetween((int) MAX_CONN_BW/3, (int) MAX_CONN_BW));
-					f.getBandwidthMap().put(fogDevice.getId(), (double) getRandomNumberBetween((int) MAX_CONN_BW/3, (int) MAX_CONN_BW));
+					fogDevice.getBandwidthMap().put(f.getId(), (double) Util.rand(MAX_CONN_BW/3, MAX_CONN_BW));
+					f.getBandwidthMap().put(fogDevice.getId(), (double) Util.rand(MAX_CONN_BW/3, MAX_CONN_BW));
 					
 					fogDevice.getTupleQueue().put(f.getId(), new LinkedList<Pair<Tuple, Integer>>());
 					f.getTupleQueue().put(fogDevice.getId(), new LinkedList<Pair<Tuple, Integer>>());
@@ -280,8 +288,8 @@ public class RandomTopology {
 					}
 					
 					Distribution sensorDist = new DeterministicDistribution(Config.SENSOR_DESTRIBUTION/*getNormalRandomNumber(Config.SENSOR_DESTRIBUTION, 1)*/); //TODO: test other distributions
-					double sensorLat = getNormalRandomNumber(Config.SENSOR_LATENCY, 1);
-					double actuatorLat = getNormalRandomNumber(Config.ACTUATOR_LATENCY, 0.1);
+					double sensorLat = Util.normalRand(Config.SENSOR_LATENCY, 1);
+					double actuatorLat = Util.normalRand(Config.ACTUATOR_LATENCY, 0.1);
 					
 					sensors.add(new Sensor("Sensor:" + clientName, sensorType + "_" + userId, userId, appName + "_" + userId,
 							sensorDist, gatewayDeviceId, sensorLat));
@@ -475,19 +483,6 @@ public class RandomTopology {
 			if(fogDevice.getId() == id)
 				return fogDevice;
 		return null;
-	}
-	
-	public static int getRandomNumberBetween(int minimum, int maximum) {
-		Random rand = new Random();
-		int randomNumber = minimum + rand.nextInt((maximum - minimum) + 1);
-		return randomNumber;
-	}
-	
-	public static double getNormalRandomNumber(double mean, double dev) {
-		Random rand = new Random();
-		double randomNumber = -1;
-		while(randomNumber < 0) randomNumber = rand.nextGaussian()*dev + mean;
-		return randomNumber;
 	}
 	
 }

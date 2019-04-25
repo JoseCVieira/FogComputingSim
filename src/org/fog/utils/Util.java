@@ -1,6 +1,7 @@
 package org.fog.utils;
 
 import java.awt.Component;
+import java.util.Random;
 
 import javax.swing.ComboBoxModel;
 import javax.swing.JButton;
@@ -19,6 +20,8 @@ import org.fog.application.AppModule;
 import org.fog.gui.core.Node;
 
 public class Util {
+	
+	public static final double INF = Double.POSITIVE_INFINITY;
 	
 	public Util() {
 		
@@ -79,6 +82,40 @@ public class Util {
 			v = -1;
 		
 	    return v;
+	}
+	
+	public static int rand(int min, int max) {
+        Random r = new java.util.Random();
+        return min + r.nextInt(max - min + 1);
+    }
+	
+	public static double normalRand(double mean, double dev) {
+		Random r = new Random();
+		double randomNumber = -1;
+		while(randomNumber < 0) randomNumber = r.nextGaussian()*dev + mean;
+		return randomNumber;
+	}
+	
+	public static int[][] copy(int[][] input) {
+		int r = input.length;
+		int c = input[0].length;
+		
+		int[][] output = new int[r][c];
+		
+		for(int i = 0; i < r ;i++)
+			for(int j = 0; j < c ; j++)
+				output[i][j] = input[i][j];
+				
+		return output;
+	}
+	
+	public static int[] copy(int[] input) {
+		int[] output = new int[input.length];
+		
+		for(int i = 0; i < input.length ;i++)
+			output[i] = input[i];
+				
+		return output;
 	}
 	
 	public String centerString(int width, String s) {
