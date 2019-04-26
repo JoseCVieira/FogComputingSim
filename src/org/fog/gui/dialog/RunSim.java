@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.swing.BorderFactory;
@@ -36,6 +35,7 @@ import org.fog.application.AppLoop;
 import org.fog.application.AppModule;
 import org.fog.application.Application;
 import org.fog.application.selectivity.FractionalSelectivity;
+import org.fog.core.FogComputingSim;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogBroker;
 import org.fog.entities.FogDevice;
@@ -50,22 +50,13 @@ import org.fog.gui.core.Link;
 import org.fog.gui.core.Node;
 import org.fog.gui.core.SensorGui;
 import org.fog.placement.Controller;
-import org.fog.placement.ModuleMapping;
-import org.fog.placement.ModulePlacementMapping;
 import org.fog.policy.AppModuleAllocationPolicy;
 import org.fog.utils.Config;
 import org.fog.utils.FogLinearPowerModel;
 import org.fog.utils.FogUtils;
-import org.fog.utils.Logger;
-import org.fog.utils.TimeKeeper;
-import org.fog.placement.algorithms.placement.GA.GA;
-import org.fog.placement.algorithms.placement.LP.LP;
 
 public class RunSim extends JDialog {
 	private static final long serialVersionUID = -8313194085507492462L;
-	private static final boolean DEBUG_MODE = false;
-	private static final boolean PRINT_PLACEMENT = true;
-	private static final String OPTIMIZATION_ALGORITHM = "GA";
 	
 	private static List<Application> applications = new ArrayList<Application>();
 	private static List<FogBroker> fogBrokers = new ArrayList<FogBroker>();
@@ -127,13 +118,9 @@ public class RunSim extends JDialog {
 		
 		public void run(){
 			try {
-    			if(DEBUG_MODE) {
-    				Logger.setLogLevel(Logger.DEBUG);
-    				Logger.setEnabled(true);
-    			}else
-    				Log.disable();
-    			
+    			Log.disable();
     			CloudSim.init(Calendar.getInstance());
+    			
     			createFogDevices(RunSim.graph);
     			
     			ArrayList<FogDeviceGui> clients = getClients();
@@ -156,81 +143,8 @@ public class RunSim extends JDialog {
     				applications.add(application);
     			}
     			
-    			Map<String, List<String>> placementMap = null;
-    			Map<Map<String, String>, Integer> routingMap = null;
-    			//try {
-	    			switch (OPTIMIZATION_ALGORITHM) {
-					case "LP":
-						LP lp = new LP(fogDevices, applications, sensors, actuators);
-						placementMap = lp.execute();
-						if(placementMap == null) break;
-						routingMap = lp.extractRoutingMap(placementMap, fogDevices, sensors, actuators);
-						break;
-					case "GA":
-						GA ga = new GA(fogDevices, applications, sensors, actuators);
-						placementMap = ga.execute();
-						
-						System.exit(0);
-						
-						if(placementMap == null) break;
-						routingMap = ga.extractRoutingMap(placementMap, fogDevices, sensors, actuators);
-						break;
-					default:
-	    				System.err.println("Unknown algorithm.\nFogComputingSim will terminate abruptally.\n");
-	    				System.exit(0);
-					}
-    			/*} catch (Exception e) {
-    				System.err.println(e);
-    				System.err.println("Unwanted error happened while running the optimization algorithm");
-    				System.err.println("FogComputingSim will terminate abruptally.\n");
-    				System.exit(0);
-				}*/
+    			new FogComputingSim(applications, fogBrokers, fogDevices, actuators, sensors, controller);
     			
-    			if(placementMap == null || routingMap == null) {
-    				System.err.println("There is no possible combination to deploy all applications.\n");
-    				System.err.println("FogComputingSim will terminate abruptally.\n");
-    				System.exit(0);
-    			}
-    			
-    			if(PRINT_PLACEMENT) {
-    				printPlacement(placementMap);
-    				printRouting(routingMap);
-    			}
-
-    			for(Map<String, String> map : routingMap.keySet()) {
-    				for(String node : map.keySet()) {
-    					String module = map.get(node);
-    					
-    					try {
-    						FogDevice fogDevice = getFogDeviceByName(node);
-    						fogDevice.getRoutingMap().put(module, routingMap.get(map));
-						} catch (Exception e) { //sensor and actuators do not need routing map
-							continue;
-						}
-    					
-    				}
-    			}
-    			
-    			for(FogDeviceGui fog : clients) {
-    				FogBroker broker = getFogBrokerByName(fog.getName());
-    				Application application = getApplicationById(fog.getApplication() + "_" + broker.getId());
-    				ModuleMapping moduleMapping = ModuleMapping.createModuleMapping();
-    				
-    				for(AppModule appModule : application.getModules())
-    					for(String fogString : placementMap.keySet())
-    						if(placementMap.get(fogString).contains(appModule.getName()))
-    							moduleMapping.addModuleToDevice(appModule.getName(), fogString);
-    				
-					controller.submitApplication(application, new ModulePlacementMapping(fogDevices, application, moduleMapping));
-					
-					if(DEBUG_MODE)
-						printDetails(application);
-    			}
-    			
-    			TimeKeeper.getInstance().setSimulationStartTime(Calendar.getInstance().getTimeInMillis());
-    			CloudSim.startSimulation();
-    			CloudSim.stopSimulation();
-    			System.exit(0);
     		} catch (Exception e) {
     			e.printStackTrace();
     			Log.printLine("Unwanted errors happen");
@@ -421,67 +335,6 @@ public class RunSim extends JDialog {
 				if(fogBroker.getName().equals(name))
 					return fogBroker;
 			return null;
-		}
-		
-		private Application getApplicationById(String appId) {
-			for(Application application : applications)
-				if(application.getAppId().equals(appId))
-					return application;
-			return null;
-		}
-		
-		private void printDetails(Application application) {
-			System.out.println("\n[FOG DEVICES]:\n");
-			for(FogDevice fd : fogDevices)
-				System.out.println(fd);
-			
-			System.out.println("\n[ACTUATORS]:\n");
-			for(Actuator act : actuators)
-				System.out.println(act);
-			
-			System.out.println("\n[SENSORS]:\n");
-			for(Sensor s : sensors)
-				System.out.println(s);
-			
-			System.out.println("\n[APP MODULES]:\n");
-			for(AppModule appModule : application.getModules())
-				System.out.println(appModule);
-			
-			System.out.println("\n[APP EDGES]:\n");
-			for(AppEdge appEdge : application.getEdges())
-				System.out.println(appEdge);
-			
-			System.out.println("\n[APP TUPLES]:\n");
-			for(AppModule appModule : application.getModules())
-				for(Pair<String, String> pair : appModule.getSelectivityMap().keySet())
-					System.out.println("From: " + pair.getFirst() + " To: " + pair.getSecond() +
-							" Value: " + pair.getValue());
-			
-			System.out.println("\n[APPLICATION]:\n" + application);
-		}
-		
-		private void printPlacement(Map<String, List<String>> map) {
-			System.out.println("\n*******************************************************");
-			System.out.println("\t\tMODULE PLACEMENT:");
-			System.out.println("*******************************************************");
-			for(String fogDevName : map.keySet()) {
-				System.out.print("\n" + fogDevName + ":");
-				for(String modName : map.get(fogDevName))
-					System.out.print("  " + modName);
-			}
-			System.out.println("\n");
-		}
-		
-		private void printRouting(Map<Map<String, String>, Integer> map) {
-			System.out.println("\n*******************************************************");
-			System.out.println("\t\tROUTING MAPS:");
-			System.out.println("*******************************************************");
-			for(Map<String, String> map2 : map.keySet()) {
-				for(String node : map2.keySet())
-					System.out.print("\nFog Node: " + node + " | Module: " +
-				map2.get(node) + " | Next node: " + map.get(map2));
-			}
-			System.out.println("\n");
 		}
 	}
 	

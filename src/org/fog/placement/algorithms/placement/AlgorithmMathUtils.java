@@ -5,7 +5,8 @@ public class AlgorithmMathUtils {
 	/*
 	 *  Scalar/dot multiplication
 	 */
-	public static <T extends Number, K extends Number> double[] scalarMultiplication(T[] vector, K constant) {
+	public static <T extends Number, K extends Number> double[] scalarMultiplication(T[] vector, K constant)
+			throws IllegalArgumentException {
 		if(vector == null)
 			throw new IllegalArgumentException("AlgorithmUtils Err: Invalid argument.");
 		
@@ -34,7 +35,8 @@ public class AlgorithmMathUtils {
 		return result;	
 	}
 	
-	public static <T extends Number, K extends Number> double[] scalarMultiplication(T[] vector1, K[] vector2) {
+	public static <T extends Number, K extends Number> double[] scalarMultiplication(T[] vector1, K[] vector2)
+			throws IllegalArgumentException {
 		if(vector1 == null || vector2 == null)
 			throw new IllegalArgumentException("AlgorithmUtils Err: Invalid argument.");
 		
@@ -77,7 +79,8 @@ public class AlgorithmMathUtils {
 	/*
 	 *  Scalar/dot division
 	 */
-	public static <T extends Number, K extends Number> double[] scalarDivision(T[] vector, K constant) {
+	public static <T extends Number, K extends Number> double[] scalarDivision(T[] vector, K constant)
+			throws IllegalArgumentException {
 		if(vector == null)
 			throw new IllegalArgumentException("AlgorithmUtils Err: Invalid argument.");
 		
@@ -106,7 +109,8 @@ public class AlgorithmMathUtils {
 		return result;	
 	}
 	
-	public static <T extends Number, K extends Number> double[] scalarDivision(T[] vector1, K[] vector2) {
+	public static <T extends Number, K extends Number> double[] scalarDivision(T[] vector1, K[] vector2)
+			throws IllegalArgumentException {
 		if(vector1 == null || vector2 == null)
 			throw new IllegalArgumentException("AlgorithmUtils Err: Invalid argument.");
 		
@@ -175,7 +179,8 @@ public class AlgorithmMathUtils {
 	/**
 	 * Sum
 	 */
-	public static <T extends Number, K extends Number> double[] sum(T[] vector1, K[] vector2) {
+	public static <T extends Number, K extends Number> double[] sum(T[] vector1, K[] vector2)
+			throws IllegalArgumentException {
 		if(vector1 == null || vector2 == null)
 			throw new IllegalArgumentException("AlgorithmUtils Err: Invalid argument.");
 		
@@ -218,7 +223,8 @@ public class AlgorithmMathUtils {
 	/**
 	 * Subtract
 	 */
-	public static <T extends Number, K extends Number> double[] subtract(T[] vector1, K[] vector2) {
+	public static <T extends Number, K extends Number> double[] subtract(T[] vector1, K[] vector2)
+			throws IllegalArgumentException {
 		if(vector1 == null || vector2 == null)
 			throw new IllegalArgumentException("AlgorithmUtils Err: Invalid argument.");
 		
@@ -261,7 +267,8 @@ public class AlgorithmMathUtils {
 	/**
 	 * Sum
 	 */
-	public static <T extends Number> double sumAll(T[] vector) {
+	public static <T extends Number> double sumAll(T[] vector)
+			throws IllegalArgumentException {
 		if(vector == null)
 			throw new IllegalArgumentException("AlgorithmUtils Err: Invalid argument.");
 		
