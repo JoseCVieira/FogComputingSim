@@ -1,7 +1,6 @@
 package org.fog.gui.dialog;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -11,7 +10,6 @@ import org.cloudbus.cloudsim.Host;
 import org.cloudbus.cloudsim.Log;
 import org.cloudbus.cloudsim.Pe;
 import org.cloudbus.cloudsim.Storage;
-import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.power.PowerHost;
 import org.cloudbus.cloudsim.provisioners.BwProvisioner;
 import org.cloudbus.cloudsim.provisioners.PeProvisioner;
@@ -43,16 +41,11 @@ import org.fog.utils.FogLinearPowerModel;
 import org.fog.utils.FogUtils;
 
 public class RunGUI extends FogTest {
-	private static Graph graph;
-
 	public RunGUI(final Graph graph){
-		try {
-			Log.disable();
-			CloudSim.init(Calendar.getInstance());
+		try {			
+			createFogDevices(graph);
 			
-			createFogDevices(RunGUI.graph);
-			
-			ArrayList<FogDeviceGui> clients = getClients();
+			ArrayList<FogDeviceGui> clients = getClients(graph);
 			
 			for(FogDeviceGui fog : clients) {
 				FogBroker broker = new FogBroker(fog.getName());
@@ -78,7 +71,7 @@ public class RunGUI extends FogTest {
 		}
 	}
 	
-	private ArrayList<FogDeviceGui> getClients(){
+	private ArrayList<FogDeviceGui> getClients(Graph graph){
 		ArrayList<FogDeviceGui> clients = new ArrayList<FogDeviceGui>();
 		
 		for(Node node : graph.getDevicesList().keySet())

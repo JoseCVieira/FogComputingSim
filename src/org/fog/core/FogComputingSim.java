@@ -14,7 +14,6 @@ import org.fog.entities.Actuator;
 import org.fog.entities.FogBroker;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
-import org.fog.gui.Gui;
 import org.fog.placement.Controller;
 import org.fog.placement.ModuleMapping;
 import org.fog.placement.ModulePlacement;
@@ -103,22 +102,25 @@ public class FogComputingSim {
 		CloudSim.stopSimulation();
 		System.out.println("Simulation finished.");
 		System.exit(0);
-		
 	}
 	
 	@SuppressWarnings("resource")
 	private static void menu() {
-		System.out.println("————————————————————————————————————————");
-		System.out.println("|     FOG COMPUTING SIMULATOR MENU     |");
-		System.out.println("|                                      |");
-	    System.out.println("| Options:                             |");
-	    System.out.println("|         1. GUI                       |");
-	    System.out.println("|         2. Random Topology           |");
-	    System.out.println("|         3. Exit                      |");
-	    System.out.println("|                                      |");
-	    System.out.println("————————————————————————————————————————");
+		System.out.println("——————————————————————————————————————————");
+		System.out.println("|       FOG COMPUTING SIMULATOR MENU      |");
+		System.out.println("|                                         |");
+	    System.out.println("| Options:                                |");
+	    System.out.println("|         1. GUI                          |");
+	    System.out.println("|         2. Random Topology              |");
+	    System.out.println("|         3. VRGameFog - iFogSim Example  |");
+	    System.out.println("|         4. TEMPFog   - iFogSim Example  |");
+	    System.out.println("|         5. DCNSFog   - iFogSim Example  |");
+	    System.out.println("|         6. TwoApps   - iFogSim Example  |");
+	    System.out.println("|         0. Exit                         |");
+	    System.out.println("|                                         |");
+	    System.out.println("——————————————————————————————————————————");
 	    System.out.print("\n Option: ");
-		
+	    
 	    FogTest fogTest = null;
 	    while(fogTest == null) {		    
 		    int option = -1;
@@ -130,14 +132,21 @@ public class FogComputingSim {
 			}
 	    
 		    switch (option) {
+			    case 0:
+					System.exit(0);
+					break;
 				case 1:
-					fogTest = new Gui().getRunGUI();
+					System.out.println("Not working yet. Option: ");
+					//fogTest = new Gui().getRunGUI();
 					break;
 				case 2:
 					fogTest = new RandomTopology();
 					break;
 				case 3:
-					System.exit(0);
+				case 4:
+				case 5:
+				case 6:
+					System.out.println("Not implemented yet. Option: ");
 					break;
 				default:
 					System.out.print("Invalid input. Option: ");

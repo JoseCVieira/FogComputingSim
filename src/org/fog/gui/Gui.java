@@ -81,7 +81,7 @@ public class Gui extends JFrame {
 	}
 	
 	private final void initUI() {
-		setUIFont (new javax.swing.plaf.FontUIResource("Serif",Font.BOLD,18));
+		setUIFont(new javax.swing.plaf.FontUIResource("Serif", Font.BOLD,18));
 
         panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -280,7 +280,7 @@ public class Gui extends JFrame {
     	physicalCanvas.repaint();
 	}
     
-    private String importFile(String type){
+    private String importFile(String type) {
         JFileChooser fileopen = new JFileChooser();
         File workingDirectory = new File(System.getProperty("user.dir"));
         fileopen.setCurrentDirectory(workingDirectory);
@@ -410,7 +410,12 @@ public class Gui extends JFrame {
 		return true;
     }
     
+    public Graph getPhysicalGraph() {
+    	return physicalGraph;
+    }
+    
     public RunGUI getRunGUI() {
     	return runGUI;
     }
+
 }
