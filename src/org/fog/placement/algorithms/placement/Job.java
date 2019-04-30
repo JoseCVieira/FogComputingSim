@@ -107,7 +107,7 @@ public class Job {
 				else {
 					List<Integer> validValues = new ArrayList<Integer>();
 					
-					for(int z = 0; z < nrConnections + 1; z++)
+					for(int z = 0; z < nrFogNodes; z++)
 						if(algorithm.getfLatencyMap()[(int) routingMap[i][j-1]][z] < Double.MAX_VALUE)
 							validValues.add(z);
 							

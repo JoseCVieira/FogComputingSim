@@ -5,12 +5,12 @@ import java.util.List;
 import java.util.Random;
 
 import org.fog.application.Application;
+import org.fog.core.Config;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogBroker;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.placement.algorithms.placement.Algorithm;
-import org.fog.placement.algorithms.placement.AlgorithmConstants;
 import org.fog.placement.algorithms.placement.AlgorithmUtils;
 import org.fog.placement.algorithms.placement.Job;
 
@@ -26,41 +26,39 @@ public class GA extends Algorithm {
 		// current generation
 		int generation = 1;
 		boolean found = false;
-		Individual[] population = new Individual[AlgorithmConstants.POPULATION_SIZE];
+		Individual[] population = new Individual[Config.POPULATION_SIZE];
 		 
 	    // create initial population
-	    for (int i = 0; i < AlgorithmConstants.POPULATION_SIZE; i++)
+	    for (int i = 0; i < Config.POPULATION_SIZE; i++)
 	    	population[i] = new Individual(this, Job.generateRandomJob(this, NR_NODES, NR_MODULES));
 	    
-	    while (!found && generation <= AlgorithmConstants.MAX_ITER) {
+	    while (!found && generation <= Config.MAX_ITER) {
 	    	// sort the population in increasing order of fitness score    	
     		Arrays.sort(population);
     		
 	        // we have reached to the target and break the loop
-	        if(population[0].getFitness() <= AlgorithmConstants.AGREED_BOUNDARY) {
+	        if(population[0].getFitness() <= Config.AGREED_BOUNDARY) {
 	            found = true;
 	            continue;
 	        }
 	  
 	        // otherwise generate new offsprings for new generation
-	        Individual[] newGeneration = new Individual[AlgorithmConstants.POPULATION_SIZE];
+	        Individual[] newGeneration = new Individual[Config.POPULATION_SIZE];
 	  
 	        // perform Elitism, that mean 10% of fittest population goes to the next generation
-	        int start = (int)((10*AlgorithmConstants.POPULATION_SIZE)/100);
-	        int mid = (int)((50*AlgorithmConstants.POPULATION_SIZE)/100);
-	        int stop = (int)((90*AlgorithmConstants.POPULATION_SIZE)/100);
+	        int fittest = (int)((10*Config.POPULATION_SIZE)/100);
 	        
-	        for(int i = 0; i < start; i++)
+	        for(int i = 0; i < fittest; i++)
 	        	newGeneration[i] = population[i];
 	        
 	        // from 50% of fittest population, Individuals will mate to produce offspring
-	        for(int i = start; i < (start+stop); i++) {
-	        	int r1 = new Random().nextInt(mid);
-	        	int r2 = new Random().nextInt(mid);    			
+	        for(int i = fittest; i < Config.POPULATION_SIZE; i++) {
+	        	int r1 = new Random().nextInt((int) (Config.POPULATION_SIZE*0.5));
+	        	int r2 = new Random().nextInt((int) (Config.POPULATION_SIZE*0.5));    			
 	        	newGeneration[i] = population[r1].mate(population[r2]);
 	        }
 	        
-	        for(int i = 0; i < AlgorithmConstants.POPULATION_SIZE; i++) 
+	        for(int i = 0; i < Config.POPULATION_SIZE; i++) 
 	        	population[i] = newGeneration[i];
 	        
 	        //System.out.println(population[0]);
@@ -76,7 +74,7 @@ public class GA extends Algorithm {
     	
 	    Job solution = new Job(this, modulePlacementMap, routingMap);
 	    
-	    if(PRINT_DETAILS)
+	    if(Config.PRINT_DETAILS)
 	    	AlgorithmUtils.printResults(this, solution);
 		
 		return solution;

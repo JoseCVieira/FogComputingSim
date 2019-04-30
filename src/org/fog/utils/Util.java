@@ -19,10 +19,7 @@ import javax.swing.table.TableCellRenderer;
 import org.fog.application.AppModule;
 import org.fog.gui.core.Node;
 
-public class Util {
-	
-	public static final double INF = Double.POSITIVE_INFINITY;
-	
+public class Util {	
 	public Util() {
 		
 	}

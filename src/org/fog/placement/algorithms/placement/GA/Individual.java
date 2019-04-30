@@ -79,7 +79,7 @@ public class Individual implements Comparable<Individual> {
 		            else {
 						List<Integer> validValues = new ArrayList<Integer>();
 						
-						for(int z = 0; z < routingMap[0].length + 1; z++)
+						for(int z = 0; z < routingMap[0].length; z++)
 							if(ga.getfLatencyMap()[(int) routingMap[i][j-1]][z] < Double.MAX_VALUE)
 								validValues.add(z);
 						

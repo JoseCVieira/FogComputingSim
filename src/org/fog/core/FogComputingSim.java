@@ -23,7 +23,6 @@ import org.fog.placement.algorithms.placement.Job;
 import org.fog.placement.algorithms.placement.BF.BF;
 import org.fog.placement.algorithms.placement.GA.GA;
 import org.fog.placement.algorithms.placement.LP.LP;
-import org.fog.placement.algorithms.placement.PSO.PSO;
 import org.fog.test.RandomTopology;
 import org.fog.utils.Logger;
 import org.fog.utils.TimeKeeper;
@@ -72,10 +71,6 @@ public class FogComputingSim {
 				System.out.println("Running the optimization algorithm: Genetic Algorithm.");
 				algorithm = new GA(fogBrokers, fogDevices, applications, sensors, actuators);
 				break;
-			case "PSO":
-				System.out.println("Running the optimization algorithm: Particle Swarm Optimization.");
-				algorithm = new PSO(fogBrokers, fogDevices, applications, sensors, actuators);
-				break;
 			case "MDP":
 				System.err.println("MDP is not implemented yet.\nFogComputingSim will terminate abruptally.\n");
 				System.exit(-1);
@@ -111,23 +106,23 @@ public class FogComputingSim {
 	
 	@SuppressWarnings("resource")
 	private static void menu() {
-		System.out.println("——————————————————————————————————————————");
+		System.out.println("———————————————————————————————————————————");
 		System.out.println("|       FOG COMPUTING SIMULATOR MENU      |");
 		System.out.println("|                                         |");
 	    System.out.println("| Options:                                |");
-	    System.out.println("|         1. GUI                          |");
-	    System.out.println("|         2. Random Topology              |");
-	    System.out.println("|         3. VRGameFog - iFogSim Example  |");
-	    System.out.println("|         4. TEMPFog   - iFogSim Example  |");
-	    System.out.println("|         5. DCNSFog   - iFogSim Example  |");
-	    System.out.println("|         6. TwoApps   - iFogSim Example  |");
-	    System.out.println("|         0. Exit                         |");
+	    System.out.println("|       1. GUI                            |");
+	    System.out.println("|       2. Random Topology                |");
+	    System.out.println("|       3. VRGameFog - iFogSim Example    |");
+	    System.out.println("|       4. TEMPFog   - iFogSim Example    |");
+	    System.out.println("|       5. DCNSFog   - iFogSim Example    |");
+	    System.out.println("|       6. TwoApps   - iFogSim Example    |");
+	    System.out.println("|       0. Exit                           |");
 	    System.out.println("|                                         |");
-	    System.out.println("——————————————————————————————————————————");
+	    System.out.println("———————————————————————————————————————————");
 	    System.out.print("\n Option: ");
 	    
 	    FogTest fogTest = null;
-	    while(fogTest == null) {		    
+	    while(fogTest == null) {
 		    int option = -1;
 		    
 		    try {
@@ -167,7 +162,7 @@ public class FogComputingSim {
 		actuators = fogTest.getActuators();
 	}
 	
-	private static void deployApplications(Map<String, List<String>> modulePlacementMap) {		
+	private static void deployApplications(Map<String, List<String>> modulePlacementMap) {
 		for(FogDevice fogDevice : fogDevices) {
 			FogBroker broker = getFogBrokerByName(fogDevice.getName());
 			

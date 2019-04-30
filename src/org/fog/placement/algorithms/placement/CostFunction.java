@@ -39,7 +39,7 @@ public class CostFunction {
 		return cost;
 	}
 	
-	private static boolean isPossibleCombination(Job job, Algorithm algorithm) {		
+	private static boolean isPossibleCombination(Job job, Algorithm algorithm) {
 		// If some module is not placed
 		for(int j = 0; j < algorithm.getNumberOfModules(); j++) {
 			int sum = 0;
