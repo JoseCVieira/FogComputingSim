@@ -1,6 +1,6 @@
 package org.fog.gui.core;
 
-import org.fog.utils.Config;
+import org.fog.core.Config;
 
 /**
  * The model that represents virtual machine node for the graph.

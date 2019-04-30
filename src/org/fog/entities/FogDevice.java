@@ -23,7 +23,7 @@ import org.fog.application.AppLoop;
 import org.fog.application.AppModule;
 import org.fog.application.Application;
 import org.fog.placement.Controller;
-import org.fog.utils.Config;
+import org.fog.core.Config;
 import org.fog.utils.FogEvents;
 import org.fog.utils.Logger;
 import org.fog.utils.NetworkUsageMonitor;

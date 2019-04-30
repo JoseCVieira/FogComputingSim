@@ -2,7 +2,7 @@ package org.fog.gui.core;
 
 import java.io.Serializable;
 
-import org.fog.utils.Config;
+import org.fog.core.Config;
 import org.fog.utils.distribution.DeterministicDistribution;
 import org.fog.utils.distribution.Distribution;
 import org.fog.utils.distribution.NormalDistribution;

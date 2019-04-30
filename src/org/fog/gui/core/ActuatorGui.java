@@ -2,7 +2,7 @@ package org.fog.gui.core;
 
 import java.io.Serializable;
 
-import org.fog.utils.Config;
+import org.fog.core.Config;
 
 public class ActuatorGui extends Node implements Serializable{
 	private static final long serialVersionUID = 4087896123649020073L;

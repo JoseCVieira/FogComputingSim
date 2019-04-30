@@ -28,7 +28,7 @@ import org.fog.gui.dialog.About;
 import org.fog.gui.dialog.AddActuator;
 import org.fog.gui.dialog.DisplayApplications;
 import org.fog.gui.dialog.RunGUI;
-import org.fog.utils.Config;
+import org.fog.core.Config;
 import org.fog.utils.Util;
 import org.fog.gui.dialog.AddFogDevice;
 import org.fog.gui.dialog.AddLink;

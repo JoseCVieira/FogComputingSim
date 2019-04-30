@@ -36,7 +36,7 @@ import org.fog.gui.core.Node;
 import org.fog.gui.core.SensorGui;
 import org.fog.placement.Controller;
 import org.fog.policy.AppModuleAllocationPolicy;
-import org.fog.utils.Config;
+import org.fog.core.Config;
 import org.fog.utils.FogLinearPowerModel;
 import org.fog.utils.FogUtils;
 

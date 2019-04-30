@@ -20,7 +20,7 @@ import org.fog.gui.core.ActuatorGui;
 import org.fog.gui.core.Graph;
 import org.fog.gui.core.Node;
 import org.fog.gui.core.SpringUtilities;
-import org.fog.utils.Config;
+import org.fog.core.Config;
 import org.fog.utils.Util;
 
 public class AddActuator extends JDialog {

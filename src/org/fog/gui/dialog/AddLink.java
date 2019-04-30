@@ -35,7 +35,7 @@ import javax.swing.table.DefaultTableModel;
 import org.fog.gui.core.Graph;
 import org.fog.gui.core.Link;
 import org.fog.gui.core.Node;
-import org.fog.utils.Config;
+import org.fog.core.Config;
 import org.fog.utils.Util;
 import org.fog.utils.Util.NodeCellRenderer;
 

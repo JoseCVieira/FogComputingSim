@@ -15,7 +15,7 @@ import org.fog.application.Application;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
-import org.fog.utils.Config;
+import org.fog.core.Config;
 import org.fog.utils.FogEvents;
 import org.fog.utils.NetworkUsageMonitor;
 import org.fog.utils.TimeKeeper;

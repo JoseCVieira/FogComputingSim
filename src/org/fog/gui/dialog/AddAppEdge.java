@@ -29,7 +29,7 @@ import org.fog.application.AppEdge;
 import org.fog.application.AppModule;
 import org.fog.gui.core.ApplicationGui;
 import org.fog.gui.core.SpringUtilities;
-import org.fog.utils.Config;
+import org.fog.core.Config;
 import org.fog.utils.Util;
 import org.fog.utils.Util.AppModulesCellRenderer;
 

@@ -23,7 +23,7 @@ import org.fog.gui.core.Graph;
 import org.fog.gui.core.Node;
 import org.fog.gui.core.SensorGui;
 import org.fog.gui.core.SpringUtilities;
-import org.fog.utils.Config;
+import org.fog.core.Config;
 import org.fog.utils.Util;
 import org.fog.utils.distribution.DeterministicDistribution;
 import org.fog.utils.distribution.Distribution;

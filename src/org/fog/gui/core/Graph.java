@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.fog.utils.Config;
+import org.fog.core.Config;
 
 /**
  * A graph model. Normally a model should not have any logic, but in this case we implement logic to manipulate the

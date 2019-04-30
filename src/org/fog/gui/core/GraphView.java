@@ -23,7 +23,7 @@ import org.fog.gui.Gui;
 import org.fog.gui.dialog.AddActuator;
 import org.fog.gui.dialog.AddFogDevice;
 import org.fog.gui.dialog.AddSensor;
-import org.fog.utils.Config;
+import org.fog.core.Config;
 import org.fog.utils.FogUtils;
 
 /** Panel that displays a graph */
