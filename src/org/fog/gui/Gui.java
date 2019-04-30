@@ -27,7 +27,7 @@ import org.fog.gui.core.Node;
 import org.fog.gui.dialog.About;
 import org.fog.gui.dialog.AddActuator;
 import org.fog.gui.dialog.DisplayApplications;
-import org.fog.gui.dialog.RunSim;
+import org.fog.gui.dialog.RunGUI;
 import org.fog.utils.Config;
 import org.fog.utils.Util;
 import org.fog.gui.dialog.AddFogDevice;
@@ -47,7 +47,12 @@ public class Gui extends JFrame {
 	private static JButton btnRun;
 	private DisplayMode dm;
 	
+	private RunGUI runGUI;
+	
 	public Gui() {
+		 //UIManager.setLookAndFeel("com.jtattoo.plaf.hifi.HiFiLookAndFeel");
+         //UIManager.setLookAndFeel("com.jtattoo.plaf.mint.MintLookAndFeel");
+		
 		// Get only the first screen (for multiple screens)
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 	    GraphicsDevice[] gs = ge.getScreenDevices();
@@ -70,6 +75,7 @@ public class Gui extends JFrame {
 		
 		pack();
 		setVisible(true);
+		setResizable(true);
 		
 		Toolkit.getDefaultToolkit().addAWTEventListener(new Listener(Gui.this), AWTEvent.MOUSE_EVENT_MASK);
 	}
@@ -159,7 +165,7 @@ public class Gui extends JFrame {
 		
 		ActionListener runListener = new ActionListener() {
             public void actionPerformed(ActionEvent event) {
-        		new RunSim(physicalGraph, Gui.this);
+            	runGUI = new RunGUI(physicalGraph);
             }
         };
         
@@ -404,22 +410,7 @@ public class Gui extends JFrame {
 		return true;
     }
     
-	public static void main(String args[]) throws InterruptedException {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-            	try {
-                    UIManager.setLookAndFeel("com.jtattoo.plaf.hifi.HiFiLookAndFeel");
-                    //UIManager.setLookAndFeel("com.jtattoo.plaf.mint.MintLookAndFeel");
-                    Gui sdn = new Gui();
-                    sdn.setVisible(true);
-                    sdn.setResizable(true);
-                }
-                catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-            	
-            }
-        });
-	}
-	
+    public RunGUI getRunGUI() {
+    	return runGUI;
+    }
 }

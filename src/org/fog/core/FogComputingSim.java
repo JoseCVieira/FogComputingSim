@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
 import org.cloudbus.cloudsim.Log;
 import org.cloudbus.cloudsim.core.CloudSim;
@@ -13,7 +14,7 @@ import org.fog.entities.Actuator;
 import org.fog.entities.FogBroker;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
-import org.fog.gui.core.FogDeviceGui;
+import org.fog.gui.Gui;
 import org.fog.placement.Controller;
 import org.fog.placement.ModuleMapping;
 import org.fog.placement.ModulePlacement;
@@ -24,34 +25,20 @@ import org.fog.placement.algorithms.placement.BF.BF;
 import org.fog.placement.algorithms.placement.GA.GA;
 import org.fog.placement.algorithms.placement.LP.LP;
 import org.fog.placement.algorithms.placement.PSO.PSO;
+import org.fog.test.RandomTopology;
 import org.fog.utils.Logger;
 import org.fog.utils.TimeKeeper;
 
 public class FogComputingSim {
-	private static final boolean DEBUG_MODE = false;
-	private static final boolean COMPARE_WITH_LP = false;
-	private static final String OPTIMIZATION_ALGORITHM = "LP";
+	private static List<Application> applications;
+	private static List<FogBroker> fogBrokers;
+	private static List<FogDevice> fogDevices;
+	private static List<Sensor> sensors;
+	private static List<Actuator> actuators;
+	private static Controller controller;
 	
-	private List<Application> applications;
-	private List<FogBroker> fogBrokers;
-	private List<FogDevice> fogDevices;
-	private Controller controller;
-	
-	public FogComputingSim(final List<Application> applications, final List<FogBroker> fogBrokers,
-			final List<FogDevice> fogDevices, final List<Actuator> actuators, final List<Sensor> sensors,
-			final Controller controller) throws IllegalArgumentException {
-		
-		if(applications == null || applications.isEmpty() || fogBrokers == null || fogBrokers.isEmpty() ||
-				fogDevices == null || fogDevices.isEmpty() || actuators == null || actuators.isEmpty() ||
-				sensors == null || sensors.isEmpty() || controller == null)
-			throw new IllegalArgumentException("Some of the received arguments are null or empty.");
-
-		this.applications = applications;
-		this.fogBrokers = fogBrokers;
-		this.fogDevices = fogDevices;
-		this.controller = controller;
-		
-		if(DEBUG_MODE) {
+	public static void main(String[] args) {
+		if(Config.DEBUG_MODE) {
 			Logger.setLogLevel(Logger.DEBUG);
 			Logger.setEnabled(true);
 		}else
@@ -59,9 +46,16 @@ public class FogComputingSim {
 		
 		CloudSim.init(Calendar.getInstance());
 		
+		menu();
+		
+		if(applications == null || applications.isEmpty() || fogBrokers == null || fogBrokers.isEmpty() ||
+				fogDevices == null || fogDevices.isEmpty() || actuators == null || actuators.isEmpty() ||
+				sensors == null || sensors.isEmpty() || controller == null)
+			throw new IllegalArgumentException("Some of the received arguments are null or empty.");
+		
 		Job solution = null;
 		Algorithm algorithm = null;
-		switch (OPTIMIZATION_ALGORITHM) {
+		switch (Config.OPTIMIZATION_ALGORITHM) {
 			case "BF":
 				System.out.println("Running the optimization algorithm: Brute Force.");
 				algorithm = new BF(fogBrokers, fogDevices, applications, sensors, actuators);
@@ -95,7 +89,7 @@ public class FogComputingSim {
 			System.exit(-1);
 		}
 		
-		if(COMPARE_WITH_LP) {
+		if(Config.COMPARE_WITH_LP) {
 			System.out.println("Running the optimization algorithm: Linear programming.");
 			new LP(fogBrokers, fogDevices, applications, sensors, actuators).execute();
 		}
@@ -109,16 +103,62 @@ public class FogComputingSim {
 		CloudSim.stopSimulation();
 		System.out.println("Simulation finished.");
 		System.exit(0);
+		
 	}
 	
-	private void deployApplications(Map<String, List<String>> modulePlacementMap) {		
+	@SuppressWarnings("resource")
+	private static void menu() {
+		System.out.println("————————————————————————————————————————");
+		System.out.println("|     FOG COMPUTING SIMULATOR MENU     |");
+		System.out.println("|                                      |");
+	    System.out.println("| Options:                             |");
+	    System.out.println("|         1. GUI                       |");
+	    System.out.println("|         2. Random Topology           |");
+	    System.out.println("|         3. Exit                      |");
+	    System.out.println("|                                      |");
+	    System.out.println("————————————————————————————————————————");
+	    System.out.print("\n Option: ");
+		
+	    FogTest fogTest = null;
+	    while(fogTest == null) {		    
+		    int option = -1;
+		    
+		    try {
+		    	option = new Scanner(System.in).nextInt();
+			} catch (Exception e) {
+				option = -1;
+			}
+	    
+		    switch (option) {
+				case 1:
+					fogTest = new Gui().getRunGUI();
+					break;
+				case 2:
+					fogTest = new RandomTopology();
+					break;
+				case 3:
+					System.exit(0);
+					break;
+				default:
+					System.out.print("Invalid input. Option: ");
+					break;
+			}
+	    }
+	    
+	    applications = fogTest.getApplications();
+		fogBrokers = fogTest.getFogBrokers();
+		fogDevices = fogTest.getFogDevices();
+		controller = fogTest.getController();
+		sensors = fogTest.getSensors();
+		actuators = fogTest.getActuators();
+	}
+	
+	private static void deployApplications(Map<String, List<String>> modulePlacementMap) {		
 		for(FogDevice fogDevice : fogDevices) {
 			FogBroker broker = getFogBrokerByName(fogDevice.getName());
 			
 			List<String> apps = fogDevice.getActiveApplications();
 			fogDevice.setActiveApplications(new ArrayList<String>());
-			
-			System.out.println(apps);
 			
 			for(String app : apps) {
 				for(Application application : applications) {
@@ -139,7 +179,7 @@ public class FogComputingSim {
 		}
 	}
 	
-	private void createRoutingTables(Algorithm algorithm, int[][] routingMatrix) {
+	private static void createRoutingTables(Algorithm algorithm, int[][] routingMatrix) {
 		Map<Map<Integer, Map<String, String>>, Integer> routingMap = algorithm.extractRoutingMap(routingMatrix);
 		
 		for(Map<Integer, Map<String, String>> hop : routingMap.keySet()) {
@@ -154,14 +194,14 @@ public class FogComputingSim {
 		}
 	}	
 	
-	private FogBroker getFogBrokerByName(String name) {
+	private static FogBroker getFogBrokerByName(String name) {
 		for(FogBroker fogBroker : fogBrokers)
 			if(fogBroker.getName().equals(name))
 				return fogBroker;
 		return null;
 	}
 	
-	private FogDevice getFogDeviceById(int id) {
+	private static FogDevice getFogDeviceById(int id) {
 		for(FogDevice fogDevice : fogDevices)
 			if(fogDevice.getId() == id)
 				return fogDevice;
