@@ -37,13 +37,13 @@ import org.fog.utils.distribution.Distribution;
 
 public class RandomTopology extends FogTest{	
 	private static final String CLOUD_NAME = "Cloud";
-	private static final int NR_FOG_DEVICES = 5;
+	private static final int NR_FOG_DEVICES = 2;
 	
 	private static final int MAX_CONN_LAT = 100;
 	private static final int MAX_CONN_BW = 10000;
 	
 	private static final double CONNECTION_PROB = 0.4;
-	private static final double DEPLOY_APP_PROB = 0.55;// 0.35;
+	private static final double DEPLOY_APP_PROB = 0.35;
 	
 	private static final double RESOURCES_DEV = 100;
 	private static final double ENERGY_DEV = 5;

@@ -225,7 +225,7 @@ public class AlgorithmUtils {
 	
 	public static void printResults(final Algorithm al, final Job job) {
 		System.out.println("\n\n*******************************************************");
-		System.out.println("\t\tALGORITHM OUTPUT (Cost = " + String.format("%.2f", job.getCost()) + "):");
+		System.out.println("\t\tALGORITHM OUTPUT (Cost = " + String.format("%.5f", job.getCost()) + "):");
 		System.out.println("*******************************************************\n");
 		
 		System.out.println("**************** MODULE PLACEMENT MAP *****************\n");

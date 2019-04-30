@@ -14,6 +14,7 @@ import org.fog.application.AppEdge;
 import org.fog.application.AppModule;
 import org.fog.application.Application;
 import org.fog.application.selectivity.FractionalSelectivity;
+import org.fog.core.Config;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogBroker;
 import org.fog.entities.FogDevice;
@@ -26,8 +27,6 @@ import org.fog.utils.distribution.NormalDistribution;
 import org.fog.utils.distribution.UniformDistribution;
 
 public abstract class Algorithm {
-	protected static final boolean PRINT_DETAILS = true;
-	
 	protected final int NR_NODES;
 	protected final int NR_MODULES;
 
@@ -119,7 +118,7 @@ public abstract class Algorithm {
 		computeApplicationCharacteristics(applications, sensors);
 		computeLatencyMap(fogDevices, sensors, actuators);
 		
-		if(PRINT_DETAILS)
+		if(Config.PRINT_DETAILS)
 			AlgorithmUtils.printDetails(this, fogDevices, applications, sensors, actuators);
 	}
 	
@@ -153,13 +152,13 @@ public abstract class Algorithm {
 		for(Sensor sensor : sensors) {
 			fId[i] = sensor.getId();
 			fName[i] = sensor.getName();
-			fMips[i++] = 1.0; // TODO its value is irrelevant but needs to be different from 0
+			fMips[i++] = Config.INF;
 		}
 		
 		for(Actuator actuator : actuators) {
 			fId[i] = actuator.getId();
 			fName[i] = actuator.getName();
-			fMips[i++] = 1.0; // TODO its value is irrelevant but needs to be different from 0
+			fMips[i++] = Config.INF;
 		}
 	}
 	
@@ -434,7 +433,7 @@ public abstract class Algorithm {
 			}
 		}
 		
-		if(PRINT_DETAILS) {
+		if(Config.PRINT_DETAILS) {
 			System.out.println("\n*******************************************************");
 			System.out.println("\t\tROUTING MAP:");
 			System.out.println("*******************************************************");

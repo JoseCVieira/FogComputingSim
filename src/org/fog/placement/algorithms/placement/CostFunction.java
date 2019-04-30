@@ -3,13 +3,35 @@ package org.fog.placement.algorithms.placement;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.fog.core.Config;
+
 public class CostFunction {
+	private static List<Integer> initialModules;
+	private static List<Integer> finalModules;
+	private static int[][] modulePlacementMap;
+	private static int[][] routingMap;
 	
 	public static double computeCost(Job job, Algorithm algorithm) {
-		if(isPossibleCombination(job, algorithm) == false)
-			return Double.MAX_VALUE - 1;
+		initialModules = new ArrayList<Integer>();
+		finalModules = new ArrayList<Integer>();
 		
-		double cost = calculateOperationalCost(job, algorithm);
+		modulePlacementMap = job.getModulePlacementMap();
+		routingMap = job.getRoutingMap();
+		
+		if(isPossibleCombination(job, algorithm) == false)
+			return Double.MAX_VALUE;
+		
+		for(int i = 0; i < algorithm.getNumberOfModules(); i++) {
+			for (int j = 0; j < algorithm.getNumberOfModules(); j++) {
+				if(algorithm.getmDependencyMap()[i][j] != 0) {
+					initialModules.add(i);
+					finalModules.add(j);
+				}
+			}
+		}
+		
+		double cost = 0;
+		cost += calculateOperationalCost(job, algorithm);
 		cost += calculateEnergyConsumption(job, algorithm);
 		cost += calculateProcessingCost(job, algorithm);
 		cost += calculateTransmittingCost(job, algorithm);
@@ -17,9 +39,8 @@ public class CostFunction {
 		return cost;
 	}
 	
-	private static boolean isPossibleCombination(Job job, Algorithm algorithm) {
-		int[][] modulePlacementMap = job.getModulePlacementMap();
-		
+	private static boolean isPossibleCombination(Job job, Algorithm algorithm) {		
+		// If some module is not placed
 		for(int j = 0; j < algorithm.getNumberOfModules(); j++) {
 			int sum = 0;
 			for(int i  = 0; i < algorithm.getNumberOfNodes(); i++)
@@ -30,6 +51,7 @@ public class CostFunction {
 				return false;
 		}
 		
+		// If fog node's resources are exceeded
 		for(int i = 0; i < algorithm.getNumberOfNodes(); i++) {
 			double totalMips = 0;
 			double totalRam = 0;
@@ -51,25 +73,31 @@ public class CostFunction {
 	}
 	
 	private static double calculateOperationalCost(Job job, Algorithm algorithm) {
-		int[][] modulePlacementMap = job.getModulePlacementMap();
 		double cost = 0;
 		
 		for(int i = 0; i < algorithm.getNumberOfNodes(); i++) {
 			for(int j = 0; j < algorithm.getNumberOfModules(); j++) {
 				
-				cost += modulePlacementMap[i][j]*(
-						algorithm.getfMipsPrice()[i] * algorithm.getmMips()[j] +
-						algorithm.getfRamPrice()[i] * algorithm.getmRam()[j] +
-						algorithm.getfMemPrice()[i] * algorithm.getmMem()[j]);
+				cost += Config.OP_W * modulePlacementMap[i][j] *
+						(algorithm.getfMipsPrice()[i] * algorithm.getmMips()[j] +
+						 algorithm.getfRamPrice()[i] * algorithm.getmRam()[j] +
+						 algorithm.getfMemPrice()[i] * algorithm.getmMem()[j]);
 			}
+		}
+		
+		for(int i = 0; i < algorithm.getNumberOfDependencies(); i++) {
+			double bwNeeded = algorithm.getmBandwidthMap()[initialModules.get(i)][finalModules.get(i)];
+			
+			for(int j = 1; j < algorithm.getNumberOfNodes(); j++)
+				if(routingMap[i][j] != routingMap[i][j-1])
+					cost += Config.OP_W*(algorithm.getfBwPrice()[j-1]*bwNeeded);
 		}
 		
 		return cost;
 	}
 	
 	private static double calculateEnergyConsumption(Job job, Algorithm algorithm) {
-		int[][] modulePlacementMap = job.getModulePlacementMap();
-		double energy = 0;
+		double cost = 0;
 		
 		for(int i = 0; i < algorithm.getNumberOfNodes(); i++) {
 			double totalMips = 0;
@@ -77,74 +105,39 @@ public class CostFunction {
 			for(int j = 0; j < algorithm.getNumberOfModules(); j++)
 				totalMips += modulePlacementMap[i][j] * algorithm.getmMips()[j];
 			
-			energy += (algorithm.getfBusyPw()[i]-algorithm.getfIdlePw()[i])*(totalMips/algorithm.getfMips()[i]);
-		}
-		
-		return energy;
-	}
-	
-	private static double calculateProcessingCost(Job job, Algorithm algorithm) {
-		int[][] modulePlacementMap = job.getModulePlacementMap();
-		double cost = 0;
-		
-		for(int i = 0; i < modulePlacementMap.length; i++) {
-			int nrModules = 0;
-			double totalMips = 0;
-			
-			for(int j = 0; j < modulePlacementMap[i].length; j++) {
-				nrModules += modulePlacementMap[i][j];
-				totalMips += modulePlacementMap[i][j] * algorithm.getmMips()[j];
-			}
-			
-			double unnusedMips = algorithm.getfMips()[i] - totalMips;
-			cost += nrModules / (1E-9 + unnusedMips);
+			cost += Config.EN_W * (algorithm.getfBusyPw()[i]-algorithm.getfIdlePw()[i]) *
+					(totalMips/algorithm.getfMips()[i]);
 		}
 		
 		return cost;
 	}
 	
+	private static double calculateProcessingCost(Job job, Algorithm algorithm) {
+		double cost = 0;
+		
+		for(int i = 0; i < modulePlacementMap.length; i++)
+			for(int j = 0; j < modulePlacementMap[i].length; j++)
+				cost += Config.PR_W*(modulePlacementMap[i][j] * algorithm.getmMips()[j] / algorithm.getfMips()[i]);
+		
+		return cost;
+	}
+	
 	private static double calculateTransmittingCost(Job job, Algorithm algorithm) {
-		double[][] bwMap = new double[algorithm.getNumberOfNodes()][algorithm.getNumberOfNodes()];
-		int[][] routingMap = job.getRoutingMap();
+		double cost = 0;
 		
-		double transmittingCost = 0;
-		
-		List<Integer> initialModules = new ArrayList<Integer>();
-		List<Integer> finalModules = new ArrayList<Integer>();
-		
-		for(int i = 0; i < algorithm.getNumberOfModules(); i++) {
-			for (int j = 0; j < algorithm.getNumberOfModules(); j++) {
-				if(algorithm.getmDependencyMap()[i][j] != 0) {
-					initialModules.add(i);
-					finalModules.add(j);
-				}
+		for(int i = 0; i < algorithm.getNumberOfDependencies(); i++) {
+			double bwNeeded = algorithm.getmBandwidthMap()[initialModules.get(i)][finalModules.get(i)];
+			double dependencies = algorithm.getmDependencyMap()[initialModules.get(i)][finalModules.get(i)];
+			
+			for(int j = 1; j < algorithm.getNumberOfNodes(); j++) {
+				cost += Config.TX_W*(algorithm.getfLatencyMap()[routingMap[i][j-1]][routingMap[i][j]] * dependencies +
+					bwNeeded/(algorithm.getfBandwidthMap()[routingMap[i][j-1]][routingMap[i][j]] + Config.EPSILON));
+				
+				if(routingMap[i][j] != routingMap[i][j-1])
+					cost += Config.TR_C;
 			}
 		}
 		
-		for(int i = 0; i < routingMap.length; i++) {
-			for (int j = 1; j < routingMap[0].length; j++) {
-				int from = (int) routingMap[i][j-1];
-				int to = (int) routingMap[i][j];
-				
-				double dependencies = algorithm.getmDependencyMap()[initialModules.get(i)][finalModules.get(i)];
-				double bwNeeded = algorithm.getmBandwidthMap()[initialModules.get(i)][finalModules.get(i)];
-				
-				bwMap[from][to] += bwNeeded;
-				transmittingCost += algorithm.getfLatencyMap()[from][to]*dependencies;
-				transmittingCost += algorithm.getfBwPrice()[from]*bwNeeded;
-				
-				if(algorithm.getfBandwidthMap()[from][to] == 0)
-					transmittingCost += Short.MAX_VALUE;
-				else
-					transmittingCost += bwNeeded/algorithm.getfBandwidthMap()[from][to];
-			}
-		}
-		
-		for(int i = 0; i < algorithm.getNumberOfNodes(); i++)
-			for (int j = 0; j < algorithm.getNumberOfNodes(); j++)
-				if(bwMap[i][j] > algorithm.getfBandwidthMap()[i][j])
-					transmittingCost += Short.MAX_VALUE;
-		
-		return transmittingCost;
+		return cost;
 	}
 }

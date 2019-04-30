@@ -82,7 +82,7 @@ public class Job {
 			modulePlacementMap[validValues.get(new Random().nextInt(validValues.size()))][i] = 1;
 		}
 		
-		int nrConnections = nrFogNodes-1;
+		int nrConnections = nrFogNodes;
 		
 		List<Integer> initialNodes = new ArrayList<Integer>();
 		List<Integer> finalNodes = new ArrayList<Integer>();

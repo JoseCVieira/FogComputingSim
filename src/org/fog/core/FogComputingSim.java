@@ -54,6 +54,11 @@ public class FogComputingSim {
 		
 		Job solution = null;
 		Algorithm algorithm = null;
+		
+		System.out.println("Running the optimization algorithm: Brute Force.");
+		algorithm = new BF(fogBrokers, fogDevices, applications, sensors, actuators);
+		solution = algorithm.execute();
+		
 		switch (Config.OPTIMIZATION_ALGORITHM) {
 			case "BF":
 				System.out.println("Running the optimization algorithm: Brute Force.");
@@ -78,7 +83,7 @@ public class FogComputingSim {
 			default:
 				System.err.println("Unknown algorithm.\nFogComputingSim will terminate abruptally.\n");
 				System.exit(-1);
-		}
+		}		
 		
 		solution = algorithm.execute();
 		

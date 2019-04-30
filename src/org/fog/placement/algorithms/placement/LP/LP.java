@@ -4,21 +4,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.fog.application.Application;
+import org.fog.core.Config;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogBroker;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.placement.algorithms.placement.Algorithm;
-import org.fog.placement.algorithms.placement.AlgorithmConstants;
 import org.fog.placement.algorithms.placement.AlgorithmUtils;
 import org.fog.placement.algorithms.placement.Job;
 
 import ilog.concert.*;
 import ilog.cplex.*;
 
-public class LP extends Algorithm {
-	private static final double epsilon = 1E-9;
-	
+public class LP extends Algorithm {	
 	public LP(final List<FogBroker> fogBrokers, final List<FogDevice> fogDevices, final List<Application> applications,
 			final List<Sensor> sensors, final List<Actuator> actuators) {
 		super(fogBrokers, fogDevices, applications, sensors, actuators);
@@ -63,13 +61,13 @@ public class LP extends Algorithm {
 			for(int i = 0; i < NR_NODES; i++) {
 				for(int j = 0; j < NR_MODULES; j++) {
 					
-					double opCost = AlgorithmConstants.OP_W*(getfMipsPrice()[i]*getmMips()[j] +
+					double opCost = Config.OP_W*(getfMipsPrice()[i]*getmMips()[j] +
 							getfRamPrice()[i]*getmRam()[j] + getfMemPrice()[i]*getmMem()[j]);
 					
-					double enCost = AlgorithmConstants.EN_W*(getfBusyPw()[i]-getfIdlePw()[i])*
+					double enCost = Config.EN_W*(getfBusyPw()[i]-getfIdlePw()[i])*
 							(getmMips()[j]/getfMips()[i]);
 					
-					double prCost = AlgorithmConstants.PR_W*(getmMips()[j]/getfMips()[i]);
+					double prCost = Config.PR_W*(getmMips()[j]/getfMips()[i]);
 					
 					objective.addTerm(placementVar[i][j], opCost);	// Operational cost
 					objective.addTerm(placementVar[i][j], enCost);	// Energetic cost
@@ -84,13 +82,13 @@ public class LP extends Algorithm {
 				for(int j = 0; j < NR_NODES; j++) {
 					for(int z = 0; z < NR_NODES; z++) {
 						
-						double txCost = AlgorithmConstants.TX_W*(getfLatencyMap()[j][z]*dependencies +
-								bwNeeded/(getfBandwidthMap()[j][z] + epsilon));
+						double txCost = Config.TX_W*(getfLatencyMap()[j][z]*dependencies +
+								bwNeeded/(getfBandwidthMap()[j][z] + Config.EPSILON));
 						
-						double txOpCost = AlgorithmConstants.OP_W*(getfBwPrice()[j]*bwNeeded);
+						double txOpCost = Config.OP_W*(getfBwPrice()[j]*bwNeeded);
 						
 						// Transmission cost + transmission operational cost + transition cost
-						objective.addTerm(routingVar[i][j][z], txCost + txOpCost + AlgorithmConstants.TR_C);
+						objective.addTerm(routingVar[i][j][z], txCost + txOpCost + Config.TR_C);
 					}
 				}
 			}
@@ -172,7 +170,7 @@ public class LP extends Algorithm {
 			
 			// Solve
 			if (cplex.solve()) {
-				//System.out.println("\nValue = " + cplex.getObjValue() + "\n");
+				System.out.println("\nValue = " + cplex.getObjValue() + "\n");
 				
 				int[][] modulePlacementMap = new int[NR_NODES][NR_MODULES];
 				int[][][] routingMap = new int[getNumberOfDependencies()][NR_NODES][NR_NODES];
@@ -188,7 +186,7 @@ public class LP extends Algorithm {
 				
 				Job solution = new Job(this, modulePlacementMap, routingMap);
 			    
-			    if(PRINT_DETAILS)
+			    if(Config.PRINT_DETAILS)
 			    	AlgorithmUtils.printResults(this, solution);
 				
 				cplex.end();

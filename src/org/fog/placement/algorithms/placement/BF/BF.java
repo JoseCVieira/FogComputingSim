@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.fog.application.Application;
+import org.fog.core.Config;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogBroker;
 import org.fog.entities.FogDevice;
@@ -29,7 +30,7 @@ public class BF extends Algorithm {
 		
 		Job solution = new Job(this, bestPlacementMap, bestRoutingMap);
 		
-		if(PRINT_DETAILS)
+		if(Config.PRINT_DETAILS)
 			AlgorithmUtils.printResults(this, solution);
 		
 		return solution;
@@ -108,11 +109,11 @@ public class BF extends Algorithm {
 	}
 	
 	private int[][] convertListToMatrix(List<Integer> initials, List<Integer> finals) {
-	    int[][] ret = new int[initials.size()][NR_NODES - 1];
+	    int[][] ret = new int[initials.size()][NR_NODES];
 	    
 	    for(int i = 0; i < initials.size(); i++) {
 	    	ret[i][0] = initials.get(i);
-	    	ret[i][NR_NODES-2] = finals.get(i);
+	    	ret[i][NR_NODES-1] = finals.get(i);
 	    }
 	    
 	    return ret;
