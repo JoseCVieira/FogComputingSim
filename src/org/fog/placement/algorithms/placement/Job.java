@@ -23,6 +23,51 @@ public class Job {
 		this.cost = computeCost(algorithm);
 	}
 	
+	public Job(Algorithm algorithm, int[][] modulePlacementMap, int[][][] routingVectorMap) {
+		int nrDependencies = routingVectorMap.length;
+		int nrNodes = algorithm.getNumberOfNodes();
+		int nrModules = algorithm.getNumberOfModules();
+		int[][] routingMap = new int[nrDependencies][nrNodes];
+		
+		int iter = 0;
+		for(int i = 0; i < nrModules; i++) {
+			for (int j = 0; j < nrModules; j++) {
+				if(algorithm.getmDependencyMap()[i][j] != 0) {
+					for(int z = 0; z < nrNodes; z++)
+						if(modulePlacementMap[z][i] == 1)
+							routingMap[iter++][0] = z;
+				}
+			}
+		}
+		
+		for(int i = 0; i < nrDependencies; i++) {
+			iter = 1;
+			int from = routingMap[i][0];
+			
+			boolean found = true;
+			while(found) {
+				found = false;
+				
+				for(int j = 0; j < nrNodes; j++) {
+					if(routingVectorMap[i][from][j] == 1) {
+						routingMap[i][iter++] = j;
+						from = j;
+						j = nrNodes;
+						found = true;
+					}
+				}
+			}
+			
+			for(int j = iter; j < nrNodes; j++) {
+				routingMap[i][j] = from;
+			}
+		}
+		
+		this.modulePlacementMap = modulePlacementMap;
+		this.routingMap = routingMap;
+		this.cost = computeCost(algorithm);
+	}
+	
 	public static Job generateRandomJob(Algorithm algorithm, int nrFogNodes, int nrModules) {
 		int[][] modulePlacementMap = new int[nrFogNodes][nrModules];
 		double[][] possibleDeployment = algorithm.getPossibleDeployment();

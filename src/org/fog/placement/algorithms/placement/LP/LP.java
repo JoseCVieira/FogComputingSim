@@ -10,6 +10,7 @@ import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.placement.algorithms.placement.Algorithm;
 import org.fog.placement.algorithms.placement.AlgorithmConstants;
+import org.fog.placement.algorithms.placement.AlgorithmUtils;
 import org.fog.placement.algorithms.placement.Job;
 
 import ilog.concert.*;
@@ -38,10 +39,12 @@ public class LP extends Algorithm {
 		}
 		
 		try {
-			// define new model
+			// Define new model
 			IloCplex cplex = new IloCplex();
+			/*cplex.setParam(IloCplex.Param.MIP.Tolerances.MIPGap, 0.1);
+			cplex.setParam(IloCplex.Param.TimeLimit, 3600);*/
 			
-			// variables
+			// Variables
 			IloNumVar[][] placementVar = new IloNumVar[NR_NODES][NR_MODULES];
 			IloNumVar[][][] routingVar = new IloNumVar[getNumberOfDependencies()][NR_NODES][NR_NODES];
 			
@@ -54,7 +57,7 @@ public class LP extends Algorithm {
 					for(int z = 0; z < NR_NODES; z++)
 						routingVar[i][j][z] = cplex.boolVar();
 			
-			// define objective
+			// Define objective
 			IloLinearNumExpr objective = cplex.linearNumExpr();
 			
 			for(int i = 0; i < NR_NODES; i++) {
@@ -94,7 +97,7 @@ public class LP extends Algorithm {
 			
 			cplex.addMinimize(objective);
 			
-			// define constraints
+			// Define constraints
 			IloLinearNumExpr[] usedMipsCapacity = new IloLinearNumExpr[NR_NODES];
 			IloLinearNumExpr[] usedRamCapacity = new IloLinearNumExpr[NR_NODES];
 			IloLinearNumExpr[] usedMemCapacity = new IloLinearNumExpr[NR_NODES];
@@ -136,9 +139,6 @@ public class LP extends Algorithm {
 				for(int j = 0; j < NR_MODULES; j++)
 					cplex.addLe(placementVar[i][j], getPossibleDeployment()[i][j]);
 			
-			
-			
-			
 			IloNumVar[][][] transposeR = new IloNumVar[getNumberOfDependencies()][NR_NODES][NR_NODES];
 			for(int i = 0; i < getNumberOfDependencies(); i++)
 				for(int j = 0; j < NR_NODES; j++)
@@ -148,8 +148,8 @@ public class LP extends Algorithm {
 			// Defining the required start and end nodes for each dependency
 			for(int i = 0; i < getNumberOfDependencies(); i++) {
 				for(int j = 0; j < NR_NODES; j++) {
-					cplex.addGe(cplex.sum(routingVar[i][j]), placementVar[j][initialModules.get(i)]);
-					cplex.addGe(cplex.sum(transposeR[i][j]), placementVar[j][finalModules.get(i)]);
+					cplex.addEq(cplex.diff(cplex.sum(routingVar[i][j]), cplex.sum(transposeR[i][j])), cplex.diff(placementVar[j][initialModules.get(i)], placementVar[j][finalModules.get(i)]));
+					//cplex.addLe(cplex.sum(routingVar[i][j]), 1);
 				}
 			}
 			
@@ -167,43 +167,32 @@ public class LP extends Algorithm {
 				}
 			}
 			
-			// display option
+			// Display option
 			cplex.setParam(IloCplex.Param.Simplex.Display, 0);
 			
-			// solve
+			// Solve
 			if (cplex.solve()) {
-				System.out.println("\nValue = " + cplex.getObjValue() + "\n");
+				//System.out.println("\nValue = " + cplex.getObjValue() + "\n");
 				
-				for(int i = 0; i < NR_NODES; i++) {
-					for(int j = 0; j < NR_MODULES; j++) {
-						if(cplex.getValue(placementVar[i][j]) == 0)
-							System.out.print("- ");
-						else
-							System.out.print((int) cplex.getValue(placementVar[i][j]) + " ");
-					}
-					System.out.println();
-				}
-				System.out.println("\n");
+				int[][] modulePlacementMap = new int[NR_NODES][NR_MODULES];
+				int[][][] routingMap = new int[getNumberOfDependencies()][NR_NODES][NR_NODES];
 				
+				for(int i = 0; i < NR_NODES; i++)
+					for(int j = 0; j < NR_MODULES; j++)
+						modulePlacementMap[i][j] = (int) cplex.getValue(placementVar[i][j]);
 				
-				for(int i = 0; i < getNumberOfDependencies(); i++) {
-					System.out.println("initial module: " + initialModules.get(i));
-					System.out.println("final module: " + finalModules.get(i));
-					
-					for(int j = 0; j < NR_NODES; j++) {
-						for(int z = 0; z < NR_NODES; z++) {
-							if(cplex.getValue(routingVar[i][j][z]) == 0)
-								System.out.print("- ");
-							else
-								System.out.print((int) cplex.getValue(routingVar[i][j][z]) + " ");
-						}
-						System.out.println();
-					}
-					System.out.println();
-				}
+				for(int i = 0; i < getNumberOfDependencies(); i++)
+					for(int j = 0; j < NR_NODES; j++)
+						for(int z = 0; z < NR_NODES; z++)
+							routingMap[i][j][z] = (int) cplex.getValue(routingVar[i][j][z]);
+				
+				Job solution = new Job(this, modulePlacementMap, routingMap);
+			    
+			    if(PRINT_DETAILS)
+			    	AlgorithmUtils.printResults(this, solution);
 				
 				cplex.end();
-				return null;
+				return solution;
 			}
 				
 			System.out.println("Model not solved");

@@ -5,7 +5,7 @@ public class AlgorithmConstants {
 	public static final int EN_W = 1; 	// Energetic weight
 	public static final int PR_W = 1; 	// Processing weight
 	public static final int TX_W = 1;	// Transmission weight
-	public static final int TR_C = 3;	// Transition cost
+	public static final int TR_C = 1;	// Transition cost
 	
 	public static final int POPULATION_SIZE = 100;
 	public static final double AGREED_BOUNDARY = 0.0;

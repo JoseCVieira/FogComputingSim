@@ -144,7 +144,6 @@ public class RunSim extends JDialog {
     			}
     			
     			new FogComputingSim(applications, fogBrokers, fogDevices, actuators, sensors, controller);
-    			
     		} catch (Exception e) {
     			e.printStackTrace();
     			Log.printLine("Unwanted errors happen");

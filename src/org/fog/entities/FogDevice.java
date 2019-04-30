@@ -560,7 +560,7 @@ public class FogDevice extends PowerDatacenter {
 		Map<String, String> communication = new HashMap<String, String>();
 		communication.put(tuple.getSrcModuleName(), tuple.getDestModuleName());
 		
-		System.out.println("\n\nTuple" + tuple);
+		System.out.println("\n\nTuple:" + tuple);
 		System.out.println("From: " + getId());
 		System.out.println("To: " + routingTable.get(communication) + "\n\n");
 	}

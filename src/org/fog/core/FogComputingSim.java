@@ -13,8 +13,10 @@ import org.fog.entities.Actuator;
 import org.fog.entities.FogBroker;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
+import org.fog.gui.core.FogDeviceGui;
 import org.fog.placement.Controller;
 import org.fog.placement.ModuleMapping;
+import org.fog.placement.ModulePlacement;
 import org.fog.placement.ModulePlacementMapping;
 import org.fog.placement.algorithms.placement.Algorithm;
 import org.fog.placement.algorithms.placement.Job;
@@ -76,9 +78,13 @@ public class FogComputingSim {
 				System.out.println("Running the optimization algorithm: Particle Swarm Optimization.");
 				algorithm = new PSO(fogBrokers, fogDevices, applications, sensors, actuators);
 				break;
+			case "MDP":
+				System.err.println("MDP is not implemented yet.\nFogComputingSim will terminate abruptally.\n");
+				System.exit(-1);
+				break;
 			default:
 				System.err.println("Unknown algorithm.\nFogComputingSim will terminate abruptally.\n");
-				System.exit(0);
+				System.exit(-1);
 		}
 		
 		solution = algorithm.execute();
@@ -86,7 +92,7 @@ public class FogComputingSim {
 		if(solution == null || solution.getModulePlacementMap() == null || solution.getRoutingMap() == null) {
 			System.err.println("There is no possible combination to deploy all applications.\n");
 			System.err.println("FogComputingSim will terminate abruptally.\n");
-			System.exit(0);
+			System.exit(-1);
 		}
 		
 		if(COMPARE_WITH_LP) {
@@ -98,22 +104,21 @@ public class FogComputingSim {
 		createRoutingTables(algorithm, solution.getRoutingMap());
 			
 		System.out.println("Starting simulation...");
-	
 		TimeKeeper.getInstance().setSimulationStartTime(Calendar.getInstance().getTimeInMillis());
-
 		CloudSim.startSimulation();
 		CloudSim.stopSimulation();
-		
 		System.out.println("Simulation finished.");
+		System.exit(0);
 	}
 	
-	private void deployApplications(Map<String, List<String>> modulePlacementMap) {
+	private void deployApplications(Map<String, List<String>> modulePlacementMap) {		
 		for(FogDevice fogDevice : fogDevices) {
-			
 			FogBroker broker = getFogBrokerByName(fogDevice.getName());
 			
 			List<String> apps = fogDevice.getActiveApplications();
 			fogDevice.setActiveApplications(new ArrayList<String>());
+			
+			System.out.println(apps);
 			
 			for(String app : apps) {
 				for(Application application : applications) {
@@ -122,11 +127,12 @@ public class FogComputingSim {
 						ModuleMapping moduleMapping = ModuleMapping.createModuleMapping();
 						
 						for(AppModule appModule : application.getModules())
-							for(String fogString : modulePlacementMap.keySet())
-								if(modulePlacementMap.get(fogString).contains(appModule.getName()))
-									moduleMapping.addModuleToDevice(appModule.getName(), fogString);
+							for(String fogName : modulePlacementMap.keySet())
+								if(modulePlacementMap.get(fogName).contains(appModule.getName()))
+									moduleMapping.addModuleToDevice(appModule.getName(), fogName);
 						
-						controller.submitApplication(application, new ModulePlacementMapping(fogDevices, application, moduleMapping));
+						ModulePlacement modulePlacement = new ModulePlacementMapping(fogDevices, application, moduleMapping);
+						controller.submitApplication(application, modulePlacement);
 					}
 				}
 			}

@@ -46,8 +46,7 @@ public class ModulePlacementMapping extends ModulePlacement{
 		
 		for(int deviceId : getCurrentModuleMap().keySet())
 			for(String module : getCurrentModuleMap().get(deviceId))
-				createModuleInstanceOnDevice(getApplication().getModuleByName(module),
-						getFogDeviceById(deviceId));
+				createModuleInstanceOnDevice(getApplication().getModuleByName(module), getFogDeviceById(deviceId));
 	}
 	
 	public ModuleMapping getModuleMapping() {
