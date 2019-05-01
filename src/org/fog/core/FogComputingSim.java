@@ -5,6 +5,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 import org.cloudbus.cloudsim.Log;
 import org.cloudbus.cloudsim.core.CloudSim;
@@ -14,6 +15,7 @@ import org.fog.entities.Actuator;
 import org.fog.entities.FogBroker;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
+import org.fog.gui.Gui;
 import org.fog.placement.Controller;
 import org.fog.placement.ModuleMapping;
 import org.fog.placement.ModulePlacement;
@@ -128,8 +130,15 @@ public class FogComputingSim {
 					System.exit(0);
 					break;
 				case 1:
-					System.out.print("Not working yet. Option: ");
-					//fogTest = new Gui().getRunGUI();
+					Gui gui = new Gui();
+					while(fogTest == null) {
+						try {
+							TimeUnit.SECONDS.sleep(1);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+						fogTest = gui.getRunGUI();
+					}
 					break;
 				case 2:
 					fogTest = new RandomTopology();

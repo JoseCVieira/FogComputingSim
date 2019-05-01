@@ -41,12 +41,16 @@ public class CostFunction {
 	
 	private static boolean isPossibleCombination(Job job, Algorithm algorithm) {
 		// If some module is not placed
+		
+		
+		
 		for(int j = 0; j < algorithm.getNumberOfModules(); j++) {
 			int sum = 0;
 			for(int i  = 0; i < algorithm.getNumberOfNodes(); i++)
 				if(modulePlacementMap[i][j] == 1)
 					sum++;
 			
+			System.out.println("sum: " + sum);
 			if(sum != 1)
 				return false;
 		}

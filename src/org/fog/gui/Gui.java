@@ -166,6 +166,7 @@ public class Gui extends JFrame {
 		ActionListener runListener = new ActionListener() {
             public void actionPerformed(ActionEvent event) {
             	runGUI = new RunGUI(physicalGraph);
+            	Gui.this.setVisible(false);
             }
         };
         

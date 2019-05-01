@@ -9,10 +9,10 @@ public class Config {
 	public static final boolean DEBUG_MODE = false;
 	
 	// Optimization Algorithm
-	public static final String OPTIMIZATION_ALGORITHM = "GA";
-	public static final boolean PRINT_DETAILS = true;
+	public static final String OPTIMIZATION_ALGORITHM = "LP";
+	public static final boolean PRINT_DETAILS = false;
 	
-	public static final double WILLING_TO_WAST_ENERGY_CLIENT = 0.05;
+	public static final double WILLING_TO_WAST_ENERGY_CLIENT = 1;//0.01;
 	public static final double WILLING_TO_WAST_ENERGY_FOG_NODE = 1;
 	
 	public static final int OP_W = 1; // Operational weight

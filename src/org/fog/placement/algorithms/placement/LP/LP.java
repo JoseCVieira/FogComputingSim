@@ -48,12 +48,12 @@ public class LP extends Algorithm {
 			
 			for(int i = 0; i < NR_NODES; i++)
 				for(int j = 0; j < NR_MODULES; j++)
-					placementVar[i][j] = cplex.boolVar();
+					placementVar[i][j] = cplex.intVar(0, 1);
 			
 			for(int i = 0; i < getNumberOfDependencies(); i++)
 				for(int j = 0; j < NR_NODES; j++)
 					for(int z = 0; z < NR_NODES; z++)
-						routingVar[i][j][z] = cplex.boolVar();
+						routingVar[i][j][z] = cplex.intVar(0, 1);
 			
 			// Define objective
 			IloLinearNumExpr objective = cplex.linearNumExpr();
@@ -170,14 +170,19 @@ public class LP extends Algorithm {
 			
 			// Solve
 			if (cplex.solve()) {
-				//System.out.println("\nValue = " + cplex.getObjValue() + "\n");
+				System.out.println("\nValue = " + cplex.getObjValue() + "\n");
 				
 				int[][] modulePlacementMap = new int[NR_NODES][NR_MODULES];
 				int[][][] routingMap = new int[getNumberOfDependencies()][NR_NODES][NR_NODES];
 				
-				for(int i = 0; i < NR_NODES; i++)
-					for(int j = 0; j < NR_MODULES; j++)
-						modulePlacementMap[i][j] = (int) cplex.getValue(placementVar[i][j]);
+				for(int i = 0; i < NR_NODES; i++) {
+					for(int j = 0; j < NR_MODULES; j++) {
+						if(cplex.getValue(placementVar[i][j]) == 0)
+							modulePlacementMap[i][j] = 0;
+						else
+							modulePlacementMap[i][j] = 1;
+					}
+				}
 				
 				for(int i = 0; i < getNumberOfDependencies(); i++)
 					for(int j = 0; j < NR_NODES; j++)
@@ -192,7 +197,7 @@ public class LP extends Algorithm {
 				cplex.end();
 				return solution;
 			}
-				
+			
 			System.out.println("Model not solved");
 			cplex.end();
 			return null;
