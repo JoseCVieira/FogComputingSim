@@ -106,7 +106,7 @@ public class CostFunction {
 				totalMips += modulePlacementMap[i][j] * algorithm.getmMips()[j];
 			
 			cost += Config.EN_W * (algorithm.getfBusyPw()[i]-algorithm.getfIdlePw()[i]) *
-					(totalMips/algorithm.getfMips()[i]);
+					(totalMips/algorithm.getfMips()[i]) * algorithm.getfPwWeight()[i];
 		}
 		
 		return cost;

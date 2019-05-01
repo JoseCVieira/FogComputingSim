@@ -7,11 +7,13 @@ public class Config {
 	
 	// Fog Computing Simulator core
 	public static final boolean DEBUG_MODE = false;
-	public static final boolean COMPARE_WITH_LP = false;
 	
 	// Optimization Algorithm
 	public static final String OPTIMIZATION_ALGORITHM = "GA";
 	public static final boolean PRINT_DETAILS = true;
+	
+	public static final double WILLING_TO_WAST_ENERGY_CLIENT = 0.05;
+	public static final double WILLING_TO_WAST_ENERGY_FOG_NODE = 1;
 	
 	public static final int OP_W = 1; // Operational weight
 	public static final int EN_W = 1; // Energetic weight
@@ -33,7 +35,7 @@ public class Config {
 	public static final int MAX_CONN_BW = 10000;
 	
 	public static final double CONNECTION_PROB = 0.4;
-	public static final double DEPLOY_APP_PROB = 0.1;//0.35;
+	public static final double DEPLOY_APP_PROB = 0.35;
 	
 	public static final double RESOURCES_DEV = 100;
 	public static final double ENERGY_DEV = 5;

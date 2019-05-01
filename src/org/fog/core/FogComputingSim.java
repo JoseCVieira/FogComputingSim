@@ -54,13 +54,9 @@ public class FogComputingSim {
 				sensors == null || sensors.isEmpty() || controller == null)
 			throw new IllegalArgumentException("Some of the received arguments are null or empty.");
 		
+
 		Job solution = null;
 		Algorithm algorithm = null;
-		
-		System.out.println("Running the optimization algorithm: Linear programming.");
-		algorithm = new LP(fogBrokers, fogDevices, applications, sensors, actuators);
-		solution = algorithm.execute();
-		
 		switch (Config.OPTIMIZATION_ALGORITHM) {
 			case "BF":
 				System.out.println("Running the optimization algorithm: Brute Force.");
@@ -81,21 +77,13 @@ public class FogComputingSim {
 			default:
 				System.err.println("Unknown algorithm.\nFogComputingSim will terminate abruptally.\n");
 				System.exit(-1);
-		}		
-		
+		}
 		solution = algorithm.execute();
-		
-		System.out.println("solution: " + solution.getCost());
 		
 		if(solution == null || solution.getModulePlacementMap() == null || solution.getRoutingMap() == null || solution.getCost() >= Config.INF) {
 			System.err.println("There is no possible combination to deploy all applications.\n");
 			System.err.println("FogComputingSim will terminate abruptally.\n");
 			System.exit(-1);
-		}
-		
-		if(Config.COMPARE_WITH_LP) {
-			System.out.println("Running the optimization algorithm: Linear programming.");
-			new LP(fogBrokers, fogDevices, applications, sensors, actuators).execute();
 		}
 		
 		deployApplications(algorithm.extractPlacementMap(solution.getModulePlacementMap()));
@@ -120,7 +108,6 @@ public class FogComputingSim {
 	    System.out.println("|       3. VRGameFog - iFogSim Example    |");
 	    System.out.println("|       4. DCNSFog   - iFogSim Example    |");
 	    System.out.println("|       5. TEMPFog   - iFogSim Example    |");
-	    System.out.println("|       6. TwoApps   - iFogSim Example    |");
 	    System.out.println("|       0. Exit                           |");
 	    System.out.println("|                                         |");
 	    System.out.println("———————————————————————————————————————————");
@@ -155,9 +142,6 @@ public class FogComputingSim {
 					break;
 				case 5:
 					fogTest = new TEMPFog();
-					break;
-				case 6:
-					System.out.print("Not implemented yet. Option: ");
 					break;
 				default:
 					System.out.print("Invalid input. Option: ");

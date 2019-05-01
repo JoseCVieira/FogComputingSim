@@ -65,7 +65,7 @@ public class LP extends Algorithm {
 							getfRamPrice()[i]*getmRam()[j] + getfMemPrice()[i]*getmMem()[j]);
 					
 					double enCost = Config.EN_W*(getfBusyPw()[i]-getfIdlePw()[i])*
-							(getmMips()[j]/getfMips()[i]);
+							(getmMips()[j]/getfMips()[i])*getfPwWeight()[i];
 					
 					double prCost = Config.PR_W*(getmMips()[j]/getfMips()[i]);
 					
@@ -170,7 +170,7 @@ public class LP extends Algorithm {
 			
 			// Solve
 			if (cplex.solve()) {
-				System.out.println("\nValue = " + cplex.getObjValue() + "\n");
+				//System.out.println("\nValue = " + cplex.getObjValue() + "\n");
 				
 				int[][] modulePlacementMap = new int[NR_NODES][NR_MODULES];
 				int[][][] routingMap = new int[getNumberOfDependencies()][NR_NODES][NR_NODES];

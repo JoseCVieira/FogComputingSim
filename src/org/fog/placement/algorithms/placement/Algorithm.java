@@ -44,6 +44,7 @@ public abstract class Algorithm {
 	protected double fBw[];
 	protected double fBusyPw[];
 	protected double fIdlePw[];
+	protected double fPwWeight[];
 	
 	// Module
 	protected String mName[];
@@ -82,6 +83,7 @@ public abstract class Algorithm {
 		fRamPrice = new double[NR_NODES];
 		fMemPrice = new double[NR_NODES];
 		fBwPrice = new double[NR_NODES];
+		fPwWeight = new double[NR_NODES];
 		
 		LinkedHashSet<String> hashSet = new LinkedHashSet<String>();
 		for(Application application : applications) {
@@ -223,25 +225,27 @@ public abstract class Algorithm {
 		}
 		
 		for(FogDevice fogDevice : fogDevices) {
-			FogBroker fogBroker = null;
+			int clientIndex = getNodeIndexByNodeId(fogDevice.getId());
 			
+			FogBroker fogBroker = null;
 			for(FogBroker broker : fogBrokers)
 				if(broker.getName().equals(fogDevice.getName()))
 					fogBroker = broker;
 			
-			if(fogBroker == null) continue;
-			
-			int clientIndex = -1;
-			List<Application> userApps = new ArrayList<Application>();
-			
-			for(Application application : applications) {
-				if(fogBroker.getId() == application.getUserId()) {
-					clientIndex = getNodeIndexByNodeId(fogDevice.getId());
-					userApps.add(application);
-				}
+			if(fogBroker == null) {
+				fPwWeight[clientIndex] = 1/Config.WILLING_TO_WAST_ENERGY_FOG_NODE;
+				continue;
 			}
 			
+			List<Application> userApps = new ArrayList<Application>();
+			
+			for(Application application : applications)
+				if(fogBroker.getId() == application.getUserId())
+					userApps.add(application);
+			
 			if(!userApps.isEmpty()) { // Is a client and not a fog node
+				fPwWeight[clientIndex] = 1/Config.WILLING_TO_WAST_ENERGY_CLIENT;
+				
 				for(Application app : applications) {
 					if(!userApps.contains(app)) { // Is not one of its own applications
 						for(AppModule module : app.getModules())
@@ -254,7 +258,8 @@ public abstract class Algorithm {
 										possibleDeployment[j][getModuleIndexByModuleName(module.getName())] = 0;
 					}
 				}
-			}
+			}else
+				fPwWeight[clientIndex] = 1/Config.WILLING_TO_WAST_ENERGY_FOG_NODE;
 		}
 	}
 	
@@ -532,7 +537,10 @@ public abstract class Algorithm {
 	public double[] getfBw() {
 		return fBw;
 	}
-
+	
+	public double[] getfPwWeight() {
+		return fPwWeight;
+	}
 	public String[] getmName() {
 		return mName;
 	}

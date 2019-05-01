@@ -117,7 +117,7 @@ public class RandomTopology extends FogTest {
 				if(fogDevice.getName().equals(Config.CLOUD_NAME)) continue;
 				
 				if(new Random().nextFloat() < Config.DEPLOY_APP_PROB) {
-					Distribution sensorDist = new DeterministicDistribution(Util.normalRand(Config.SENSOR_DESTRIBUTION, 1.0)); //TODO: test other distributions
+					Distribution sensorDist = new DeterministicDistribution(Util.normalRand(Config.SENSOR_DESTRIBUTION, 1.0));
 					double sensorLat = Util.normalRand(Config.SENSOR_LATENCY, 1);
 					double actuatorLat = Util.normalRand(Config.ACTUATOR_LATENCY, 0.1);
 					
