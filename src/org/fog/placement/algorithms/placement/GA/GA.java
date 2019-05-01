@@ -37,8 +37,10 @@ public class GA extends Algorithm {
 	    	
 	    	Arrays.sort(population);
 	    	
+	    	//System.out.println(population[0]);
+	    	
 	    	double iterBest = population[0].getFitness();
-    		if(bestValue >= iterBest) {
+    		if((bestValue < Config.INF && bestValue >= iterBest) || (bestValue == Config.INF && bestValue > iterBest)) {
     			if(bestValue - iterBest <= Config.ERROR_STEP_CONVERGENCE && ++convergenceIter == 3)
 					break;
     			bestValue = iterBest;
@@ -62,8 +64,6 @@ public class GA extends Algorithm {
 	        
 	        for(int i = 0; i < Config.POPULATION_SIZE; i++) 
 	        	population[i] = newGeneration[i];
-	        
-	        //System.out.println(population[0]);
 	        
 	        generation++;
 	    }
@@ -101,7 +101,7 @@ public class GA extends Algorithm {
 	    		Arrays.sort(populationR);
 	    		
 	    		double iterBest = populationR[0].getFitness();
-	    		if(bestValue >= iterBest) {
+	    		if((bestValue < Config.INF && bestValue >= iterBest) || (bestValue == Config.INF && bestValue > iterBest)) {
 	    			if(bestValue - iterBest <= Config.ERROR_STEP_CONVERGENCE && ++convergenceIter == 3)
 	    					break;
 	    			bestValue = iterBest;

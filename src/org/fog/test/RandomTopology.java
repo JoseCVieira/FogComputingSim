@@ -6,37 +6,19 @@ import java.util.List;
 import java.util.Random;
 
 import org.apache.commons.math3.util.Pair;
-import org.cloudbus.cloudsim.Host;
-import org.cloudbus.cloudsim.Pe;
-import org.cloudbus.cloudsim.Storage;
-import org.cloudbus.cloudsim.power.PowerHost;
-import org.cloudbus.cloudsim.provisioners.BwProvisioner;
-import org.cloudbus.cloudsim.provisioners.PeProvisioner;
-import org.cloudbus.cloudsim.provisioners.RamProvisioner;
-import org.cloudbus.cloudsim.sdn.overbooking.VmSchedulerTimeSharedOverbookingEnergy;
 import org.fog.application.AppEdge;
 import org.fog.application.AppLoop;
-import org.fog.application.AppModule;
 import org.fog.application.Application;
 import org.fog.application.selectivity.FractionalSelectivity;
 import org.fog.core.Config;
 import org.fog.core.FogTest;
-import org.fog.entities.Actuator;
-import org.fog.entities.FogBroker;
 import org.fog.entities.FogDevice;
-import org.fog.entities.FogDeviceCharacteristics;
-import org.fog.entities.Sensor;
 import org.fog.entities.Tuple;
-import org.fog.placement.Controller;
-import org.fog.policy.AppModuleAllocationPolicy;
-import org.fog.utils.FogLinearPowerModel;
-import org.fog.utils.FogUtils;
 import org.fog.utils.Util;
 import org.fog.utils.distribution.DeterministicDistribution;
 import org.fog.utils.distribution.Distribution;
 
-public class RandomTopology extends FogTest {	
-	private static List<Application> examplesApplications = new ArrayList<Application>();
+public class RandomTopology extends FogTest {
 	
 	public RandomTopology() {
 		System.out.println("Generating a new random topology...");
@@ -84,37 +66,6 @@ public class RandomTopology extends FogTest {
 			}
 			
 			iter++;
-		}
-	}
-	
-	private static FogDevice createFogDevice(String name, double mips, int ram, long strg, long bw, double bPw,
-			double iPw, double costPerSec, double costPerMips, double costPerMem, double costPerStorage, double costPerBw) {
-		List<Pe> processingElementsList = new ArrayList<Pe>();
-		processingElementsList.add(new Pe(0, new PeProvisioner(mips)));
-
-		PowerHost host = new PowerHost(
-				FogUtils.generateEntityId(),
-				new RamProvisioner(ram),
-				new BwProvisioner(bw),
-				strg,
-				processingElementsList,
-				new VmSchedulerTimeSharedOverbookingEnergy(processingElementsList),
-				new FogLinearPowerModel(bPw, iPw)
-			);
-
-		List<Host> hostList = new ArrayList<Host>();
-		hostList.add(host);
-
-		FogDeviceCharacteristics characteristics = new FogDeviceCharacteristics(Config.FOG_DEVICE_ARCH,
-				Config.FOG_DEVICE_OS, Config.FOG_DEVICE_VMM, host, Config.FOG_DEVICE_TIMEZONE,
-				costPerSec, costPerMips, costPerMem, costPerStorage, costPerBw);
-		
-		try {
-			return new FogDevice(name, characteristics, new AppModuleAllocationPolicy(hostList),
-					new LinkedList<Storage>(), Config.SCHEDULING_INTERVAL);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
 		}
 	}
 	
@@ -166,54 +117,15 @@ public class RandomTopology extends FogTest {
 				if(fogDevice.getName().equals(Config.CLOUD_NAME)) continue;
 				
 				if(new Random().nextFloat() < Config.DEPLOY_APP_PROB) {
-					nrApps++;
-					
-					FogBroker broker = null;
-					try {
-						broker = new FogBroker(fogDevice.getName());
-					} catch (Exception e) {
-						e.printStackTrace();
-						System.err.println("Unwanted errors happen\nFogComputingSim will terminate abruptally.\n");
-						System.exit(0);
-					}
-					
-					int appIndex = new Random().nextInt(examplesApplications.size());
-					int gatewayDeviceId = fogDevice.getId();
-					String clientName = fogDevice.getName();
-					int userId = broker.getId();
-					
-					String appName = examplesApplications.get(appIndex).getAppId();
-					String sensorType = "", actuatorType = "";
-					
-					for(AppEdge appEdge : examplesApplications.get(appIndex).getEdges()) {
-						if(appEdge.getEdgeType() == AppEdge.SENSOR)
-							sensorType = appEdge.getSource();
-						else if(appEdge.getEdgeType() == AppEdge.ACTUATOR)
-							actuatorType = appEdge.getDestination();
-					}
-					
 					Distribution sensorDist = new DeterministicDistribution(Util.normalRand(Config.SENSOR_DESTRIBUTION, 1.0)); //TODO: test other distributions
 					double sensorLat = Util.normalRand(Config.SENSOR_LATENCY, 1);
 					double actuatorLat = Util.normalRand(Config.ACTUATOR_LATENCY, 0.1);
 					
-					sensors.add(new Sensor("Sensor:" + clientName, sensorType + "_" + userId, userId, appName + "_" + userId,
-							sensorDist, gatewayDeviceId, sensorLat));
-	
-					actuators.add(new Actuator("Actuator:" + clientName, userId, appName + "_" + userId,
-							gatewayDeviceId, actuatorLat, actuatorType + "_" + userId));
-					
-					fogDevice.getActiveApplications().add(appName);
-					fogBrokers.add(broker);
+					createClient(fogDevice, "Sensor:", sensorDist, sensorLat, "Actuator:", actuatorLat);
+					nrApps++;
 				}
 			}
 		}
-	}
-	
-	private static void createController() {
-		controller = new Controller("master-controller", fogDevices, sensors, actuators);
-		
-		for(FogDevice fogDevice : fogDevices)
-			fogDevice.setController(controller);
 	}
 	
 	@SuppressWarnings("serial")
@@ -239,11 +151,11 @@ public class RandomTopology extends FogTest {
 		final AppLoop loop1 = new AppLoop(new ArrayList<String>(){{add("EEG");add("client");add("concentration_calculator");add("client");add("DISPLAY");}});
 		List<AppLoop> loops = new ArrayList<AppLoop>(){{add(loop1);}};
 		application.setLoops(loops);
-		examplesApplications.add(application);
+		exampleApplications.add(application);
 		
-		/*application = new Application("DCNS", -1);
+		application = new Application("DCNS", -1);
 		application.addAppModule("object_detector", 100, false);
-		application.addAppModule("motion_detector", 100, false);
+		application.addAppModule("motion_detector", 100, true);
 		application.addAppModule("object_tracker", 100, false);
 		application.addAppModule("user_interface", 100, false);
 		
@@ -260,7 +172,7 @@ public class RandomTopology extends FogTest {
 		final AppLoop loop2 = new AppLoop(new ArrayList<String>(){{add("motion_detector");add("object_detector");add("object_tracker");}});
 		final AppLoop loop3 = new AppLoop(new ArrayList<String>(){{add("object_tracker");add("PTZ_CONTROL");}});
 		loops = new ArrayList<AppLoop>(){{add(loop2);add(loop3);}};
-		examplesApplications.add(application);
+		exampleApplications.add(application);
 		
 		application = new Application("TEMP", -1);
 		application.addAppModule("client", 100, false);
@@ -284,62 +196,7 @@ public class RandomTopology extends FogTest {
 		final AppLoop loop5 = new AppLoop(new ArrayList<String>(){{add("classifier");add("tuner");add("classifier");}});
 		loops = new ArrayList<AppLoop>(){{add(loop4);add(loop5);}};
 		application.setLoops(loops);
-		examplesApplications.add(application);*/
-	}
-	
-	private static void createApplications() {
-		for(FogDevice fogDevice : fogDevices) {
-			FogBroker broker = getFogBrokerByName(fogDevice.getName());
-			
-			for(String app : fogDevice.getActiveApplications()) {
-				Application application = createApplication(app, broker.getId());
-				application.setClientId(fogDevice.getId());
-				applications.add(application);
-			}
-		}
-	}
-	
-	private static Application createApplication(String appId, int userId) {
-		Application appExample = null;
-		
-		for(Application app : examplesApplications)
-			if(app.getAppId().equals(appId))
-				appExample = app;
-		
-		if(appExample == null) return null;
-		
-		Application application = new Application(appId + "_" + userId, userId);
-
-		for(AppModule appModule : appExample.getModules())
-			application.addAppModule(appModule);
-		
-		for(AppEdge appEdge : appExample.getEdges())
-			application.addAppEdge(appEdge);
-			
-		for(AppModule appModule : appExample.getModules()) {
-			for(Pair<String, String> pair : appModule.getSelectivityMap().keySet()) {
-				FractionalSelectivity fractionalSelectivity = ((FractionalSelectivity)appModule.getSelectivityMap().get(pair));
-				application.addTupleMapping(appModule.getName(), pair, fractionalSelectivity.getSelectivity());
-			}
-		}
-		
-		List<AppLoop> loops = new ArrayList<AppLoop>();
-		for(AppLoop loop : appExample.getLoops()) {
-			ArrayList<String> l = new ArrayList<String>();
-			for(String name : loop.getModules())
-				l.add(name + "_" + userId);
-			loops.add(new AppLoop(l));
-		}
-		
-		application.setLoops(loops);
-		return application;
-	}
-	
-	private static FogBroker getFogBrokerByName(String name) {
-		for(FogBroker fogBroker : fogBrokers)
-			if(fogBroker.getName().equals(name))
-				return fogBroker;
-		return null;
+		exampleApplications.add(application);
 	}
 	
 }

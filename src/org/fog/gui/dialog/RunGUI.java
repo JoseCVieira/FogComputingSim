@@ -250,11 +250,4 @@ public class RunGUI extends FogTest {
 		return null;
 	}
 	
-	private FogBroker getFogBrokerByName(String name) {
-		for(FogBroker fogBroker : fogBrokers)
-			if(fogBroker.getName().equals(name))
-				return fogBroker;
-		return null;
-	}
-	
 }

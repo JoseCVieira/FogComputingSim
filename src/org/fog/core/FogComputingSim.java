@@ -14,7 +14,6 @@ import org.fog.entities.Actuator;
 import org.fog.entities.FogBroker;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
-import org.fog.gui.Gui;
 import org.fog.placement.Controller;
 import org.fog.placement.ModuleMapping;
 import org.fog.placement.ModulePlacement;
@@ -24,7 +23,10 @@ import org.fog.placement.algorithms.placement.Job;
 import org.fog.placement.algorithms.placement.BF.BF;
 import org.fog.placement.algorithms.placement.GA.GA;
 import org.fog.placement.algorithms.placement.LP.LP;
+import org.fog.test.DCNSFog;
 import org.fog.test.RandomTopology;
+import org.fog.test.TEMPFog;
+import org.fog.test.VRGameFog;
 import org.fog.utils.Logger;
 import org.fog.utils.TimeKeeper;
 
@@ -83,7 +85,9 @@ public class FogComputingSim {
 		
 		solution = algorithm.execute();
 		
-		if(solution == null || solution.getModulePlacementMap() == null || solution.getRoutingMap() == null) {
+		System.out.println("solution: " + solution.getCost());
+		
+		if(solution == null || solution.getModulePlacementMap() == null || solution.getRoutingMap() == null || solution.getCost() >= Config.INF) {
 			System.err.println("There is no possible combination to deploy all applications.\n");
 			System.err.println("FogComputingSim will terminate abruptally.\n");
 			System.exit(-1);
@@ -114,8 +118,8 @@ public class FogComputingSim {
 	    System.out.println("|       1. GUI                            |");
 	    System.out.println("|       2. Random Topology                |");
 	    System.out.println("|       3. VRGameFog - iFogSim Example    |");
-	    System.out.println("|       4. TEMPFog   - iFogSim Example    |");
-	    System.out.println("|       5. DCNSFog   - iFogSim Example    |");
+	    System.out.println("|       4. DCNSFog   - iFogSim Example    |");
+	    System.out.println("|       5. TEMPFog   - iFogSim Example    |");
 	    System.out.println("|       6. TwoApps   - iFogSim Example    |");
 	    System.out.println("|       0. Exit                           |");
 	    System.out.println("|                                         |");
@@ -137,16 +141,21 @@ public class FogComputingSim {
 					System.exit(0);
 					break;
 				case 1:
-					//System.out.print("Not working yet. Option: ");
+					System.out.print("Not working yet. Option: ");
 					//fogTest = new Gui().getRunGUI();
-					new Gui();
 					break;
 				case 2:
 					fogTest = new RandomTopology();
 					break;
 				case 3:
+					fogTest = new VRGameFog();
+					break;
 				case 4:
+					fogTest = new DCNSFog();
+					break;
 				case 5:
+					fogTest = new TEMPFog();
+					break;
 				case 6:
 					System.out.print("Not implemented yet. Option: ");
 					break;
