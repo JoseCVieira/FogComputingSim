@@ -19,7 +19,7 @@ public class CostFunction {
 		routingMap = job.getRoutingMap();
 		
 		if(isPossibleCombination(job, algorithm) == false)
-			return Double.MAX_VALUE;
+			return Config.INF;
 		
 		for(int i = 0; i < algorithm.getNumberOfModules(); i++) {
 			for (int j = 0; j < algorithm.getNumberOfModules(); j++) {

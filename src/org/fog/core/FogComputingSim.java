@@ -54,8 +54,8 @@ public class FogComputingSim {
 		Job solution = null;
 		Algorithm algorithm = null;
 		
-		System.out.println("Running the optimization algorithm: Brute Force.");
-		algorithm = new BF(fogBrokers, fogDevices, applications, sensors, actuators);
+		System.out.println("Running the optimization algorithm: Linear programming.");
+		algorithm = new LP(fogBrokers, fogDevices, applications, sensors, actuators);
 		solution = algorithm.execute();
 		
 		switch (Config.OPTIMIZATION_ALGORITHM) {

@@ -13,8 +13,13 @@ public class Job {
 	
 	public Job(Job anotherJob) {
 		this.modulePlacementMap = Util.copy(anotherJob.getModulePlacementMap());
-		this.routingMap =  Util.copy(anotherJob.getRoutingMap());
+		this.routingMap = Util.copy(anotherJob.getRoutingMap());
 		this.cost = anotherJob.getCost();
+	}
+	
+	public Job(int[][] modulePlacementMap) {
+		this.modulePlacementMap = modulePlacementMap;
+		this.cost = -1;
 	}
 	
 	public Job(Algorithm algorithm, int[][] modulePlacementMap, int[][] routingMap) {
@@ -69,6 +74,12 @@ public class Job {
 	}
 	
 	public static Job generateRandomJob(Algorithm algorithm, int nrFogNodes, int nrModules) {
+		int[][] modulePlacementMap = generateRandomPlacement(algorithm, nrFogNodes, nrModules);
+		int[][] routingMap = generateRandomRouting(algorithm, modulePlacementMap, nrFogNodes, nrModules);
+		return new Job(algorithm, modulePlacementMap, routingMap);
+	}
+	
+	public static int[][] generateRandomPlacement(Algorithm algorithm, int nrFogNodes, int nrModules) {
 		int[][] modulePlacementMap = new int[nrFogNodes][nrModules];
 		double[][] possibleDeployment = algorithm.getPossibleDeployment();
 		
@@ -82,8 +93,10 @@ public class Job {
 			modulePlacementMap[validValues.get(new Random().nextInt(validValues.size()))][i] = 1;
 		}
 		
-		int nrConnections = nrFogNodes;
-		
+		return modulePlacementMap;
+	}
+	
+	public static int[][] generateRandomRouting(Algorithm algorithm, int[][] modulePlacementMap, int nrFogNodes, int nrModules) {
 		List<Integer> initialNodes = new ArrayList<Integer>();
 		List<Integer> finalNodes = new ArrayList<Integer>();
 		
@@ -96,13 +109,13 @@ public class Job {
 			}
 		}
 		
-		int[][] routingMap = new int[initialNodes.size()][nrConnections];
+		int[][] routingMap = new int[initialNodes.size()][nrFogNodes];
 		
 		for(int i  = 0; i < initialNodes.size(); i++) {
-			for(int j = 0; j < nrConnections; j++) {
+			for(int j = 0; j < nrFogNodes; j++) {
 				if(j == 0)
 					routingMap[i][j] = initialNodes.get(i);
-				else if(j == nrConnections -1)
+				else if(j == nrFogNodes -1)
 					routingMap[i][j] = finalNodes.get(i);
 				else {
 					List<Integer> validValues = new ArrayList<Integer>();
@@ -116,7 +129,7 @@ public class Job {
 			}
 		}
 		
-		return new Job(algorithm, modulePlacementMap, routingMap);
+		return routingMap;
 	}
 	
 	public int[][] getModulePlacementMap() {

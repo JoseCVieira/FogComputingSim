@@ -17,7 +17,7 @@ import org.fog.utils.Util;
 public class BF extends Algorithm {
 	private int[][] bestPlacementMap = null;
 	private int[][] bestRoutingMap = null;
-	private double bestCost = Double.MAX_VALUE;
+	private double bestCost = Config.INF;
 	
 	public BF(final List<FogBroker> fogBrokers, final List<FogDevice> fogDevices, final List<Application> applications,
 			final List<Sensor> sensors, final List<Actuator> actuators) {
@@ -89,7 +89,7 @@ public class BF extends Algorithm {
 			
 			for(int i = 0; i < NR_NODES; i++) {
 				
-				if(getfLatencyMap()[previousNode][i] < Double.MAX_VALUE) {
+				if(getfLatencyMap()[previousNode][i] < Config.INF) {
 					routingMap[row][col] = i;
 				
 					if(col < max_c-1)

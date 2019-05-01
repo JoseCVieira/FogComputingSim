@@ -106,7 +106,7 @@ public abstract class Algorithm {
 		
 		for (int i = 0; i < NR_NODES; i++)
 			for (int j = 0; j < NR_NODES; j++)
-				fLatencyMap[i][j] = Double.MAX_VALUE;
+				fLatencyMap[i][j] = Config.INF;
 		
 		possibleDeployment = new double[NR_NODES][NR_MODULES];
 		
@@ -358,7 +358,7 @@ public abstract class Algorithm {
 			}
 			
 			getfLatencyMap()[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(dId)] = 0;
-			getfBandwidthMap()[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(dId)] = Double.MAX_VALUE;
+			getfBandwidthMap()[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(dId)] = Config.INF;
 		}
 		
 		
@@ -367,9 +367,9 @@ public abstract class Algorithm {
 			int id2 = sensor.getGatewayDeviceId();
 			double lat = sensor.getLatency();
 			
-			getfBandwidthMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id2)] = Double.MAX_VALUE; //sensor and act only have latency
-			getfBandwidthMap()[getNodeIndexByNodeId(id2)][getNodeIndexByNodeId(id1)] = Double.MAX_VALUE;
-			getfBandwidthMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id1)] = Double.MAX_VALUE;
+			getfBandwidthMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id2)] = Config.INF; //sensor and act only have latency
+			getfBandwidthMap()[getNodeIndexByNodeId(id2)][getNodeIndexByNodeId(id1)] = Config.INF;
+			getfBandwidthMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id1)] = Config.INF;
 			
 			getfLatencyMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id2)] = lat;
 			getfLatencyMap()[getNodeIndexByNodeId(id2)][getNodeIndexByNodeId(id1)] = lat;
@@ -381,9 +381,9 @@ public abstract class Algorithm {
 			int id2 = actuator.getGatewayDeviceId();
 			double lat = actuator.getLatency();
 			
-			getfBandwidthMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id2)] = Double.MAX_VALUE;
-			getfBandwidthMap()[getNodeIndexByNodeId(id2)][getNodeIndexByNodeId(id1)] = Double.MAX_VALUE;
-			getfBandwidthMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id1)] = Double.MAX_VALUE;
+			getfBandwidthMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id2)] = Config.INF;
+			getfBandwidthMap()[getNodeIndexByNodeId(id2)][getNodeIndexByNodeId(id1)] = Config.INF;
+			getfBandwidthMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id1)] = Config.INF;
 			
 			getfLatencyMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id2)] = lat;
 			getfLatencyMap()[getNodeIndexByNodeId(id2)][getNodeIndexByNodeId(id1)] = lat;

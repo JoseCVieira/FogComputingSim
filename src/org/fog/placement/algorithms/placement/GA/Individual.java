@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import org.fog.core.Config;
 import org.fog.placement.algorithms.placement.AlgorithmUtils;
 import org.fog.placement.algorithms.placement.Job;
 
@@ -19,7 +20,7 @@ public class Individual implements Comparable<Individual> {
 	}
 	
 	// perform mating and produce new offspring
-	public Individual mate(Individual par) {
+	public int[][] matePlacement(Individual par) {
 		int[][] modulePlacementMap = chromosome.getModulePlacementMap();
 		int[][] parModulePlacementMap = par.getChromosome().getModulePlacementMap();
 		int[][] childModulePlacementMap = new int[modulePlacementMap.length][modulePlacementMap[0].length];
@@ -45,9 +46,13 @@ public class Individual implements Comparable<Individual> {
     			
     			childModulePlacementMap[validValues.get(new Random().nextInt(validValues.size()))][i] = 1;
             }
-            	
 		}
 		
+		return childModulePlacementMap;
+	}
+	
+	public Individual mateRouting(Individual par) {
+		int[][] modulePlacementMap = getChromosome().getModulePlacementMap();
 		int[][] routingMap = chromosome.getRoutingMap();
 		int[][] parRoutingMap = par.getChromosome().getRoutingMap();		
 		int[][] childRoutingMap = new int[routingMap.length][routingMap[0].length];
@@ -58,8 +63,8 @@ public class Individual implements Comparable<Individual> {
 		for(int i = 0; i < ga.getmDependencyMap().length; i++) {
 			for(int j = 0; j < ga.getmDependencyMap()[0].length; j++) {
 				if(ga.getmDependencyMap()[i][j] != 0) {
-					initialNodes.add(findModulePlacement(childModulePlacementMap, i));
-					finalNodes.add(findModulePlacement(childModulePlacementMap, j));
+					initialNodes.add(findModulePlacement(modulePlacementMap, i));
+					finalNodes.add(findModulePlacement(modulePlacementMap, j));
 				}
 			}
 		}
@@ -80,7 +85,7 @@ public class Individual implements Comparable<Individual> {
 						List<Integer> validValues = new ArrayList<Integer>();
 						
 						for(int z = 0; z < routingMap[0].length; z++)
-							if(ga.getfLatencyMap()[(int) routingMap[i][j-1]][z] < Double.MAX_VALUE)
+							if(ga.getfLatencyMap()[(int) routingMap[i][j-1]][z] < Config.INF)
 								validValues.add(z);
 						
 						childRoutingMap[i][j] = validValues.get(new Random().nextInt(validValues.size()));
@@ -89,7 +94,7 @@ public class Individual implements Comparable<Individual> {
 			}
 		}
 		
-		Job childChromosome = new Job(ga, childModulePlacementMap, childRoutingMap);
+		Job childChromosome = new Job(ga, modulePlacementMap, childRoutingMap);
         return new Individual(ga, childChromosome);
 	}
 	
