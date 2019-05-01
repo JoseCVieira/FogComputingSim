@@ -18,10 +18,11 @@ public class AppModule extends PowerVm{
 
 	private String name;
 	private String appId;
+	private boolean clientModule;
 	private Map<Pair<String, String>, SelectivityModel> selectivityMap;
 	
 	public AppModule(int id, String name, String appId, int userId, double mips, int ram, long bw, long size, String vmm,
-			CloudletScheduler cloudletScheduler, Map<Pair<String, String>, SelectivityModel> selectivityMap) {
+			CloudletScheduler cloudletScheduler, Map<Pair<String, String>, SelectivityModel> selectivityMap, boolean clientModule) {
 		super(id, userId, mips, 1, ram, bw, size, 1, vmm, cloudletScheduler, 300);
 		
 		setName(name);
@@ -43,6 +44,7 @@ public class AppModule extends PowerVm{
 		setCurrentAllocatedRam(0);
 		setCurrentAllocatedSize(0);
 		setSelectivityMap(selectivityMap);
+		setClientModule(clientModule);
 	}
 	
 	public AppModule(AppModule operator) {
@@ -58,20 +60,23 @@ public class AppModule extends PowerVm{
 		setCurrentAllocatedRam(0);
 		setCurrentAllocatedSize(0);
 		setSelectivityMap(operator.getSelectivityMap());
+		setClientModule(operator.isClientModule());
 	}
 	
-	public void setValues(String name, double mips, int ram, long size, long bw) { //Added
+	public void setValues(String name, double mips, int ram, long size, long bw, boolean clientModule) { //Added
 		setName(name);
 		setMips(mips);
 		setRam(ram);
 		setBw(bw);
 		setSize(size);
+		setClientModule(clientModule);
 	}
 	
-	public void setValues(String name, int ram, long size) { //Added
+	public void setValues(String name, int ram, long size, boolean clientModule) { //Added
 		setName(name);
 		setRam(ram);
 		setSize(size);
+		setClientModule(clientModule);
 	}
 	
 	public String getName() {
@@ -98,6 +103,14 @@ public class AppModule extends PowerVm{
 		this.appId = appId;
 	}
 
+	public boolean isClientModule() {
+		return clientModule;
+	}
+
+	public void setClientModule(boolean clientModule) {
+		this.clientModule = clientModule;
+	}
+	
 	@Override
 	public String toString() {
 		return "AppModule [name=" + name + ", appId=" + appId +"]";

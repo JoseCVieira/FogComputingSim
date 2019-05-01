@@ -127,7 +127,7 @@ public class GraphView extends JPanel {
 				
 				Map<Node, List<Node>> drawnList = new HashMap<Node, List<Node>>();
 				for (Entry<Node, Coordinates> entry : coordForNodes.entrySet()) {
-					g.setColor(Color.white);
+					g.setColor(Color.black);
 					
 					Coordinates wrapper = entry.getValue();
 					String nodeName = entry.getKey().getName();

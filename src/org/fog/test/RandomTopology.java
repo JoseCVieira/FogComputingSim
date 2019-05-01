@@ -35,20 +35,7 @@ import org.fog.utils.Util;
 import org.fog.utils.distribution.DeterministicDistribution;
 import org.fog.utils.distribution.Distribution;
 
-public class RandomTopology extends FogTest{	
-	private static final String CLOUD_NAME = "Cloud";
-	private static final int NR_FOG_DEVICES = 5;
-	
-	private static final int MAX_CONN_LAT = 100;
-	private static final int MAX_CONN_BW = 10000;
-	
-	private static final double CONNECTION_PROB = 0.4;
-	private static final double DEPLOY_APP_PROB = 0.35;
-	
-	private static final double RESOURCES_DEV = 100;
-	private static final double ENERGY_DEV = 5;
-	private static final double COST_DEV = 1E-5;
-	
+public class RandomTopology extends FogTest {	
 	private static List<Application> examplesApplications = new ArrayList<Application>();
 	
 	public RandomTopology() {
@@ -63,32 +50,32 @@ public class RandomTopology extends FogTest{
 	}
 	
 	private static void createFogDevices() {
-		FogDevice cloud = createFogDevice(CLOUD_NAME, Short.MAX_VALUE, Short.MAX_VALUE, Short.MAX_VALUE, Short.MAX_VALUE,
+		FogDevice cloud = createFogDevice(Config.CLOUD_NAME, Short.MAX_VALUE, Short.MAX_VALUE, Short.MAX_VALUE, Short.MAX_VALUE,
 				16*Config.BUSY_POWER, 16*Config.IDLE_POWER, Config.COST_PER_SEC, Config.RATE_MIPS, Config.RATE_RAM,
 				Config.RATE_MEM, Config.RATE_BW);
 		
 		fogDevices.add(cloud);
 		
 		int iter = 1;
-		int nrFogNodes = NR_FOG_DEVICES - 1;
+		int nrFogNodes = Config.NR_FOG_DEVICES - 1;
 		
 		while(nrFogNodes > 0) {
 			int nr = Util.rand(0, nrFogNodes);
 			nrFogNodes -= nr;
 			
 			for(int i = 0; i < nr; i++) {
-				double mips = Util.normalRand(Config.MIPS/iter, RESOURCES_DEV/iter);
-				double ram = Util.normalRand(Config.RAM/iter, RESOURCES_DEV/iter);
-				double strg = Util.normalRand(Config.MEM/iter, RESOURCES_DEV/iter);
-				double bw = Util.normalRand(Config.BW/iter, RESOURCES_DEV/iter);
+				double mips = Util.normalRand(Config.MIPS/iter, Config.RESOURCES_DEV/iter);
+				double ram = Util.normalRand(Config.RAM/iter, Config.RESOURCES_DEV/iter);
+				double strg = Util.normalRand(Config.MEM/iter, Config.RESOURCES_DEV/iter);
+				double bw = Util.normalRand(Config.BW/iter,Config. RESOURCES_DEV/iter);
 				
-				double bPw = Util.normalRand(Config.BUSY_POWER, ENERGY_DEV);
-				double iPw = Util.normalRand(Config.IDLE_POWER, ENERGY_DEV);
+				double bPw = Util.normalRand(Config.BUSY_POWER, Config.ENERGY_DEV);
+				double iPw = Util.normalRand(Config.IDLE_POWER, Config.ENERGY_DEV);
 				
-				double rateMips = Util.normalRand(Config.RATE_MIPS, COST_DEV);
-				double rateRam = Util.normalRand(Config.RATE_RAM, COST_DEV);
-				double rateStrg = Util.normalRand(Config.RATE_MEM, COST_DEV);
-				double rateBw = Util.normalRand(Config.RATE_BW, COST_DEV);
+				double rateMips = Util.normalRand(Config.RATE_MIPS, Config.COST_DEV);
+				double rateRam = Util.normalRand(Config.RATE_RAM, Config.COST_DEV);
+				double rateStrg = Util.normalRand(Config.RATE_MEM, Config.COST_DEV);
+				double rateBw = Util.normalRand(Config.RATE_BW, Config.COST_DEV);
 				
 				FogDevice fogDevice = createFogDevice("L"+iter+":F"+i, mips, (int) ram, (long) strg, (long) bw, bPw, iPw,
 						Config.COST_PER_SEC, rateMips, rateRam, rateStrg, rateBw);
@@ -144,17 +131,17 @@ public class RandomTopology extends FogTest{
 			List<FogDevice> toRemove = new ArrayList<FogDevice>();
 			
 			for(FogDevice f : notConnctedDevices) {
-				if(new Random().nextFloat() < CONNECTION_PROB) {
+				if(new Random().nextFloat() < Config.CONNECTION_PROB) {
 					toRemove.add(f);
 					
 					fogDevice.getNeighborsIds().add(f.getId());
 					f.getNeighborsIds().add(fogDevice.getId());
 					
-					fogDevice.getLatencyMap().put(f.getId(), (double) Util.rand(MAX_CONN_LAT/3, MAX_CONN_LAT));
-					f.getLatencyMap().put(fogDevice.getId(), (double) Util.rand(MAX_CONN_LAT/3, MAX_CONN_LAT));
+					fogDevice.getLatencyMap().put(f.getId(), (double) Util.rand(Config.MAX_CONN_LAT/3, Config.MAX_CONN_LAT));
+					f.getLatencyMap().put(fogDevice.getId(), (double) Util.rand(Config.MAX_CONN_LAT/3, Config.MAX_CONN_LAT));
 					
-					fogDevice.getBandwidthMap().put(f.getId(), (double) Util.rand(MAX_CONN_BW/3, MAX_CONN_BW));
-					f.getBandwidthMap().put(fogDevice.getId(), (double) Util.rand(MAX_CONN_BW/3, MAX_CONN_BW));
+					fogDevice.getBandwidthMap().put(f.getId(), (double) Util.rand(Config.MAX_CONN_BW/3, Config.MAX_CONN_BW));
+					f.getBandwidthMap().put(fogDevice.getId(), (double) Util.rand(Config.MAX_CONN_BW/3, Config.MAX_CONN_BW));
 					
 					fogDevice.getTupleQueue().put(f.getId(), new LinkedList<Pair<Tuple, Integer>>());
 					f.getTupleQueue().put(fogDevice.getId(), new LinkedList<Pair<Tuple, Integer>>());
@@ -176,9 +163,9 @@ public class RandomTopology extends FogTest{
 		
 		while(nrApps == 0) {
 			for(FogDevice fogDevice : fogDevices) {
-				if(fogDevice.getName().equals(CLOUD_NAME)) continue;
+				if(fogDevice.getName().equals(Config.CLOUD_NAME)) continue;
 				
-				if(new Random().nextFloat() < DEPLOY_APP_PROB) {
+				if(new Random().nextFloat() < Config.DEPLOY_APP_PROB) {
 					nrApps++;
 					
 					FogBroker broker = null;
@@ -232,9 +219,9 @@ public class RandomTopology extends FogTest{
 	@SuppressWarnings("serial")
 	private static void createExampleApplications() {		
 		Application application = new Application("VRGame", -1);
-		application.addAppModule("client", 100);
-		application.addAppModule("calculator", 100);
-		application.addAppModule("connector", 100);
+		application.addAppModule("client", 100, true);
+		application.addAppModule("calculator", 100, false);
+		application.addAppModule("connector", 100, false);
 		
 		application.addAppEdge("EEG", "client", 3000, 500, "EEG", AppEdge.SENSOR);
 		application.addAppEdge("client", "calculator", 3500, 500, "_SENSOR", AppEdge.MODULE);
@@ -254,11 +241,11 @@ public class RandomTopology extends FogTest{
 		application.setLoops(loops);
 		examplesApplications.add(application);
 		
-		application = new Application("DCNS", -1);
-		application.addAppModule("object_detector", 100);
-		application.addAppModule("motion_detector", 100);
-		application.addAppModule("object_tracker", 100);
-		application.addAppModule("user_interface", 100);
+		/*application = new Application("DCNS", -1);
+		application.addAppModule("object_detector", 100, false);
+		application.addAppModule("motion_detector", 100, false);
+		application.addAppModule("object_tracker", 100, false);
+		application.addAppModule("user_interface", 100, false);
 		
 		application.addAppEdge("CAMERA", "motion_detector", 1000, 20000, "CAMERA", AppEdge.SENSOR);
 		application.addAppEdge("motion_detector", "object_detector", 2000, 2000, "MOTION_VIDEO_STREAM", AppEdge.MODULE);
@@ -276,9 +263,9 @@ public class RandomTopology extends FogTest{
 		examplesApplications.add(application);
 		
 		application = new Application("TEMP", -1);
-		application.addAppModule("client", 100);
-		application.addAppModule("classifier", 100);
-		application.addAppModule("tuner", 100);
+		application.addAppModule("client", 100, false);
+		application.addAppModule("classifier", 100, false);
+		application.addAppModule("tuner", 100, false);
 	
 		application.addAppEdge("TEMP", "client", 1000, 100, "TEMP", AppEdge.SENSOR);
 		application.addAppEdge("client", "classifier", 8000, 100, "_SENSOR", AppEdge.MODULE);
@@ -297,7 +284,7 @@ public class RandomTopology extends FogTest{
 		final AppLoop loop5 = new AppLoop(new ArrayList<String>(){{add("classifier");add("tuner");add("classifier");}});
 		loops = new ArrayList<AppLoop>(){{add(loop4);add(loop5);}};
 		application.setLoops(loops);
-		examplesApplications.add(application);
+		examplesApplications.add(application);*/
 	}
 	
 	private static void createApplications() {

@@ -43,7 +43,7 @@ public class AddApplication extends JDialog {
 	private static final int WIDTH = 1500;
 	private static final int HEIGHT = 1000;
 	
-	private static final String[] COLUMN_MODULES = {"Name", "Ram", "Mem", "Edit"};
+	private static final String[] COLUMN_MODULES = {"Name", "Ram", "Mem", "Client Module", "Edit"};
 	private static final String[] COLUMN_EDGES = {"Source", "Destination", "Tuple CPU",
 			"Tuple NW", "Tuple Type", "Edge Type", "Periodicity", "Edit"};
 	private static final String[] COLUMN_TUPLES = {"Module Name", "Input Tuple Type",
@@ -210,7 +210,7 @@ public class AddApplication extends JDialog {
 			    int rowAtPoint = table.rowAtPoint(e.getPoint());
 			    int columnAtPoint = table.columnAtPoint(e.getPoint());
 			    
-			    if(columnAtPoint == 3) {			    	
+			    if(columnAtPoint == 4) {			    	
 			    	new AddAppModule(frame, app, app.getModules().get(rowAtPoint));
 			    	updateTable(dtmModules, jtableModules, getAppModules(), COLUMN_MODULES);
 			    }
@@ -381,12 +381,13 @@ public class AddApplication extends JDialog {
 		int index = 0;
 		
 		for(AppModule appModule : app.getModules()) {
-			String[] list = new String[4];
+			String[] list = new String[5];
 				
 			list[0] = appModule.getName();
 			list[1] = Integer.toString(appModule.getRam());
 			list[2] = Long.toString(appModule.getSize());
-			list[3] = "✎";
+			list[3] = appModule.isClientModule() ? "Yes" : "No";
+			list[4] = "✎";
 			lists[index++] = list;
 		}
 		return lists;

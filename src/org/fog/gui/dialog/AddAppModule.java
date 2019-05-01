@@ -5,11 +5,15 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ComboBoxModel;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -33,6 +37,8 @@ public class AddAppModule extends JDialog {
 	private JTextField moduleName;
 	private JTextField moduleRam;
 	private JTextField moduleSize;
+	
+	private JComboBox<String> clientModule;
 	
 	public AddAppModule(final JFrame frame, final ApplicationGui app, final AppModule module) {
 		this.app = app;
@@ -64,7 +70,7 @@ public class AddAppModule extends JDialog {
             	setVisible(false);
             }
         });
-		
+
 		if(module != null) {
 			ArrayList<AppEdge> edgesToRemove = new ArrayList<AppEdge>();
 			
@@ -95,6 +101,7 @@ public class AddAppModule extends JDialog {
 				String error_msg = "", name_ = "";
 				int ram_ = -1;
 				long size_ = -1;
+				boolean clientModule_ = false;
 				
 				if (Util.validString(moduleName.getText())) {
 					if(module == null || (module != null && !module.getName().equals(moduleName.getText()))) {		
@@ -110,16 +117,19 @@ public class AddAppModule extends JDialog {
 				
 				if (!Util.validString(moduleRam.getText())) error_msg += "Missing Ram\n";
 				if (!Util.validString(moduleSize.getText())) error_msg += "Missing Mem\n";
+				if (!Util.validString((String) clientModule.getSelectedItem())) error_msg += "Missing Client Module\n";
 
 				name_ = moduleName.getText();
 				if((ram_ = Util.stringToInt(moduleRam.getText())) < 0) error_msg += "\nRam should be a positive number";
 				if((size_ = Util.stringToLong(moduleSize.getText())) < 0) error_msg += "\nMem should be a positive number";
 				
 				if(error_msg == ""){
+					clientModule_ = ((String) clientModule.getSelectedItem()).equals("YES") ? true : false;
+					
 					if(module != null)
-						module.setValues(name_, ram_, size_);
-					else 
-						app.addAppModule(name_, ram_, size_);
+						module.setValues(name_, ram_, size_, clientModule_);
+					else
+						app.addAppModule(name_, ram_, size_, clientModule_);
 					setVisible(false);
 				}else
 					Util.prompt(AddAppModule.this, error_msg, "Error");
@@ -147,8 +157,17 @@ public class AddAppModule extends JDialog {
         moduleRam = Util.createInput(springPanel, moduleRam, "Ram: ", module == null ? Integer.toString(Config.MODULE_RAM) : Integer.toString(module.getRam()));
         moduleSize = Util.createInput(springPanel, moduleSize, "Mem: ", module == null ? Long.toString(Config.MODULE_SIZE) : Long.toString(module.getSize()));
         
+        @SuppressWarnings({ "rawtypes", "unchecked" })
+		ComboBoxModel<String> clientModuleModel = new DefaultComboBoxModel(Arrays.asList("YES", "NO").toArray());
+        clientModule = new JComboBox<>(clientModuleModel);
+        
+        clientModule = Util.createDropDown(springPanel, clientModule, "Client Model: ", clientModuleModel, null);
+        
+        if(module != null)
+        	clientModuleModel.setSelectedItem(module.isClientModule() ? "Yes" : "No");
+        
 		//rows, cols, initX, initY, xPad, yPad
-        SpringUtilities.makeCompactGrid(springPanel, 3, 2, 6, 6, 6, 6);
+        SpringUtilities.makeCompactGrid(springPanel, 4, 2, 6, 6, 6, 6);
 		return springPanel;
 	}
 }

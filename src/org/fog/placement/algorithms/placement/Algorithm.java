@@ -241,13 +241,21 @@ public abstract class Algorithm {
 				}
 			}
 			
-			if(!userApps.isEmpty()) // Is a client and not a fog node
-				for(Application app : applications) // Is not one of its own applications
-					if(!userApps.contains(app))
+			if(!userApps.isEmpty()) { // Is a client and not a fog node
+				for(Application app : applications) {
+					if(!userApps.contains(app)) { // Is not one of its own applications
 						for(AppModule module : app.getModules())
 							possibleDeployment[clientIndex][getModuleIndexByModuleName(module.getName())] = 0;
+					}else {
+						for(AppModule module : app.getModules())
+							if(module.isClientModule())
+								for(int j = 0; j < NR_NODES; j++)
+									if(j != clientIndex)
+										possibleDeployment[j][getModuleIndexByModuleName(module.getName())] = 0;
+					}
+				}
+			}
 		}
-		
 	}
 	
 	private void computeApplicationCharacteristics(final List<Application> applications, final List<Sensor> sensors) {

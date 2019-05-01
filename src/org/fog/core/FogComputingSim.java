@@ -14,6 +14,7 @@ import org.fog.entities.Actuator;
 import org.fog.entities.FogBroker;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
+import org.fog.gui.Gui;
 import org.fog.placement.Controller;
 import org.fog.placement.ModuleMapping;
 import org.fog.placement.ModulePlacement;
@@ -136,8 +137,9 @@ public class FogComputingSim {
 					System.exit(0);
 					break;
 				case 1:
-					System.out.println("Not working yet. Option: ");
+					//System.out.print("Not working yet. Option: ");
 					//fogTest = new Gui().getRunGUI();
+					new Gui();
 					break;
 				case 2:
 					fogTest = new RandomTopology();
@@ -146,7 +148,7 @@ public class FogComputingSim {
 				case 4:
 				case 5:
 				case 6:
-					System.out.println("Not implemented yet. Option: ");
+					System.out.print("Not implemented yet. Option: ");
 					break;
 				default:
 					System.out.print("Invalid input. Option: ");

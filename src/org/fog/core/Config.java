@@ -25,6 +25,20 @@ public class Config {
 	public static final int MAX_ITER_CONVERGENCE = 5;
 	public static final double ERROR_STEP_CONVERGENCE = 0.1;
 	
+	// Random topology
+	public static final String CLOUD_NAME = "Cloud";
+	public static final int NR_FOG_DEVICES = 2;
+	
+	public static final int MAX_CONN_LAT = 100;
+	public static final int MAX_CONN_BW = 10000;
+	
+	public static final double CONNECTION_PROB = 0.4;
+	public static final double DEPLOY_APP_PROB = 0.1;//0.35;
+	
+	public static final double RESOURCES_DEV = 100;
+	public static final double ENERGY_DEV = 5;
+	public static final double COST_DEV = 1E-5;
+	
 	// GUI
 	public static final String ADD = "ADD";
 	public static final String EDIT = "EDIT";

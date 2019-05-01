@@ -38,15 +38,14 @@ public class Application {
 	 * @param moduleName
 	 * @param ram
 	 */
-	public void addAppModule(String moduleName, int ram){
+	public void addAppModule(String moduleName, int ram, boolean clientModule){
 		int mips = 0;
 		long size = 10000;
 		long bw = 0;
 		String vmm = "Xen";
 		
 		AppModule module = new AppModule(FogUtils.generateEntityId(), moduleName, appId, userId, 
-			mips, ram, bw, size, vmm, new CloudletSchedulerTimeShared(),
-			new HashMap<Pair<String, String>, SelectivityModel>());
+			mips, ram, bw, size, vmm, new CloudletSchedulerTimeShared(), new HashMap<Pair<String, String>, SelectivityModel>(), clientModule);
 		
 		getModules().add(module);
 	}
@@ -54,12 +53,8 @@ public class Application {
 	public void addAppModule(AppModule m){
 		AppModule module = new AppModule(FogUtils.generateEntityId(), m.getName() + "_" + userId, appId, userId, 
 			m.getMips(), m.getRam(), m.getBw(), m.getSize(), m.getVmm(), new CloudletSchedulerTimeShared(),
-			new HashMap<Pair<String, String>, SelectivityModel>());
+			new HashMap<Pair<String, String>, SelectivityModel>(), m.isClientModule());
 		getModules().add(module);
-	}
-	
-	public void updateAppModuleMips(AppModule m){
-		
 	}
 
 	/**
