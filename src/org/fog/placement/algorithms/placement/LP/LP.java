@@ -170,7 +170,7 @@ public class LP extends Algorithm {
 			
 			// Solve
 			if (cplex.solve()) {
-				System.out.println("\nValue = " + cplex.getObjValue() + "\n");
+				//System.out.println("\nValue = " + cplex.getObjValue() + "\n");
 				
 				int[][] modulePlacementMap = new int[NR_NODES][NR_MODULES];
 				int[][][] routingMap = new int[getNumberOfDependencies()][NR_NODES][NR_NODES];
