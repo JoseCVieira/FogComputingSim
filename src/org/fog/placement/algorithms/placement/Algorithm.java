@@ -20,6 +20,7 @@ import org.fog.entities.FogBroker;
 import org.fog.entities.FogDevice;
 import org.fog.entities.FogDeviceCharacteristics;
 import org.fog.entities.Sensor;
+import org.fog.placement.algorithms.placement.util.AlgorithmUtils;
 import org.fog.utils.FogLinearPowerModel;
 import org.fog.utils.distribution.DeterministicDistribution;
 import org.fog.utils.distribution.Distribution;
@@ -27,6 +28,9 @@ import org.fog.utils.distribution.NormalDistribution;
 import org.fog.utils.distribution.UniformDistribution;
 
 public abstract class Algorithm {
+	protected Map<Integer, Double> valueIterMap = new HashMap<Integer, Double>();
+	protected long elapsedTime;
+	
 	protected final int NR_NODES;
 	protected final int NR_MODULES;
 
@@ -327,7 +331,7 @@ public abstract class Algorithm {
 								appModule.setMips(appModule.getMips() + probability*appEdge.getTupleCpuLength()/interval);
 								mMips[edgeDestIndex] += probability*appEdge.getTupleCpuLength()/interval;
 								
-								if(!isSensorTuple(sensors, appEdge.getTupleType())) {									
+								if(!isSensorTuple(sensors, appEdge.getTupleType())) {
 									appModule.setBw((long) (appModule.getBw() + probability*appEdge.getTupleNwLength()/interval));
 									mBandwidthMap[edgeSourceIndex][edgeDestIndex] += probability*appEdge.getTupleNwLength()/interval;
 									mBw[edgeSourceIndex] += probability*appEdge.getTupleNwLength()/interval;
@@ -606,6 +610,14 @@ public abstract class Algorithm {
 					nrDependencies++;
 		
 		return nrDependencies;
+	}
+	
+	public Map<Integer, Double> getValueIterMap() {
+		return valueIterMap;
+	}
+	
+	public long getElapsedTime() {
+		return elapsedTime;
 	}
 	
 }

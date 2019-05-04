@@ -1,4 +1,4 @@
-package org.fog.gui.dialog;
+package org.fog.gui.core;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -27,13 +27,6 @@ import org.fog.entities.FogDevice;
 import org.fog.entities.FogDeviceCharacteristics;
 import org.fog.entities.Sensor;
 import org.fog.entities.Tuple;
-import org.fog.gui.core.ActuatorGui;
-import org.fog.gui.core.ApplicationGui;
-import org.fog.gui.core.FogDeviceGui;
-import org.fog.gui.core.Graph;
-import org.fog.gui.core.Link;
-import org.fog.gui.core.Node;
-import org.fog.gui.core.SensorGui;
 import org.fog.placement.Controller;
 import org.fog.policy.AppModuleAllocationPolicy;
 import org.fog.core.Config;

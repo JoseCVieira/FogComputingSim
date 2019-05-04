@@ -32,8 +32,8 @@ public class CostFunction {
 		
 		double cost = 0;
 		cost += calculateOperationalCost(job, algorithm);
-		cost += calculateEnergyConsumption(job, algorithm);
-		cost += calculateProcessingCost(job, algorithm);
+		cost += calculateEnergyConsumption(job, algorithm);		
+		cost += calculateProcessingCost(job, algorithm);		
 		cost += calculateTransmittingCost(job, algorithm);
 		
 		return cost;
@@ -76,8 +76,7 @@ public class CostFunction {
 		double cost = 0;
 		
 		for(int i = 0; i < algorithm.getNumberOfNodes(); i++) {
-			for(int j = 0; j < algorithm.getNumberOfModules(); j++) {
-				
+			for(int j = 0; j < algorithm.getNumberOfModules(); j++) {				
 				cost += Config.OP_W * modulePlacementMap[i][j] *
 						(algorithm.getfMipsPrice()[i] * algorithm.getmMips()[j] +
 						 algorithm.getfRamPrice()[i] * algorithm.getmRam()[j] +
@@ -90,7 +89,7 @@ public class CostFunction {
 			
 			for(int j = 1; j < algorithm.getNumberOfNodes(); j++)
 				if(routingMap[i][j] != routingMap[i][j-1])
-					cost += Config.OP_W*(algorithm.getfBwPrice()[j-1]*bwNeeded);
+					cost += Config.OP_W*(algorithm.getfBwPrice()[routingMap[i][j-1]]*bwNeeded);
 		}
 		
 		return cost;
@@ -132,9 +131,6 @@ public class CostFunction {
 			for(int j = 1; j < algorithm.getNumberOfNodes(); j++) {
 				cost += Config.TX_W*(algorithm.getfLatencyMap()[routingMap[i][j-1]][routingMap[i][j]] * dependencies +
 					bwNeeded/(algorithm.getfBandwidthMap()[routingMap[i][j-1]][routingMap[i][j]] + Config.EPSILON));
-				
-				if(routingMap[i][j] != routingMap[i][j-1])
-					cost += Config.TR_C;
 			}
 		}
 		

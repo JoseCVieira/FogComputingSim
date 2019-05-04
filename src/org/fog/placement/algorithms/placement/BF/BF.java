@@ -10,14 +10,15 @@ import org.fog.entities.FogBroker;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.placement.algorithms.placement.Algorithm;
-import org.fog.placement.algorithms.placement.AlgorithmUtils;
 import org.fog.placement.algorithms.placement.Job;
+import org.fog.placement.algorithms.placement.util.AlgorithmUtils;
 import org.fog.utils.Util;
 
 public class BF extends Algorithm {
 	private int[][] bestPlacementMap = null;
 	private int[][] bestRoutingMap = null;
 	private double bestCost = Config.INF;
+	private int iteration = 0;
 	
 	public BF(final List<FogBroker> fogBrokers, final List<FogDevice> fogDevices, final List<Application> applications,
 			final List<Sensor> sensors, final List<Actuator> actuators) {
@@ -26,7 +27,10 @@ public class BF extends Algorithm {
 	
 	@Override
 	public Job execute() {
+		long start = System.currentTimeMillis();
 		solveDeployment(new int[NR_NODES][NR_MODULES], 0);
+		long finish = System.currentTimeMillis();
+		elapsedTime = finish - start;
 		
 		Job solution = new Job(this, bestPlacementMap, bestRoutingMap);
 		
@@ -78,12 +82,14 @@ public class BF extends Algorithm {
 		
 		if(row == max_r + 1 && col == 1) {
 			//Trying the following routing map
-			
 			if(job.getCost() < bestCost) {
 				bestCost = job.getCost();
 				bestPlacementMap = Util.copy(modulePlacementMap);
 				bestRoutingMap = Util.copy(routingMap);
+				valueIterMap.put(iteration, bestCost);
 			}
+			
+			iteration++;
 		}else {
 			int previousNode = routingMap[row][col-1];
 			

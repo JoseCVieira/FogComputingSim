@@ -10,8 +10,8 @@ import org.fog.entities.FogBroker;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.placement.algorithms.placement.Algorithm;
-import org.fog.placement.algorithms.placement.AlgorithmUtils;
 import org.fog.placement.algorithms.placement.Job;
+import org.fog.placement.algorithms.placement.util.AlgorithmUtils;
 
 import ilog.concert.*;
 import ilog.cplex.*;
@@ -88,7 +88,7 @@ public class LP extends Algorithm {
 						double txOpCost = Config.OP_W*(getfBwPrice()[j]*bwNeeded);
 						
 						// Transmission cost + transmission operational cost + transition cost
-						objective.addTerm(routingVar[i][j][z], txCost + txOpCost + Config.TR_C);
+						objective.addTerm(routingVar[i][j][z], txCost + txOpCost);
 					}
 				}
 			}
@@ -167,10 +167,13 @@ public class LP extends Algorithm {
 			
 			// Display option
 			cplex.setParam(IloCplex.Param.Simplex.Display, 0);
-			
+
+			long start = System.currentTimeMillis();
 			// Solve
 			if (cplex.solve()) {
 				//System.out.println("\nValue = " + cplex.getObjValue() + "\n");
+				long finish = System.currentTimeMillis();
+				elapsedTime = finish - start;
 				
 				int[][] modulePlacementMap = new int[NR_NODES][NR_MODULES];
 				int[][][] routingMap = new int[getNumberOfDependencies()][NR_NODES][NR_NODES];
@@ -190,6 +193,8 @@ public class LP extends Algorithm {
 							routingMap[i][j][z] = (int) cplex.getValue(routingVar[i][j][z]);
 				
 				Job solution = new Job(this, modulePlacementMap, routingMap);
+				
+				valueIterMap.put(0, solution.getCost());
 			    
 			    if(Config.PRINT_DETAILS)
 			    	AlgorithmUtils.printResults(this, solution);

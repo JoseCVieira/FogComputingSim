@@ -1,4 +1,4 @@
-package org.fog.placement.algorithms.placement;
+package org.fog.placement.algorithms.placement.util;
 
 import java.util.List;
 
@@ -7,6 +7,8 @@ import org.fog.core.Config;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
+import org.fog.placement.algorithms.placement.Algorithm;
+import org.fog.placement.algorithms.placement.Job;
 
 public class AlgorithmUtils {
 	public static void print(String text, int[][] matrix) {
@@ -72,7 +74,7 @@ public class AlgorithmUtils {
         System.out.println("\n");
 	}
 	
-	static void printDetails(final Algorithm al, final List<FogDevice> fogDevices,
+	public static void printDetails(final Algorithm al, final List<FogDevice> fogDevices,
 			final List<Application> applications, final List<Sensor> sensors,
 			final List<Actuator> actuators) {
 		
@@ -263,6 +265,13 @@ public class AlgorithmUtils {
 			}
 			System.out.println();
 		}
+		
+		/*for(Integer iter : al.getValueIterMap().keySet()) {
+			double value = al.getValueIterMap().get(iter);
+			System.out.println("Iter: " + iter + " Value: " + value);
+		}*/
+		
+		System.out.println("Elapsed time: " + al.getElapsedTime() + " Millis");		
 	}
 	
 	public static String centerString (int width, String s) {

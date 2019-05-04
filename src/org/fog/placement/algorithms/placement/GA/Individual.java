@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Random;
 
 import org.fog.core.Config;
-import org.fog.placement.algorithms.placement.AlgorithmUtils;
 import org.fog.placement.algorithms.placement.Job;
+import org.fog.placement.algorithms.placement.util.AlgorithmUtils;
 
 public class Individual implements Comparable<Individual> {	
 	private GA ga;

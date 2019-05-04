@@ -11,11 +11,11 @@ import org.fog.entities.FogBroker;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.placement.algorithms.placement.Algorithm;
-import org.fog.placement.algorithms.placement.AlgorithmUtils;
 import org.fog.placement.algorithms.placement.Job;
+import org.fog.placement.algorithms.placement.util.AlgorithmUtils;
 
 public class GA extends Algorithm {
-	int count = 0;
+	private int iteration = 0;
 	
 	public GA(final List<FogBroker> fogBrokers, final List<FogDevice> fogDevices, final List<Application> applications,
 			final List<Sensor> sensors, final List<Actuator> actuators) {
@@ -29,6 +29,8 @@ public class GA extends Algorithm {
 		double bestValue = Config.INF;
 		int convergenceIter = 0;
 		
+		long start = System.currentTimeMillis();
+		
 	    for (int i = 0; i < Config.POPULATION_SIZE; i++)
 	    	population[i] = new Individual(this, new Job(Job.generateRandomPlacement(this, NR_NODES, NR_MODULES)));
 	    
@@ -40,6 +42,7 @@ public class GA extends Algorithm {
 	    	//System.out.println(population[0]);
 	    	
 	    	double iterBest = population[0].getFitness();
+	    	valueIterMap.put(iteration++, iterBest);
     		if((bestValue < Config.INF && bestValue >= iterBest) || (bestValue == Config.INF && bestValue > iterBest)) {
     			if(bestValue - iterBest <= Config.ERROR_STEP_CONVERGENCE && ++convergenceIter == 3)
 					break;
@@ -67,6 +70,9 @@ public class GA extends Algorithm {
 	        
 	        generation++;
 	    }
+	    
+	    long finish = System.currentTimeMillis();
+	    elapsedTime = finish - start;
 	    
 	    if(population[0].getFitness() == Config.INF)
 	    	return null;

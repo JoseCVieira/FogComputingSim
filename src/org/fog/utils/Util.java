@@ -2,6 +2,7 @@ package org.fog.utils;
 
 import java.awt.Component;
 import java.util.Random;
+import java.util.Scanner;
 
 import javax.swing.ComboBoxModel;
 import javax.swing.JButton;
@@ -125,6 +126,13 @@ public class Util {
 	
 	public static int confirm(Component parentComponent, String msg){
 		return JOptionPane.showConfirmDialog(parentComponent, msg);
+	}
+	
+	@SuppressWarnings("resource")
+	public static void promptEnterKey(){
+	   System.out.println("Press \"ENTER\" to continue...");
+	   Scanner scanner = new Scanner(System.in);
+	   scanner.nextLine();
 	}
 	
 	public static JTextField createInput(JPanel jPanel, JTextField jTextField, String label, String value) {

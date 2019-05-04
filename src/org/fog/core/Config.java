@@ -9,7 +9,7 @@ public class Config {
 	public static final boolean DEBUG_MODE = false;
 	
 	// Optimization Algorithm
-	public static final String OPTIMIZATION_ALGORITHM = "LP";
+	public static final String OPTIMIZATION_ALGORITHM = "BF";
 	public static final boolean PRINT_DETAILS = true;
 	
 	public static final double WILLING_TO_WAST_ENERGY_CLIENT = 0.01;
@@ -19,7 +19,6 @@ public class Config {
 	public static final int EN_W = 1; // Energetic weight
 	public static final int PR_W = 1; // Processing weight
 	public static final int TX_W = 1; // Transmission weight
-	public static final int TR_C = 1; // Transition cost
 	
 	public static final int POPULATION_SIZE = 100;
 	public static final int MAX_ITER = 1000;

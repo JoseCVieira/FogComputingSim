@@ -5,7 +5,6 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.concurrent.TimeUnit;
 
 import org.cloudbus.cloudsim.Log;
 import org.cloudbus.cloudsim.core.CloudSim;
@@ -25,12 +24,14 @@ import org.fog.placement.algorithms.placement.Job;
 import org.fog.placement.algorithms.placement.BF.BF;
 import org.fog.placement.algorithms.placement.GA.GA;
 import org.fog.placement.algorithms.placement.LP.LP;
+import org.fog.placement.algorithms.placement.util.MatlabChartUtils;
 import org.fog.test.DCNSFog;
 import org.fog.test.RandomTopology;
 import org.fog.test.TEMPFog;
 import org.fog.test.VRGameFog;
 import org.fog.utils.Logger;
 import org.fog.utils.TimeKeeper;
+import org.fog.utils.Util;
 
 public class FogComputingSim {
 	private static List<Application> applications;
@@ -56,21 +57,23 @@ public class FogComputingSim {
 				sensors == null || sensors.isEmpty() || controller == null)
 			throw new IllegalArgumentException("Some of the received arguments are null or empty.");
 		
-
 		Job solution = null;
 		Algorithm algorithm = null;
+		String title = "";
 		switch (Config.OPTIMIZATION_ALGORITHM) {
-			case "BF":
-				System.out.println("Running the optimization algorithm: Brute Force.");
-				algorithm = new BF(fogBrokers, fogDevices, applications, sensors, actuators);
-				break;
 			case "LP":
 				System.out.println("Running the optimization algorithm: Linear programming.");
 				algorithm = new LP(fogBrokers, fogDevices, applications, sensors, actuators);
 				break;
+			case "BF":
+				System.out.println("Running the optimization algorithm: Brute Force.");
+				algorithm = new BF(fogBrokers, fogDevices, applications, sensors, actuators);
+				title = "Brute Force";
+				break;
 			case "GA":
 				System.out.println("Running the optimization algorithm: Genetic Algorithm.");
 				algorithm = new GA(fogBrokers, fogDevices, applications, sensors, actuators);
+				title = "Genetic Algorithm";
 				break;
 			case "MDP":
 				System.err.println("MDP is not implemented yet.\nFogComputingSim will terminate abruptally.\n");
@@ -86,6 +89,12 @@ public class FogComputingSim {
 			System.err.println("There is no possible combination to deploy all applications.\n");
 			System.err.println("FogComputingSim will terminate abruptally.\n");
 			System.exit(-1);
+		}
+		
+		if(title != "") {
+			MatlabChartUtils matlabChartUtils = new MatlabChartUtils(algorithm, title);
+	    	matlabChartUtils.setVisible(true);
+	    	Util.promptEnterKey();
 		}
 		
 		deployApplications(algorithm.extractPlacementMap(solution.getModulePlacementMap()));
@@ -131,12 +140,9 @@ public class FogComputingSim {
 					break;
 				case 1:
 					Gui gui = new Gui();
+					
 					while(fogTest == null) {
-						try {
-							TimeUnit.SECONDS.sleep(1);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
+						Util.promptEnterKey();
 						fogTest = gui.getRunGUI();
 					}
 					break;
@@ -205,7 +211,7 @@ public class FogComputingSim {
 				fogDevice.getRoutingTable().put(hop.get(node), algorithm.getfId()[routingMap.get(hop)]);
 			}
 		}
-	}	
+	}
 	
 	private static FogBroker getFogBrokerByName(String name) {
 		for(FogBroker fogBroker : fogBrokers)
