@@ -82,13 +82,12 @@ public class LP extends Algorithm {
 				for(int j = 0; j < NR_NODES; j++) {
 					for(int z = 0; z < NR_NODES; z++) {
 						
-						double txCost = Config.TX_W*(getfLatencyMap()[j][z]*dependencies +
-								bwNeeded/(getfBandwidthMap()[j][z] + Config.EPSILON));
-						
+						double latencyCost = Config.LT_W*(getfLatencyMap()[j][z]*dependencies);
+						double bandwidthCost = bwNeeded/(getfBandwidthMap()[j][z] + Config.EPSILON);
 						double txOpCost = Config.OP_W*(getfBwPrice()[j]*bwNeeded);
 						
 						// Transmission cost + transmission operational cost + transition cost
-						objective.addTerm(routingVar[i][j][z], txCost + txOpCost);
+						objective.addTerm(routingVar[i][j][z], latencyCost + bandwidthCost + txOpCost);
 					}
 				}
 			}
@@ -99,19 +98,16 @@ public class LP extends Algorithm {
 			IloLinearNumExpr[] usedMipsCapacity = new IloLinearNumExpr[NR_NODES];
 			IloLinearNumExpr[] usedRamCapacity = new IloLinearNumExpr[NR_NODES];
 			IloLinearNumExpr[] usedMemCapacity = new IloLinearNumExpr[NR_NODES];
-			IloLinearNumExpr[] usedBwCapacity = new IloLinearNumExpr[NR_NODES];
 			
 			for (int i = 0; i < NR_NODES; i++) {
 				usedMipsCapacity[i] = cplex.linearNumExpr();
 				usedRamCapacity[i] = cplex.linearNumExpr();
 				usedMemCapacity[i] = cplex.linearNumExpr();
-				usedBwCapacity[i] = cplex.linearNumExpr();
 				
         		for (int j = 0; j < NR_MODULES; j++) {
         			usedMipsCapacity[i].addTerm(placementVar[i][j], getmMips()[j]);
         			usedRamCapacity[i].addTerm(placementVar[i][j], getmRam()[j]);
         			usedMemCapacity[i].addTerm(placementVar[i][j], getmMem()[j]);
-        			usedBwCapacity[i].addTerm(placementVar[i][j], getmBw()[j]);
         		}
 			}
 			
@@ -120,7 +116,6 @@ public class LP extends Algorithm {
         		cplex.addLe(usedMipsCapacity[i], getfMips()[i]);
         		cplex.addLe(usedRamCapacity[i], getfRam()[i]);
         		cplex.addLe(usedMemCapacity[i], getfMem()[i]);
-        		cplex.addLe(usedBwCapacity[i], getfBw()[i]);
 			}
 			
 			IloNumVar[][] transposeP = new IloNumVar[NR_MODULES][NR_NODES];

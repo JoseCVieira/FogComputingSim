@@ -42,11 +42,13 @@ public class GA extends Algorithm {
 	    	//System.out.println(population[0]);
 	    	
 	    	double iterBest = population[0].getFitness();
-	    	valueIterMap.put(iteration++, iterBest);
     		if((bestValue < Config.INF && bestValue >= iterBest) || (bestValue == Config.INF && bestValue > iterBest)) {
     			if(bestValue - iterBest <= Config.ERROR_STEP_CONVERGENCE && ++convergenceIter == 3)
 					break;
+    			
     			bestValue = iterBest;
+    			valueIterMap.put(iteration, bestValue);
+    			System.out.println("bestValue: " + bestValue);
     		}
 	  
 	        // otherwise generate new offsprings for new generation
@@ -134,6 +136,7 @@ public class GA extends Algorithm {
 		        
 		        //System.out.println(populationR[0]);
 		        
+		        iteration++;
 		        generation++;
 			}
 				

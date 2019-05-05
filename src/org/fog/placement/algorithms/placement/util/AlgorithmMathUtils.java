@@ -309,9 +309,83 @@ public class AlgorithmMathUtils {
 	}
 	
 	/**
+	 * Max value
+	 */
+	public static <T extends Number> double max(T[] vector)
+			throws IllegalArgumentException {
+		if(vector == null)
+			throw new IllegalArgumentException("AlgorithmUtils Err: Invalid argument.");
+		
+		double result = vector[0].doubleValue();
+		
+		for(int i = 0; i < vector.length; i++) {
+			
+			if(result < vector[i].doubleValue()) {
+				result = vector[i].doubleValue();
+			}
+		}
+		
+		return result;
+	}
+	
+	public static <T extends Number> double max(T[][] matrix)
+			throws IllegalArgumentException {
+		if(matrix == null)
+			throw new IllegalArgumentException("AlgorithmUtils Err: Invalid argument.");
+		
+		double result = matrix[0][0].doubleValue();
+		
+		for(int i = 0; i < matrix.length; i++) {
+			for(int j = 0; j < matrix[0].length ;j++) {
+				if(result < matrix[i][j].doubleValue()) {
+					result = matrix[i][j].doubleValue();
+				}
+			}
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * Min value
+	 */
+	public static <T extends Number> double min(T[] vector)
+			throws IllegalArgumentException {
+		if(vector == null)
+			throw new IllegalArgumentException("AlgorithmUtils Err: Invalid argument.");
+		
+		double result = vector[0].doubleValue();
+		
+		for(int i = 0; i < vector.length; i++) {
+			if(result > vector[i].doubleValue()) {
+				result = vector[i].doubleValue();
+			}
+		}
+		
+		return result;
+	}
+	
+	public static <T extends Number> double min(T[][] matrix)
+			throws IllegalArgumentException {
+		if(matrix == null)
+			throw new IllegalArgumentException("AlgorithmUtils Err: Invalid argument.");
+		
+		double result = matrix[0][0].doubleValue();
+		
+		for(int i = 0; i < matrix.length; i++) {
+			for(int j = 0; j < matrix[0].length ;j++) {
+				if(result > matrix[i][j].doubleValue()) {
+					result = matrix[i][j].doubleValue();
+				}
+			}
+		}
+		
+		return result;
+	}
+	
+	/**
 	 * Number conversions
 	 */
-	
 	public static int[] toInt(double[] vector) throws IllegalArgumentException {
 		if(vector == null)
 			throw new IllegalArgumentException("AlgorithmUtils Err: Invalid argument.");

@@ -3,22 +3,24 @@ package org.fog.core;
 public class Config {
 	// Global
 	public static final double INF = Double.MAX_VALUE;
+	public static final double IINF = Integer.MAX_VALUE;	
 	public static final double EPSILON = 1E-9;
 	
 	// Fog Computing Simulator core
 	public static final boolean DEBUG_MODE = false;
 	
 	// Optimization Algorithm
-	public static final String OPTIMIZATION_ALGORITHM = "BF";
+	public static final String OPTIMIZATION_ALGORITHM = "GA";
 	public static final boolean PRINT_DETAILS = true;
 	
 	public static final double WILLING_TO_WAST_ENERGY_CLIENT = 0.01;
 	public static final double WILLING_TO_WAST_ENERGY_FOG_NODE = 1;
 	
-	public static final int OP_W = 1; // Operational weight
-	public static final int EN_W = 1; // Energetic weight
-	public static final int PR_W = 1; // Processing weight
-	public static final int TX_W = 1; // Transmission weight
+	public static final double OP_W = 0.00000001; 	// Operational weight
+	public static final double EN_W = 0.00000001; 	// Energetic weight
+	public static final double PR_W = 0.00000001; 	// Processing weight
+	public static final double LT_W = 1; 			// Latency weight
+	public static final double BW_W = 1; 	// Bandwidth weight
 	
 	public static final int POPULATION_SIZE = 100;
 	public static final int MAX_ITER = 1000;
@@ -28,7 +30,7 @@ public class Config {
 	
 	// Random topology
 	public static final String CLOUD_NAME = "Cloud";
-	public static final int NR_FOG_DEVICES = 2;
+	public static final int NR_FOG_DEVICES = 5;
 	
 	public static final int MAX_CONN_LAT = 100;
 	public static final int MAX_CONN_BW = 10000;

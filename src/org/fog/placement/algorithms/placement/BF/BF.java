@@ -50,6 +50,8 @@ public class BF extends Algorithm {
 						modulePlacementMap[j][index] = 0;
 				}
 				
+				if(!isPossibleModulePlacement(modulePlacementMap))
+					continue;
 				
 				if(index != NR_MODULES - 1)
 					solveDeployment(modulePlacementMap, index + 1);
@@ -88,20 +90,38 @@ public class BF extends Algorithm {
 				bestRoutingMap = Util.copy(routingMap);
 				valueIterMap.put(iteration, bestCost);
 			}
-			
 			iteration++;
 		}else {
 			int previousNode = routingMap[row][col-1];
 			
-			for(int i = 0; i < NR_NODES; i++) {
+			if(previousNode == routingMap[row][NR_NODES-1]) {
+				routingMap[row][col] = previousNode;
 				
-				if(getfLatencyMap()[previousNode][i] < Config.INF) {
-					routingMap[row][col] = i;
+				if(col < max_c-1)
+					solveRouting(new Job(this, modulePlacementMap, routingMap), row, col + 1);
+				else
+					solveRouting(new Job(this, modulePlacementMap, routingMap), row + 1, 1);
 				
-					if(col < max_c-1)
-						solveRouting(new Job(this, modulePlacementMap, routingMap), row, col + 1);
-					else
-						solveRouting(new Job(this, modulePlacementMap, routingMap), row + 1, 1);
+			}else {
+				for(int i = 0; i < NR_NODES; i++) {
+					
+					if(getfLatencyMap()[previousNode][i] < Config.INF) {
+						
+						boolean valid = true;
+						for(int j = 0; j < col; j++)
+							if(routingMap[row][j] == i && i != previousNode)
+								valid = false;
+						
+						if(!valid)
+							continue;
+						
+						routingMap[row][col] = i;
+					
+						if(col < max_c-1)
+							solveRouting(new Job(this, modulePlacementMap, routingMap), row, col + 1);
+						else
+							solveRouting(new Job(this, modulePlacementMap, routingMap), row + 1, 1);
+					}
 				}
 			}
 		}
@@ -123,6 +143,25 @@ public class BF extends Algorithm {
 	    }
 	    
 	    return ret;
+	}
+	
+	private boolean isPossibleModulePlacement(int[][] modulePlacementMap) {
+		for(int j = 0; j < getNumberOfNodes(); j++) {
+			double totalMips = 0;
+			double totalRam = 0;
+			double totalMem = 0;
+			
+			for(int z = 0; z < getNumberOfModules(); z++) {
+				totalMips += modulePlacementMap[j][z] * getmMips()[z];
+				totalRam += modulePlacementMap[j][z] * getmRam()[z];
+				totalMem += modulePlacementMap[j][z] * getmMem()[z];
+			}
+			
+			if(totalMips > getfMips()[j] || totalRam > getfRam()[j] || totalMem > getfMem()[j])
+				return false;
+		}
+		
+		return true;
 	}
 	
 }

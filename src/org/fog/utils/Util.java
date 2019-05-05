@@ -129,8 +129,8 @@ public class Util {
 	}
 	
 	@SuppressWarnings("resource")
-	public static void promptEnterKey(){
-	   System.out.println("Press \"ENTER\" to continue...");
+	public static void promptEnterKey(String string){
+	   System.out.println(string);
 	   Scanner scanner = new Scanner(System.in);
 	   scanner.nextLine();
 	}

@@ -32,7 +32,7 @@ public class RandomTopology extends FogTest {
 	}
 	
 	private static void createFogDevices() {
-		FogDevice cloud = createFogDevice(Config.CLOUD_NAME, Short.MAX_VALUE, Short.MAX_VALUE, Short.MAX_VALUE, Short.MAX_VALUE,
+		FogDevice cloud = createFogDevice(Config.CLOUD_NAME, (int) Config.IINF, (int) Config.IINF, (int) Config.IINF, (int) Config.IINF,
 				16*Config.BUSY_POWER, 16*Config.IDLE_POWER, Config.COST_PER_SEC, Config.RATE_MIPS, Config.RATE_RAM,
 				Config.RATE_MEM, Config.RATE_BW);
 		

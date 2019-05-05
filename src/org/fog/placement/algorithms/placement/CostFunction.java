@@ -5,20 +5,15 @@ import java.util.List;
 
 import org.fog.core.Config;
 
-public class CostFunction {
-	private static List<Integer> initialModules;
-	private static List<Integer> finalModules;
-	private static int[][] modulePlacementMap;
-	private static int[][] routingMap;
-	
+public class CostFunction {	
 	public static double computeCost(Job job, Algorithm algorithm) {
-		initialModules = new ArrayList<Integer>();
-		finalModules = new ArrayList<Integer>();
+		List<Integer> initialModules = new ArrayList<Integer>();
+		List<Integer> finalModules = new ArrayList<Integer>();
 		
-		modulePlacementMap = job.getModulePlacementMap();
-		routingMap = job.getRoutingMap();
+		int[][] modulePlacementMap = job.getModulePlacementMap();
+		int[][] routingMap = job.getRoutingMap();
 		
-		if(isPossibleCombination(job, algorithm) == false)
+		if(isPossibleCombination(algorithm, modulePlacementMap) == false)
 			return Config.INF;
 		
 		for(int i = 0; i < algorithm.getNumberOfModules(); i++) {
@@ -31,15 +26,15 @@ public class CostFunction {
 		}
 		
 		double cost = 0;
-		cost += calculateOperationalCost(job, algorithm);
-		cost += calculateEnergyConsumption(job, algorithm);		
-		cost += calculateProcessingCost(job, algorithm);		
-		cost += calculateTransmittingCost(job, algorithm);
+		cost += calculateOperationalCost(algorithm, modulePlacementMap, routingMap, initialModules, finalModules);
+		cost += calculatePowerCost(algorithm, modulePlacementMap);		
+		cost += calculateProcessingCost(algorithm, modulePlacementMap);		
+		cost += calculateTransmittingCost(algorithm, routingMap, initialModules, finalModules);
 		
 		return cost;
 	}
 	
-	private static boolean isPossibleCombination(Job job, Algorithm algorithm) {
+	private static boolean isPossibleCombination(Algorithm algorithm, int[][] modulePlacementMap) {
 		// If some module is not placed
 		for(int j = 0; j < algorithm.getNumberOfModules(); j++) {
 			int sum = 0;
@@ -56,23 +51,21 @@ public class CostFunction {
 			double totalMips = 0;
 			double totalRam = 0;
 			double totalMem = 0;
-			double totalBw = 0;
 			
 			for(int j = 0; j < algorithm.getNumberOfModules(); j++) {
 				totalMips += modulePlacementMap[i][j] * algorithm.getmMips()[j];
 				totalRam += modulePlacementMap[i][j] * algorithm.getmRam()[j];
 				totalMem += modulePlacementMap[i][j] * algorithm.getmMem()[j];
-				totalBw += modulePlacementMap[i][j] * algorithm.getmBw()[j];
 			}
 			
-			if(totalMips > algorithm.getfMips()[i] || totalRam > algorithm.getfRam()[i] ||
-					totalMem > algorithm.getfMem()[i] || totalBw > algorithm.getfBw()[i])
+			if(totalMips > algorithm.getfMips()[i] || totalRam > algorithm.getfRam()[i] || totalMem > algorithm.getfMem()[i])
 				return false;
 		}
 		return true;
 	}
 	
-	private static double calculateOperationalCost(Job job, Algorithm algorithm) {
+	private static double calculateOperationalCost(Algorithm algorithm, int[][] modulePlacementMap,
+			int[][] routingMap, List<Integer> initialModules, List<Integer> finalModules) {
 		double cost = 0;
 		
 		for(int i = 0; i < algorithm.getNumberOfNodes(); i++) {
@@ -95,7 +88,7 @@ public class CostFunction {
 		return cost;
 	}
 	
-	private static double calculateEnergyConsumption(Job job, Algorithm algorithm) {
+	private static double calculatePowerCost(Algorithm algorithm, int[][] modulePlacementMap) {
 		double cost = 0;
 		
 		for(int i = 0; i < algorithm.getNumberOfNodes(); i++) {
@@ -111,7 +104,7 @@ public class CostFunction {
 		return cost;
 	}
 	
-	private static double calculateProcessingCost(Job job, Algorithm algorithm) {
+	private static double calculateProcessingCost(Algorithm algorithm, int[][] modulePlacementMap) {
 		double cost = 0;
 		
 		for(int i = 0; i < modulePlacementMap.length; i++)
@@ -121,7 +114,8 @@ public class CostFunction {
 		return cost;
 	}
 	
-	private static double calculateTransmittingCost(Job job, Algorithm algorithm) {
+	private static double calculateTransmittingCost(Algorithm algorithm, int[][] routingMap,
+			List<Integer> initialModules, List<Integer> finalModules) {
 		double cost = 0;
 		
 		for(int i = 0; i < algorithm.getNumberOfDependencies(); i++) {
@@ -129,8 +123,8 @@ public class CostFunction {
 			double dependencies = algorithm.getmDependencyMap()[initialModules.get(i)][finalModules.get(i)];
 			
 			for(int j = 1; j < algorithm.getNumberOfNodes(); j++) {
-				cost += Config.TX_W*(algorithm.getfLatencyMap()[routingMap[i][j-1]][routingMap[i][j]] * dependencies +
-					bwNeeded/(algorithm.getfBandwidthMap()[routingMap[i][j-1]][routingMap[i][j]] + Config.EPSILON));
+				cost += Config.LT_W*(algorithm.getfLatencyMap()[routingMap[i][j-1]][routingMap[i][j]] * dependencies);
+				cost += Config.BW_W*(bwNeeded/(algorithm.getfBandwidthMap()[routingMap[i][j-1]][routingMap[i][j]] + Config.EPSILON));
 			}
 		}
 		

@@ -94,7 +94,7 @@ public class FogComputingSim {
 		if(title != "") {
 			MatlabChartUtils matlabChartUtils = new MatlabChartUtils(algorithm, title);
 	    	matlabChartUtils.setVisible(true);
-	    	Util.promptEnterKey();
+	    	Util.promptEnterKey("Press \"ENTER\" to continue...");
 		}
 		
 		deployApplications(algorithm.extractPlacementMap(solution.getModulePlacementMap()));
@@ -142,7 +142,7 @@ public class FogComputingSim {
 					Gui gui = new Gui();
 					
 					while(fogTest == null) {
-						Util.promptEnterKey();
+						Util.promptEnterKey("Press \"ENTER\" to continue...");
 						fogTest = gui.getRunGUI();
 					}
 					break;

@@ -20,6 +20,7 @@ import org.fog.entities.FogBroker;
 import org.fog.entities.FogDevice;
 import org.fog.entities.FogDeviceCharacteristics;
 import org.fog.entities.Sensor;
+import org.fog.placement.algorithms.placement.util.AlgorithmMathUtils;
 import org.fog.placement.algorithms.placement.util.AlgorithmUtils;
 import org.fog.utils.FogLinearPowerModel;
 import org.fog.utils.distribution.DeterministicDistribution;
@@ -45,7 +46,6 @@ public abstract class Algorithm {
 	protected double fMips[];
 	protected double fRam[];
 	protected double fMem[];
-	protected double fBw[];
 	protected double fBusyPw[];
 	protected double fIdlePw[];
 	protected double fPwWeight[];
@@ -80,7 +80,6 @@ public abstract class Algorithm {
 		fMips = new double[NR_NODES];
 		fRam = new double[NR_NODES];
 		fMem = new double[NR_NODES];
-		fBw = new double[NR_NODES];
 		fBusyPw = new double[NR_NODES];
 		fIdlePw = new double[NR_NODES];
 		fMipsPrice = new double[NR_NODES];
@@ -123,6 +122,7 @@ public abstract class Algorithm {
 		extractAppCharacteristics(fogBrokers, fogDevices, applications, sensors, actuators);
 		computeApplicationCharacteristics(applications, sensors);
 		computeLatencyMap(fogDevices, sensors, actuators);
+		normalizeValues();
 		
 		if(Config.PRINT_DETAILS)
 			AlgorithmUtils.printDetails(this, fogDevices, applications, sensors, actuators);
@@ -145,9 +145,9 @@ public abstract class Algorithm {
 			fMips[i] = totalMips;
 			fRam[i] = fogDevice.getHost().getRam();
 			fMem[i] = fogDevice.getHost().getStorage();
-			fBw[i] = fogDevice.getHost().getBw();
 			fBusyPw[i] = ((FogLinearPowerModel) fogDevice.getHost().getPowerModel()).getBusyPower();
 			fIdlePw[i] = ((FogLinearPowerModel) fogDevice.getHost().getPowerModel()).getStaticPower();
+			
 			fMipsPrice[i] = characteristics.getCostPerMips();
 			fRamPrice[i] = characteristics.getCostPerMem();
 			fMemPrice[i] = characteristics.getCostPerStorage();
@@ -158,13 +158,13 @@ public abstract class Algorithm {
 		for(Sensor sensor : sensors) {
 			fId[i] = sensor.getId();
 			fName[i] = sensor.getName();
-			fMips[i++] = Config.INF;
+			fMips[i++] = Config.IINF;
 		}
 		
 		for(Actuator actuator : actuators) {
 			fId[i] = actuator.getId();
 			fName[i] = actuator.getName();
-			fMips[i++] = Config.INF;
+			fMips[i++] = Config.IINF;
 		}
 	}
 	
@@ -375,18 +375,19 @@ public abstract class Algorithm {
 			}
 			
 			getfLatencyMap()[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(dId)] = 0;
-			getfBandwidthMap()[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(dId)] = Config.INF;
+			getfBandwidthMap()[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(dId)] = Config.IINF;
 		}
 		
 		
+		//sensor and act only have latency
 		for(Sensor sensor : sensors) {
 			int id1 = sensor.getId();
 			int id2 = sensor.getGatewayDeviceId();
 			double lat = sensor.getLatency();
 			
-			getfBandwidthMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id2)] = Config.INF; //sensor and act only have latency
-			getfBandwidthMap()[getNodeIndexByNodeId(id2)][getNodeIndexByNodeId(id1)] = Config.INF;
-			getfBandwidthMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id1)] = Config.INF;
+			getfBandwidthMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id2)] = Config.IINF;
+			getfBandwidthMap()[getNodeIndexByNodeId(id2)][getNodeIndexByNodeId(id1)] = Config.IINF;
+			getfBandwidthMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id1)] = Config.IINF;
 			
 			getfLatencyMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id2)] = lat;
 			getfLatencyMap()[getNodeIndexByNodeId(id2)][getNodeIndexByNodeId(id1)] = lat;
@@ -398,14 +399,83 @@ public abstract class Algorithm {
 			int id2 = actuator.getGatewayDeviceId();
 			double lat = actuator.getLatency();
 			
-			getfBandwidthMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id2)] = Config.INF;
-			getfBandwidthMap()[getNodeIndexByNodeId(id2)][getNodeIndexByNodeId(id1)] = Config.INF;
-			getfBandwidthMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id1)] = Config.INF;
+			getfBandwidthMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id2)] = Config.IINF;
+			getfBandwidthMap()[getNodeIndexByNodeId(id2)][getNodeIndexByNodeId(id1)] = Config.IINF;
+			getfBandwidthMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id1)] = Config.IINF;
 			
 			getfLatencyMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id2)] = lat;
 			getfLatencyMap()[getNodeIndexByNodeId(id2)][getNodeIndexByNodeId(id1)] = lat;
 			getfLatencyMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id1)] = 0;
 		}
+	}
+	
+	private void normalizeValues() {
+		double maxValue, maxValue2, maxValue3, maxValue4;
+		
+		// Prices
+		maxValue = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fMipsPrice));
+		maxValue2 = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fRamPrice));
+		maxValue3 = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fMemPrice));
+		maxValue4 = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fBwPrice));
+		maxValue = maxValue >= maxValue2 ? maxValue : maxValue2;
+		maxValue = maxValue >= maxValue3 ? maxValue : maxValue3;
+		maxValue = maxValue >= maxValue4 ? maxValue : maxValue4;
+		
+		fMipsPrice = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fMipsPrice), (Number) maxValue);
+		fRamPrice = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fRamPrice), (Number) maxValue);
+		fMemPrice = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fMemPrice), (Number) maxValue);
+		fBwPrice = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fBwPrice), (Number) maxValue);
+		
+		// MIPS
+		maxValue = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fMips));
+		maxValue2 = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(mMips));
+		maxValue = maxValue >= maxValue2 ? maxValue : maxValue2;
+		
+		fMips = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fMips), (Number) maxValue);
+		mMips = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(mMips), (Number) maxValue);
+		
+		// Ram
+		maxValue = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fRam));
+		maxValue2 = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(mRam));
+		maxValue = maxValue >= maxValue2 ? maxValue : maxValue2;
+		
+		fRam = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fRam), (Number) maxValue);
+		mRam = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(mRam), (Number) maxValue);
+		
+		// Storage
+		maxValue = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fMem));
+		maxValue2 = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(mMem));
+		maxValue = maxValue >= maxValue2 ? maxValue : maxValue2;
+		
+		fMem = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fMem), (Number) maxValue);
+		mMem = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(mMem), (Number) maxValue);
+		
+		// Bandwidth
+		maxValue = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fBandwidthMap));
+		maxValue2 = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(mBandwidthMap));
+		maxValue3 = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(mBw));
+		maxValue = maxValue >= maxValue2 ? maxValue : maxValue2;
+		maxValue = maxValue >= maxValue3 ? maxValue : maxValue3;
+		
+		fBandwidthMap = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fBandwidthMap), (Number) maxValue);
+		mBandwidthMap = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(mBandwidthMap), (Number) maxValue);
+		mBw = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(mBw), (Number) maxValue);
+		
+		// Power
+		maxValue = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fBusyPw));		
+		fBusyPw = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fBusyPw), (Number) maxValue);
+		fIdlePw = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fIdlePw), (Number) maxValue);
+		
+		maxValue = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fPwWeight));
+		fPwWeight = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fPwWeight), (Number) maxValue);
+		
+		// Latency
+		maxValue = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fLatencyMap));
+		fLatencyMap = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fLatencyMap), (Number) maxValue);
+		
+		// Dependencies
+		maxValue = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(mDependencyMap));
+		mDependencyMap = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(mDependencyMap), (Number) maxValue);
 	}
 	
 	public abstract Job execute();
@@ -536,10 +606,6 @@ public abstract class Algorithm {
 
 	public double[] getfMem() {
 		return fMem;
-	}
-
-	public double[] getfBw() {
-		return fBw;
 	}
 	
 	public double[] getfPwWeight() {
