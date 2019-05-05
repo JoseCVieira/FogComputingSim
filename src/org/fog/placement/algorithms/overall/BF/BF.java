@@ -1,4 +1,4 @@
-package org.fog.placement.algorithms.placement.BF;
+package org.fog.placement.algorithms.overall.BF;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,9 +9,9 @@ import org.fog.entities.Actuator;
 import org.fog.entities.FogBroker;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
-import org.fog.placement.algorithms.placement.Algorithm;
-import org.fog.placement.algorithms.placement.Job;
-import org.fog.placement.algorithms.placement.util.AlgorithmUtils;
+import org.fog.placement.algorithms.overall.Algorithm;
+import org.fog.placement.algorithms.overall.Job;
+import org.fog.placement.algorithms.overall.util.AlgorithmUtils;
 import org.fog.utils.Util;
 
 public class BF extends Algorithm {

@@ -1,12 +1,12 @@
-package org.fog.placement.algorithms.placement.GA;
+package org.fog.placement.algorithms.overall.GA;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 import org.fog.core.Config;
-import org.fog.placement.algorithms.placement.Job;
-import org.fog.placement.algorithms.placement.util.AlgorithmUtils;
+import org.fog.placement.algorithms.overall.Job;
+import org.fog.placement.algorithms.overall.util.AlgorithmUtils;
 
 public class Individual implements Comparable<Individual> {	
 	private GA ga;

@@ -1,4 +1,4 @@
-package org.fog.placement.algorithms.placement.util;
+package org.fog.placement.algorithms.overall.util;
 
 public class AlgorithmMathUtils {
 	

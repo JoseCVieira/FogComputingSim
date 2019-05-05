@@ -1,4 +1,4 @@
-package org.fog.placement.algorithms.placement.util;
+package org.fog.placement.algorithms.overall.util;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -16,7 +16,7 @@ import javax.swing.Popup;
 import javax.swing.PopupFactory;
 
 import org.fog.core.Config;
-import org.fog.placement.algorithms.placement.Algorithm;
+import org.fog.placement.algorithms.overall.Algorithm;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;
@@ -166,7 +166,6 @@ public class MatlabChartUtils extends JFrame implements ChartMouseListener {
 		    int x = point.x + comp.getLocationOnScreen().x;
 		    int y = point.y + comp.getLocationOnScreen().y;
 		    
-		    //Point point = comp.getLocationOnScreen();
 		    popup = PopupFactory.getSharedInstance().getPopup(comp, toolTip, x + 2, y + 2);
 		}
 	}

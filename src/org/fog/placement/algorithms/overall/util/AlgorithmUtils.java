@@ -1,4 +1,4 @@
-package org.fog.placement.algorithms.placement.util;
+package org.fog.placement.algorithms.overall.util;
 
 import java.util.List;
 
@@ -7,8 +7,8 @@ import org.fog.core.Config;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
-import org.fog.placement.algorithms.placement.Algorithm;
-import org.fog.placement.algorithms.placement.Job;
+import org.fog.placement.algorithms.overall.Algorithm;
+import org.fog.placement.algorithms.overall.Job;
 
 public class AlgorithmUtils {
 	public static void print(String text, int[][] matrix) {

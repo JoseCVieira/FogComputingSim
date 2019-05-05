@@ -1,4 +1,4 @@
-package org.fog.placement.algorithms.placement.GA;
+package org.fog.placement.algorithms.overall.GA;
 
 import java.util.Arrays;
 import java.util.List;
@@ -10,9 +10,9 @@ import org.fog.entities.Actuator;
 import org.fog.entities.FogBroker;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
-import org.fog.placement.algorithms.placement.Algorithm;
-import org.fog.placement.algorithms.placement.Job;
-import org.fog.placement.algorithms.placement.util.AlgorithmUtils;
+import org.fog.placement.algorithms.overall.Algorithm;
+import org.fog.placement.algorithms.overall.Job;
+import org.fog.placement.algorithms.overall.util.AlgorithmUtils;
 
 public class GA extends Algorithm {
 	private int iteration = 0;

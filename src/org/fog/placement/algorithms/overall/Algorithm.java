@@ -1,4 +1,4 @@
-package org.fog.placement.algorithms.placement;
+package org.fog.placement.algorithms.overall;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,8 +20,8 @@ import org.fog.entities.FogBroker;
 import org.fog.entities.FogDevice;
 import org.fog.entities.FogDeviceCharacteristics;
 import org.fog.entities.Sensor;
-import org.fog.placement.algorithms.placement.util.AlgorithmMathUtils;
-import org.fog.placement.algorithms.placement.util.AlgorithmUtils;
+import org.fog.placement.algorithms.overall.util.AlgorithmMathUtils;
+import org.fog.placement.algorithms.overall.util.AlgorithmUtils;
 import org.fog.utils.FogLinearPowerModel;
 import org.fog.utils.distribution.DeterministicDistribution;
 import org.fog.utils.distribution.Distribution;
