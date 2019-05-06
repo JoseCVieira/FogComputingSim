@@ -21,11 +21,11 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
+import org.fog.core.Constants;
 import org.fog.gui.core.ApplicationGui;
 import org.fog.gui.core.FogDeviceGui;
 import org.fog.gui.core.Graph;
 import org.fog.gui.core.Node;
-import org.fog.core.Config;
 import org.fog.utils.Util;
 
 /** A dialog to view applications */
@@ -107,7 +107,7 @@ public class DisplayApplications extends JDialog {
 			    				appToRemove = applicationGui;
 			    		
 			    		for(Node node : graph.getDevicesList().keySet())
-			    			if(node.getType().equals(Config.FOG_TYPE))
+			    			if(node.getType().equals(Constants.FOG_TYPE))
 			    				if(((FogDeviceGui)node).getApplication().equals(appToRemove.getAppId()))
 			    					((FogDeviceGui)node).setApplication("");
 			    		

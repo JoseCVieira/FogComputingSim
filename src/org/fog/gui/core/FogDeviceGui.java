@@ -1,6 +1,6 @@
 package org.fog.gui.core;
 
-import org.fog.core.Config;
+import org.fog.core.Constants;
 
 /**
  * The model that represents virtual machine node for the graph.
@@ -27,7 +27,7 @@ public class FogDeviceGui extends Node {
 	public FogDeviceGui(String name, int level, double mips, int ram, long storage, double bw,
 			double rateMips, double rateRam, double rateStorage, double rateBw, double idlePower,
 			double busyPower, double costPerSec, String appId) {
-		super(name, Config.FOG_TYPE);
+		super(name, Constants.FOG_TYPE);
 		
 		this.setName(name);
 		this.setLevel(level);

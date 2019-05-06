@@ -23,7 +23,7 @@ import org.fog.application.AppLoop;
 import org.fog.application.AppModule;
 import org.fog.application.Application;
 import org.fog.placement.Controller;
-import org.fog.core.Config;
+import org.fog.core.Constants;
 import org.fog.utils.FogEvents;
 import org.fog.utils.Logger;
 import org.fog.utils.NetworkUsageMonitor;
@@ -145,7 +145,7 @@ public class FogDevice extends PowerDatacenter {
 	 */
 	private void manageResources(SimEvent ev) {
 		updateEnergyConsumption();
-		send(getId(), Config.RESOURCE_MGMT_INTERVAL, FogEvents.RESOURCE_MGMT);
+		send(getId(), Constants.RESOURCE_MGMT_INTERVAL, FogEvents.RESOURCE_MGMT);
 	}
 
 	private AppModule getModuleByName(String moduleName){

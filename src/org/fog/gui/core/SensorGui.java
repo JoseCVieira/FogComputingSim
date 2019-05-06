@@ -2,7 +2,7 @@ package org.fog.gui.core;
 
 import java.io.Serializable;
 
-import org.fog.core.Config;
+import org.fog.core.Constants;
 import org.fog.utils.distribution.DeterministicDistribution;
 import org.fog.utils.distribution.Distribution;
 import org.fog.utils.distribution.NormalDistribution;
@@ -16,7 +16,7 @@ public class SensorGui extends Node implements Serializable{
 	private Distribution distribution;
 	
 	public SensorGui(String name, Distribution distribution){
-		super(name, Config.SENSOR_TYPE);
+		super(name, Constants.SENSOR_TYPE);
 		setName(name);
 		setSensorType("");
 		setDistribution(distribution);
@@ -24,7 +24,7 @@ public class SensorGui extends Node implements Serializable{
 
 	public SensorGui(String name, String selectedItem, double normalMean_, double normalStdDev_, double uniformLow_, double uniformUp_,
 			double deterministicVal_) {
-		super(name, Config.SENSOR_TYPE);
+		super(name, Constants.SENSOR_TYPE);
 		
 		setName(name);
 		setSensorType("");

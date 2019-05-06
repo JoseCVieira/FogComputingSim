@@ -7,7 +7,6 @@ import org.fog.application.AppEdge;
 import org.fog.application.AppLoop;
 import org.fog.application.Application;
 import org.fog.application.selectivity.FractionalSelectivity;
-import org.fog.core.Config;
 import org.fog.core.FogTest;
 import org.fog.entities.FogDevice;
 import org.fog.utils.distribution.NormalDistribution;
@@ -29,12 +28,12 @@ public class TEMPFog extends FogTest {
 	}
 	
 	private static void createFogDevices() {
-		FogDevice cloud = createFogDevice("cloud", 100000, 10240, 1000000, 1000, 16*103, 16*83.25, Config.COST_PER_SEC, 10, 0.05, 0.001, 0.0);
+		FogDevice cloud = createFogDevice("cloud", 100000, 10240, 1000000, 1000, 16*103, 16*83.25, 10, 0.05, 0.001, 0.0);
 		
 		fogDevices.add(cloud);
 		
 		for(int i = 0; i < numOfRouters; i++){
-			FogDevice dept = createFogDevice("d-"+i, 1000, 1024, 1000000, 1000, 107.339, 83.4333, Config.COST_PER_SEC, 0.0, 0.05, 0.001, 0.0);
+			FogDevice dept = createFogDevice("d-"+i, 1000, 1024, 1000000, 1000, 107.339, 83.4333, 0.0, 0.05, 0.001, 0.0);
 			
 			fogDevices.add(dept);
 			
@@ -42,7 +41,7 @@ public class TEMPFog extends FogTest {
 			
 			
 			for(int j = 0; j < numOfMobilesPerRouter; j++){
-				FogDevice mobile = createFogDevice("m-"+i+"-"+j, 1000, 1024, 1000000, 1000, 87.53, 82.44, Config.COST_PER_SEC, 0.0, 0.05, 0.001, 0.0);
+				FogDevice mobile = createFogDevice("m-"+i+"-"+j, 1000, 1024, 1000000, 1000, 87.53, 82.44, 0.0, 0.05, 0.001, 0.0);
 				
 				fogDevices.add(mobile);
 				

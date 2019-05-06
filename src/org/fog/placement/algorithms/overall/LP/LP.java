@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.fog.application.Application;
 import org.fog.core.Config;
+import org.fog.core.Constants;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogBroker;
 import org.fog.entities.FogDevice;
@@ -83,7 +84,7 @@ public class LP extends Algorithm {
 					for(int z = 0; z < NR_NODES; z++) {
 						
 						double latencyCost = Config.LT_W*(getfLatencyMap()[j][z]*dependencies);
-						double bandwidthCost = bwNeeded/(getfBandwidthMap()[j][z] + Config.EPSILON);
+						double bandwidthCost = bwNeeded/(getfBandwidthMap()[j][z] + Constants.EPSILON);
 						double txOpCost = Config.OP_W*(getfBwPrice()[j]*bwNeeded);
 						
 						// Transmission cost + transmission operational cost + transition cost

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import org.fog.core.Config;
+import org.fog.core.Constants;
 import org.fog.placement.algorithms.overall.Job;
 import org.fog.placement.algorithms.overall.util.AlgorithmUtils;
 
@@ -85,7 +85,7 @@ public class Individual implements Comparable<Individual> {
 						List<Integer> validValues = new ArrayList<Integer>();
 						
 						for(int z = 0; z < routingMap[0].length; z++)
-							if(ga.getfLatencyMap()[(int) routingMap[i][j-1]][z] < Config.INF)
+							if(ga.getfLatencyMap()[(int) routingMap[i][j-1]][z] < Constants.INF)
 								validValues.add(z);
 						
 						childRoutingMap[i][j] = validValues.get(new Random().nextInt(validValues.size()));

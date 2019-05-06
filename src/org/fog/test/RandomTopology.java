@@ -11,9 +11,11 @@ import org.fog.application.AppLoop;
 import org.fog.application.Application;
 import org.fog.application.selectivity.FractionalSelectivity;
 import org.fog.core.Config;
+import org.fog.core.Constants;
 import org.fog.core.FogTest;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Tuple;
+import org.fog.gui.GuiConfig;
 import org.fog.utils.Util;
 import org.fog.utils.distribution.DeterministicDistribution;
 import org.fog.utils.distribution.Distribution;
@@ -32,9 +34,9 @@ public class RandomTopology extends FogTest {
 	}
 	
 	private static void createFogDevices() {
-		FogDevice cloud = createFogDevice(Config.CLOUD_NAME, (int) Config.IINF, (int) Config.IINF, (int) Config.IINF, (int) Config.IINF,
-				16*Config.BUSY_POWER, 16*Config.IDLE_POWER, Config.COST_PER_SEC, Config.RATE_MIPS, Config.RATE_RAM,
-				Config.RATE_MEM, Config.RATE_BW);
+		FogDevice cloud = createFogDevice(Config.CLOUD_NAME, (int) Constants.IINF, (int) Constants.IINF, (int) Constants.IINF, (int) Constants.IINF,
+				16*GuiConfig.BUSY_POWER, 16*GuiConfig.IDLE_POWER, GuiConfig.RATE_MIPS, GuiConfig.RATE_RAM,
+				GuiConfig.RATE_MEM, GuiConfig.RATE_BW);
 		
 		fogDevices.add(cloud);
 		
@@ -46,21 +48,21 @@ public class RandomTopology extends FogTest {
 			nrFogNodes -= nr;
 			
 			for(int i = 0; i < nr; i++) {
-				double mips = Util.normalRand(Config.MIPS/iter, Config.RESOURCES_DEV/iter);
-				double ram = Util.normalRand(Config.RAM/iter, Config.RESOURCES_DEV/iter);
-				double strg = Util.normalRand(Config.MEM/iter, Config.RESOURCES_DEV/iter);
-				double bw = Util.normalRand(Config.BW/iter,Config. RESOURCES_DEV/iter);
+				double mips = Util.normalRand(GuiConfig.MIPS/iter, Config.RESOURCES_DEV/iter);
+				double ram = Util.normalRand(GuiConfig.RAM/iter, Config.RESOURCES_DEV/iter);
+				double strg = Util.normalRand(GuiConfig.MEM/iter, Config.RESOURCES_DEV/iter);
+				double bw = Util.normalRand(GuiConfig.BW/iter,Config. RESOURCES_DEV/iter);
 				
-				double bPw = Util.normalRand(Config.BUSY_POWER, Config.ENERGY_DEV);
-				double iPw = Util.normalRand(Config.IDLE_POWER, Config.ENERGY_DEV);
+				double bPw = Util.normalRand(GuiConfig.BUSY_POWER, Config.ENERGY_DEV);
+				double iPw = Util.normalRand(GuiConfig.IDLE_POWER, Config.ENERGY_DEV);
 				
-				double rateMips = Util.normalRand(Config.RATE_MIPS, Config.COST_DEV);
-				double rateRam = Util.normalRand(Config.RATE_RAM, Config.COST_DEV);
-				double rateStrg = Util.normalRand(Config.RATE_MEM, Config.COST_DEV);
-				double rateBw = Util.normalRand(Config.RATE_BW, Config.COST_DEV);
+				double rateMips = Util.normalRand(GuiConfig.RATE_MIPS, Config.COST_DEV);
+				double rateRam = Util.normalRand(GuiConfig.RATE_RAM, Config.COST_DEV);
+				double rateStrg = Util.normalRand(GuiConfig.RATE_MEM, Config.COST_DEV);
+				double rateBw = Util.normalRand(GuiConfig.RATE_BW, Config.COST_DEV);
 				
 				FogDevice fogDevice = createFogDevice("L"+iter+":F"+i, mips, (int) ram, (long) strg, (long) bw, bPw, iPw,
-						Config.COST_PER_SEC, rateMips, rateRam, rateStrg, rateBw);
+						rateMips, rateRam, rateStrg, rateBw);
 				
 				fogDevices.add(fogDevice);			
 			}
@@ -117,9 +119,9 @@ public class RandomTopology extends FogTest {
 				if(fogDevice.getName().equals(Config.CLOUD_NAME)) continue;
 				
 				if(new Random().nextFloat() < Config.DEPLOY_APP_PROB) {
-					Distribution sensorDist = new DeterministicDistribution(Util.normalRand(Config.SENSOR_DESTRIBUTION, 1.0));
-					double sensorLat = Util.normalRand(Config.SENSOR_LATENCY, 1);
-					double actuatorLat = Util.normalRand(Config.ACTUATOR_LATENCY, 0.1);
+					Distribution sensorDist = new DeterministicDistribution(Util.normalRand(GuiConfig.SENSOR_DESTRIBUTION, 1.0));
+					double sensorLat = Util.normalRand(GuiConfig.SENSOR_LATENCY, 1);
+					double actuatorLat = Util.normalRand(GuiConfig.ACTUATOR_LATENCY, 0.1);
 					
 					createClient(fogDevice, "Sensor:", sensorDist, sensorLat, "Actuator:", actuatorLat);
 					nrApps++;

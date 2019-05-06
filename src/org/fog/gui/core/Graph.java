@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.fog.core.Config;
+import org.fog.core.Constants;
 
 /**
  * A graph model. Normally a model should not have any logic, but in this case we implement logic to manipulate the
@@ -135,7 +135,7 @@ public class Graph implements Serializable {
 		for (Entry<Node, List<Link>> entry : devicesList.entrySet()) {
 			Node node = entry.getKey();
 			
-			if(node.getType() == Config.FOG_TYPE) {
+			if(node.getType() == Constants.FOG_TYPE) {
 				if(maxLevel < ((FogDeviceGui)node).getLevel())
 					maxLevel = ((FogDeviceGui)node).getLevel();
 			}

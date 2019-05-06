@@ -25,6 +25,7 @@ import org.fog.entities.FogDevice;
 import org.fog.entities.FogDeviceCharacteristics;
 import org.fog.entities.Sensor;
 import org.fog.entities.Tuple;
+import org.fog.gui.GuiConfig;
 import org.fog.placement.Controller;
 import org.fog.policy.AppModuleAllocationPolicy;
 import org.fog.utils.FogLinearPowerModel;
@@ -41,7 +42,7 @@ public abstract class FogTest {
 	protected static Controller controller = null;
 	
 	protected static FogDevice createFogDevice(String name, double mips, int ram, long strg, long bw, double bPw,
-			double iPw, double costPerSec, double costPerMips, double costPerMem, double costPerStorage, double costPerBw) {
+			double iPw, double costPerMips, double costPerMem, double costPerStorage, double costPerBw) {
 		List<Pe> processingElementsList = new ArrayList<Pe>();
 		processingElementsList.add(new Pe(0, new PeProvisioner(mips)));
 
@@ -58,13 +59,13 @@ public abstract class FogTest {
 		List<Host> hostList = new ArrayList<Host>();
 		hostList.add(host);
 
-		FogDeviceCharacteristics characteristics = new FogDeviceCharacteristics(Config.FOG_DEVICE_ARCH,
-				Config.FOG_DEVICE_OS, Config.FOG_DEVICE_VMM, host, Config.FOG_DEVICE_TIMEZONE,
-				costPerSec, costPerMips, costPerMem, costPerStorage, costPerBw);
+		FogDeviceCharacteristics characteristics = new FogDeviceCharacteristics(Constants.FOG_DEVICE_ARCH,
+				Constants.FOG_DEVICE_OS, Constants.FOG_DEVICE_VMM, host, Constants.FOG_DEVICE_TIMEZONE,
+				GuiConfig.COST_PER_SEC, costPerMips, costPerMem, costPerStorage, costPerBw);
 		
 		try {
 			return new FogDevice(name, characteristics, new AppModuleAllocationPolicy(hostList),
-					new LinkedList<Storage>(), Config.SCHEDULING_INTERVAL);
+					new LinkedList<Storage>(), Constants.SCHEDULING_INTERVAL);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;

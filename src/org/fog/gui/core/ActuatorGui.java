@@ -2,7 +2,7 @@ package org.fog.gui.core;
 
 import java.io.Serializable;
 
-import org.fog.core.Config;
+import org.fog.core.Constants;
 
 public class ActuatorGui extends Node implements Serializable{
 	private static final long serialVersionUID = 4087896123649020073L;
@@ -11,7 +11,7 @@ public class ActuatorGui extends Node implements Serializable{
 	private String actuatorType;
 	
 	public ActuatorGui(String name){
-		super(name, Config.ACTUATOR_TYPE);
+		super(name, Constants.ACTUATOR_TYPE);
 		setName(name);
 		setActuatorType("");
 	}

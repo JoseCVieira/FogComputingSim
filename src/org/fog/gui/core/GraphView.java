@@ -19,11 +19,11 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
+import org.fog.core.Constants;
 import org.fog.gui.Gui;
 import org.fog.gui.dialog.AddActuator;
 import org.fog.gui.dialog.AddFogDevice;
 import org.fog.gui.dialog.AddSensor;
-import org.fog.core.Config;
 import org.fog.utils.FogUtils;
 
 /** Panel that displays a graph */
@@ -71,7 +71,7 @@ public class GraphView extends JPanel {
 				int minLevel = FogUtils.MAX;
 				
 				for (Node node : graph.getDevicesList().keySet()) {
-					if(node.getType().equals(Config.FOG_TYPE)){
+					if(node.getType().equals(Constants.FOG_TYPE)){
 						int level = ((FogDeviceGui)node).getLevel();
 						
 						if(!levelMap.containsKey(level))
@@ -85,7 +85,7 @@ public class GraphView extends JPanel {
 						if(level < minLevel)
 							minLevel = level;
 					
-					} else if(node.getType().equals(Config.SENSOR_TYPE) || node.getType().equals(Config.ACTUATOR_TYPE))
+					} else if(node.getType().equals(Constants.SENSOR_TYPE) || node.getType().equals(Constants.ACTUATOR_TYPE))
 						endpoints.add(node);
 				}
 				
@@ -136,7 +136,7 @@ public class GraphView extends JPanel {
 							g.drawImage(imgApp, wrapper.getX() - nodeWidth / 2, wrapper.getY() - nodeHeight / 2, nodeWidth, nodeHeight, this);
 							g.drawString(nodeName, wrapper.getX() - f.stringWidth(nodeName) / 2, wrapper.getY() + nodeHeight);
 							break;
-						case Config.FOG_TYPE:
+						case Constants.FOG_TYPE:
 							g.drawImage(imgHost, wrapper.getX() - nodeWidth / 2, wrapper.getY() - nodeHeight / 2, nodeWidth, nodeHeight, this);
 							g.drawString(nodeName, wrapper.getX() - f.stringWidth(nodeName) / 2, wrapper.getY() + nodeHeight);
 							
@@ -144,11 +144,11 @@ public class GraphView extends JPanel {
 							if(!appName.equals(""))
 								g.drawString("[" + appName + "]", wrapper.getX() - f.stringWidth("[" + appName + "]") / 2, wrapper.getY() + nodeHeight + g.getFont().getSize());
 							break;
-						case Config.SENSOR_TYPE:
+						case Constants.SENSOR_TYPE:
 							g.drawImage(imgSensor, wrapper.getX() - nodeWidth / 2, wrapper.getY() - nodeHeight / 2, nodeWidth, nodeHeight, this);
 							g.drawString(nodeName, wrapper.getX() - f.stringWidth(nodeName) / 2, wrapper.getY() + nodeHeight);
 							break;
-						case Config.ACTUATOR_TYPE:
+						case Constants.ACTUATOR_TYPE:
 							g.drawImage(imgActuator, wrapper.getX() - nodeWidth / 2, wrapper.getY() - nodeHeight / 2, nodeWidth, nodeHeight, this);
 							g.drawString(nodeName, wrapper.getX() - f.stringWidth(nodeName) / 2, wrapper.getY() + nodeHeight);
 							break;
@@ -244,15 +244,15 @@ public class GraphView extends JPanel {
 			if(wrapper.getX() - size/2 <= point.getX() && wrapper.getX() + size/2 >= point.getX() &&
 					wrapper.getY() - size/2 <= point.getY() && wrapper.getY() + size/2 >= point.getY()) {
 				switch(entry.getKey().getType()){
-					case Config.FOG_TYPE:
+					case Constants.FOG_TYPE:
 						new AddFogDevice(physicalGraph, frame, (FogDeviceGui)entry.getKey());
 				    	physicalCanvas.repaint();
 						break;
-					case Config.SENSOR_TYPE:
+					case Constants.SENSOR_TYPE:
 						new AddSensor(physicalGraph, frame, (SensorGui)entry.getKey());
 						physicalCanvas.repaint();
 						break;
-					case Config.ACTUATOR_TYPE:
+					case Constants.ACTUATOR_TYPE:
 						new AddActuator(physicalGraph, frame, (ActuatorGui)entry.getKey());
 						physicalCanvas.repaint();
 						break;

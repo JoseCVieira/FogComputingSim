@@ -7,7 +7,6 @@ import org.fog.application.AppEdge;
 import org.fog.application.AppLoop;
 import org.fog.application.Application;
 import org.fog.application.selectivity.FractionalSelectivity;
-import org.fog.core.Config;
 import org.fog.core.FogTest;
 import org.fog.entities.FogDevice;
 import org.fog.utils.distribution.DeterministicDistribution;
@@ -28,8 +27,8 @@ public class VRGameFog extends FogTest {
 	}
 
 	private static void createFogDevices() {
-		FogDevice cloud = createFogDevice("cloud", 44800, 40000, 1000000, 10000, 16*103, 16*83.25, Config.COST_PER_SEC, 0.01, 0.05, 0.001, 0.0);
-		FogDevice proxy = createFogDevice("proxy-server", 2800, 4000, 1000000, 10000, 107.339, 83.4333, Config.COST_PER_SEC, 0.0, 0.05, 0.001, 0.0);
+		FogDevice cloud = createFogDevice("cloud", 44800, 40000, 1000000, 10000, 16*103, 16*83.25, 0.01, 0.05, 0.001, 0.0);
+		FogDevice proxy = createFogDevice("proxy-server", 2800, 4000, 1000000, 10000, 107.339, 83.4333, 0.0, 0.05, 0.001, 0.0);
 		
 		fogDevices.add(cloud);
 		fogDevices.add(proxy);
@@ -37,7 +36,7 @@ public class VRGameFog extends FogTest {
 		connectFogDevices(cloud, proxy, 100.0, 100.0, 10000.0, 10000.0);
 		
 		for(int i = 0; i < numOfDepts; i++){
-			FogDevice dept = createFogDevice("d-"+i, 2800, 4000, 1000000, 10000, 107.339, 83.4333, Config.COST_PER_SEC, 0.0, 0.05, 0.001, 0.0);
+			FogDevice dept = createFogDevice("d-"+i, 2800, 4000, 1000000, 10000, 107.339, 83.4333, 0.0, 0.05, 0.001, 0.0);
 			
 			fogDevices.add(dept);
 			
@@ -45,7 +44,7 @@ public class VRGameFog extends FogTest {
 			
 			
 			for(int j = 0; j < numOfMobilesPerDept; j++){
-				FogDevice mobile = createFogDevice("m-"+i+"-"+j, 1000, 1000, 1000000, 10000, 87.53, 82.44, Config.COST_PER_SEC, 0.0, 0.05, 0.001, 0.0);
+				FogDevice mobile = createFogDevice("m-"+i+"-"+j, 1000, 1000, 1000000, 10000, 87.53, 82.44, 0.0, 0.05, 0.001, 0.0);
 				
 				fogDevices.add(mobile);
 				

@@ -19,11 +19,12 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SpringLayout;
 
+import org.fog.core.Constants;
+import org.fog.gui.GuiConfig;
 import org.fog.gui.core.Graph;
 import org.fog.gui.core.Node;
 import org.fog.gui.core.SensorGui;
 import org.fog.gui.core.SpringUtilities;
-import org.fog.core.Config;
 import org.fog.utils.Util;
 import org.fog.utils.distribution.DeterministicDistribution;
 import org.fog.utils.distribution.Distribution;
@@ -195,10 +196,10 @@ public class AddSensor extends JDialog {
 		
 		int aux = 1;
 		for(Node node : graph.getDevicesList().keySet())
-			if(node.getType().equals(Config.SENSOR_TYPE))
+			if(node.getType().equals(Constants.SENSOR_TYPE))
 				aux++;
 		
-		sensorName.setText(sensor == null ? Config.SENSOR_NAME + aux : sensor.getName());
+		sensorName.setText(sensor == null ? GuiConfig.SENSOR_NAME + aux : sensor.getName());
 		lName.setLabelFor(sensorName);
 		springPanel.add(sensorName);
 				

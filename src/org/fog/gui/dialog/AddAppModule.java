@@ -23,9 +23,9 @@ import javax.swing.SpringLayout;
 import org.apache.commons.math3.util.Pair;
 import org.fog.application.AppEdge;
 import org.fog.application.AppModule;
+import org.fog.gui.GuiConfig;
 import org.fog.gui.core.ApplicationGui;
 import org.fog.gui.core.SpringUtilities;
-import org.fog.core.Config;
 import org.fog.utils.Util;
 
 public class AddAppModule extends JDialog {
@@ -154,8 +154,8 @@ public class AddAppModule extends JDialog {
         springPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 		
         moduleName = Util.createInput(springPanel, moduleName, "Name: ", module == null ? "" : module.getName());
-        moduleRam = Util.createInput(springPanel, moduleRam, "Ram: ", module == null ? Integer.toString(Config.MODULE_RAM) : Integer.toString(module.getRam()));
-        moduleSize = Util.createInput(springPanel, moduleSize, "Mem: ", module == null ? Long.toString(Config.MODULE_SIZE) : Long.toString(module.getSize()));
+        moduleRam = Util.createInput(springPanel, moduleRam, "Ram: ", module == null ? Integer.toString(GuiConfig.MODULE_RAM) : Integer.toString(module.getRam()));
+        moduleSize = Util.createInput(springPanel, moduleSize, "Mem: ", module == null ? Long.toString(GuiConfig.MODULE_SIZE) : Long.toString(module.getSize()));
         
         @SuppressWarnings({ "rawtypes", "unchecked" })
 		ComboBoxModel<String> clientModuleModel = new DefaultComboBoxModel(Arrays.asList("YES", "NO").toArray());

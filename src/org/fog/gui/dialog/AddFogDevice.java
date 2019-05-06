@@ -21,13 +21,14 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SpringLayout;
 
+import org.fog.core.Constants;
 import org.fog.gui.Gui;
+import org.fog.gui.GuiConfig;
 import org.fog.gui.core.ApplicationGui;
 import org.fog.gui.core.FogDeviceGui;
 import org.fog.gui.core.Graph;
 import org.fog.gui.core.Node;
 import org.fog.gui.core.SpringUtilities;
-import org.fog.core.Config;
 import org.fog.utils.Util;
 
 public class AddFogDevice extends JDialog {
@@ -181,10 +182,10 @@ public class AddFogDevice extends JDialog {
 		
 		int aux = 1;
 		for(Node node : graph.getDevicesList().keySet())
-			if(node.getType().equals(Config.FOG_TYPE))
+			if(node.getType().equals(Constants.FOG_TYPE))
 				aux++;
 		
-		deviceName.setText(fog == null ? Config.FOG_NAME + aux : fog.getName());
+		deviceName.setText(fog == null ? GuiConfig.FOG_NAME + aux : fog.getName());
 		deviceNameLabel.setLabelFor(deviceName);
 		springPanel.add(deviceName);
 		
@@ -199,17 +200,17 @@ public class AddFogDevice extends JDialog {
 		level.setSelectedIndex(fog == null ? maxLevel+1 : fog.getLevel());
 		springPanel.add(level);
 		
-		mips = Util.createInput(springPanel, mips, "MIPS: ", fog == null ? Double.toString(Config.MIPS) : Double.toString(fog.getMips()));
-		ram = Util.createInput(springPanel, ram, "RAM (MB): ", fog == null ? Long.toString(Config.RAM) : Long.toString(fog.getRam()));
-		storage = Util.createInput(springPanel, storage, "MEM (MB): ", fog == null ? Long.toString(Config.MEM) : Long.toString(fog.getStorage()));
-		bw = Util.createInput(springPanel, bw, "BW (MB/s): ", fog == null ? Double.toString(Config.BW) : Double.toString(fog.getBw()));
-		rateMips = Util.createInput(springPanel, rateMips, "Rate/MIPS (€): ", fog == null ? Double.toString(Config.RATE_MIPS) : Double.toString(fog.getRateMips()));
-		rateRam = Util.createInput(springPanel, rateRam, "Rate/RAM (€/sec for 1 MB): ", fog == null ? Double.toString(Config.RATE_RAM) : Double.toString(fog.getRateRam()));
-		rateStorage = Util.createInput(springPanel, rateStorage, "Rate/MEM (€/sec for 1 MB): ", fog == null ? Double.toString(Config.RATE_MEM) : Double.toString(fog.getRateStorage()));
-		rateBw = Util.createInput(springPanel, rateBw, "Rate/Bw (€/1 MB): ", fog == null ? Double.toString(Config.RATE_BW) : Double.toString(fog.getRateBw()));
-		idlePower = Util.createInput(springPanel, idlePower, "Idle Power (W): ", fog == null ? Double.toString(Config.IDLE_POWER) : Double.toString(fog.getIdlePower()));
-		busyPower = Util.createInput(springPanel, busyPower, "Busy Power (W): ", fog == null ? Double.toString(Config.BUSY_POWER) : Double.toString(fog.getBusyPower()));
-		cost = Util.createInput(springPanel, cost, "Cost Per Second: ", fog == null ? Double.toString(Config.COST_PER_SEC) : Double.toString(fog.getCostPerSec()));
+		mips = Util.createInput(springPanel, mips, "MIPS: ", fog == null ? Double.toString(GuiConfig.MIPS) : Double.toString(fog.getMips()));
+		ram = Util.createInput(springPanel, ram, "RAM (MB): ", fog == null ? Long.toString(GuiConfig.RAM) : Long.toString(fog.getRam()));
+		storage = Util.createInput(springPanel, storage, "MEM (MB): ", fog == null ? Long.toString(GuiConfig.MEM) : Long.toString(fog.getStorage()));
+		bw = Util.createInput(springPanel, bw, "BW (MB/s): ", fog == null ? Double.toString(GuiConfig.BW) : Double.toString(fog.getBw()));
+		rateMips = Util.createInput(springPanel, rateMips, "Rate/MIPS (€): ", fog == null ? Double.toString(GuiConfig.RATE_MIPS) : Double.toString(fog.getRateMips()));
+		rateRam = Util.createInput(springPanel, rateRam, "Rate/RAM (€/sec for 1 MB): ", fog == null ? Double.toString(GuiConfig.RATE_RAM) : Double.toString(fog.getRateRam()));
+		rateStorage = Util.createInput(springPanel, rateStorage, "Rate/MEM (€/sec for 1 MB): ", fog == null ? Double.toString(GuiConfig.RATE_MEM) : Double.toString(fog.getRateStorage()));
+		rateBw = Util.createInput(springPanel, rateBw, "Rate/Bw (€/1 MB): ", fog == null ? Double.toString(GuiConfig.RATE_BW) : Double.toString(fog.getRateBw()));
+		idlePower = Util.createInput(springPanel, idlePower, "Idle Power (W): ", fog == null ? Double.toString(GuiConfig.IDLE_POWER) : Double.toString(fog.getIdlePower()));
+		busyPower = Util.createInput(springPanel, busyPower, "Busy Power (W): ", fog == null ? Double.toString(GuiConfig.BUSY_POWER) : Double.toString(fog.getBusyPower()));
+		cost = Util.createInput(springPanel, cost, "Cost Per Second: ", fog == null ? Double.toString(GuiConfig.COST_PER_SEC) : Double.toString(fog.getCostPerSec()));
 		
 		ArrayList<String> applicationIds = new ArrayList<String>();
 		for(ApplicationGui applicationGui : graph.getAppList())

@@ -16,11 +16,12 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SpringLayout;
 
+import org.fog.core.Constants;
+import org.fog.gui.GuiConfig;
 import org.fog.gui.core.ActuatorGui;
 import org.fog.gui.core.Graph;
 import org.fog.gui.core.Node;
 import org.fog.gui.core.SpringUtilities;
-import org.fog.core.Config;
 import org.fog.utils.Util;
 
 public class AddActuator extends JDialog {
@@ -127,10 +128,10 @@ public class AddActuator extends JDialog {
 		
 		int aux = 1;
 		for(Node node : graph.getDevicesList().keySet())
-			if(node.getType().equals(Config.ACTUATOR_TYPE))
+			if(node.getType().equals(Constants.ACTUATOR_TYPE))
 				aux++;
 		
-		actuatorName.setText(actuator == null ? Config.ACTUATOR_NAME + aux : actuator.getName());
+		actuatorName.setText(actuator == null ? GuiConfig.ACTUATOR_NAME + aux : actuator.getName());
 		lName.setLabelFor(actuatorName);
 		springPanel.add(actuatorName);
 

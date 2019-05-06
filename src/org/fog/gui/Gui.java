@@ -18,6 +18,7 @@ import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import org.fog.core.Constants;
 import org.fog.gui.core.Bridge;
 import org.fog.gui.core.FogDeviceGui;
 import org.fog.gui.core.Graph;
@@ -28,7 +29,6 @@ import org.fog.gui.core.RunGUI;
 import org.fog.gui.dialog.About;
 import org.fog.gui.dialog.AddActuator;
 import org.fog.gui.dialog.DisplayApplications;
-import org.fog.core.Config;
 import org.fog.utils.Util;
 import org.fog.gui.dialog.AddFogDevice;
 import org.fog.gui.dialog.AddLink;
@@ -350,7 +350,7 @@ public class Gui extends JFrame {
     	
     	ArrayList<Node> list = new ArrayList<Node>();
     	for(Node node : physicalGraph.getDevicesList().keySet()) {
-    		if(node.getType().equals(Config.FOG_TYPE))
+    		if(node.getType().equals(Constants.FOG_TYPE))
     			if(((FogDeviceGui)node).getApplication().length() > 0)
     				list.add(node);
     		
@@ -383,21 +383,21 @@ public class Gui extends JFrame {
 		for(Node node : physicalGraph.getDevicesList().keySet()) {
 			if(fogNode.equals(node)) {
 				for(Link edge : physicalGraph.getDevicesList().get(node)) {
-	    			if(!sensor && edge.getNode().getType().equals(Config.SENSOR_TYPE))
+	    			if(!sensor && edge.getNode().getType().equals(Constants.SENSOR_TYPE))
 	    				sensor = true;
 	    			
-	    			if(!actuator && edge.getNode().getType().equals(Config.ACTUATOR_TYPE))
+	    			if(!actuator && edge.getNode().getType().equals(Constants.ACTUATOR_TYPE))
 	    				actuator = true;
 	    			
 	    			if(actuator && sensor)
 	    				break;
 	    		}
-			}else if(node.getType().equals(Config.SENSOR_TYPE) || node.getType().equals(Config.ACTUATOR_TYPE)) {
+			}else if(node.getType().equals(Constants.SENSOR_TYPE) || node.getType().equals(Constants.ACTUATOR_TYPE)) {
 				for(Link edge : physicalGraph.getDevicesList().get(node)) {    					
-					if(!sensor && edge.getNode().equals(fogNode) && node.getType().equals(Config.SENSOR_TYPE))
+					if(!sensor && edge.getNode().equals(fogNode) && node.getType().equals(Constants.SENSOR_TYPE))
 	    				sensor = true;
 				
-					if(!actuator && edge.getNode().equals(fogNode) && node.getType().equals(Config.ACTUATOR_TYPE))
+					if(!actuator && edge.getNode().equals(fogNode) && node.getType().equals(Constants.ACTUATOR_TYPE))
 						actuator = true;
 				
 					if(actuator && sensor)

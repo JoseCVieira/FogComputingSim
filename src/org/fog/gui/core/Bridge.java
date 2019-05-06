@@ -16,7 +16,7 @@ import org.apache.commons.math3.util.Pair;
 import org.fog.application.AppEdge;
 import org.fog.application.AppModule;
 import org.fog.application.selectivity.FractionalSelectivity;
-import org.fog.core.Config;
+import org.fog.core.Constants;
 import org.fog.utils.distribution.DeterministicDistribution;
 import org.fog.utils.distribution.Distribution;
 import org.fog.utils.distribution.NormalDistribution;
@@ -49,7 +49,7 @@ public class Bridge {
 				String nodeName = (String) node.get("name");
 				String application = (String) node.get("application");
 				
-				if(nodeType.equals(Config.FOG_TYPE)){
+				if(nodeType.equals(Constants.FOG_TYPE)){
 					int level = new BigDecimal((Long)node.get("level")).intValue();
 					double mips = (Double) node.get("mips");
 					int ram = new BigDecimal((Long)node.get("ram")).intValue();
@@ -66,7 +66,7 @@ public class Bridge {
 					Node fogDevice = new FogDeviceGui(nodeName, level, mips, ram, mem, bw, rateMips, rateRam,
 							rateStorage, rateBw, idlePower, busyPower, cost, application);
 					graph.addNode(fogDevice);
-				} else if(nodeType.equals(Config.SENSOR_TYPE)){
+				} else if(nodeType.equals(Constants.SENSOR_TYPE)){
 					int distType = new BigDecimal((Long)node.get("distribution")).intValue();
 					Distribution distribution = null;
 					
@@ -82,7 +82,7 @@ public class Bridge {
 					
 					Node sensor = new SensorGui(nodeName, distribution);
 					graph.addNode(sensor);
-				} else if(nodeType.equals(Config.ACTUATOR_TYPE)){
+				} else if(nodeType.equals(Constants.ACTUATOR_TYPE)){
 					Node actuator = new ActuatorGui(nodeName);
 					graph.addNode(actuator);
 				}
@@ -209,12 +209,12 @@ public class Bridge {
 			// add node
 			JSONObject jobj = new JSONObject();
 			switch(srcNode.getType()){
-				case Config.ACTUATOR_TYPE:
+				case Constants.ACTUATOR_TYPE:
 					ActuatorGui actuator = (ActuatorGui)srcNode;
 					jobj.put("name", actuator.getName());
 					jobj.put("type", actuator.getType());
 					break;
-				case Config.SENSOR_TYPE:
+				case Constants.SENSOR_TYPE:
 					SensorGui sensor = (SensorGui)srcNode;
 					jobj.put("name", sensor.getName());
 					jobj.put("type", sensor.getType());
@@ -230,7 +230,7 @@ public class Bridge {
 						jobj.put("max", ((UniformDistribution)sensor.getDistribution()).getMax());
 					}
 					break;
-				case Config.FOG_TYPE:
+				case Constants.FOG_TYPE:
 					FogDeviceGui fogDevice = (FogDeviceGui)srcNode;
 					jobj.put("name", fogDevice.getName());
 					jobj.put("type", fogDevice.getType());
@@ -261,8 +261,8 @@ public class Bridge {
 				JSONObject jobj2 = new JSONObject();
 				jobj2.put("source", srcNode.getName());
 				jobj2.put("destination", destNode.getName());
-				if(Config.FOG_TYPE == destNode.getType() || Config.SENSOR_TYPE == destNode.getType() ||
-						Config.ACTUATOR_TYPE == destNode.getType()){
+				if(Constants.FOG_TYPE == destNode.getType() || Constants.SENSOR_TYPE == destNode.getType() ||
+						Constants.ACTUATOR_TYPE == destNode.getType()){
 					jobj2.put("latency", edge.getLatency());
 					jobj2.put("bw", edge.getBandwidth());
 				}

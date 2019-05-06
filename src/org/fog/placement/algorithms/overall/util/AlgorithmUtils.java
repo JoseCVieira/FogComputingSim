@@ -3,7 +3,7 @@ package org.fog.placement.algorithms.overall.util;
 import java.util.List;
 
 import org.fog.application.Application;
-import org.fog.core.Config;
+import org.fog.core.Constants;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
@@ -193,7 +193,7 @@ public class AlgorithmUtils {
 		for (int i = 0; i < al.getNumberOfNodes(); i++) {
 			System.out.format(centerString(20, al.getfName()[i]));
 			for (int j = 0; j < al.getNumberOfNodes(); j++) {
-				if(al.getfBandwidthMap()[i][j] == Config.INF)
+				if(al.getfBandwidthMap()[i][j] == Constants.INF)
 					System.out.format(centerString(20, "Inf"));
 				else if(al.getfBandwidthMap()[i][j] == 0)
 					System.out.format(AlgorithmUtils.centerString(20, "-"));
@@ -215,7 +215,7 @@ public class AlgorithmUtils {
 		for (int i = 0; i < al.getNumberOfNodes(); i++) {
 			System.out.format(centerString(20, al.getfName()[i]));
 			for (int j = 0; j < al.getNumberOfNodes(); j++) {
-				if(al.getfLatencyMap()[i][j] == Config.INF)
+				if(al.getfLatencyMap()[i][j] == Constants.INF)
 					System.out.format(centerString(20, "Inf"));
 				else if(al.getfLatencyMap()[i][j] == 0)
 					System.out.format(AlgorithmUtils.centerString(20, "-"));

@@ -6,6 +6,7 @@ import java.util.Random;
 
 import org.fog.application.Application;
 import org.fog.core.Config;
+import org.fog.core.Constants;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogBroker;
 import org.fog.entities.FogDevice;
@@ -26,7 +27,7 @@ public class GA extends Algorithm {
 	public Job execute() {
 		int generation = 1;
 		Individual[] population = new Individual[Config.POPULATION_SIZE];
-		double bestValue = Config.INF;
+		double bestValue = Constants.MIN_SOLUTION;
 		int convergenceIter = 0;
 		
 		long start = System.currentTimeMillis();
@@ -42,9 +43,12 @@ public class GA extends Algorithm {
 	    	//System.out.println(population[0]);
 	    	
 	    	double iterBest = population[0].getFitness();
-    		if((bestValue < Config.INF && bestValue >= iterBest) || (bestValue == Config.INF && bestValue > iterBest)) {
-    			if(bestValue - iterBest <= Config.ERROR_STEP_CONVERGENCE && ++convergenceIter == 3)
-					break;
+    		if(bestValue > iterBest) {
+    			if(bestValue - iterBest <= Config.ERROR_STEP_CONVERGENCE) {
+    				if(++convergenceIter == Config.MAX_ITER_CONVERGENCE)
+    					break;
+    			}else
+        			convergenceIter = 0;
     			
     			bestValue = iterBest;
     			valueIterMap.put(iteration, bestValue);
@@ -76,9 +80,6 @@ public class GA extends Algorithm {
 	    long finish = System.currentTimeMillis();
 	    elapsedTime = finish - start;
 	    
-	    if(population[0].getFitness() == Config.INF)
-	    	return null;
-	    
 	    int[][] modulePlacementMap = population[0].getChromosome().getModulePlacementMap();
     	int[][] routingMap = population[0].getChromosome().getRoutingMap();
     	
@@ -92,7 +93,7 @@ public class GA extends Algorithm {
 	
 	public Individual[] GARouting(Individual[] population) {
 		int generation = 1;
-		double bestValue = Config.INF;
+		double bestValue = Constants.MIN_SOLUTION;
 		int convergenceIter = 0;
 		
 		for (int i = 0; i < Config.POPULATION_SIZE; i++) {
@@ -109,9 +110,13 @@ public class GA extends Algorithm {
 	    		Arrays.sort(populationR);
 	    		
 	    		double iterBest = populationR[0].getFitness();
-	    		if((bestValue < Config.INF && bestValue >= iterBest) || (bestValue == Config.INF && bestValue > iterBest)) {
-	    			if(bestValue - iterBest <= Config.ERROR_STEP_CONVERGENCE && ++convergenceIter == 3)
+	    		if(bestValue > iterBest) {
+	    			if(bestValue - iterBest <= Config.ERROR_STEP_CONVERGENCE) {
+	    				if(++convergenceIter == Config.MAX_ITER_CONVERGENCE)
 	    					break;
+	    			}else
+		    			convergenceIter = 0;
+	    					
 	    			bestValue = iterBest;
 	    		}
 	    		

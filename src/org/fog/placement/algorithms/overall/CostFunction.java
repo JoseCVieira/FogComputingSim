@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.fog.core.Config;
+import org.fog.core.Constants;
 
 public class CostFunction {	
 	public static double computeCost(Job job, Algorithm algorithm) {
@@ -14,7 +15,7 @@ public class CostFunction {
 		int[][] routingMap = job.getRoutingMap();
 		
 		if(isPossibleCombination(algorithm, modulePlacementMap) == false)
-			return Config.INF;
+			return Constants.INF;
 		
 		for(int i = 0; i < algorithm.getNumberOfModules(); i++) {
 			for (int j = 0; j < algorithm.getNumberOfModules(); j++) {
@@ -61,6 +62,7 @@ public class CostFunction {
 			if(totalMips > algorithm.getfMips()[i] || totalRam > algorithm.getfRam()[i] || totalMem > algorithm.getfMem()[i])
 				return false;
 		}
+		
 		return true;
 	}
 	
@@ -106,10 +108,24 @@ public class CostFunction {
 	
 	private static double calculateProcessingCost(Algorithm algorithm, int[][] modulePlacementMap) {
 		double cost = 0;
+		/*double numerator = 0;
+		double denominator = 0;
 		
-		for(int i = 0; i < modulePlacementMap.length; i++)
-			for(int j = 0; j < modulePlacementMap[i].length; j++)
+		for(int i = 0; i < algorithm.getNumberOfNodes(); i++) {
+			for(int j = 0; j < algorithm.getNumberOfModules(); j++) {
+				double mipsPercentage = modulePlacementMap[i][j] * algorithm.getmMips()[j] / algorithm.getfMips()[i];
+				numerator += mipsPercentage;
+				denominator += Math.pow(mipsPercentage, 2);
+			}
+		}
+		
+		cost = Config.PR_W * Math.pow(numerator, 2)/(algorithm.getNumberOfNodes()*denominator);*/
+		
+		for(int i = 0; i < modulePlacementMap.length; i++) {
+			for(int j = 0; j < modulePlacementMap[i].length; j++) {
 				cost += Config.PR_W*(modulePlacementMap[i][j] * algorithm.getmMips()[j] / algorithm.getfMips()[i]);
+			}
+		}
 		
 		return cost;
 	}
@@ -124,7 +140,7 @@ public class CostFunction {
 			
 			for(int j = 1; j < algorithm.getNumberOfNodes(); j++) {
 				cost += Config.LT_W*(algorithm.getfLatencyMap()[routingMap[i][j-1]][routingMap[i][j]] * dependencies);
-				cost += Config.BW_W*(bwNeeded/(algorithm.getfBandwidthMap()[routingMap[i][j-1]][routingMap[i][j]] + Config.EPSILON));
+				cost += Config.BW_W*(bwNeeded/(algorithm.getfBandwidthMap()[routingMap[i][j-1]][routingMap[i][j]] + Constants.EPSILON));
 			}
 		}
 		

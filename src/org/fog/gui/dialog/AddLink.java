@@ -32,10 +32,10 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 
+import org.fog.core.Constants;
 import org.fog.gui.core.Graph;
 import org.fog.gui.core.Link;
 import org.fog.gui.core.Node;
-import org.fog.core.Config;
 import org.fog.utils.Util;
 import org.fog.utils.Util.NodeCellRenderer;
 
@@ -120,31 +120,31 @@ public class AddLink extends JDialog {
 						if(edge.getNode().equals(selectedNode) && !nodesInEdges.contains(node))
 							nodesInEdges.add(node);
 
-				if(selectedNode.getType().equals(Config.FOG_TYPE) || edgesForSelectedNode.size() == 0){
+				if(selectedNode.getType().equals(Constants.FOG_TYPE) || edgesForSelectedNode.size() == 0){
 					for (Node node : allNodes) {
-						if(!selectedNode.getType().equals(Config.FOG_TYPE) && !node.getType().equals(Config.FOG_TYPE))
+						if(!selectedNode.getType().equals(Constants.FOG_TYPE) && !node.getType().equals(Constants.FOG_TYPE))
 							continue;
 						
-						if(selectedNode.getType().equals(Config.FOG_TYPE) && node.getType().equals(Config.SENSOR_TYPE) &&
+						if(selectedNode.getType().equals(Constants.FOG_TYPE) && node.getType().equals(Constants.SENSOR_TYPE) &&
 								hasSensorActuator(selectedNode.getName())[SENSOR])
 							continue;
 						
-						if(selectedNode.getType().equals(Config.FOG_TYPE) && node.getType().equals(Config.ACTUATOR_TYPE) &&
+						if(selectedNode.getType().equals(Constants.FOG_TYPE) && node.getType().equals(Constants.ACTUATOR_TYPE) &&
 								hasSensorActuator(selectedNode.getName())[ACTUATOR])
 							continue;
 						
-						if(selectedNode.getType().equals(Config.SENSOR_TYPE) && node.getType().equals(Config.FOG_TYPE) &&
+						if(selectedNode.getType().equals(Constants.SENSOR_TYPE) && node.getType().equals(Constants.FOG_TYPE) &&
 								hasSensorActuator(node.getName())[SENSOR])
 							continue;
 						
-						if(selectedNode.getType().equals(Config.ACTUATOR_TYPE) && node.getType().equals(Config.FOG_TYPE) &&
+						if(selectedNode.getType().equals(Constants.ACTUATOR_TYPE) && node.getType().equals(Constants.FOG_TYPE) &&
 								hasSensorActuator(node.getName())[ACTUATOR])
 							continue;
 						
 						if (!node.equals(selectedNode) && !nodesInEdges.contains(node)) {
-							if(!node.getType().equals(Config.FOG_TYPE) && !isConnected(node.getName()))
+							if(!node.getType().equals(Constants.FOG_TYPE) && !isConnected(node.getName()))
 								nodesToDisplay.add(node);
-							else if(node.getType().equals(Config.FOG_TYPE))
+							else if(node.getType().equals(Constants.FOG_TYPE))
 								nodesToDisplay.add(node);
 						}
 					}						
@@ -344,9 +344,9 @@ public class AddLink extends JDialog {
 	private List<Node> sourceNodesToDisplay(){
 		List<Node> nodesToDisplay = new ArrayList<Node>();
 		for(Node node : graph.getDevicesList().keySet()) {
-			if(node.getType().equals(Config.FOG_TYPE))
+			if(node.getType().equals(Constants.FOG_TYPE))
 				nodesToDisplay.add(node);
-			else if(!node.getType().equals(Config.FOG_TYPE) && !isConnected(node.getName()))
+			else if(!node.getType().equals(Constants.FOG_TYPE) && !isConnected(node.getName()))
 				nodesToDisplay.add(node);
 		}
 		return nodesToDisplay;
@@ -360,14 +360,14 @@ public class AddLink extends JDialog {
 		for(Node node : graph.getDevicesList().keySet()) {
 			for(Link edge : graph.getDevicesList().get(node)) {
 				if(node.getName().equals(name)) {
-					if(edge.getNode().getType().equals(Config.SENSOR_TYPE))
+					if(edge.getNode().getType().equals(Constants.SENSOR_TYPE))
 						sa[SENSOR] = true;
-					else if(edge.getNode().getType().equals(Config.ACTUATOR_TYPE))
+					else if(edge.getNode().getType().equals(Constants.ACTUATOR_TYPE))
 						sa[ACTUATOR] = true;
 				}else if(edge.getNode().getName().equals(name)) {
-					if(node.getType().equals(Config.SENSOR_TYPE))
+					if(node.getType().equals(Constants.SENSOR_TYPE))
 						sa[SENSOR] = true;
-					else if(node.getType().equals(Config.ACTUATOR_TYPE))
+					else if(node.getType().equals(Constants.ACTUATOR_TYPE))
 						sa[ACTUATOR] = true;
 				}
 				

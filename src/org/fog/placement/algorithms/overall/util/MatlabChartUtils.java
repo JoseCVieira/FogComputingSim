@@ -15,7 +15,7 @@ import javax.swing.JToolTip;
 import javax.swing.Popup;
 import javax.swing.PopupFactory;
 
-import org.fog.core.Config;
+import org.fog.core.Constants;
 import org.fog.placement.algorithms.overall.Algorithm;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartMouseEvent;
@@ -64,7 +64,7 @@ public class MatlabChartUtils extends JFrame implements ChartMouseListener {
 		for(Integer iter : valueIterMap.keySet()) {			
 			double value = valueIterMap.get(iter);
 			
-			if(value >= Config.IINF)
+			if(value >= Constants.MIN_SOLUTION)
 				continue;
 			
 			series.add((double) iter, value);
@@ -128,7 +128,7 @@ public class MatlabChartUtils extends JFrame implements ChartMouseListener {
 				popup.hide();
 			}
 			
-			new PopUpToolTip(new Point(x, y), chartPanel, "Point coordinates: (" + point.getX() + ", " + point.getY() + ")");
+			new PopUpToolTip(new Point(x, y), chartPanel, "Iter: " + point.getX() + ", Value: " + String.format("%.5f", point.getY()) + "");
 			popup.show();
 		}else if(popup != null) {
 			popup.hide();

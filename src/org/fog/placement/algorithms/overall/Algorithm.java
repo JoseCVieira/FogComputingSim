@@ -15,6 +15,7 @@ import org.fog.application.AppModule;
 import org.fog.application.Application;
 import org.fog.application.selectivity.FractionalSelectivity;
 import org.fog.core.Config;
+import org.fog.core.Constants;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogBroker;
 import org.fog.entities.FogDevice;
@@ -111,7 +112,7 @@ public abstract class Algorithm {
 		
 		for (int i = 0; i < NR_NODES; i++)
 			for (int j = 0; j < NR_NODES; j++)
-				fLatencyMap[i][j] = Config.INF;
+				fLatencyMap[i][j] = Constants.INF;
 		
 		possibleDeployment = new double[NR_NODES][NR_MODULES];
 		
@@ -122,7 +123,7 @@ public abstract class Algorithm {
 		extractAppCharacteristics(fogBrokers, fogDevices, applications, sensors, actuators);
 		computeApplicationCharacteristics(applications, sensors);
 		computeLatencyMap(fogDevices, sensors, actuators);
-		normalizeValues();
+		//normalizeValues();
 		
 		if(Config.PRINT_DETAILS)
 			AlgorithmUtils.printDetails(this, fogDevices, applications, sensors, actuators);
@@ -158,13 +159,13 @@ public abstract class Algorithm {
 		for(Sensor sensor : sensors) {
 			fId[i] = sensor.getId();
 			fName[i] = sensor.getName();
-			fMips[i++] = Config.IINF;
+			fMips[i++] = Constants.IINF;
 		}
 		
 		for(Actuator actuator : actuators) {
 			fId[i] = actuator.getId();
 			fName[i] = actuator.getName();
-			fMips[i++] = Config.IINF;
+			fMips[i++] = Constants.IINF;
 		}
 	}
 	
@@ -375,7 +376,7 @@ public abstract class Algorithm {
 			}
 			
 			getfLatencyMap()[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(dId)] = 0;
-			getfBandwidthMap()[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(dId)] = Config.IINF;
+			getfBandwidthMap()[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(dId)] = Constants.IINF;
 		}
 		
 		
@@ -385,9 +386,9 @@ public abstract class Algorithm {
 			int id2 = sensor.getGatewayDeviceId();
 			double lat = sensor.getLatency();
 			
-			getfBandwidthMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id2)] = Config.IINF;
-			getfBandwidthMap()[getNodeIndexByNodeId(id2)][getNodeIndexByNodeId(id1)] = Config.IINF;
-			getfBandwidthMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id1)] = Config.IINF;
+			getfBandwidthMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id2)] = Constants.IINF;
+			getfBandwidthMap()[getNodeIndexByNodeId(id2)][getNodeIndexByNodeId(id1)] = Constants.IINF;
+			getfBandwidthMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id1)] = Constants.IINF;
 			
 			getfLatencyMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id2)] = lat;
 			getfLatencyMap()[getNodeIndexByNodeId(id2)][getNodeIndexByNodeId(id1)] = lat;
@@ -399,9 +400,9 @@ public abstract class Algorithm {
 			int id2 = actuator.getGatewayDeviceId();
 			double lat = actuator.getLatency();
 			
-			getfBandwidthMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id2)] = Config.IINF;
-			getfBandwidthMap()[getNodeIndexByNodeId(id2)][getNodeIndexByNodeId(id1)] = Config.IINF;
-			getfBandwidthMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id1)] = Config.IINF;
+			getfBandwidthMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id2)] = Constants.IINF;
+			getfBandwidthMap()[getNodeIndexByNodeId(id2)][getNodeIndexByNodeId(id1)] = Constants.IINF;
+			getfBandwidthMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id1)] = Constants.IINF;
 			
 			getfLatencyMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id2)] = lat;
 			getfLatencyMap()[getNodeIndexByNodeId(id2)][getNodeIndexByNodeId(id1)] = lat;

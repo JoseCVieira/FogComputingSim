@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.fog.application.Application;
 import org.fog.core.Config;
+import org.fog.core.Constants;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogBroker;
 import org.fog.entities.FogDevice;
@@ -17,7 +18,7 @@ import org.fog.utils.Util;
 public class BF extends Algorithm {
 	private int[][] bestPlacementMap = null;
 	private int[][] bestRoutingMap = null;
-	private double bestCost = Config.INF;
+	private double bestCost = Constants.MIN_SOLUTION;
 	private int iteration = 0;
 	
 	public BF(final List<FogBroker> fogBrokers, final List<FogDevice> fogDevices, final List<Application> applications,
@@ -50,8 +51,8 @@ public class BF extends Algorithm {
 						modulePlacementMap[j][index] = 0;
 				}
 				
-				if(!isPossibleModulePlacement(modulePlacementMap))
-					continue;
+				/*if(!CostFunction.isPossibleModulePlacement(this, modulePlacementMap))
+					continue;*/
 				
 				if(index != NR_MODULES - 1)
 					solveDeployment(modulePlacementMap, index + 1);
@@ -88,13 +89,15 @@ public class BF extends Algorithm {
 				bestCost = job.getCost();
 				bestPlacementMap = Util.copy(modulePlacementMap);
 				bestRoutingMap = Util.copy(routingMap);
-				valueIterMap.put(iteration, bestCost);
+				
+    			valueIterMap.put(iteration, bestCost);
+    			System.out.println("bestValue: " + bestCost);
 			}
 			iteration++;
 		}else {
 			int previousNode = routingMap[row][col-1];
 			
-			if(previousNode == routingMap[row][NR_NODES-1]) {
+			/*if(previousNode == routingMap[row][NR_NODES-1]) {
 				routingMap[row][col] = previousNode;
 				
 				if(col < max_c-1)
@@ -102,18 +105,18 @@ public class BF extends Algorithm {
 				else
 					solveRouting(new Job(this, modulePlacementMap, routingMap), row + 1, 1);
 				
-			}else {
+			}else {*/
 				for(int i = 0; i < NR_NODES; i++) {
 					
-					if(getfLatencyMap()[previousNode][i] < Config.INF) {
+					if(getfLatencyMap()[previousNode][i] < Constants.INF) {
 						
-						boolean valid = true;
+						/*boolean valid = true;
 						for(int j = 0; j < col; j++)
 							if(routingMap[row][j] == i && i != previousNode)
 								valid = false;
 						
 						if(!valid)
-							continue;
+							continue;*/
 						
 						routingMap[row][col] = i;
 					
@@ -123,7 +126,7 @@ public class BF extends Algorithm {
 							solveRouting(new Job(this, modulePlacementMap, routingMap), row + 1, 1);
 					}
 				}
-			}
+			//}
 		}
 	}
 	
@@ -143,25 +146,6 @@ public class BF extends Algorithm {
 	    }
 	    
 	    return ret;
-	}
-	
-	private boolean isPossibleModulePlacement(int[][] modulePlacementMap) {
-		for(int j = 0; j < getNumberOfNodes(); j++) {
-			double totalMips = 0;
-			double totalRam = 0;
-			double totalMem = 0;
-			
-			for(int z = 0; z < getNumberOfModules(); z++) {
-				totalMips += modulePlacementMap[j][z] * getmMips()[z];
-				totalRam += modulePlacementMap[j][z] * getmRam()[z];
-				totalMem += modulePlacementMap[j][z] * getmMem()[z];
-			}
-			
-			if(totalMips > getfMips()[j] || totalRam > getfRam()[j] || totalMem > getfMem()[j])
-				return false;
-		}
-		
-		return true;
 	}
 	
 }

@@ -12,10 +12,10 @@ import org.cloudbus.cloudsim.core.SimEvent;
 import org.fog.application.AppLoop;
 import org.fog.application.AppModule;
 import org.fog.application.Application;
+import org.fog.core.Constants;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
-import org.fog.core.Config;
 import org.fog.utils.FogEvents;
 import org.fog.utils.NetworkUsageMonitor;
 import org.fog.utils.TimeKeeper;
@@ -61,8 +61,8 @@ public class Controller extends SimEntity{
 				send(getId(), getAppLaunchDelays().get(appId), FogEvents.APP_SUBMIT, applications.get(appId));
 		}
 
-		send(getId(), Config.RESOURCE_MANAGE_INTERVAL, FogEvents.CONTROLLER_RESOURCE_MANAGE);
-		send(getId(), Config.MAX_SIMULATION_TIME, FogEvents.STOP_SIMULATION);
+		send(getId(), Constants.RESOURCE_MANAGE_INTERVAL, FogEvents.CONTROLLER_RESOURCE_MANAGE);
+		send(getId(), Constants.MAX_SIMULATION_TIME, FogEvents.STOP_SIMULATION);
 		
 		for(FogDevice dev : getFogDevices())
 			sendNow(dev.getId(), FogEvents.RESOURCE_MGMT);
@@ -103,7 +103,7 @@ public class Controller extends SimEntity{
 	}
 
 	protected void manageResources(){
-		send(getId(), Config.RESOURCE_MANAGE_INTERVAL, FogEvents.CONTROLLER_RESOURCE_MANAGE);
+		send(getId(), Constants.RESOURCE_MANAGE_INTERVAL, FogEvents.CONTROLLER_RESOURCE_MANAGE);
 	}
 	
 	private void processTupleFinished(SimEvent ev) {
@@ -189,7 +189,7 @@ public class Controller extends SimEntity{
 		System.out.println("|" + u.centerString((MAX_COLUMN_SIZE*2+1), "TOTAL NETWORK USAGE") + "|");
 		newDetailsField(2, '-');
 		System.out.println("|" + u.centerString((MAX_COLUMN_SIZE*2+1), "" +
-				NetworkUsageMonitor.getNetworkUsage()/Config.MAX_SIMULATION_TIME) + "|");
+				NetworkUsageMonitor.getNetworkUsage()/Constants.MAX_SIMULATION_TIME) + "|");
 		newDetailsField(2, '=');
 	}
 	

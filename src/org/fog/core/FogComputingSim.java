@@ -34,6 +34,19 @@ import org.fog.utils.TimeKeeper;
 import org.fog.utils.Util;
 
 public class FogComputingSim {
+	private static final int LP = 1;
+	private static final int GA = 2;
+	private static final int BF = 3;
+	private static final int MDP = 4;
+	private static final int ALL = 5;
+
+	private static final int EXIT = 0;
+	private static final int GUI = 1;
+	private static final int RANDOM = 2;
+	private static final int VRGAME = 3;
+	private static final int DCNS = 4;
+	private static final int TEMP = 5;
+	
 	private static List<Application> applications;
 	private static List<FogBroker> fogBrokers;
 	private static List<FogDevice> fogDevices;
@@ -50,7 +63,8 @@ public class FogComputingSim {
 		
 		CloudSim.init(Calendar.getInstance());
 		
-		menu();
+		int op = menuAlgorithm();
+		menuTopology();
 		
 		if(applications == null || applications.isEmpty() || fogBrokers == null || fogBrokers.isEmpty() ||
 				fogDevices == null || fogDevices.isEmpty() || actuators == null || actuators.isEmpty() ||
@@ -59,42 +73,52 @@ public class FogComputingSim {
 		
 		Job solution = null;
 		Algorithm algorithm = null;
-		String title = "";
-		switch (Config.OPTIMIZATION_ALGORITHM) {
-			case "LP":
+		switch (op) {
+			case LP:
 				System.out.println("Running the optimization algorithm: Linear programming.");
 				algorithm = new LP(fogBrokers, fogDevices, applications, sensors, actuators);
+				solution = algorithm.execute();
 				break;
-			case "BF":
-				System.out.println("Running the optimization algorithm: Brute Force.");
-				algorithm = new BF(fogBrokers, fogDevices, applications, sensors, actuators);
-				title = "Brute Force";
-				break;
-			case "GA":
+			case GA:
 				System.out.println("Running the optimization algorithm: Genetic Algorithm.");
 				algorithm = new GA(fogBrokers, fogDevices, applications, sensors, actuators);
-				title = "Genetic Algorithm";
+				solution = algorithm.execute();
+				plotResult(algorithm, "Genetic Algorithm");
 				break;
-			case "MDP":
+			case BF:
+				System.out.println("Running the optimization algorithm: Brute Force.");
+				algorithm = new BF(fogBrokers, fogDevices, applications, sensors, actuators);
+				solution = algorithm.execute();
+				plotResult(algorithm, "Brute Force");
+				break;
+			case MDP:
 				System.err.println("MDP is not implemented yet.\nFogComputingSim will terminate abruptally.\n");
 				System.exit(-1);
+				break;
+			case ALL:
+				System.out.println("Running the optimization algorithm: Linear programming.");
+				algorithm = new LP(fogBrokers, fogDevices, applications, sensors, actuators);
+				solution = algorithm.execute();
+				
+				System.out.println("Running the optimization algorithm: Genetic Algorithm.");
+				algorithm = new GA(fogBrokers, fogDevices, applications, sensors, actuators);
+				solution = algorithm.execute();
+				plotResult(algorithm, "Genetic Algorithm");
+				
+				System.out.println("Running the optimization algorithm: Brute Force.");
+				algorithm = new BF(fogBrokers, fogDevices, applications, sensors, actuators);
+				solution = algorithm.execute();
+				plotResult(algorithm, "Brute Force");
 				break;
 			default:
 				System.err.println("Unknown algorithm.\nFogComputingSim will terminate abruptally.\n");
 				System.exit(-1);
 		}
-		solution = algorithm.execute();
 		
-		if(solution == null || solution.getModulePlacementMap() == null || solution.getRoutingMap() == null || solution.getCost() >= Config.INF) {
+		if(solution == null || solution.getModulePlacementMap() == null || solution.getRoutingMap() == null || solution.getCost() >= Constants.SINF) {
 			System.err.println("There is no possible combination to deploy all applications.\n");
 			System.err.println("FogComputingSim will terminate abruptally.\n");
 			System.exit(-1);
-		}
-		
-		if(title != "") {
-			MatlabChartUtils matlabChartUtils = new MatlabChartUtils(algorithm, title);
-	    	matlabChartUtils.setVisible(true);
-	    	Util.promptEnterKey("Press \"ENTER\" to continue...");
 		}
 		
 		deployApplications(algorithm.extractPlacementMap(solution.getModulePlacementMap()));
@@ -109,19 +133,61 @@ public class FogComputingSim {
 	}
 	
 	@SuppressWarnings("resource")
-	private static void menu() {
-		System.out.println("———————————————————————————————————————————");
-		System.out.println("|       FOG COMPUTING SIMULATOR MENU      |");
-		System.out.println("|                                         |");
-	    System.out.println("| Options:                                |");
-	    System.out.println("|       1. GUI                            |");
-	    System.out.println("|       2. Random Topology                |");
-	    System.out.println("|       3. VRGameFog - iFogSim Example    |");
-	    System.out.println("|       4. DCNSFog   - iFogSim Example    |");
-	    System.out.println("|       5. TEMPFog   - iFogSim Example    |");
-	    System.out.println("|       0. Exit                           |");
-	    System.out.println("|                                         |");
-	    System.out.println("———————————————————————————————————————————");
+	private static int menuAlgorithm() {
+		System.out.println("——————————————————————————————————————————————");
+		System.out.println("|  FOG COMPUTING SIMULATOR MENU - ALGORITHM  |");
+		System.out.println("|                                            |");
+	    System.out.println("| Options:                                   |");
+	    System.out.println("|       1. Linear Programming                |");
+	    System.out.println("|       2. Genetic Algorithm                 |");
+	    System.out.println("|       3. Brute Force                       |");
+	    System.out.println("|       4. Markov Decision Process           |");
+	    System.out.println("|       5. Compare all algorithms            |");
+	    System.out.println("|       0. Exit                              |");
+	    System.out.println("|                                            |");
+	    System.out.println("——————————————————————————————————————————————");
+	    System.out.print("\n Option: ");
+	    
+	    int op = -1;
+	    while(op == -1) {
+		    
+		    try {
+		    	op = new Scanner(System.in).nextInt();
+		    	
+		    	if(op == EXIT) {
+		    		System.exit(0);
+					break;
+		    	}
+		    	
+		    	if(op < LP || op > ALL) {
+		    		op = -1;
+		    	}
+		    	
+			} catch (Exception e) {
+				op = -1;
+			}
+		    
+		    if(op == -1)
+		    	System.out.print("Invalid input. Option: ");
+	    }
+	    
+	    return op;
+	}
+	
+	@SuppressWarnings("resource")
+	private static void menuTopology() {
+		System.out.println("—————————————————————————————————————————————");
+		System.out.println("|  FOG COMPUTING SIMULATOR MENU - TOPOLOGY  |");
+		System.out.println("|                                           |");
+	    System.out.println("| Options:                                  |");
+	    System.out.println("|       1. GUI                              |");
+	    System.out.println("|       2. Random Topology                  |");
+	    System.out.println("|       3. VRGameFog - iFogSim Example      |");
+	    System.out.println("|       4. DCNSFog   - iFogSim Example      |");
+	    System.out.println("|       5. TEMPFog   - iFogSim Example      |");
+	    System.out.println("|       0. Exit                             |");
+	    System.out.println("|                                           |");
+	    System.out.println("—————————————————————————————————————————————");
 	    System.out.print("\n Option: ");
 	    
 	    FogTest fogTest = null;
@@ -134,11 +200,12 @@ public class FogComputingSim {
 				option = -1;
 			}
 	    
+		    
 		    switch (option) {
-			    case 0:
+			    case EXIT:
 					System.exit(0);
 					break;
-				case 1:
+				case GUI:
 					Gui gui = new Gui();
 					
 					while(fogTest == null) {
@@ -146,22 +213,25 @@ public class FogComputingSim {
 						fogTest = gui.getRunGUI();
 					}
 					break;
-				case 2:
+				case RANDOM:
 					fogTest = new RandomTopology();
 					break;
-				case 3:
+				case VRGAME:
 					fogTest = new VRGameFog();
 					break;
-				case 4:
+				case DCNS:
 					fogTest = new DCNSFog();
 					break;
-				case 5:
+				case TEMP:
 					fogTest = new TEMPFog();
 					break;
 				default:
-					System.out.print("Invalid input. Option: ");
 					break;
 			}
+		    
+		    if(fogTest == null) {
+		    	System.out.print("Invalid input. Option: ");
+		    }
 	    }
 	    
 	    applications = fogTest.getApplications();
@@ -211,6 +281,12 @@ public class FogComputingSim {
 				fogDevice.getRoutingTable().put(hop.get(node), algorithm.getfId()[routingMap.get(hop)]);
 			}
 		}
+	}
+	
+	private static void plotResult(Algorithm algorithm, String title) {
+		MatlabChartUtils matlabChartUtils = new MatlabChartUtils(algorithm, title);
+    	matlabChartUtils.setVisible(true);
+    	Util.promptEnterKey("Press \"ENTER\" to continue...");
 	}
 	
 	private static FogBroker getFogBrokerByName(String name) {

@@ -20,6 +20,7 @@ import org.fog.application.AppLoop;
 import org.fog.application.AppModule;
 import org.fog.application.Application;
 import org.fog.application.selectivity.FractionalSelectivity;
+import org.fog.core.Constants;
 import org.fog.core.FogTest;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogBroker;
@@ -29,7 +30,6 @@ import org.fog.entities.Sensor;
 import org.fog.entities.Tuple;
 import org.fog.placement.Controller;
 import org.fog.policy.AppModuleAllocationPolicy;
-import org.fog.core.Config;
 import org.fog.utils.FogLinearPowerModel;
 import org.fog.utils.FogUtils;
 
@@ -73,7 +73,7 @@ public class RunGUI extends FogTest {
 		ArrayList<FogDeviceGui> clients = new ArrayList<FogDeviceGui>();
 		
 		for(Node node : graph.getDevicesList().keySet())
-			if(node.getType().equals(Config.FOG_TYPE))
+			if(node.getType().equals(Constants.FOG_TYPE))
     			if(((FogDeviceGui)node).getApplication().length() > 0)
     				clients.add((FogDeviceGui)node);
 		
@@ -82,18 +82,18 @@ public class RunGUI extends FogTest {
 	
 	private void createFogDevices(Graph graph) {
 		for(Node node : graph.getDevicesList().keySet())
-			if(node.getType().equals(Config.FOG_TYPE))
+			if(node.getType().equals(Constants.FOG_TYPE))
 				fogDevices.add(createFogDevice((FogDeviceGui)node));
 		
 		for (Entry<Node, List<Link>> entry : graph.getDevicesList().entrySet()) {
-			if(!entry.getKey().getType().equals(Config.FOG_TYPE))
+			if(!entry.getKey().getType().equals(Constants.FOG_TYPE))
 				continue;
 			
 			FogDeviceGui fog1 = (FogDeviceGui)entry.getKey();
 			FogDevice f1 = getFogDeviceByName(fog1.getName());
 			
 			for (Link edge : entry.getValue()) {
-				if(!edge.getNode().getType().equals(Config.FOG_TYPE))
+				if(!edge.getNode().getType().equals(Constants.FOG_TYPE))
 					continue;						
 					
 				FogDeviceGui fog2 = (FogDeviceGui)edge.getNode();
@@ -134,13 +134,13 @@ public class RunGUI extends FogTest {
 		List<Host> hostList = new ArrayList<Host>();
 		hostList.add(host);
 
-		FogDeviceCharacteristics characteristics = new FogDeviceCharacteristics(Config.FOG_DEVICE_ARCH,
-				Config.FOG_DEVICE_OS, Config.FOG_DEVICE_VMM, host, Config.FOG_DEVICE_TIMEZONE,
+		FogDeviceCharacteristics characteristics = new FogDeviceCharacteristics(Constants.FOG_DEVICE_ARCH,
+				Constants.FOG_DEVICE_OS, Constants.FOG_DEVICE_VMM, host, Constants.FOG_DEVICE_TIMEZONE,
 				fog.getCostPerSec(), fog.getRateMips(), fog.getRateRam(), fog.getRateStorage(), fog.getRateBw());
 		
 		try {
 			return new FogDevice(fog.getName(), characteristics, new AppModuleAllocationPolicy(hostList),
-					new LinkedList<Storage>(), Config.SCHEDULING_INTERVAL);
+					new LinkedList<Storage>(), Constants.SCHEDULING_INTERVAL);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
@@ -201,17 +201,17 @@ public class RunGUI extends FogTest {
 		for (Entry<Node, List<Link>> entry : graph.getDevicesList().entrySet()) {
 			for (Link edge : entry.getValue()) {
 				if(entry.getKey().equals(client)){
-					if(edge.getNode().getType().equals(Config.SENSOR_TYPE)) {
+					if(edge.getNode().getType().equals(Constants.SENSOR_TYPE)) {
 						sensor = (SensorGui)edge.getNode();
 						sensorLat = edge.getLatency();
-					}else if(edge.getNode().getType().equals(Config.ACTUATOR_TYPE)) {
+					}else if(edge.getNode().getType().equals(Constants.ACTUATOR_TYPE)) {
 						actuator = (ActuatorGui)edge.getNode();
 						actuatorLat = edge.getLatency();
 					}
-				}else if(entry.getKey().getType().equals(Config.SENSOR_TYPE) && edge.getNode().equals(client)) {
+				}else if(entry.getKey().getType().equals(Constants.SENSOR_TYPE) && edge.getNode().equals(client)) {
 					sensor = (SensorGui)entry.getKey();
 					sensorLat = edge.getLatency();
-				}else if(entry.getKey().getType().equals(Config.ACTUATOR_TYPE) && edge.getNode().equals(client)) {
+				}else if(entry.getKey().getType().equals(Constants.ACTUATOR_TYPE) && edge.getNode().equals(client)) {
 					actuator = (ActuatorGui)entry.getKey();
 					actuatorLat = edge.getLatency();
 				}

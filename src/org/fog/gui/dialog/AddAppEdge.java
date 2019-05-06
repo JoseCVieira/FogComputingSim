@@ -27,9 +27,9 @@ import javax.swing.SpringLayout;
 import org.apache.commons.math3.util.Pair;
 import org.fog.application.AppEdge;
 import org.fog.application.AppModule;
+import org.fog.gui.GuiConfig;
 import org.fog.gui.core.ApplicationGui;
 import org.fog.gui.core.SpringUtilities;
-import org.fog.core.Config;
 import org.fog.utils.Util;
 import org.fog.utils.Util.AppModulesCellRenderer;
 
@@ -141,9 +141,9 @@ public class AddAppEdge extends JDialog {
 		springPanel.add(actuatorName);
 		
 		periodic = Util.createDropDown(springPanel, periodic, "Periodic: ", periodicModel, null);
-		periodicity = Util.createInput(springPanel, periodicity, "Periodicity: ", edge == null ? Double.toString(Config.EDGE_PERIODICITY) : Double.toString(edge.getPeriodicity()));		
-		tupleCpuLength = Util.createInput(springPanel, tupleCpuLength, "Tuple CPU Length: ", edge == null ? Double.toString(Config.EDGE_CPU_LENGTH) : Double.toString(edge.getTupleCpuLength()));
-		tupleNwLength = Util.createInput(springPanel, tupleNwLength, "Tuple NW Length: ", edge == null ? Double.toString(Config.EDGE_NW_LENGTH) : Double.toString(edge.getTupleNwLength()));
+		periodicity = Util.createInput(springPanel, periodicity, "Periodicity: ", edge == null ? Double.toString(GuiConfig.EDGE_PERIODICITY) : Double.toString(edge.getPeriodicity()));		
+		tupleCpuLength = Util.createInput(springPanel, tupleCpuLength, "Tuple CPU Length: ", edge == null ? Double.toString(GuiConfig.EDGE_CPU_LENGTH) : Double.toString(edge.getTupleCpuLength()));
+		tupleNwLength = Util.createInput(springPanel, tupleNwLength, "Tuple NW Length: ", edge == null ? Double.toString(GuiConfig.EDGE_NW_LENGTH) : Double.toString(edge.getTupleNwLength()));
 		tupleType = Util.createInput(springPanel, tupleType, "Tuple Type: ", edge == null ? "" : edge.getTupleType());
 		
 		if(edge != null && edge.getEdgeType() == AppEdge.SENSOR) {
