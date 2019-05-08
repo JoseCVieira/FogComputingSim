@@ -166,7 +166,7 @@ public class LP extends Algorithm {
 			long start = System.currentTimeMillis();
 			// Solve
 			if (cplex.solve()) {
-				System.out.println("\nValue = " + cplex.getObjValue() + "\n");
+				//System.out.println("\nValue = " + cplex.getObjValue() + "\n");
 				
 				long finish = System.currentTimeMillis();
 				elapsedTime = finish - start;
@@ -194,8 +194,6 @@ public class LP extends Algorithm {
 			    
 			    if(Config.PRINT_DETAILS)
 			    	AlgorithmUtils.printResults(this, solution);
-			    
-			    System.out.println(solution.getCost());
 				
 				cplex.end();
 				return solution;

@@ -34,7 +34,7 @@ public class RandomTopology extends FogTest {
 	}
 	
 	private static void createFogDevices() {
-		FogDevice cloud = createFogDevice(Config.CLOUD_NAME, (int) Constants.IINF, (int) Constants.IINF, (int) Constants.IINF, (int) Constants.IINF,
+		FogDevice cloud = createFogDevice(Config.CLOUD_NAME, (int) Constants.INF, (int) Constants.INF, (int) Constants.INF, (int) Constants.INF,
 				16*GuiConfig.BUSY_POWER, 16*GuiConfig.IDLE_POWER, GuiConfig.RATE_MIPS, GuiConfig.RATE_RAM,
 				GuiConfig.RATE_MEM, GuiConfig.RATE_BW);
 		

@@ -38,8 +38,6 @@ public class BF extends Algorithm {
 		if(Config.PRINT_DETAILS)
 			AlgorithmUtils.printResults(this, solution);
 		
-		System.out.println(solution.getCost());
-		
 		return solution;
 	}
 	
@@ -53,8 +51,8 @@ public class BF extends Algorithm {
 						modulePlacementMap[j][index] = 0;
 				}
 				
-				/*if(!CostFunction.isPossibleModulePlacement(this, modulePlacementMap))
-					continue;*/
+				if(!isPossibleModulePlacement(modulePlacementMap))
+					continue;
 				
 				if(index != NR_MODULES - 1)
 					solveDeployment(modulePlacementMap, index + 1);
@@ -99,7 +97,7 @@ public class BF extends Algorithm {
 		}else {
 			int previousNode = routingMap[row][col-1];
 			
-			/*if(previousNode == routingMap[row][NR_NODES-1]) {
+			if(previousNode == routingMap[row][NR_NODES-1]) {
 				routingMap[row][col] = previousNode;
 				
 				if(col < max_c-1)
@@ -107,18 +105,21 @@ public class BF extends Algorithm {
 				else
 					solveRouting(new Job(this, modulePlacementMap, routingMap), row + 1, 1);
 				
-			}else {*/
+			}else {
 				for(int i = 0; i < NR_NODES; i++) {
 					
 					if(getfLatencyMap()[previousNode][i] < Constants.INF) {
 						
-						/*boolean valid = true;
-						for(int j = 0; j < col; j++)
-							if(routingMap[row][j] == i && i != previousNode)
+						boolean valid = true;
+						for(int j = 0; j < col - 1; j++) {
+							if(routingMap[row][j] == i && i != previousNode) {
 								valid = false;
-						
+								break;
+							}
+						}
+							
 						if(!valid)
-							continue;*/
+							continue;
 						
 						routingMap[row][col] = i;
 					
@@ -128,7 +129,7 @@ public class BF extends Algorithm {
 							solveRouting(new Job(this, modulePlacementMap, routingMap), row + 1, 1);
 					}
 				}
-			//}
+			}
 		}
 	}
 	
@@ -148,6 +149,25 @@ public class BF extends Algorithm {
 	    }
 	    
 	    return ret;
+	}
+	
+	private boolean isPossibleModulePlacement(int[][] modulePlacementMap) {
+		for(int i = 0; i < getNumberOfNodes(); i++) {
+			double totalMips = 0;
+			double totalRam = 0;
+			double totalMem = 0;
+			
+			for(int j = 0; j < getNumberOfModules(); j++) {
+				totalMips += modulePlacementMap[i][j] * getmMips()[j];
+				totalRam += modulePlacementMap[i][j] * getmRam()[j];
+				totalMem += modulePlacementMap[i][j] * getmMem()[j];
+			}
+			
+			if(totalMips > getfMips()[i] || totalRam > getfRam()[i] || totalMem > getfMem()[i])
+				return false;
+		}
+		
+		return true;
 	}
 	
 }

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import org.fog.core.Constants;
 import org.fog.utils.Util;
 
 public class Job {
@@ -75,7 +76,7 @@ public class Job {
 	
 	public static Job generateRandomJob(Algorithm algorithm, int nrFogNodes, int nrModules) {
 		int[][] modulePlacementMap = generateRandomPlacement(algorithm, nrFogNodes, nrModules);
-		int[][] routingMap = generateRandomRouting(algorithm, modulePlacementMap, nrFogNodes, nrModules);
+		int[][] routingMap = generateRandomRouting(algorithm, modulePlacementMap, nrFogNodes);
 		return new Job(algorithm, modulePlacementMap, routingMap);
 	}
 	
@@ -96,7 +97,7 @@ public class Job {
 		return modulePlacementMap;
 	}
 	
-	public static int[][] generateRandomRouting(Algorithm algorithm, int[][] modulePlacementMap, int nrFogNodes, int nrModules) {
+	public static int[][] generateRandomRouting(Algorithm algorithm, int[][] modulePlacementMap, int nrFogNodes) {
 		List<Integer> initialNodes = new ArrayList<Integer>();
 		List<Integer> finalNodes = new ArrayList<Integer>();
 		
@@ -121,7 +122,7 @@ public class Job {
 					List<Integer> validValues = new ArrayList<Integer>();
 					
 					for(int z = 0; z < nrFogNodes; z++)
-						if(algorithm.getfLatencyMap()[(int) routingMap[i][j-1]][z] < Double.MAX_VALUE)
+						if(algorithm.getfLatencyMap()[(int) routingMap[i][j-1]][z] < Constants.INF)
 							validValues.add(z);
 							
 					routingMap[i][j] = validValues.get(new Random().nextInt(validValues.size()));

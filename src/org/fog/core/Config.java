@@ -16,23 +16,25 @@ public class Config {
 	public static final double LT_W = 1; 	// Latency weight
 	public static final double BW_W = 1; 	// Bandwidth weight
 	
-	public static final int POPULATION_SIZE = 10;
-	public static final int MAX_ITER = 1000;
-	public static final int MAX_ITER_ROUTING = 1000;
-	public static final int MAX_ITER_CONVERGENCE = 3;
-	public static final double ERROR_STEP_CONVERGENCE = 0.1;
+	public static final int POPULATION_SIZE = 12;
+	public static final int MAX_ITER_PLACEMENT = 100000;
+	public static final int MAX_ITER_ROUTING = 150;
+	public static final int MAX_ITER_PLACEMENT_CONVERGENCE = 1000;
+	public static final int MAX_ITER_ROUTING_CONVERGENCE = 5;
 	
 	// Random topology
 	public static final String CLOUD_NAME = "Cloud";
-	public static final int NR_FOG_DEVICES = 2;
+	public static final int NR_FOG_DEVICES = 3;
 	
 	public static final int MAX_CONN_LAT = 100;
 	public static final int MAX_CONN_BW = 10000;
 	
 	public static final double CONNECTION_PROB = 0.4;
-	public static final double DEPLOY_APP_PROB = 0.1;//0.35;
+	public static final double DEPLOY_APP_PROB = 0.35;
 	
 	public static final double RESOURCES_DEV = 100;
 	public static final double ENERGY_DEV = 5;
 	public static final double COST_DEV = 1E-5;
 }
+
+// 383.2696593930058

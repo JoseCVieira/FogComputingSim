@@ -70,28 +70,34 @@ public class Individual implements Comparable<Individual> {
 		}
 		
 		for (int i = 0; i < routingMap.length; i++) {
-			for (int j = 0; j < routingMap[0].length; j++) {
-				if(j == 0)
-            		childRoutingMap[i][j] = initialNodes.get(i);
-				else if(j == routingMap[i].length - 1)
-					childRoutingMap[i][j] = finalNodes.get(i);
-				else {
-					float prob = new Random().nextFloat();
-		            if (prob < 0.45)
-		            	childRoutingMap[i][j] = routingMap[i][j];
-		            else if (prob < 0.90)
-		            	childRoutingMap[i][j] = parRoutingMap[i][j];
-		            else {
-						List<Integer> validValues = new ArrayList<Integer>();
-						
-						for(int z = 0; z < routingMap[0].length; z++)
-							if(ga.getfLatencyMap()[(int) routingMap[i][j-1]][z] < Constants.INF)
-								validValues.add(z);
-						
-						childRoutingMap[i][j] = validValues.get(new Random().nextInt(validValues.size()));
-		            }
-				}
-			}
+			float prob = new Random().nextFloat();
+			
+			 if (prob < 0.45) {
+				 for (int j = 0; j < routingMap[0].length; j++) {
+					 childRoutingMap[i][j] = routingMap[i][j];
+				 }
+			 }else if (prob < 0.90) {
+				 for (int j = 0; j < routingMap[0].length; j++) {
+					 childRoutingMap[i][j] = parRoutingMap[i][j];
+				 }
+			 }else {
+				 for (int j = 0; j < routingMap[0].length; j++) {
+						if(j == 0)
+							childRoutingMap[i][j] = initialNodes.get(i);
+						else if(j == routingMap[0].length -1)
+							childRoutingMap[i][j] = finalNodes.get(i);
+						else {
+							List<Integer> validValues = new ArrayList<Integer>();
+							
+							for(int z = 0; z < routingMap[0].length; z++)
+								if(ga.getfLatencyMap()[(int) routingMap[i][j-1]][z] < Constants.INF)
+									validValues.add(z);
+									
+							childRoutingMap[i][j] = validValues.get(new Random().nextInt(validValues.size()));
+						}
+					}
+				 
+			 }
 		}
 		
 		Job childChromosome = new Job(ga, modulePlacementMap, childRoutingMap);

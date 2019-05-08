@@ -14,9 +14,6 @@ public class CostFunction {
 		int[][] modulePlacementMap = job.getModulePlacementMap();
 		int[][] routingMap = job.getRoutingMap();
 		
-		if(isPossibleCombination(algorithm, modulePlacementMap) == false)
-			return Constants.INF;
-		
 		for(int i = 0; i < algorithm.getNumberOfModules(); i++) {
 			for (int j = 0; j < algorithm.getNumberOfModules(); j++) {
 				if(algorithm.getmDependencyMap()[i][j] != 0) {
@@ -27,6 +24,7 @@ public class CostFunction {
 		}
 		
 		double cost = 0;
+		cost += isPossibleCombination(algorithm, modulePlacementMap);
 		cost += calculateOperationalCost(algorithm, modulePlacementMap, routingMap, initialModules, finalModules);
 		cost += calculatePowerCost(algorithm, modulePlacementMap);
 		cost += calculateProcessingCost(algorithm, modulePlacementMap);
@@ -35,7 +33,41 @@ public class CostFunction {
 		return cost;
 	}
 	
-	private static boolean isPossibleCombination(Algorithm algorithm, int[][] modulePlacementMap) {
+	// Sums minimum possible value when it is not possible to allow GA to converge easier than return infinity
+	private static double isPossibleCombination(Algorithm algorithm, int[][] modulePlacementMap) {
+		double cost = 0;
+		
+		// If some module is not placed or placed in more than one fog node (never happens but is also verified)
+		for(int j = 0; j < algorithm.getNumberOfModules(); j++) {
+			int sum = 0;
+			for(int i  = 0; i < algorithm.getNumberOfNodes(); i++)
+				if(modulePlacementMap[i][j] == 1)
+					sum++;
+			
+			if(sum != 1)
+				cost += Constants.MIN_SOLUTION;
+		}
+		
+		// If fog node's resources are exceeded
+		for(int i = 0; i < algorithm.getNumberOfNodes(); i++) {
+			double totalMips = 0;
+			double totalRam = 0;
+			double totalMem = 0;
+			
+			for(int j = 0; j < algorithm.getNumberOfModules(); j++) {
+				totalMips += modulePlacementMap[i][j] * algorithm.getmMips()[j];
+				totalRam += modulePlacementMap[i][j] * algorithm.getmRam()[j];
+				totalMem += modulePlacementMap[i][j] * algorithm.getmMem()[j];
+			}
+			
+			if(totalMips > algorithm.getfMips()[i] || totalRam > algorithm.getfRam()[i] || totalMem > algorithm.getfMem()[i])
+				cost += Constants.MIN_SOLUTION;
+		}
+		
+		return cost;
+	}
+	
+	/*private static boolean isPossibleCombination(Algorithm algorithm, int[][] modulePlacementMap) {
 		// If some module is not placed
 		for(int j = 0; j < algorithm.getNumberOfModules(); j++) {
 			int sum = 0;
@@ -64,7 +96,7 @@ public class CostFunction {
 		}
 		
 		return true;
-	}
+	}*/
 	
 	private static double calculateOperationalCost(Algorithm algorithm, int[][] modulePlacementMap,
 			int[][] routingMap, List<Integer> initialModules, List<Integer> finalModules) {

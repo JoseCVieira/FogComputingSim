@@ -228,7 +228,7 @@ public class AlgorithmUtils {
 	
 	public static void printResults(final Algorithm al, final Job job) {
 		System.out.println("\n\n*******************************************************");
-		System.out.println("\t\tALGORITHM OUTPUT (Cost = " + String.format("%.5f", job.getCost()) + "):");
+		System.out.println("\t\tALGORITHM OUTPUT (Cost = " + job.getCost() + "):");
 		System.out.println("*******************************************************\n");
 		
 		System.out.println("**************** MODULE PLACEMENT MAP *****************\n");
@@ -264,11 +264,6 @@ public class AlgorithmUtils {
 			}
 			System.out.println();
 		}
-		
-		/*for(Integer iter : al.getValueIterMap().keySet()) {
-			double value = al.getValueIterMap().get(iter);
-			System.out.println("Iter: " + iter + " Value: " + value);
-		}*/
 		
 		System.out.println("Elapsed time: " + al.getElapsedTime() + " Millis");		
 	}

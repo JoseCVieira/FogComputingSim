@@ -80,12 +80,20 @@ public class FogComputingSim {
 				solution = algorithm.execute();
 				break;
 			case GA:
+				System.out.println("Running the optimization algorithm: Linear programming.");
+				algorithm = new LP(fogBrokers, fogDevices, applications, sensors, actuators);
+				solution = algorithm.execute();
+				
 				System.out.println("Running the optimization algorithm: Genetic Algorithm.");
 				algorithm = new GA(fogBrokers, fogDevices, applications, sensors, actuators);
 				solution = algorithm.execute();
 				plotResult(algorithm, "Genetic Algorithm");
 				break;
 			case BF:
+				System.out.println("Running the optimization algorithm: Linear programming.");
+				algorithm = new LP(fogBrokers, fogDevices, applications, sensors, actuators);
+				solution = algorithm.execute();
+				
 				System.out.println("Running the optimization algorithm: Brute Force.");
 				algorithm = new BF(fogBrokers, fogDevices, applications, sensors, actuators);
 				solution = algorithm.execute();
@@ -115,7 +123,7 @@ public class FogComputingSim {
 				System.exit(-1);
 		}
 		
-		if(solution == null || solution.getModulePlacementMap() == null || solution.getRoutingMap() == null || solution.getCost() >= Constants.SINF) {
+		if(solution == null || solution.getModulePlacementMap() == null || solution.getRoutingMap() == null || solution.getCost() >= Constants.MIN_SOLUTION) {
 			System.err.println("There is no possible combination to deploy all applications.\n");
 			System.err.println("FogComputingSim will terminate abruptally.\n");
 			System.exit(-1);
