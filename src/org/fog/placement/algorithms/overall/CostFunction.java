@@ -28,8 +28,8 @@ public class CostFunction {
 		
 		double cost = 0;
 		cost += calculateOperationalCost(algorithm, modulePlacementMap, routingMap, initialModules, finalModules);
-		cost += calculatePowerCost(algorithm, modulePlacementMap);		
-		cost += calculateProcessingCost(algorithm, modulePlacementMap);		
+		cost += calculatePowerCost(algorithm, modulePlacementMap);
+		cost += calculateProcessingCost(algorithm, modulePlacementMap);
 		cost += calculateTransmittingCost(algorithm, routingMap, initialModules, finalModules);
 		
 		return cost;
@@ -94,13 +94,10 @@ public class CostFunction {
 		double cost = 0;
 		
 		for(int i = 0; i < algorithm.getNumberOfNodes(); i++) {
-			double totalMips = 0;
-			
-			for(int j = 0; j < algorithm.getNumberOfModules(); j++)
-				totalMips += modulePlacementMap[i][j] * algorithm.getmMips()[j];
-			
-			cost += Config.EN_W * (algorithm.getfBusyPw()[i]-algorithm.getfIdlePw()[i]) *
-					(totalMips/algorithm.getfMips()[i]) * algorithm.getfPwWeight()[i];
+			for(int j = 0; j < algorithm.getNumberOfModules(); j++){
+				cost += Config.EN_W * modulePlacementMap[i][j] * (algorithm.getfBusyPw()[i]-algorithm.getfIdlePw()[i]) *
+						(algorithm.getmMips()[j]/algorithm.getfMips()[i]) * algorithm.getfPwWeight()[i];
+			}
 		}
 		
 		return cost;
@@ -139,8 +136,10 @@ public class CostFunction {
 			double dependencies = algorithm.getmDependencyMap()[initialModules.get(i)][finalModules.get(i)];
 			
 			for(int j = 1; j < algorithm.getNumberOfNodes(); j++) {
-				cost += Config.LT_W*(algorithm.getfLatencyMap()[routingMap[i][j-1]][routingMap[i][j]] * dependencies);
-				cost += Config.BW_W*(bwNeeded/(algorithm.getfBandwidthMap()[routingMap[i][j-1]][routingMap[i][j]] + Constants.EPSILON));
+				if(routingMap[i][j] != routingMap[i][j-1]) {
+					cost += Config.LT_W*(algorithm.getfLatencyMap()[routingMap[i][j-1]][routingMap[i][j]] * dependencies);
+					cost += Config.BW_W*(bwNeeded/(algorithm.getfBandwidthMap()[routingMap[i][j-1]][routingMap[i][j]] + Constants.EPSILON));
+				}
 			}
 		}
 		

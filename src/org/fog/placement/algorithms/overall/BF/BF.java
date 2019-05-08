@@ -38,6 +38,8 @@ public class BF extends Algorithm {
 		if(Config.PRINT_DETAILS)
 			AlgorithmUtils.printResults(this, solution);
 		
+		System.out.println(solution.getCost());
+		
 		return solution;
 	}
 	
