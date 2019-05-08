@@ -76,6 +76,7 @@ public abstract class Algorithm {
 			throw new IllegalArgumentException("Some of the received arguments are null");
 		
 		NR_NODES = fogDevices.size() + sensors.size() + actuators.size();
+		
 		fId = new int[NR_NODES];
 		fName = new String[NR_NODES];
 		fMips = new double[NR_NODES];
@@ -106,13 +107,15 @@ public abstract class Algorithm {
 		mRam = new double[NR_MODULES];
 		mMem = new double[NR_MODULES];
 		mBw = new double[NR_MODULES];
-				
+		
 		fLatencyMap = new double[NR_NODES][NR_NODES];
 		fBandwidthMap = new double[NR_NODES][NR_NODES];
 		
-		for (int i = 0; i < NR_NODES; i++)
-			for (int j = 0; j < NR_NODES; j++)
+		for (int i = 0; i < NR_NODES; i++) {
+			for (int j = 0; j < NR_NODES; j++) {
 				fLatencyMap[i][j] = Constants.INF;
+			}
+		}
 		
 		possibleDeployment = new double[NR_NODES][NR_MODULES];
 		
@@ -123,7 +126,10 @@ public abstract class Algorithm {
 		extractAppCharacteristics(fogBrokers, fogDevices, applications, sensors, actuators);
 		computeApplicationCharacteristics(applications, sensors);
 		computeLatencyMap(fogDevices, sensors, actuators);
-		//normalizeValues();
+		
+		if(Config.NORMALIZE) {
+			normalizeValues();
+		}
 		
 		if(Config.PRINT_DETAILS)
 			AlgorithmUtils.printDetails(this, fogDevices, applications, sensors, actuators);
@@ -131,15 +137,16 @@ public abstract class Algorithm {
 	
 	private void extractDevicesCharacteristics (final List<FogDevice> fogDevices,
 			final List<Sensor> sensors, final List<Actuator> actuators) {
-		
 		int i = 0;
 		for(FogDevice fogDevice : fogDevices) {
 			FogDeviceCharacteristics characteristics =
 					(FogDeviceCharacteristics) fogDevice.getCharacteristics();
 			
 			double totalMips = 0;
-			for(Pe pe : fogDevice.getHost().getPeList())
+			for(Pe pe : fogDevice.getHost().getPeList()) {
+				System.out.println();
 				totalMips += pe.getMips();
+			}
 			
 			fId[i] = fogDevice.getId();
 			fName[i] = fogDevice.getName();
@@ -159,13 +166,13 @@ public abstract class Algorithm {
 		for(Sensor sensor : sensors) {
 			fId[i] = sensor.getId();
 			fName[i] = sensor.getName();
-			fMips[i++] = Constants.INF; // TODO irrelevant value, but needs to be different from 0
+			fMips[i++] = 1;
 		}
 		
 		for(Actuator actuator : actuators) {
 			fId[i] = actuator.getId();
 			fName[i] = actuator.getName();
-			fMips[i++] = Constants.INF; // TODO irrelevant value, but needs to be different from 0
+			fMips[i++] = 1;
 		}
 	}
 	
@@ -411,72 +418,58 @@ public abstract class Algorithm {
 	}
 	
 	private void normalizeValues() {
-		double maxValue, maxValue2, maxValue3, maxValue4;
+		double maxValue, aux;
 		
-		// Prices
-		maxValue = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fMipsPrice));
-		maxValue2 = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fRamPrice));
-		maxValue3 = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fMemPrice));
-		maxValue4 = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fBwPrice));
-		maxValue = maxValue >= maxValue2 ? maxValue : maxValue2;
-		maxValue = maxValue >= maxValue3 ? maxValue : maxValue3;
-		maxValue = maxValue >= maxValue4 ? maxValue : maxValue4;
+		// PRICES
+		maxValue = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fMipsPrice), false);
+		maxValue = (aux = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fRamPrice), false)) > maxValue ? aux : maxValue;
+		maxValue = (aux = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fMemPrice), false)) > maxValue ? aux : maxValue;
+		maxValue = (aux = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fBwPrice), false)) > maxValue ? aux : maxValue;
 		
-		fMipsPrice = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fMipsPrice), (Number) maxValue);
-		fRamPrice = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fRamPrice), (Number) maxValue);
-		fMemPrice = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fMemPrice), (Number) maxValue);
-		fBwPrice = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fBwPrice), (Number) maxValue);
+		fMipsPrice = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fMipsPrice), (Number) maxValue, false);
+		fRamPrice = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fRamPrice), (Number) maxValue, false);
+		fMemPrice = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fMemPrice), (Number) maxValue, false);
+		fBwPrice = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fBwPrice), (Number) maxValue, false);		
 		
 		// MIPS
-		maxValue = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fMips));
-		maxValue2 = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(mMips));
-		maxValue = maxValue >= maxValue2 ? maxValue : maxValue2;
+		maxValue = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fMips), false);
+		maxValue = (aux = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(mMips), false)) > maxValue ? aux : maxValue;
+		fMips = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fMips), (Number) maxValue, false);
+		mMips = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(mMips), (Number) maxValue, false);
 		
-		fMips = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fMips), (Number) maxValue);
-		mMips = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(mMips), (Number) maxValue);
+		// RAM
+		maxValue = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fRam), false);
+		maxValue = (aux = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(mRam), false)) > maxValue ? aux : maxValue;
+		fRam = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fRam), (Number) maxValue, false);
+		mRam = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(mRam), (Number) maxValue, false);
 		
-		// Ram
-		maxValue = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fRam));
-		maxValue2 = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(mRam));
-		maxValue = maxValue >= maxValue2 ? maxValue : maxValue2;
+		// MEM
+		maxValue = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fMem), false);
+		maxValue = (aux = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(mMem), false)) > maxValue ? aux : maxValue;
+		fMem = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fMem), (Number) maxValue, false);
+		mMem = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(mMem), (Number) maxValue, false);
 		
-		fRam = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fRam), (Number) maxValue);
-		mRam = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(mRam), (Number) maxValue);
+		// BW
+		maxValue = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fBandwidthMap), true);
+		maxValue = (aux = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(mBandwidthMap), false)) > maxValue ? aux : maxValue;
+		maxValue = (aux = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(mBw), false)) > maxValue ? aux : maxValue;
+		fBandwidthMap = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fBandwidthMap), (Number) maxValue, true);
+		mBandwidthMap = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(mBandwidthMap), (Number) maxValue, false);
+		mBw = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(mBw), (Number) maxValue, false);
 		
-		// Storage
-		maxValue = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fMem));
-		maxValue2 = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(mMem));
-		maxValue = maxValue >= maxValue2 ? maxValue : maxValue2;
+		// PW
+		maxValue = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fBusyPw), false);
+		maxValue = (aux = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fIdlePw), false)) > maxValue ? aux : maxValue;
+		fBusyPw = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fBusyPw), (Number) maxValue, false);
+		fIdlePw = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fIdlePw), (Number) maxValue, false);
 		
-		fMem = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fMem), (Number) maxValue);
-		mMem = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(mMem), (Number) maxValue);
+		// LATENCY
+		maxValue = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fLatencyMap), true);
+		fLatencyMap = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fLatencyMap), (Number) maxValue, true);
 		
-		// Bandwidth
-		maxValue = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fBandwidthMap));
-		maxValue2 = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(mBandwidthMap));
-		maxValue3 = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(mBw));
-		maxValue = maxValue >= maxValue2 ? maxValue : maxValue2;
-		maxValue = maxValue >= maxValue3 ? maxValue : maxValue3;
-		
-		fBandwidthMap = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fBandwidthMap), (Number) maxValue);
-		mBandwidthMap = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(mBandwidthMap), (Number) maxValue);
-		mBw = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(mBw), (Number) maxValue);
-		
-		// Power
-		maxValue = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fBusyPw));		
-		fBusyPw = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fBusyPw), (Number) maxValue);
-		fIdlePw = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fIdlePw), (Number) maxValue);
-		
-		maxValue = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fPwWeight));
-		fPwWeight = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fPwWeight), (Number) maxValue);
-		
-		// Latency
-		maxValue = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fLatencyMap));
-		fLatencyMap = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fLatencyMap), (Number) maxValue);
-		
-		// Dependencies
-		maxValue = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(mDependencyMap));
-		mDependencyMap = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(mDependencyMap), (Number) maxValue);
+		// DEPENDENCIES
+		maxValue = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(mDependencyMap), false);
+		mDependencyMap = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(mDependencyMap), (Number) maxValue, false);
 	}
 	
 	public abstract Job execute();

@@ -138,7 +138,7 @@ public class AlgorithmUtils {
 				if(al.getmBandwidthMap()[i][j] != 0)
 					System.out.format(centerString(20, String.format("%.2f", al.getmBandwidthMap()[i][j])));
 				else
-					System.out.format(AlgorithmUtils.centerString(20, "-"));
+					System.out.format(centerString(20, "-"));
 			}
 			System.out.println();
 		}
@@ -158,7 +158,7 @@ public class AlgorithmUtils {
 				if(al.getmDependencyMap()[i][j] != 0.0)
 					System.out.format(centerString(20, String.format("%.2f", al.getmDependencyMap()[i][j])));
 				else
-					System.out.format(AlgorithmUtils.centerString(20, "-"));
+					System.out.format(centerString(20, "-"));
 			System.out.println();
 		}
 		
@@ -196,7 +196,7 @@ public class AlgorithmUtils {
 				if(al.getfBandwidthMap()[i][j] == Constants.INF)
 					System.out.format(centerString(20, "Inf"));
 				else if(al.getfBandwidthMap()[i][j] == 0)
-					System.out.format(AlgorithmUtils.centerString(20, "-"));
+					System.out.format(centerString(20, "-"));
 				else
 					System.out.format(centerString(20, String.format("%.2f", al.getfBandwidthMap()[i][j])));
 			}
@@ -218,7 +218,7 @@ public class AlgorithmUtils {
 				if(al.getfLatencyMap()[i][j] == Constants.INF)
 					System.out.format(centerString(20, "Inf"));
 				else if(al.getfLatencyMap()[i][j] == 0)
-					System.out.format(AlgorithmUtils.centerString(20, "-"));
+					System.out.format(centerString(20, "-"));
 				else
 					System.out.format(centerString(20, String.format("%.2f", al.getfLatencyMap()[i][j])));
 			}
@@ -235,18 +235,18 @@ public class AlgorithmUtils {
 		
 		int[][] modulePlacementMap = job.getModulePlacementMap();
 		
-		System.out.format(AlgorithmUtils.centerString(20, " "));
+		System.out.format(centerString(20, " "));
 		for (int i = 0; i < al.getNumberOfModules(); i++)
-			System.out.format(AlgorithmUtils.centerString(20, al.getmName()[i]));
+			System.out.format(centerString(20, al.getmName()[i]));
 		System.out.println();
 		
 		for (int i = 0; i < al.getNumberOfNodes(); i++) {
-			System.out.format(AlgorithmUtils.centerString(20, al.getfName()[i]));
+			System.out.format(centerString(20, al.getfName()[i]));
 			for (int j = 0; j < al.getNumberOfModules(); j++) {
 				if(modulePlacementMap[i][j] != 0)
-					System.out.format(AlgorithmUtils.centerString(20, Integer.toString(modulePlacementMap[i][j])));
+					System.out.format(centerString(20, Integer.toString(modulePlacementMap[i][j])));
 				else
-					System.out.format(AlgorithmUtils.centerString(20, "-"));
+					System.out.format(centerString(20, "-"));
 			}
 			System.out.println();
 		}
@@ -257,7 +257,7 @@ public class AlgorithmUtils {
 		
 		for (int i = 0; i < routingMap.length; i++) {
 			for (int j = 0; j < routingMap[0].length; j++) {
-				System.out.format(AlgorithmUtils.centerString(20, al.getfName()[routingMap[i][j]]));
+				System.out.format(centerString(20, al.getfName()[routingMap[i][j]]));
 				
 				if(j < routingMap[0].length - 1)
 					System.out.print(" -> ");

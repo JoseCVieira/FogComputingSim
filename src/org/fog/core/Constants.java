@@ -4,7 +4,7 @@ public class Constants {
 	public static final double INF = Double.MAX_VALUE;
 	public static final double EPSILON = 1E-11;
 	
-	public static final double MIN_SOLUTION = Short.MAX_VALUE;
+	public static final double MIN_SOLUTION = Integer.MAX_VALUE;
 	
 	public static final String FOG_TYPE = "FOG_DEVICE";
 	public static final String SENSOR_TYPE = "SENSOR";

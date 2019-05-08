@@ -77,7 +77,7 @@ public class FogComputingSim {
 			case LP:
 				System.out.println("Running the optimization algorithm: Linear programming.");
 				algorithm = new LP(fogBrokers, fogDevices, applications, sensors, actuators);
-				solution = algorithm.execute();
+				solution = algorithm.execute();				
 				break;
 			case GA:
 				System.out.println("Running the optimization algorithm: Linear programming.");

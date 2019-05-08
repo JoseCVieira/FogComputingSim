@@ -1,5 +1,7 @@
 package org.fog.placement.algorithms.overall.util;
 
+import org.fog.core.Constants;
+
 public class AlgorithmMathUtils {
 	
 	/*
@@ -79,20 +81,25 @@ public class AlgorithmMathUtils {
 	/*
 	 *  Scalar/dot division
 	 */
-	public static <T extends Number, K extends Number> double[] scalarDivision(T[] vector, K constant)
+	public static <T extends Number, K extends Number> double[] scalarDivision(T[] vector, K constant, boolean ignoreInf)
 			throws IllegalArgumentException {
 		if(vector == null)
 			throw new IllegalArgumentException("AlgorithmUtils Err: Invalid argument.");
 		
 		double[] result = new double[vector.length];
 		
-		for(int i = 0; i < vector.length; i++)
-			result[i] = vector[i].doubleValue() / constant.doubleValue();
+		for(int i = 0; i < vector.length; i++) {
+			if(!ignoreInf || (ignoreInf && vector[i].doubleValue() != Constants.INF)) {
+				result[i] = vector[i].doubleValue() / constant.doubleValue();
+			}else if(ignoreInf && vector[i].doubleValue() == Constants.INF) {
+				result[i] = Constants.INF;
+			}
+		}
 		
 		return result;
 	}
 	
-	public static <T extends Number, K extends Number> double[][] scalarDivision(T[][] matrix, K constant)
+	public static <T extends Number, K extends Number> double[][] scalarDivision(T[][] matrix, K constant, boolean ignoreInf)
 			throws IllegalArgumentException {
 		if(matrix == null)
 			throw new IllegalArgumentException("AlgorithmUtils Err: Invalid argument.");
@@ -102,9 +109,15 @@ public class AlgorithmMathUtils {
 		
 		double[][] result = new double[r][c];
 		
-		for(int i = 0; i < r ;i++)
-			for(int j = 0; j < c ;j++)
-				result[i][j] = matrix[i][j].doubleValue() / constant.doubleValue();
+		for(int i = 0; i < r ;i++) {
+			for(int j = 0; j < c ;j++) {
+				if(!ignoreInf || (ignoreInf && matrix[i][j].doubleValue() != Constants.INF)) {
+					result[i][j] = matrix[i][j].doubleValue() / constant.doubleValue();
+				}else if(ignoreInf && matrix[i][j].doubleValue() == Constants.INF) {
+					result[i][j] = Constants.INF;
+				}
+			}
+		}
 				
 		return result;	
 	}
@@ -311,34 +324,37 @@ public class AlgorithmMathUtils {
 	/**
 	 * Max value
 	 */
-	public static <T extends Number> double max(T[] vector)
+	public static <T extends Number> double max(T[] vector, boolean ignoreInf)
 			throws IllegalArgumentException {
 		if(vector == null)
 			throw new IllegalArgumentException("AlgorithmUtils Err: Invalid argument.");
 		
-		double result = vector[0].doubleValue();
+		double result = Double.NEGATIVE_INFINITY;
 		
 		for(int i = 0; i < vector.length; i++) {
-			
-			if(result < vector[i].doubleValue()) {
-				result = vector[i].doubleValue();
+			if(!ignoreInf || (ignoreInf && vector[i].doubleValue() != Constants.INF)) {
+				if(result < vector[i].doubleValue()) {
+					result = vector[i].doubleValue();
+				}
 			}
 		}
 		
 		return result;
 	}
 	
-	public static <T extends Number> double max(T[][] matrix)
+	public static <T extends Number> double max(T[][] matrix, boolean ignoreInf)
 			throws IllegalArgumentException {
 		if(matrix == null)
 			throw new IllegalArgumentException("AlgorithmUtils Err: Invalid argument.");
 		
-		double result = matrix[0][0].doubleValue();
+		double result = Double.NEGATIVE_INFINITY;
 		
 		for(int i = 0; i < matrix.length; i++) {
 			for(int j = 0; j < matrix[0].length ;j++) {
-				if(result < matrix[i][j].doubleValue()) {
-					result = matrix[i][j].doubleValue();
+				if(!ignoreInf || (ignoreInf && matrix[i][j].doubleValue() != Constants.INF)) {
+					if(result < matrix[i][j].doubleValue()) {
+						result = matrix[i][j].doubleValue();
+					}
 				}
 			}
 		}

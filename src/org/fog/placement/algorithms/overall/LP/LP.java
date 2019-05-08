@@ -65,13 +65,13 @@ public class LP extends Algorithm {
 					double opCost = Config.OP_W*(getfMipsPrice()[i]*getmMips()[j] +
 							getfRamPrice()[i]*getmRam()[j] + getfMemPrice()[i]*getmMem()[j]);
 					
-					double enCost = Config.EN_W*(getfBusyPw()[i]-getfIdlePw()[i])*
+					double pwCost = Config.PW_W*(getfBusyPw()[i]-getfIdlePw()[i])*
 							(getmMips()[j]/getfMips()[i])*getfPwWeight()[i];
 					
 					double prCost = Config.PR_W*(getmMips()[j]/getfMips()[i]);
 					
 					objective.addTerm(placementVar[i][j], opCost);	// Operational cost
-					objective.addTerm(placementVar[i][j], enCost);	// Energetic cost
+					objective.addTerm(placementVar[i][j], pwCost);	// Power cost
 					objective.addTerm(placementVar[i][j], prCost);	// Processing cost
 				}
 			}
