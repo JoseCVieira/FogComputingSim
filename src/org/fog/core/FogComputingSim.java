@@ -263,10 +263,13 @@ public class FogComputingSim {
 						
 						ModuleMapping moduleMapping = ModuleMapping.createModuleMapping();
 						
-						for(AppModule appModule : application.getModules())
-							for(String fogName : modulePlacementMap.keySet())
-								if(modulePlacementMap.get(fogName).contains(appModule.getName()))
+						for(AppModule appModule : application.getModules()) {
+							for(String fogName : modulePlacementMap.keySet()) {
+								if(modulePlacementMap.get(fogName).contains(appModule.getName())) {
 									moduleMapping.addModuleToDevice(appModule.getName(), fogName);
+								}
+							}
+						}
 						
 						ModulePlacement modulePlacement = new ModulePlacementMapping(fogDevices, application, moduleMapping);
 						controller.submitApplication(application, modulePlacement);

@@ -75,7 +75,7 @@ public abstract class Algorithm {
 		if(fogBrokers == null || applications == null || sensors == null || actuators == null)
 			throw new IllegalArgumentException("Some of the received arguments are null");
 		
-		NR_NODES = fogDevices.size() + sensors.size() + actuators.size();
+		NR_NODES = fogDevices.size();
 		
 		fId = new int[NR_NODES];
 		fName = new String[NR_NODES];
@@ -92,8 +92,9 @@ public abstract class Algorithm {
 		
 		LinkedHashSet<String> hashSet = new LinkedHashSet<String>();
 		for(Application application : applications) {
-			for(AppModule module : application.getModules())
+			for(AppModule module : application.getModules()) {
 				hashSet.add(module.getName());
+			}
 			
 			for(AppEdge appEdge : application.getEdges()) {
 				hashSet.add(appEdge.getSource());
@@ -144,7 +145,6 @@ public abstract class Algorithm {
 			
 			double totalMips = 0;
 			for(Pe pe : fogDevice.getHost().getPeList()) {
-				System.out.println();
 				totalMips += pe.getMips();
 			}
 			
@@ -160,19 +160,6 @@ public abstract class Algorithm {
 			fRamPrice[i] = characteristics.getCostPerMem();
 			fMemPrice[i] = characteristics.getCostPerStorage();
 			fBwPrice[i++] = characteristics.getCostPerBw();
-		}
-		
-		// sensors and actuators are added to compute tuples latency
-		for(Sensor sensor : sensors) {
-			fId[i] = sensor.getId();
-			fName[i] = sensor.getName();
-			fMips[i++] = 1;
-		}
-		
-		for(Actuator actuator : actuators) {
-			fId[i] = actuator.getId();
-			fName[i] = actuator.getName();
-			fMips[i++] = 1;
 		}
 	}
 	
@@ -193,45 +180,49 @@ public abstract class Algorithm {
 				mBw[i++] = 0;
 			}
 			
-			// sensors and actuators are added to compute tuples latency
+			// sensors and actuators are added to its client in order to optimize tuples latency
 			for(AppEdge appEdge : application.getEdges()) {
+				
 				if(getModuleIndexByModuleName(appEdge.getSource()) == -1) {
 					for(Sensor sensor : sensors) {
-						int sensorIndex = getNodeIndexByNodeName(sensor.getName());
-						
 						if(sensor.getAppId().equals(application.getAppId())) {
-							for(int z = 0; z < NR_NODES; z++)
-								if(z != getNodeIndexByNodeName(sensor.getName()))
-									possibleDeployment[z][i] = 0;
-					
-							for(int z = 0; z < NR_MODULES; z++)
-								if(z != i)
-									possibleDeployment[sensorIndex][z] = 0;
-							
-							break;
+							for(FogDevice fogDevice : fogDevices) {
+								if(fogDevice.getId() == sensor.getGatewayDeviceId()) {
+									int deviceIndex = getNodeIndexByNodeName(fogDevice.getName());
+									
+									for(int z = 0; z < NR_NODES; z++) {
+										if(z != deviceIndex) {
+											possibleDeployment[z][i] = 0;
+										}
+									}
+									
+									mName[i++] = appEdge.getSource();
+									break;
+								}
+							}
 						}
 					}
-					mName[i++] = appEdge.getSource();
 				}
 				
 				if(getModuleIndexByModuleName(appEdge.getDestination()) == -1) {
 					for(Actuator actuator : actuators) {
-						int actuatorIndex = getNodeIndexByNodeName(actuator.getName());
-								
 						if(actuator.getAppId().equals(application.getAppId())) {
-							for(int z = 0; z < NR_NODES; z++)
-								if(z != actuatorIndex)
-									possibleDeployment[z][i] = 0;
-						
-							for(int z = 0; z < NR_MODULES; z++)
-								if(z != i)
-									possibleDeployment[actuatorIndex][z] = 0;
-							
-							break;
+							for(FogDevice fogDevice : fogDevices) {
+								if(fogDevice.getId() == actuator.getGatewayDeviceId()) {
+									int deviceIndex = getNodeIndexByNodeName(fogDevice.getName());
+									
+									for(int z = 0; z < NR_NODES; z++) {
+										if(z != deviceIndex) {
+											possibleDeployment[z][i] = 0;
+										}
+									}
+									
+									mName[i++] = appEdge.getDestination();
+									break;
+								}
+							}
 						}
 					}
-					
-					mName[i++] = appEdge.getDestination();
 				}
 			}
 		}
@@ -260,14 +251,19 @@ public abstract class Algorithm {
 				
 				for(Application app : applications) {
 					if(!userApps.contains(app)) { // Is not one of its own applications
-						for(AppModule module : app.getModules())
+						for(AppModule module : app.getModules()) {
 							possibleDeployment[clientIndex][getModuleIndexByModuleName(module.getName())] = 0;
+						}
 					}else {
-						for(AppModule module : app.getModules())
-							if(module.isClientModule())
-								for(int j = 0; j < NR_NODES; j++)
-									if(j != clientIndex)
+						for(AppModule module : app.getModules()) {							
+							if(module.isClientModule()) {
+								for(int j = 0; j < NR_NODES; j++) {
+									if(j != clientIndex) {
 										possibleDeployment[j][getModuleIndexByModuleName(module.getName())] = 0;
+									}
+								}
+							}
+						}
 					}
 				}
 			}else
@@ -384,36 +380,6 @@ public abstract class Algorithm {
 			
 			getfLatencyMap()[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(dId)] = 0;
 			getfBandwidthMap()[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(dId)] = Constants.INF;
-		}
-		
-		
-		//sensor and act only have latency
-		for(Sensor sensor : sensors) {
-			int id1 = sensor.getId();
-			int id2 = sensor.getGatewayDeviceId();
-			double lat = sensor.getLatency();
-			
-			getfBandwidthMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id2)] = Constants.INF;
-			getfBandwidthMap()[getNodeIndexByNodeId(id2)][getNodeIndexByNodeId(id1)] = Constants.INF;
-			getfBandwidthMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id1)] = Constants.INF;
-			
-			getfLatencyMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id2)] = lat;
-			getfLatencyMap()[getNodeIndexByNodeId(id2)][getNodeIndexByNodeId(id1)] = lat;
-			getfLatencyMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id1)] = 0;
-		}
-		
-		for(Actuator actuator : actuators) {
-			int id1 = actuator.getId();
-			int id2 = actuator.getGatewayDeviceId();
-			double lat = actuator.getLatency();
-			
-			getfBandwidthMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id2)] = Constants.INF;
-			getfBandwidthMap()[getNodeIndexByNodeId(id2)][getNodeIndexByNodeId(id1)] = Constants.INF;
-			getfBandwidthMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id1)] = Constants.INF;
-			
-			getfLatencyMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id2)] = lat;
-			getfLatencyMap()[getNodeIndexByNodeId(id2)][getNodeIndexByNodeId(id1)] = lat;
-			getfLatencyMap()[getNodeIndexByNodeId(id1)][getNodeIndexByNodeId(id1)] = 0;
 		}
 	}
 	

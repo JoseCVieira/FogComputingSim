@@ -154,7 +154,6 @@ public class AddSensor extends JDialog {
 								sensor.setValues(sensorName.getText().toString(), (String)distribution.getSelectedItem(),
 										normalMean_, normalStdDev_, uniformLow_, uniformUp_, deterministicVal_);
 							}else {
-								System.out.println("AQUI3");
 								SensorGui sensor = new SensorGui(sensorName.getText().toString(), (String)distribution.getSelectedItem(),
 										normalMean_, normalStdDev_, uniformLow_, uniformUp_, deterministicVal_);
 								graph.addNode(sensor);

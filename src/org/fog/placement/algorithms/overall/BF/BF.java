@@ -51,14 +51,13 @@ public class BF extends Algorithm {
 						modulePlacementMap[j][index] = 0;
 				}
 				
-				if(!isPossibleModulePlacement(modulePlacementMap))
-					continue;
-				
 				if(index != NR_MODULES - 1)
 					solveDeployment(modulePlacementMap, index + 1);
 				else {
+					if(!isPossibleModulePlacement(modulePlacementMap))
+						continue;
+					
 					//Trying the following placement map
-			        
 			        List<Integer> initialNodes = new ArrayList<Integer>();
 			        List<Integer> finalNodes = new ArrayList<Integer>();
 					
@@ -85,13 +84,14 @@ public class BF extends Algorithm {
 		
 		if(row == max_r + 1 && col == 1) {
 			//Trying the following routing map
+			
 			if(job.getCost() < bestCost) {
 				bestCost = job.getCost();
 				bestPlacementMap = Util.copy(modulePlacementMap);
 				bestRoutingMap = Util.copy(routingMap);
 				
     			valueIterMap.put(iteration, bestCost);
-    			System.out.println("bestValue: " + bestCost);
+    			//System.out.println("bestValue: " + bestCost);
 			}
 			iteration++;
 		}else {

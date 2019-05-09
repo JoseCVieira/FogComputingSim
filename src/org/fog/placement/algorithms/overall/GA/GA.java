@@ -53,7 +53,7 @@ public class GA extends Algorithm {
     			if(bestValue > iterBest) {
 	    			bestValue = iterBest;
 	    			valueIterMap.put(iteration, bestValue);
-	    			System.out.println("iteration: " + iteration + " bestValue: " + bestValue);
+	    			//System.out.println("iteration: " + iteration + " bestValue: " + bestValue);
     			}
     		}
 	  
