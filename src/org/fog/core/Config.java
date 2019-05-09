@@ -38,13 +38,13 @@ public class Config {
 	
 	// Random topology
 	public static final String CLOUD_NAME = "Cloud";
-	public static final int NR_FOG_DEVICES = 4;
+	public static final int NR_FOG_DEVICES = 5;
 	
 	public static final int MAX_CONN_LAT = 100;
 	public static final int MAX_CONN_BW = 10000;
 	
 	public static final double CONNECTION_PROB = 0.4;
-	public static final double DEPLOY_APP_PROB = 0.1;// 0.35;
+	public static final double DEPLOY_APP_PROB = 0.35;
 	
 	public static final double RESOURCES_DEV = 100;
 	public static final double ENERGY_DEV = 5;

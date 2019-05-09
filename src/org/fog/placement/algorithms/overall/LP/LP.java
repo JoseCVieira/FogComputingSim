@@ -160,6 +160,22 @@ public class LP extends Algorithm {
 				}
 			}
 			
+			for(int i = 0; i < getNumberOfDependencies(); i++) {
+				double dependencies = getmDependencyMap()[initialModules.get(i)][finalModules.get(i)];
+				double bwNeeded = getmBandwidthMap()[initialModules.get(i)][finalModules.get(i)];
+				
+				for(int j = 0; j < NR_NODES; j++) {
+					for(int z = 0; z < NR_NODES; z++) {
+						double latencyCost = Config.LT_W*(getfLatencyMap()[j][z]*dependencies);
+						double bandwidthCost =  Config.BW_W*(bwNeeded/(getfBandwidthMap()[j][z] + Constants.EPSILON));
+						double txOpCost = Config.OP_W*(getfBwPrice()[j]*bwNeeded);
+						
+						// Transmission cost + transmission operational cost + transition cost
+						objective.addTerm(routingVar[i][j][z], latencyCost + bandwidthCost + txOpCost);
+					}
+				}
+			}
+			
 			// Display option
 			cplex.setParam(IloCplex.Param.Simplex.Display, 0);
 

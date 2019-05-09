@@ -63,8 +63,11 @@ public class FogComputingSim {
 		
 		CloudSim.init(Calendar.getInstance());
 		
-		int op = menuAlgorithm();
-		menuTopology();
+		int option = -1;
+		while(option == -1 || applications == null) {
+			option = menuAlgorithm();
+			menuTopology();
+		}
 		
 		if(applications == null || applications.isEmpty() || fogBrokers == null || fogBrokers.isEmpty() ||
 				fogDevices == null || fogDevices.isEmpty() || actuators == null || actuators.isEmpty() ||
@@ -73,7 +76,7 @@ public class FogComputingSim {
 		
 		Job solution = null;
 		Algorithm algorithm = null;
-		switch (op) {
+		switch (option) {
 			case LP:
 				System.out.println("Running the optimization algorithm: Linear programming.");
 				algorithm = new LP(fogBrokers, fogDevices, applications, sensors, actuators);
@@ -156,30 +159,30 @@ public class FogComputingSim {
 	    System.out.println("——————————————————————————————————————————————");
 	    System.out.print("\n Option: ");
 	    
-	    int op = -1;
-	    while(op == -1) {
+	    int option = -1;
+	    while(option == -1) {
 		    
 		    try {
-		    	op = new Scanner(System.in).nextInt();
+		    	option = new Scanner(System.in).nextInt();
 		    	
-		    	if(op == EXIT) {
+		    	if(option == EXIT) {
 		    		System.exit(0);
 					break;
 		    	}
 		    	
-		    	if(op < LP || op > ALL) {
-		    		op = -1;
+		    	if(option < LP || option > ALL) {
+		    		option = -1;
 		    	}
 		    	
 			} catch (Exception e) {
-				op = -1;
+				option = -1;
 			}
 		    
-		    if(op == -1)
+		    if(option == -1)
 		    	System.out.print("Invalid input. Option: ");
 	    }
 	    
-	    return op;
+	    return option;
 	}
 	
 	@SuppressWarnings("resource")
@@ -193,7 +196,7 @@ public class FogComputingSim {
 	    System.out.println("|       3. VRGameFog - iFogSim Example      |");
 	    System.out.println("|       4. DCNSFog   - iFogSim Example      |");
 	    System.out.println("|       5. TEMPFog   - iFogSim Example      |");
-	    System.out.println("|       0. Exit                             |");
+	    System.out.println("|       0. Back                             |");
 	    System.out.println("|                                           |");
 	    System.out.println("—————————————————————————————————————————————");
 	    System.out.print("\n Option: ");
@@ -207,12 +210,10 @@ public class FogComputingSim {
 			} catch (Exception e) {
 				option = -1;
 			}
-	    
 		    
 		    switch (option) {
 			    case EXIT:
-					System.exit(0);
-					break;
+			    	return;
 				case GUI:
 					Gui gui = new Gui();
 					

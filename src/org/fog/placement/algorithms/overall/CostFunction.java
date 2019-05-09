@@ -24,7 +24,7 @@ public class CostFunction {
 		}
 		
 		double cost = 0;
-		cost += isPossibleCombination(algorithm, modulePlacementMap);
+		cost += isPossibleCombination(algorithm, modulePlacementMap, routingMap, initialModules, finalModules);
 		cost += calculateOperationalCost(algorithm, modulePlacementMap, routingMap, initialModules, finalModules);
 		cost += calculatePowerCost(algorithm, modulePlacementMap);
 		cost += calculateProcessingCost(algorithm, modulePlacementMap);
@@ -34,7 +34,8 @@ public class CostFunction {
 	}
 	
 	// Sums minimum possible value when it is not possible to allow GA to converge easier than return infinity
-	private static double isPossibleCombination(Algorithm algorithm, int[][] modulePlacementMap) {
+	private static double isPossibleCombination(Algorithm algorithm, int[][] modulePlacementMap, int[][] routingMap,
+			List<Integer> initialModules, List<Integer> finalModules) {
 		double cost = 0;
 		
 		// If some module is not placed or placed in more than one fog node (never happens but is also verified)
@@ -64,39 +65,27 @@ public class CostFunction {
 				cost += Constants.MIN_SOLUTION;
 		}
 		
+		double bwUsage[][] = new double[algorithm.getNumberOfNodes()][algorithm.getNumberOfNodes()];
+		for(int i = 0; i < algorithm.getNumberOfDependencies(); i++) {
+			double bwNeeded = algorithm.getmBandwidthMap()[initialModules.get(i)][finalModules.get(i)];
+			
+			for(int j = 1; j < algorithm.getNumberOfNodes(); j++) {
+				if(routingMap[i][j-1] != routingMap[i][j]) {
+					bwUsage[routingMap[i][j-1]][routingMap[i][j]] += bwNeeded;
+				}
+			}
+		}
+		
+		for(int i = 0; i < algorithm.getNumberOfNodes(); i++) {
+			for(int j = 0; j < algorithm.getNumberOfNodes(); j++) {
+				if(bwUsage[i][j] > algorithm.getfBandwidthMap()[i][j]) {
+					cost += Constants.MIN_SOLUTION;
+				}
+			}
+		}
+		
 		return cost;
 	}
-	
-	/*private static boolean isPossibleCombination(Algorithm algorithm, int[][] modulePlacementMap) {
-		// If some module is not placed
-		for(int j = 0; j < algorithm.getNumberOfModules(); j++) {
-			int sum = 0;
-			for(int i  = 0; i < algorithm.getNumberOfNodes(); i++)
-				if(modulePlacementMap[i][j] == 1)
-					sum++;
-			
-			if(sum != 1)
-				return false;
-		}
-		
-		// If fog node's resources are exceeded
-		for(int i = 0; i < algorithm.getNumberOfNodes(); i++) {
-			double totalMips = 0;
-			double totalRam = 0;
-			double totalMem = 0;
-			
-			for(int j = 0; j < algorithm.getNumberOfModules(); j++) {
-				totalMips += modulePlacementMap[i][j] * algorithm.getmMips()[j];
-				totalRam += modulePlacementMap[i][j] * algorithm.getmRam()[j];
-				totalMem += modulePlacementMap[i][j] * algorithm.getmMem()[j];
-			}
-			
-			if(totalMips > algorithm.getfMips()[i] || totalRam > algorithm.getfRam()[i] || totalMem > algorithm.getfMem()[i])
-				return false;
-		}
-		
-		return true;
-	}*/
 	
 	private static double calculateOperationalCost(Algorithm algorithm, int[][] modulePlacementMap,
 			int[][] routingMap, List<Integer> initialModules, List<Integer> finalModules) {
