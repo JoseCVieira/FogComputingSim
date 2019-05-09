@@ -13,6 +13,7 @@ import org.fog.application.AppLoop;
 import org.fog.application.AppModule;
 import org.fog.application.Application;
 import org.fog.core.Constants;
+import org.fog.core.FogComputingSim;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
@@ -86,6 +87,10 @@ public class Controller extends SimEntity{
 			printPowerDetails();
 			printCostDetails();
 			printNetworkUsageDetails();
+			
+			if(FogComputingSim.isDisplayingPlot)
+				Util.promptEnterKey("Press \"ENTER\" to exit...");
+			
 			System.exit(0);
 			break;
 		}

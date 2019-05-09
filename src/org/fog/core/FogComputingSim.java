@@ -1,5 +1,8 @@
 package org.fog.core;
 
+import java.io.File;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -15,6 +18,9 @@ import org.fog.entities.FogBroker;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.gui.Gui;
+import org.fog.gui.core.Bridge;
+import org.fog.gui.core.Graph;
+import org.fog.gui.core.RunGUI;
 import org.fog.placement.Controller;
 import org.fog.placement.ModuleMapping;
 import org.fog.placement.ModulePlacement;
@@ -46,6 +52,7 @@ public class FogComputingSim {
 	private static final int VRGAME = 3;
 	private static final int DCNS = 4;
 	private static final int TEMP = 5;
+	private static final int FILE = 6;
 	
 	private static List<Application> applications;
 	private static List<FogBroker> fogBrokers;
@@ -53,6 +60,8 @@ public class FogComputingSim {
 	private static List<Sensor> sensors;
 	private static List<Actuator> actuators;
 	private static Controller controller;
+	
+	public static boolean isDisplayingPlot = false;
 	
 	public static void main(String[] args) {
 		if(Config.DEBUG_MODE) {
@@ -83,20 +92,12 @@ public class FogComputingSim {
 				solution = algorithm.execute();				
 				break;
 			case GA:
-				System.out.println("Running the optimization algorithm: Linear programming.");
-				algorithm = new LP(fogBrokers, fogDevices, applications, sensors, actuators);
-				solution = algorithm.execute();
-				
 				System.out.println("Running the optimization algorithm: Genetic Algorithm.");
 				algorithm = new GA(fogBrokers, fogDevices, applications, sensors, actuators);
 				solution = algorithm.execute();
 				plotResult(algorithm, "Genetic Algorithm");
 				break;
 			case BF:
-				System.out.println("Running the optimization algorithm: Linear programming.");
-				algorithm = new LP(fogBrokers, fogDevices, applications, sensors, actuators);
-				solution = algorithm.execute();
-				
 				System.out.println("Running the optimization algorithm: Brute Force.");
 				algorithm = new BF(fogBrokers, fogDevices, applications, sensors, actuators);
 				solution = algorithm.execute();
@@ -187,18 +188,19 @@ public class FogComputingSim {
 	
 	@SuppressWarnings("resource")
 	private static void menuTopology() {
-		System.out.println("—————————————————————————————————————————————");
-		System.out.println("|  FOG COMPUTING SIMULATOR MENU - TOPOLOGY  |");
-		System.out.println("|                                           |");
-	    System.out.println("| Options:                                  |");
-	    System.out.println("|       1. GUI                              |");
-	    System.out.println("|       2. Random Topology                  |");
-	    System.out.println("|       3. VRGameFog - iFogSim Example      |");
-	    System.out.println("|       4. DCNSFog   - iFogSim Example      |");
-	    System.out.println("|       5. TEMPFog   - iFogSim Example      |");
-	    System.out.println("|       0. Back                             |");
-	    System.out.println("|                                           |");
-	    System.out.println("—————————————————————————————————————————————");
+		System.out.println("————————————————————————————————————————————————————————");
+		System.out.println("|  FOG COMPUTING SIMULATOR MENU - TOPOLOGY             |");
+		System.out.println("|                                                      |");
+	    System.out.println("| Options:                                             |");
+	    System.out.println("|       1. GUI                                         |");
+	    System.out.println("|       2. Random Topology                             |");
+	    System.out.println("|       3. VRGameFog - iFogSim Example                 |");
+	    System.out.println("|       4. DCNSFog   - iFogSim Example                 |");
+	    System.out.println("|       5. TEMPFog   - iFogSim Example                 |");
+	    System.out.println("|       6. Read JSON file (/topologies/<file_name>)    |");
+	    System.out.println("|       0. Back                                        |");
+	    System.out.println("|                                                      |");
+	    System.out.println("————————————————————————————————————————————————————————");
 	    System.out.print("\n Option: ");
 	    
 	    FogTest fogTest = null;
@@ -234,6 +236,38 @@ public class FogComputingSim {
 				case TEMP:
 					fogTest = new TEMPFog();
 					break;
+				case FILE:
+					Path path = FileSystems.getDefault().getPath(".");
+					String dir = path + "/topologies/";
+					
+					System.out.println("Topologies found inside " + dir + ":");
+					
+					File folder = new File(dir);
+					File[] listOfFiles = folder.listFiles();
+
+					for (int i = 0; i < listOfFiles.length; i++) {
+						if (listOfFiles[i].isFile()) {
+							System.out.println("File[" + i + "]: " + listOfFiles[i].getName());
+						}
+					}
+					
+					System.out.print("\nEnter a file name: ");
+					Scanner scanner = new Scanner(System. in);
+			        String fileName = scanner. nextLine();
+			        
+			        if(fileName == null || fileName.isEmpty())
+			        	break;
+			        
+			        
+			        String filePath = path + "/topologies/" + fileName;
+			        
+			        if(!new File(filePath).exists())
+			        	break;
+			        
+			        Graph graph= Bridge.jsonToGraph(filePath);
+			    	fogTest = new RunGUI(graph);
+					
+			    	break;
 				default:
 					break;
 			}
@@ -296,9 +330,9 @@ public class FogComputingSim {
 	}
 	
 	private static void plotResult(Algorithm algorithm, String title) {
+		isDisplayingPlot = true;
 		MatlabChartUtils matlabChartUtils = new MatlabChartUtils(algorithm, title);
     	matlabChartUtils.setVisible(true);
-    	Util.promptEnterKey("Press \"ENTER\" to continue...");
 	}
 	
 	private static FogBroker getFogBrokerByName(String name) {
