@@ -28,6 +28,7 @@ public class GA extends Algorithm {
 	public Job execute() {
 		Individual[] population = new Individual[Config.POPULATION_SIZE];
 		
+		Job bestSolution = null;
 		double bestValue = Constants.MIN_SOLUTION;
 		int convergenceIter = 0;
 		int generation = 1;
@@ -37,31 +38,39 @@ public class GA extends Algorithm {
 	    for (int i = 0; i < Config.POPULATION_SIZE; i++)
 	    	population[i] = new Individual(this, new Job(Job.generateRandomPlacement(this, NR_NODES, NR_MODULES)));
 	    
-	    while (generation <= Config.MAX_ITER_PLACEMENT) {
+	    while (generation <= Config.MAX_ITER) {
 	    	population = GARouting(population);
 	    	
 	    	Arrays.sort(population);
 	    	
 	    	double iterBest = population[0].getFitness();
-    		if(bestValue >= iterBest) {
-    			if(bestValue - iterBest <= Constants.EPSILON) {
-    				if(++convergenceIter == Config.MAX_ITER_PLACEMENT_CONVERGENCE)
-    					break;
-    			}else
-        			convergenceIter = 0;
+			
+    		if(Math.abs(bestValue - iterBest) <= Config.CONVERGENCE_ERROR) {
+				if(++convergenceIter == Config.MAX_ITER_PLACEMENT_CONVERGENCE)
+					generation = Config.MAX_ITER + 1;
+			}else
+    			convergenceIter = 0;
+    		
+    		if(bestValue > iterBest) {
+    			bestSolution = population[0].getChromosome();
+				bestValue = iterBest;
+				
+				valueIterMap.put(iteration, bestValue);
     			
-    			if(bestValue > iterBest) {
-	    			bestValue = iterBest;
-	    			valueIterMap.put(iteration, bestValue);
-	    			//System.out.println("iteration: " + iteration + " bestValue: " + bestValue);
-    			}
+				if(Config.PRINT_BEST_ITER)
+    				System.out.println("iteration: " + iteration + " value: " + bestValue);
+    		}
+    		
+    		if(generation > Config.MAX_ITER) {
+    			continue;
     		}
 	  
 	        // otherwise generate new offsprings for new generation
 	        Individual[] newGeneration = new Individual[Config.POPULATION_SIZE];
 	        
-	        for(int i = 0; i < FITTEST; i++)
-	        	newGeneration[i] = population[i];
+	        for(int i = 0; i < FITTEST; i++) {
+	        	newGeneration[i] = new Individual(this, new Job(population[i].getChromosome().getModulePlacementMap()));
+	        }
 	        
 	        // from 50% of fittest population, Individuals will mate to produce offspring
 	        for(int i = FITTEST; i < Config.POPULATION_SIZE; i++) {
@@ -79,50 +88,45 @@ public class GA extends Algorithm {
 	    long finish = System.currentTimeMillis();
 	    elapsedTime = finish - start;
 	    
-	    int[][] bestModulePlacement = population[0].getChromosome().getModulePlacementMap();
-		int[][] bestRoutingMap = population[0].getChromosome().getRoutingMap();
-		Job solution = new Job(this, bestModulePlacement, bestRoutingMap);
-	    
-	    if(Config.PRINT_DETAILS)
-	    	AlgorithmUtils.printResults(this, solution);
+	    if(Config.PRINT_DETAILS && bestSolution != null)
+	    	AlgorithmUtils.printResults(this, bestSolution);
 		
-		return solution;
+		return bestSolution;
 	}
 	
 	public Individual[] GARouting(Individual[] population) {
-		int generation = 1;
-		double bestValue = Constants.MIN_SOLUTION;
-		int convergenceIter = 0;
 		
 		for (int i = 0; i < Config.POPULATION_SIZE; i++) {
 			int[][] modulePlacementMap = population[i].getChromosome().getModulePlacementMap();
 			Individual[] populationR = new Individual[Config.POPULATION_SIZE];
 			
-			int start = 1;
-			if(population[i].getChromosome().getRoutingMap() == null) {
-				start = 0;
-			}else {
-				populationR[0] = population[i];
-			}
-			
-			for (int j = start; j < Config.POPULATION_SIZE; j++) {
+			for (int j = 0; j < Config.POPULATION_SIZE; j++) {
 				int[][] routingMap = Job.generateRandomRouting(this, modulePlacementMap, NR_NODES);
 				populationR[j] = new Individual(this, new Job(this, modulePlacementMap, routingMap));
 			}
 			
-			while (generation <= Config.MAX_ITER_ROUTING) {
+			int generation = 1;
+			double bestValue = Constants.MIN_SOLUTION;
+			int convergenceIter = 0;
+			
+			while (generation <= Config.MAX_ITER) {
 	    		Arrays.sort(populationR);
 	    		
 	    		double iterBest = populationR[0].getFitness();
-	    		if(bestValue >= iterBest) {
-	    			if(bestValue - iterBest <= Constants.EPSILON) {
-	    				if(++convergenceIter == Config.MAX_ITER_ROUTING_CONVERGENCE)
-	    					break;
-	    			}else
-		    			convergenceIter = 0;
-	    				
-	    			if(bestValue > iterBest)
-	    				bestValue = iterBest;
+    			
+	    		if(Math.abs(bestValue - iterBest) <= Constants.EPSILON) {
+    				if(++convergenceIter == Config.MAX_ITER_ROUTING_CONVERGENCE) {
+    					generation = Config.MAX_ITER + 1;
+    				}
+    			}else
+	    			convergenceIter = 0;
+	    		
+	    		if(bestValue > iterBest) {
+    				bestValue = iterBest;
+	    		}
+	    		
+	    		if(generation > Config.MAX_ITER) {
+	    			continue;
 	    		}
 	    		
 		        Individual[] newGeneration = new Individual[Config.POPULATION_SIZE];
@@ -139,11 +143,10 @@ public class GA extends Algorithm {
 		        for(int z = 0; z < Config.POPULATION_SIZE; z++) 
 		        	populationR[z] = newGeneration[z];
 		        
-		        //System.out.println(populationR[0]);
-		        
 		        iteration++;
 		        generation++;
 			}
+			
 			population[i] = populationR[0];
 		}
 		

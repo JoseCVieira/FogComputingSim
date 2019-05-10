@@ -2,7 +2,7 @@ package org.fog.core;
 
 public class Constants {
 	public static final double INF = Double.MAX_VALUE;
-	public static final double EPSILON = 1E-11;
+	public static final double EPSILON = 1E-9;
 	
 	public static final double MIN_SOLUTION = Integer.MAX_VALUE;
 	

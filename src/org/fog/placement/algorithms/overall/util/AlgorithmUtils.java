@@ -41,8 +41,15 @@ public class AlgorithmUtils {
 		int c = matrix[0].length;
 		
         for(int i = 0; i < r; i++) {
-            for (int j = 0; j < c; j++)
-            	System.out.print(matrix[i][j] + " ");
+            for (int j = 0; j < c; j++) {            	
+            	if(matrix[i][j] == Constants.INF) {
+					System.out.format(centerString(20, "Inf"));
+            	}else if(matrix[i][j] == 0) {
+					System.out.format(centerString(20, "-"));
+            	}else {
+					System.out.format(centerString(20, String.format("%.2f", matrix[i][j])));
+            	}
+            }
             System.out.println();
         }
         
@@ -265,7 +272,7 @@ public class AlgorithmUtils {
 			System.out.println();
 		}
 		
-		System.out.println("Elapsed time: " + al.getElapsedTime() + " Millis");		
+		System.out.println("\n**Elapsed time: " + al.getElapsedTime() + " ms**");		
 	}
 	
 	public static String centerString (int width, String s) {

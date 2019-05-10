@@ -1,12 +1,17 @@
 package org.fog.placement.algorithms.overall.GA;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
 import org.fog.core.Constants;
 import org.fog.placement.algorithms.overall.Job;
 import org.fog.placement.algorithms.overall.util.AlgorithmUtils;
+import org.fog.placement.algorithms.routing.DijkstraAlgorithm;
+import org.fog.placement.algorithms.routing.Edge;
+import org.fog.placement.algorithms.routing.Graph;
+import org.fog.placement.algorithms.routing.Vertex;
 
 public class Individual implements Comparable<Individual> {	
 	private GA ga;
@@ -40,9 +45,11 @@ public class Individual implements Comparable<Individual> {
         		
     			List<Integer> validValues = new ArrayList<Integer>();
     			
-    			for(int j = 0; j < possibleDeployment.length; j++)
-    				if(possibleDeployment[j][i] == 1)
+    			for(int j = 0; j < possibleDeployment.length; j++) {
+    				if(possibleDeployment[j][i] == 1) {
     					validValues.add(j);
+    				}
+    			}
     			
     			childModulePlacementMap[validValues.get(new Random().nextInt(validValues.size()))][i] = 1;
             }
@@ -57,8 +64,12 @@ public class Individual implements Comparable<Individual> {
 		int[][] parRoutingMap = par.getChromosome().getRoutingMap();		
 		int[][] childRoutingMap = new int[routingMap.length][routingMap[0].length];
 		
+		int nrFogNodes = ga.getNumberOfNodes();
+		
 		List<Integer> initialNodes = new ArrayList<Integer>();
 		List<Integer> finalNodes = new ArrayList<Integer>();
+		List<Vertex> nodes = new ArrayList<Vertex>();
+		List<Edge> edges = new ArrayList<Edge>();
 		
 		for(int i = 0; i < ga.getmDependencyMap().length; i++) {
 			for(int j = 0; j < ga.getmDependencyMap()[0].length; j++) {
@@ -69,38 +80,63 @@ public class Individual implements Comparable<Individual> {
 			}
 		}
 		
+		for(int i  = 0; i < nrFogNodes; i++) {
+			nodes.add(new Vertex("Node=" + i));
+		}
+		
+		for(int i  = 0; i < nrFogNodes; i++) {
+			for(int j  = 0; j < nrFogNodes; j++) {
+				if(ga.getfLatencyMap()[i][j] < Constants.INF) {
+					 edges.add(new Edge(nodes.get(i), nodes.get(j), 1.0));
+				}
+			}
+        }
+		
 		for (int i = 0; i < routingMap.length; i++) {
 			float prob = new Random().nextFloat();
 			
 			 if (prob < 0.45) {
-				 for (int j = 0; j < routingMap[0].length; j++) {
+				 for (int j = 0; j < ga.getNumberOfNodes(); j++) {
 					 childRoutingMap[i][j] = routingMap[i][j];
 				 }
-			 }else if (prob < 0.90) {
-				 for (int j = 0; j < routingMap[0].length; j++) {
+			 }else if (prob < 0.9) {
+				 for (int j = 0; j < ga.getNumberOfNodes(); j++) {
 					 childRoutingMap[i][j] = parRoutingMap[i][j];
 				 }
 			 }else {
-				 for (int j = 0; j < routingMap[0].length; j++) {
-						if(j == 0)
-							childRoutingMap[i][j] = initialNodes.get(i);
-						else if(j == routingMap[0].length -1)
-							childRoutingMap[i][j] = finalNodes.get(i);
-						else {
-							List<Integer> validValues = new ArrayList<Integer>();
-							
-							for(int z = 0; z < routingMap[0].length; z++)
-								if(ga.getfLatencyMap()[(int) routingMap[i][j-1]][z] < Constants.INF)
-									validValues.add(z);
-									
-							childRoutingMap[i][j] = validValues.get(new Random().nextInt(validValues.size()));
-						}
-					}
+				 childRoutingMap[i][0] = initialNodes.get(i);
+				 childRoutingMap[i][ga.getNumberOfNodes()-1] = finalNodes.get(i);
 				 
+				 Graph graph = new Graph(nodes, edges);
+				 DijkstraAlgorithm dijkstra = new DijkstraAlgorithm(graph);
+				 dijkstra.execute(nodes.get(finalNodes.get(i)));
+				
+				 for(int j = 1; j < nrFogNodes - 1; j++) {
+					 List<Integer> validValues = new ArrayList<Integer>();
+					
+					 for(int z = 0; z < nrFogNodes; z++) {
+						 
+						 // If there is a connection with the previous vertex
+						 if(ga.getfLatencyMap()[childRoutingMap[i][j-1]][z] < Constants.INF) {
+							 
+							 LinkedList<Vertex> path = dijkstra.getPath(nodes.get(z));
+							 
+							 // If is possible to connect with the final node
+							 if(path != null && path.size() <= nrFogNodes - j) {
+								 validValues.add(z);
+							 }
+							 
+							 validValues.add(childRoutingMap[i][j-1]);
+						 }
+					 }
+					 
+					 childRoutingMap[i][j] = validValues.get(new Random().nextInt(validValues.size()));
+				 }
 			 }
 		}
 		
 		Job childChromosome = new Job(ga, modulePlacementMap, childRoutingMap);
+		
         return new Individual(ga, childChromosome);
 	}
 	

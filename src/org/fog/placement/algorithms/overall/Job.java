@@ -1,10 +1,15 @@
 package org.fog.placement.algorithms.overall;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
 import org.fog.core.Constants;
+import org.fog.placement.algorithms.routing.DijkstraAlgorithm;
+import org.fog.placement.algorithms.routing.Edge;
+import org.fog.placement.algorithms.routing.Graph;
+import org.fog.placement.algorithms.routing.Vertex;
 import org.fog.utils.Util;
 
 public class Job {
@@ -100,6 +105,8 @@ public class Job {
 	public static int[][] generateRandomRouting(Algorithm algorithm, int[][] modulePlacementMap, int nrFogNodes) {
 		List<Integer> initialNodes = new ArrayList<Integer>();
 		List<Integer> finalNodes = new ArrayList<Integer>();
+		List<Vertex> nodes = new ArrayList<Vertex>();
+		List<Edge> edges = new ArrayList<Edge>();
 		
 		for(int i = 0; i < algorithm.getmDependencyMap().length; i++) {
 			for(int j = 0; j < algorithm.getmDependencyMap()[0].length; j++) {
@@ -110,23 +117,43 @@ public class Job {
 			}
 		}
 		
+		for(int i  = 0; i < nrFogNodes; i++) {
+			nodes.add(new Vertex("Node=" + i));
+		}
+		
+		for(int i  = 0; i < nrFogNodes; i++) {
+			for(int j  = 0; j < nrFogNodes; j++) {
+				if(algorithm.getfLatencyMap()[i][j] < Constants.INF) {
+					 edges.add(new Edge(nodes.get(i), nodes.get(j), 1.0));
+				}
+			}
+        }
+		
 		int[][] routingMap = new int[initialNodes.size()][nrFogNodes];
 		
 		for(int i  = 0; i < initialNodes.size(); i++) {
-			for(int j = 0; j < nrFogNodes; j++) {
-				if(j == 0)
-					routingMap[i][j] = initialNodes.get(i);
-				else if(j == nrFogNodes -1)
-					routingMap[i][j] = finalNodes.get(i);
-				else {
-					List<Integer> validValues = new ArrayList<Integer>();
-					
-					for(int z = 0; z < nrFogNodes; z++)
-						if(algorithm.getfLatencyMap()[(int) routingMap[i][j-1]][z] < Constants.INF)
-							validValues.add(z);
-							
-					routingMap[i][j] = validValues.get(new Random().nextInt(validValues.size()));
+			routingMap[i][0] = initialNodes.get(i);
+			routingMap[i][nrFogNodes - 1] = finalNodes.get(i);
+			
+			Graph graph = new Graph(nodes, edges);
+	        DijkstraAlgorithm dijkstra = new DijkstraAlgorithm(graph);
+	        
+			for(int j = 1; j < nrFogNodes - 1; j++) {
+				List<Integer> validValues = new ArrayList<Integer>();
+				
+				for(int z = 0; z < nrFogNodes; z++) {
+					if(algorithm.getfLatencyMap()[routingMap[i][j-1]][z] < Constants.INF) {
+						
+						dijkstra.execute(nodes.get(z));
+						LinkedList<Vertex> path = dijkstra.getPath(nodes.get(finalNodes.get(i)));
+						
+				        if(path != null && path.size() <= nrFogNodes - j) {
+				        	validValues.add(z);
+				        }
+					}
 				}
+						
+				routingMap[i][j] = validValues.get(new Random().nextInt(validValues.size()));
 			}
 		}
 		

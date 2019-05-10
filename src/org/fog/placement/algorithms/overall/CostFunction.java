@@ -45,8 +45,9 @@ public class CostFunction {
 				if(modulePlacementMap[i][j] == 1)
 					sum++;
 			
-			if(sum != 1)
+			if(sum != 1) {
 				cost += Constants.MIN_SOLUTION;
+			}
 		}
 		
 		// If fog node's resources are exceeded
@@ -61,8 +62,9 @@ public class CostFunction {
 				totalMem += modulePlacementMap[i][j] * algorithm.getmMem()[j];
 			}
 			
-			if(totalMips > algorithm.getfMips()[i] || totalRam > algorithm.getfRam()[i] || totalMem > algorithm.getfMem()[i])
+			if(totalMips > algorithm.getfMips()[i] || totalRam > algorithm.getfRam()[i] || totalMem > algorithm.getfMem()[i]) {
 				cost += Constants.MIN_SOLUTION;
+			}
 		}
 		
 		double bwUsage[][] = new double[algorithm.getNumberOfNodes()][algorithm.getNumberOfNodes()];
@@ -157,9 +159,10 @@ public class CostFunction {
 			double dependencies = algorithm.getmDependencyMap()[initialModules.get(i)][finalModules.get(i)];
 			
 			for(int j = 1; j < algorithm.getNumberOfNodes(); j++) {
-				if(routingMap[i][j] != routingMap[i][j-1]) {
+				if(routingMap[i][j] != routingMap[i][j-1]) {					
 					cost += Config.LT_W*(algorithm.getfLatencyMap()[routingMap[i][j-1]][routingMap[i][j]] * dependencies);
 					cost += Config.BW_W*(bwNeeded/(algorithm.getfBandwidthMap()[routingMap[i][j-1]][routingMap[i][j]] + Constants.EPSILON));
+					
 				}
 			}
 		}

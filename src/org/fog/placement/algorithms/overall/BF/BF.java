@@ -91,7 +91,9 @@ public class BF extends Algorithm {
 				bestRoutingMap = Util.copy(routingMap);
 				
     			valueIterMap.put(iteration, bestCost);
-    			//System.out.println("bestValue: " + bestCost);
+    			
+    			if(Config.PRINT_BEST_ITER)
+    				System.out.println("iteration: " + iteration + " value: " + bestCost);
 			}
 			iteration++;
 		}else {
