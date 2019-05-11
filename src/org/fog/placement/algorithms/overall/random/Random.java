@@ -14,6 +14,9 @@ import org.fog.placement.algorithms.overall.Job;
 import org.fog.placement.algorithms.overall.util.AlgorithmUtils;
 
 public class Random extends Algorithm {
+	private Job bestSolution = null;
+	private double bestCost = Constants.MIN_SOLUTION;
+	private int iteration = 0;
 
 	public Random(List<FogBroker> fogBrokers, List<FogDevice> fogDevices, List<Application> applications,
 			List<Sensor> sensors, List<Actuator> actuators) throws IllegalArgumentException {
@@ -21,23 +24,19 @@ public class Random extends Algorithm {
 	}
 
 	@Override
-	public Job execute() {
-		double bestValue = Constants.MIN_SOLUTION;
-		Job bestJob = null;
-		int iteration = 1;
-		
+	public Job execute() {		
 		long start = System.currentTimeMillis();
 		
 		while (iteration <= Config.MAX_ITER) {
 			Job job = Job.generateRandomJob(this, getNumberOfNodes(), getNumberOfModules());
 			
-			if(bestValue > job.getCost()) {
-    			bestValue = job.getCost();
-    			valueIterMap.put(iteration, bestValue);
-    			bestJob = job;
+			if(bestCost > job.getCost()) {
+				bestCost = job.getCost();
+    			valueIterMap.put(iteration, bestCost);
+    			bestSolution = new Job(job);
     			
     			if(Config.PRINT_BEST_ITER)
-    				System.out.println("iteration: " + iteration + " value: " + bestValue);
+    				System.out.println("iteration: " + iteration + " value: " + bestCost);
 			}
 			
 			iteration++;
@@ -45,17 +44,12 @@ public class Random extends Algorithm {
 		
 		long finish = System.currentTimeMillis();
 		elapsedTime = finish - start;
-		
-		if(bestValue < Constants.MIN_SOLUTION) {
 			
-			if(Config.PRINT_DETAILS) {
-		    	AlgorithmUtils.printResults(this, bestJob);
-			}
-			
-			return bestJob;
+		if(Config.PRINT_DETAILS) {
+	    	AlgorithmUtils.printResults(this, bestSolution);
 		}
 		
-		return null;
+		return bestSolution;
 	}
 
 }

@@ -27,9 +27,9 @@ import org.fog.placement.ModulePlacement;
 import org.fog.placement.ModulePlacementMapping;
 import org.fog.placement.algorithms.overall.Algorithm;
 import org.fog.placement.algorithms.overall.Job;
-import org.fog.placement.algorithms.overall.BF.BF;
-import org.fog.placement.algorithms.overall.GA.GA;
-import org.fog.placement.algorithms.overall.LP.LP;
+import org.fog.placement.algorithms.overall.bf.BruteForce;
+import org.fog.placement.algorithms.overall.ga.GeneticAlgorithm;
+import org.fog.placement.algorithms.overall.lp.LinearProgramming;
 import org.fog.placement.algorithms.overall.random.Random;
 import org.fog.placement.algorithms.overall.util.MatlabChartUtils;
 import org.fog.test.DCNSFog;
@@ -90,12 +90,12 @@ public class FogComputingSim {
 		switch (option) {
 			case LP:
 				System.out.println("Running the optimization algorithm: Linear programming.");
-				algorithm = new LP(fogBrokers, fogDevices, applications, sensors, actuators);
+				algorithm = new LinearProgramming(fogBrokers, fogDevices, applications, sensors, actuators);
 				solution = algorithm.execute();				
 				break;
 			case GA:
 				System.out.println("Running the optimization algorithm: Genetic Algorithm.");
-				algorithm = new GA(fogBrokers, fogDevices, applications, sensors, actuators);
+				algorithm = new GeneticAlgorithm(fogBrokers, fogDevices, applications, sensors, actuators);
 				solution = algorithm.execute();
 				plotResult(algorithm, "Genetic Algorithm");
 				break;
@@ -107,7 +107,7 @@ public class FogComputingSim {
 				break;
 			case BF:
 				System.out.println("Running the optimization algorithm: Brute Force.");
-				algorithm = new BF(fogBrokers, fogDevices, applications, sensors, actuators);
+				algorithm = new BruteForce(fogBrokers, fogDevices, applications, sensors, actuators);
 				solution = algorithm.execute();
 				plotResult(algorithm, "Brute Force");
 				break;
@@ -117,11 +117,11 @@ public class FogComputingSim {
 				break;
 			case ALL:
 				System.out.println("Running the optimization algorithm: Linear programming.");
-				algorithm = new LP(fogBrokers, fogDevices, applications, sensors, actuators);
+				algorithm = new LinearProgramming(fogBrokers, fogDevices, applications, sensors, actuators);
 				solution = algorithm.execute();
 				
 				System.out.println("Running the optimization algorithm: Genetic Algorithm.");
-				algorithm = new GA(fogBrokers, fogDevices, applications, sensors, actuators);
+				algorithm = new GeneticAlgorithm(fogBrokers, fogDevices, applications, sensors, actuators);
 				solution = algorithm.execute();
 				plotResult(algorithm, "Genetic Algorithm");
 				
@@ -131,7 +131,7 @@ public class FogComputingSim {
 				plotResult(algorithm, "Random Algorithm");
 				
 				System.out.println("Running the optimization algorithm: Brute Force.");
-				algorithm = new BF(fogBrokers, fogDevices, applications, sensors, actuators);
+				algorithm = new BruteForce(fogBrokers, fogDevices, applications, sensors, actuators);
 				solution = algorithm.execute();
 				plotResult(algorithm, "Brute Force");
 				break;

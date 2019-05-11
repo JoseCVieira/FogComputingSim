@@ -1,4 +1,4 @@
-package org.fog.placement.algorithms.overall.BF;
+package org.fog.placement.algorithms.overall.bf;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,15 +13,13 @@ import org.fog.entities.Sensor;
 import org.fog.placement.algorithms.overall.Algorithm;
 import org.fog.placement.algorithms.overall.Job;
 import org.fog.placement.algorithms.overall.util.AlgorithmUtils;
-import org.fog.utils.Util;
 
-public class BF extends Algorithm {
-	private int[][] bestPlacementMap = null;
-	private int[][] bestRoutingMap = null;
+public class BruteForce extends Algorithm {	
+	private Job bestSolution = null;
 	private double bestCost = Constants.MIN_SOLUTION;
 	private int iteration = 0;
 	
-	public BF(final List<FogBroker> fogBrokers, final List<FogDevice> fogDevices, final List<Application> applications,
+	public BruteForce(final List<FogBroker> fogBrokers, final List<FogDevice> fogDevices, final List<Application> applications,
 			final List<Sensor> sensors, final List<Actuator> actuators) {
 		super(fogBrokers, fogDevices, applications, sensors, actuators);
 	}
@@ -33,12 +31,10 @@ public class BF extends Algorithm {
 		long finish = System.currentTimeMillis();
 		elapsedTime = finish - start;
 		
-		Job solution = new Job(this, bestPlacementMap, bestRoutingMap);
-		
 		if(Config.PRINT_DETAILS)
-			AlgorithmUtils.printResults(this, solution);
+			AlgorithmUtils.printResults(this, bestSolution);
 		
-		return solution;
+		return bestSolution;
 	}
 	
 	private void solveDeployment(int[][] modulePlacementMap, int index) {
@@ -87,15 +83,14 @@ public class BF extends Algorithm {
 			
 			if(job.getCost() < bestCost) {
 				bestCost = job.getCost();
-				bestPlacementMap = Util.copy(modulePlacementMap);
-				bestRoutingMap = Util.copy(routingMap);
-				
+				bestSolution = new Job(job);
     			valueIterMap.put(iteration, bestCost);
     			
     			if(Config.PRINT_BEST_ITER)
     				System.out.println("iteration: " + iteration + " value: " + bestCost);
 			}
 			iteration++;
+			
 		}else {
 			int previousNode = routingMap[row][col-1];
 			

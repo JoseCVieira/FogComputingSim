@@ -1,4 +1,4 @@
-package org.fog.placement.algorithms.overall.GA;
+package org.fog.placement.algorithms.overall.ga;
 
 import java.util.Arrays;
 import java.util.List;
@@ -15,11 +15,14 @@ import org.fog.placement.algorithms.overall.Algorithm;
 import org.fog.placement.algorithms.overall.Job;
 import org.fog.placement.algorithms.overall.util.AlgorithmUtils;
 
-public class GA extends Algorithm {
-	private int iteration = 0;
+public class GeneticAlgorithm extends Algorithm {
 	private static final int FITTEST = (int)((10*Config.POPULATION_SIZE)/100);  // 10% of fittest population
 	
-	public GA(final List<FogBroker> fogBrokers, final List<FogDevice> fogDevices, final List<Application> applications,
+	private Job bestSolution = null;
+	private double bestCost = Constants.MIN_SOLUTION;
+	private int iteration = 0;
+	
+	public GeneticAlgorithm(final List<FogBroker> fogBrokers, final List<FogDevice> fogDevices, final List<Application> applications,
 			final List<Sensor> sensors, final List<Actuator> actuators) {
 		super(fogBrokers, fogDevices, applications, sensors, actuators);
 	}
@@ -28,8 +31,6 @@ public class GA extends Algorithm {
 	public Job execute() {
 		Individual[] population = new Individual[Config.POPULATION_SIZE];
 		
-		Job bestSolution = null;
-		double bestValue = Constants.MIN_SOLUTION;
 		int convergenceIter = 0;
 		int generation = 1;
 		
@@ -45,20 +46,20 @@ public class GA extends Algorithm {
 	    	
 	    	double iterBest = population[0].getFitness();
 			
-    		if(Math.abs(bestValue - iterBest) <= Config.CONVERGENCE_ERROR) {
+    		if(Math.abs(bestCost - iterBest) <= Config.CONVERGENCE_ERROR) {
 				if(++convergenceIter == Config.MAX_ITER_PLACEMENT_CONVERGENCE)
 					generation = Config.MAX_ITER + 1;
 			}else
     			convergenceIter = 0;
     		
-    		if(bestValue > iterBest) {
+    		if(bestCost > iterBest) {
     			bestSolution = population[0].getChromosome();
-				bestValue = iterBest;
+    			bestCost = iterBest;
 				
-				valueIterMap.put(iteration, bestValue);
+				valueIterMap.put(iteration, bestCost);
     			
 				if(Config.PRINT_BEST_ITER)
-    				System.out.println("iteration: " + iteration + " value: " + bestValue);
+    				System.out.println("iteration: " + iteration + " value: " + bestCost);
     		}
     		
     		if(generation > Config.MAX_ITER) {

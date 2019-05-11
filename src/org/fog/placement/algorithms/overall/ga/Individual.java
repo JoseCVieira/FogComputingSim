@@ -1,4 +1,4 @@
-package org.fog.placement.algorithms.overall.GA;
+package org.fog.placement.algorithms.overall.ga;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -14,11 +14,11 @@ import org.fog.placement.algorithms.routing.Graph;
 import org.fog.placement.algorithms.routing.Vertex;
 
 public class Individual implements Comparable<Individual> {	
-	private GA ga;
+	private GeneticAlgorithm ga;
 	private Job chromosome;
 	private double fitness;
 	
-	Individual(GA ga, Job chromosome) {
+	Individual(GeneticAlgorithm ga, Job chromosome) {
 		this.ga = ga;
 		this.chromosome = chromosome;
 		this.fitness = chromosome.getCost();
