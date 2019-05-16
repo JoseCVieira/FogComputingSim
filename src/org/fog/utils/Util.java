@@ -82,6 +82,12 @@ public class Util {
 	    return v;
 	}
 	
+	/**
+	 * Gets a random number in the range of the parameters.
+	 * @param min: the minimum random number
+	 * @param max: the maximum random number
+	 * @return: random number
+	 */
 	public static int rand(int min, int max) {
         Random r = new java.util.Random();
         return min + r.nextInt(max - min + 1);

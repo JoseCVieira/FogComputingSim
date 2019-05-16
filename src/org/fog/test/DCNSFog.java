@@ -62,10 +62,10 @@ public class DCNSFog extends FogTest {
 	@SuppressWarnings("serial")
 	private static void createExampleApplication() {
 		Application application = new Application("DCNS", -1);
-		application.addAppModule("object_detector", 100, false);
-		application.addAppModule("motion_detector", 100, true);
-		application.addAppModule("object_tracker", 100, false);
-		application.addAppModule("user_interface", 100, false);
+		application.addAppModule("object_detector", 100, false, false);
+		application.addAppModule("motion_detector", 100, true, false);
+		application.addAppModule("object_tracker", 100, false, false);
+		application.addAppModule("user_interface", 100, false, false);
 		
 		application.addAppEdge("CAMERA", "motion_detector", 1000, 20000, "CAMERA", AppEdge.SENSOR);
 		application.addAppEdge("motion_detector", "object_detector", 2000, 2000, "MOTION_VIDEO_STREAM", AppEdge.MODULE);

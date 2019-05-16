@@ -15,17 +15,17 @@ public class ModulePlacementMapping extends ModulePlacement{
 	private Map<Integer, List<String>> currentModuleMap;
 	private ModuleMapping moduleMapping;
 	
-	public ModulePlacementMapping(List<FogDevice> fogDevices, Application application,
-			ModuleMapping moduleMapping){
+	public ModulePlacementMapping(List<FogDevice> fogDevices, Application application, ModuleMapping moduleMapping){
 		this.setFogDevices(fogDevices);
 		this.setApplication(application);
 		this.setModuleMapping(moduleMapping);
 		setCurrentModuleMap(new HashMap<Integer, List<String>>());
-		this.setModuleToDeviceMap(new HashMap<String, Integer>());
-		this.setDeviceToModuleMap(new HashMap<Integer, List<AppModule>>());
+		setModuleToDeviceMap(new HashMap<String, Integer>());
+		setDeviceToModuleMap(new HashMap<Integer, List<AppModule>>());
 		
-		for(FogDevice dev : getFogDevices())
+		for(FogDevice dev : getFogDevices()) {
 			getCurrentModuleMap().put(dev.getId(), new ArrayList<String>());
+		}
 		
 		mapModules();
 	}
@@ -36,17 +36,21 @@ public class ModulePlacementMapping extends ModulePlacement{
 			for(String moduleName : getModuleMapping().getModuleMapping().get(deviceName)){
 				
 				int deviceId = -1;
-				for(FogDevice dev : getFogDevices())
-					if(dev.getName().equals(deviceName))
+				for(FogDevice dev : getFogDevices()) {
+					if(dev.getName().equals(deviceName)) {
 						deviceId = dev.getId();
+					}
+				}
 				
 				getCurrentModuleMap().get(deviceId).add(moduleName);
 			}
 		}
 		
-		for(int deviceId : getCurrentModuleMap().keySet())
-			for(String module : getCurrentModuleMap().get(deviceId))
+		for(int deviceId : getCurrentModuleMap().keySet()) {
+			for(String module : getCurrentModuleMap().get(deviceId)) {
 				createModuleInstanceOnDevice(getApplication().getModuleByName(module), getFogDeviceById(deviceId));
+			}
+		}
 	}
 	
 	public ModuleMapping getModuleMapping() {

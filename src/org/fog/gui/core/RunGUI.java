@@ -56,9 +56,17 @@ public class RunGUI extends FogTest {
 				Application application = createApplication(graph, fog.getApplication(), broker.getId());
 				application.setClientId(getFogDeviceByName(fog.getName()).getId());
 				
-				for(FogDevice fogDevice : fogDevices)
-					if(fogDevice.getName().equals(fog.getName()))
-						fogDevice.getActiveApplications().add(fog.getApplication());
+				for(FogDevice fogDevice : fogDevices) {
+					if(fogDevice.getName().equals(fog.getName())) {
+						if(appToFogMap.containsKey(fogDevice.getName()))
+							appToFogMap.get(fogDevice.getName()).add(fog.getApplication());
+						else {
+							List<String> appList = new ArrayList<String>();
+							appList.add(fog.getApplication());
+							appToFogMap.put(fogDevice.getName(), appList);
+						}
+					}
+				}
 				
 				applications.add(application);
 			}
@@ -163,7 +171,7 @@ public class RunGUI extends FogTest {
 			application.addAppModule(appModule);
 		
 		for(AppEdge appEdge : applicationGui.getEdges())
-			application.addAppEdge(appEdge);
+			application.addAppEdge(appEdge, null);
 			
 		for(AppModule appModule : applicationGui.getModules()) {
 			for(Pair<String, String> pair : appModule.getSelectivityMap().keySet()) {

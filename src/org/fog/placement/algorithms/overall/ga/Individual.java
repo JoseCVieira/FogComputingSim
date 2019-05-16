@@ -35,10 +35,10 @@ public class Individual implements Comparable<Individual> {
         	
         	// if prob is less than 0.45, insert gene from parent 1
             if (prob < 0.45)
-            	childModulePlacementMap[findModulePlacement(modulePlacementMap, i)][i] = 1;
+            	childModulePlacementMap[Job.findModulePlacement(modulePlacementMap, i)][i] = 1;
             // if prob is between 0.45 and 0.90, insert gene from parent 2
             else if (prob < 0.90)
-            	childModulePlacementMap[findModulePlacement(parModulePlacementMap, i)][i] = 1;
+            	childModulePlacementMap[Job.findModulePlacement(parModulePlacementMap, i)][i] = 1;
             // otherwise insert random gene(mutate), for maintaining diversity
             else {
             	double[][] possibleDeployment = ga.getPossibleDeployment();
@@ -74,8 +74,8 @@ public class Individual implements Comparable<Individual> {
 		for(int i = 0; i < ga.getmDependencyMap().length; i++) {
 			for(int j = 0; j < ga.getmDependencyMap()[0].length; j++) {
 				if(ga.getmDependencyMap()[i][j] != 0) {
-					initialNodes.add(findModulePlacement(modulePlacementMap, i));
-					finalNodes.add(findModulePlacement(modulePlacementMap, j));
+					initialNodes.add(Job.findModulePlacement(modulePlacementMap, i));
+					finalNodes.add(Job.findModulePlacement(modulePlacementMap, j));
 				}
 			}
 		}
@@ -138,13 +138,6 @@ public class Individual implements Comparable<Individual> {
 		Job childChromosome = new Job(ga, modulePlacementMap, childRoutingMap);
 		
         return new Individual(ga, childChromosome);
-	}
-	
-	private int findModulePlacement(int[][] chromosome, int colomn) {
-		for(int i = 0; i < chromosome.length; i++)
-			if(chromosome[i][colomn] == 1)
-				return i;
-		return -1;
 	}
 	
 	@Override

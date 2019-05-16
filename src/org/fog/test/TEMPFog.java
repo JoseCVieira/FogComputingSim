@@ -59,9 +59,9 @@ public class TEMPFog extends FogTest {
 	@SuppressWarnings("serial")
 	private static void createExampleApplication() {		
 		Application application = new Application("TEMP", -1);
-		application.addAppModule("client", 100, false);
-		application.addAppModule("classifier", 100, false);
-		application.addAppModule("tuner", 100, false);
+		application.addAppModule("client", 100, false, false);
+		application.addAppModule("classifier", 100, false, false);
+		application.addAppModule("tuner", 100, false, false);
 	
 		application.addAppEdge("TEMP", "client", 1000, 100, "TEMP", AppEdge.SENSOR);
 		application.addAppEdge("client", "classifier", 8000, 100, "_SENSOR", AppEdge.MODULE);

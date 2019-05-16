@@ -3,7 +3,6 @@ package org.fog.core;
 import java.io.File;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +61,7 @@ public class FogComputingSim {
 	private static List<Sensor> sensors;
 	private static List<Actuator> actuators;
 	private static Controller controller;
+	private static Map<String, List<String>> appToFogMap;
 	
 	public static boolean isDisplayingPlot = false;
 	
@@ -165,10 +165,11 @@ public class FogComputingSim {
 	    System.out.println("| Options:                                   |");
 	    System.out.println("|       1. Linear Programming                |");
 	    System.out.println("|       2. Genetic Algorithm                 |");
-	    System.out.println("|       3. Random Algorithm                  |");
-	    System.out.println("|       4. Brute Force                       |");
-	    System.out.println("|       5. Markov Decision Process           |");
-	    System.out.println("|       6. Compare all algorithms            |");
+	    System.out.println("|       3. Particle Swarm Optimization       |");
+	    System.out.println("|       4. Random Algorithm                  |");
+	    System.out.println("|       5. Brute Force                       |");
+	    System.out.println("|       6. Markov Decision Process           |");
+	    System.out.println("|       7. Compare all algorithms            |");
 	    System.out.println("|       0. Exit                              |");
 	    System.out.println("|                                            |");
 	    System.out.println("——————————————————————————————————————————————");
@@ -258,22 +259,38 @@ public class FogComputingSim {
 					
 					File folder = new File(dir);
 					File[] listOfFiles = folder.listFiles();
+					
+					if(listOfFiles.length == 0) {
+						System.out.println("There are no available topologies in this folder.\n");
+						break;
+					}
 
 					for (int i = 0; i < listOfFiles.length; i++) {
 						if (listOfFiles[i].isFile()) {
 							System.out.println("File[" + i + "]: " + listOfFiles[i].getName());
 						}
 					}
+					System.out.print("Insert the file number. Option: ");
 					
-					System.out.print("\nEnter a file name: ");
-					Scanner scanner = new Scanner(System. in);
-			        String fileName = scanner. nextLine();
+					int fileIndex = -1;
+				    
+					while(fileIndex == -1) {
+					    try {
+					    	fileIndex = new Scanner(System.in).nextInt();
+					    	
+					    	if(fileIndex < 0 || fileIndex > listOfFiles.length) {
+					    		fileIndex = -1;
+					    	}
+						} catch (Exception e) {
+							fileIndex = -1;
+						}
+					    
+					    if(fileIndex == -1) {
+					    	System.out.println("Invalid number. Option: ");
+					    }
+					}			        
 			        
-			        if(fileName == null || fileName.isEmpty())
-			        	break;
-			        
-			        
-			        String filePath = path + "/topologies/" + fileName;
+			        String filePath = path + "/topologies/" + listOfFiles[fileIndex].getName();
 			        
 			        if(!new File(filePath).exists())
 			        	break;
@@ -297,31 +314,31 @@ public class FogComputingSim {
 		controller = fogTest.getController();
 		sensors = fogTest.getSensors();
 		actuators = fogTest.getActuators();
+		appToFogMap = fogTest.getAppToFogMap();
 	}
 	
 	private static void deployApplications(Map<String, List<String>> modulePlacementMap) {
 		for(FogDevice fogDevice : fogDevices) {
 			FogBroker broker = getFogBrokerByName(fogDevice.getName());
 			
-			List<String> apps = fogDevice.getActiveApplications();
-			fogDevice.setActiveApplications(new ArrayList<String>());
-			
-			for(String app : apps) {
-				for(Application application : applications) {
-					if(application.getAppId().equals(app + "_" + broker.getId())) {
-						
-						ModuleMapping moduleMapping = ModuleMapping.createModuleMapping();
-						
-						for(AppModule appModule : application.getModules()) {
-							for(String fogName : modulePlacementMap.keySet()) {
-								if(modulePlacementMap.get(fogName).contains(appModule.getName())) {
-									moduleMapping.addModuleToDevice(appModule.getName(), fogName);
+			if(appToFogMap.containsKey(fogDevice.getName())) {
+				for(String app : appToFogMap.get(fogDevice.getName())) {
+					for(Application application : applications) {
+						if(application.getAppId().equals(app + "_" + broker.getId())) {
+							
+							ModuleMapping moduleMapping = ModuleMapping.createModuleMapping();
+							
+							for(AppModule appModule : application.getModules()) {
+								for(String fogName : modulePlacementMap.keySet()) {
+									if(modulePlacementMap.get(fogName).contains(appModule.getName())) {
+										moduleMapping.addModuleToDevice(appModule.getName(), fogName);
+									}
 								}
 							}
+							
+							ModulePlacement modulePlacement = new ModulePlacementMapping(fogDevices, application, moduleMapping);
+							controller.submitApplication(application, modulePlacement);
 						}
-						
-						ModulePlacement modulePlacement = new ModulePlacementMapping(fogDevices, application, moduleMapping);
-						controller.submitApplication(application, modulePlacement);
 					}
 				}
 			}

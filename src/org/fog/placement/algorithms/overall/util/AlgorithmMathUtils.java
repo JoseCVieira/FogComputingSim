@@ -430,6 +430,34 @@ public class AlgorithmMathUtils {
 		return result;	
 	}
 	
+	public static double[] toDouble(int[] vector) throws IllegalArgumentException {
+		if(vector == null)
+			throw new IllegalArgumentException("AlgorithmUtils Err: Invalid argument.");
+		
+		double[] result = new double[vector.length];
+		
+		for(int i = 0; i < vector.length; i++)
+			result[i] = vector[i];
+				
+		return result;	
+	}
+	
+	public static double[][] toDouble(int[][] matrix) throws IllegalArgumentException {
+		if(matrix == null)
+			throw new IllegalArgumentException("AlgorithmUtils Err: Invalid argument.");
+		
+		int r = matrix.length;
+		int c = matrix[0].length;
+		
+		double[][] result = new double[r][c];
+		
+		for(int i = 0; i < r ;i++)
+			for(int j = 0; j < c ;j++)
+				result[i][j] = matrix[i][j];
+				
+		return result;	
+	}
+	
 	public static Number[] toNumber(int[] vector) throws IllegalArgumentException {
 		if(vector == null)
 			throw new IllegalArgumentException("AlgorithmUtils Err: Invalid argument.");

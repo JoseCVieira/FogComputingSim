@@ -53,7 +53,7 @@ public class GeneticAlgorithm extends Algorithm {
     			convergenceIter = 0;
     		
     		if(bestCost > iterBest) {
-    			bestSolution = population[0].getChromosome();
+    			bestSolution = new Job(population[0].getChromosome());
     			bestCost = iterBest;
 				
 				valueIterMap.put(iteration, bestCost);

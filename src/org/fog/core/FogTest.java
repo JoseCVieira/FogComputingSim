@@ -1,8 +1,10 @@
 package org.fog.core;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import org.apache.commons.math3.util.Pair;
@@ -39,6 +41,7 @@ public abstract class FogTest {
 	protected static List<FogDevice> fogDevices = new ArrayList<FogDevice>();
 	protected static List<Actuator> actuators = new ArrayList<Actuator>();
 	protected static List<Sensor> sensors = new ArrayList<Sensor>();
+	protected static Map<String, List<String>> appToFogMap = new HashMap<String, List<String>>();
 	protected static Controller controller = null;
 	
 	protected static FogDevice createFogDevice(String name, double mips, int ram, long strg, long bw, double bPw,
@@ -122,7 +125,14 @@ public abstract class FogTest {
 		actuators.add(new Actuator(actuatorName + clientName, userId, appName + "_" + userId,
 				gatewayDeviceId, actuatorLat, actuatorType + "_" + userId));
 		
-		fogDevice.getActiveApplications().add(appName);
+		if(!appToFogMap.containsKey(fogDevice.getName())) {
+			List<String> appList = new ArrayList<String>();
+			appList.add(appName);
+			appToFogMap.put(fogDevice.getName(), appList);
+		}else {
+			appToFogMap.get(fogDevice.getName()).add(appName);
+		}
+		
 		fogBrokers.add(broker);
 	}
 	
@@ -130,10 +140,12 @@ public abstract class FogTest {
 		for(FogDevice fogDevice : fogDevices) {
 			FogBroker broker = getFogBrokerByName(fogDevice.getName());
 			
-			for(String app : fogDevice.getActiveApplications()) {
-				Application application = createApplication(app, broker.getId());
-				application.setClientId(fogDevice.getId());
-				applications.add(application);
+			if(appToFogMap.containsKey(fogDevice.getName())) {
+				for(String app : appToFogMap.get(fogDevice.getName())) {
+					Application application = createApplication(app, broker.getId());
+					application.setClientId(fogDevice.getId());
+					applications.add(application);
+				}
 			}
 		}
 	}
@@ -141,20 +153,48 @@ public abstract class FogTest {
 	private static Application createApplication(String appId, int userId) {
 		Application appExample = null;
 		
-		for(Application app : exampleApplications)
-			if(app.getAppId().equals(appId))
+		for(Application app : exampleApplications) {
+			if(app.getAppId().equals(appId)) {
 				appExample = app;
+			}
+		}
 		
 		if(appExample == null) return null;
 		
 		Application application = new Application(appId + "_" + userId, userId);
-
-		for(AppModule appModule : appExample.getModules())
-			application.addAppModule(appModule);
 		
-		for(AppEdge appEdge : appExample.getEdges())
-			application.addAppEdge(appEdge);
-			
+		List<AppModule> globalModules = new ArrayList<AppModule>();
+		
+		for(AppModule appModule : appExample.getModules()) {
+			if(!appModule.isGlobalModule()) {
+				application.addAppModule(appModule);
+				continue;
+				
+			// If it is a global module verify if is already in other application
+			}else {
+				globalModules.add(appModule);
+				
+				boolean found = false;
+				for(Application app : applications) {
+					if(app.getModuleByName(appModule.getName()) != null) {
+						found = true;
+					}
+				}
+				
+				if(!found) {
+					application.addAppModule(appModule);
+				}
+			}
+		}
+		
+		System.out.println();
+		
+		for(AppEdge appEdge : appExample.getEdges()) {
+			application.addAppEdge(appEdge, globalModules);
+		}
+		
+		System.out.println("\n\n");
+		
 		for(AppModule appModule : appExample.getModules()) {
 			for(Pair<String, String> pair : appModule.getSelectivityMap().keySet()) {
 				FractionalSelectivity fractionalSelectivity = ((FractionalSelectivity)appModule.getSelectivityMap().get(pair));
@@ -210,5 +250,9 @@ public abstract class FogTest {
 	
 	public Controller getController() {
 		return controller;
+	}
+	
+	public Map<String, List<String>> getAppToFogMap() {
+		return appToFogMap;
 	}
 }

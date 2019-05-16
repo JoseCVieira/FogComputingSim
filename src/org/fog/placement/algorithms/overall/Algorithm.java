@@ -166,18 +166,30 @@ public abstract class Algorithm {
 	private void extractAppCharacteristics(final List<FogBroker> fogBrokers, final List<FogDevice> fogDevices,
 			final List<Application> applications, final List<Sensor> sensors, final List<Actuator> actuators) {
 		
-		for(int i  = 0; i < NR_NODES; i++)
-			for(int j  = 0; j < NR_MODULES; j++)
+		for(int i  = 0; i < NR_NODES; i++) {
+			for(int j  = 0; j < NR_MODULES; j++) {
 				possibleDeployment[i][j] = 1;
+			}
+		}
 		
 		int i = 0;
 		for(Application application : applications) {
 			for(AppModule module : application.getModules()) { // Mips and Bw will be computed later
-				mName[i] = module.getName();
-				mMips[i] = 0;
-				mRam[i] = module.getRam();
-				mMem[i] = module.getSize();
-				mBw[i++] = 0;
+				boolean found = false;
+				for(int j = 0; j < mName.length; j++) {
+					if(mName[j] != null && !mName[j].isEmpty() && mName[j].equals(module.getName())) {
+						found = true;
+						break;
+					}
+				}
+				
+				if(!found) {
+					mName[i] = module.getName();
+					mMips[i] = 0;
+					mRam[i] = module.getRam();
+					mMem[i] = module.getSize();
+					mBw[i++] = 0;
+				}
 			}
 			
 			// sensors and actuators are added to its client in order to optimize tuples latency
@@ -195,7 +207,6 @@ public abstract class Algorithm {
 											possibleDeployment[z][i] = 0;
 										}
 									}
-									
 									mName[i++] = appEdge.getSource();
 									break;
 								}
@@ -216,7 +227,6 @@ public abstract class Algorithm {
 											possibleDeployment[z][i] = 0;
 										}
 									}
-									
 									mName[i++] = appEdge.getDestination();
 									break;
 								}
@@ -462,7 +472,7 @@ public abstract class Algorithm {
 		int iter = 0;
 		for(int i = 0; i < NR_MODULES; i++) {
 			for(int j = 0; j < NR_MODULES; j++) {
-				if(getmDependencyMap()[i][j] != 0) {
+				if(getmDependencyMap()[i][j] != 0) {					
 					Map<String, String> tupleTransmission = new HashMap<String, String>();
 					tupleTransmission.put(mName[i], mName[j]);
 					

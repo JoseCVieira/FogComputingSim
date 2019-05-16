@@ -19,10 +19,12 @@ public class AppModule extends PowerVm{
 	private String name;
 	private String appId;
 	private boolean clientModule;
+	private boolean globalModule;
 	private Map<Pair<String, String>, SelectivityModel> selectivityMap;
 	
-	public AppModule(int id, String name, String appId, int userId, double mips, int ram, long bw, long size, String vmm,
-			CloudletScheduler cloudletScheduler, Map<Pair<String, String>, SelectivityModel> selectivityMap, boolean clientModule) {
+	public AppModule(int id, String name, String appId, int userId, double mips, int ram, long bw, long size,
+			String vmm, CloudletScheduler cloudletScheduler, Map<Pair<String, String>, SelectivityModel> selectivityMap,
+			boolean clientModule, boolean glogbalModule) {
 		super(id, userId, mips, 1, ram, bw, size, 1, vmm, cloudletScheduler, 300);
 		
 		setName(name);
@@ -45,6 +47,7 @@ public class AppModule extends PowerVm{
 		setCurrentAllocatedSize(0);
 		setSelectivityMap(selectivityMap);
 		setClientModule(clientModule);
+		setGlobalModule(glogbalModule);
 	}
 	
 	public AppModule(AppModule operator) {
@@ -61,22 +64,25 @@ public class AppModule extends PowerVm{
 		setCurrentAllocatedSize(0);
 		setSelectivityMap(operator.getSelectivityMap());
 		setClientModule(operator.isClientModule());
+		setGlobalModule(operator.isGlobalModule());
 	}
 	
-	public void setValues(String name, double mips, int ram, long size, long bw, boolean clientModule) { //Added
+	public void setValues(String name, double mips, int ram, long size, long bw, boolean clientModule, boolean glogbalModule) { //Added
 		setName(name);
 		setMips(mips);
 		setRam(ram);
 		setBw(bw);
 		setSize(size);
 		setClientModule(clientModule);
+		setGlobalModule(glogbalModule);
 	}
 	
-	public void setValues(String name, int ram, long size, boolean clientModule) { //Added
+	public void setValues(String name, int ram, long size, boolean clientModule, boolean glogbalModule) { //Added
 		setName(name);
 		setRam(ram);
 		setSize(size);
 		setClientModule(clientModule);
+		setGlobalModule(glogbalModule);
 	}
 	
 	public String getName() {
@@ -109,6 +115,14 @@ public class AppModule extends PowerVm{
 
 	public void setClientModule(boolean clientModule) {
 		this.clientModule = clientModule;
+	}
+
+	public boolean isGlobalModule() {
+		return globalModule;
+	}
+
+	public void setGlobalModule(boolean globalModule) {
+		this.globalModule = globalModule;
 	}
 	
 	@Override

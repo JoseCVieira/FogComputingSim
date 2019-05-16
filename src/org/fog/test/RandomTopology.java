@@ -133,9 +133,9 @@ public class RandomTopology extends FogTest {
 	@SuppressWarnings("serial")
 	private static void createExampleApplications() {		
 		Application application = new Application("VRGame", -1);
-		application.addAppModule("client", 100, true);
-		application.addAppModule("calculator", 100, false);
-		application.addAppModule("connector", 100, false);
+		application.addAppModule("client", 100, true, false);
+		application.addAppModule("calculator", 100, false, false);
+		application.addAppModule("connector", 100, false, false);
 		
 		application.addAppEdge("EEG", "client", 3000, 500, "EEG", AppEdge.SENSOR);
 		application.addAppEdge("client", "calculator", 3500, 500, "_SENSOR", AppEdge.MODULE);
@@ -156,10 +156,10 @@ public class RandomTopology extends FogTest {
 		exampleApplications.add(application);
 		
 		application = new Application("DCNS", -1);
-		application.addAppModule("object_detector", 100, false);
-		application.addAppModule("motion_detector", 100, true);
-		application.addAppModule("object_tracker", 100, false);
-		application.addAppModule("user_interface", 100, false);
+		application.addAppModule("object_detector", 100, false, false);
+		application.addAppModule("motion_detector", 100, true, false);
+		application.addAppModule("object_tracker", 100, false, false);
+		application.addAppModule("user_interface", 100, false, false);
 		
 		application.addAppEdge("CAMERA", "motion_detector", 1000, 20000, "CAMERA", AppEdge.SENSOR);
 		application.addAppEdge("motion_detector", "object_detector", 2000, 2000, "MOTION_VIDEO_STREAM", AppEdge.MODULE);
@@ -177,9 +177,9 @@ public class RandomTopology extends FogTest {
 		exampleApplications.add(application);
 		
 		application = new Application("TEMP", -1);
-		application.addAppModule("client", 100, false);
-		application.addAppModule("classifier", 100, false);
-		application.addAppModule("tuner", 100, false);
+		application.addAppModule("client", 100, false, false);
+		application.addAppModule("classifier", 100, false, false);
+		application.addAppModule("tuner", 100, false, false);
 	
 		application.addAppEdge("TEMP", "client", 1000, 100, "TEMP", AppEdge.SENSOR);
 		application.addAppEdge("client", "classifier", 8000, 100, "_SENSOR", AppEdge.MODULE);

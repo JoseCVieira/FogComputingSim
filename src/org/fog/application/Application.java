@@ -38,22 +38,34 @@ public class Application {
 	 * @param moduleName
 	 * @param ram
 	 */
-	public void addAppModule(String moduleName, int ram, boolean clientModule){
+	public void addAppModule(String moduleName, int ram, boolean clientModule, boolean glogbalModule){
 		int mips = 0;
 		long size = 10000;
 		long bw = 0;
 		String vmm = "Xen";
 		
 		AppModule module = new AppModule(FogUtils.generateEntityId(), moduleName, appId, userId, 
-			mips, ram, bw, size, vmm, new CloudletSchedulerTimeShared(), new HashMap<Pair<String, String>, SelectivityModel>(), clientModule);
+			mips, ram, bw, size, vmm, new CloudletSchedulerTimeShared(), new HashMap<Pair<String, String>, SelectivityModel>(),
+			clientModule, glogbalModule);
 		
 		getModules().add(module);
 	}
 	
 	public void addAppModule(AppModule m){
-		AppModule module = new AppModule(FogUtils.generateEntityId(), m.getName() + "_" + userId, appId, userId, 
-			m.getMips(), m.getRam(), m.getBw(), m.getSize(), m.getVmm(), new CloudletSchedulerTimeShared(),
-			new HashMap<Pair<String, String>, SelectivityModel>(), m.isClientModule());
+		AppModule module = null;
+		
+		if(m.isGlobalModule()) {
+			module = new AppModule(FogUtils.generateEntityId(), m.getName(), appId, userId, 
+					m.getMips(), m.getRam(), m.getBw(), m.getSize(), m.getVmm(), new CloudletSchedulerTimeShared(),
+					new HashMap<Pair<String, String>, SelectivityModel>(), m.isClientModule(), m.isGlobalModule());
+		}else {
+			module = new AppModule(FogUtils.generateEntityId(), m.getName() + "_" + userId, appId, userId, 
+				m.getMips(), m.getRam(), m.getBw(), m.getSize(), m.getVmm(), new CloudletSchedulerTimeShared(),
+				new HashMap<Pair<String, String>, SelectivityModel>(), m.isClientModule(), m.isGlobalModule());
+		}
+		
+		System.out.println("Added Module: " + module.getName());
+		
 		getModules().add(module);
 	}
 
@@ -75,25 +87,42 @@ public class Application {
 		getEdgeMap().put(edge.getTupleType(), edge);
 	}
 	
-	public void addAppEdge(AppEdge e){
+	public void addAppEdge(AppEdge e, List<AppModule> globalModules){
+		String source = e.getSource() + "_" + userId;
+		String destination = e.getDestination() + "_" + userId;
+		
+		if(globalModules != null) {
+			for (AppModule gmod : globalModules) {
+				if(gmod.getName().equals(e.getSource())) {
+					source = e.getSource();
+				}
+				
+				if(gmod.getName().equals(e.getDestination())) {
+					destination = e.getDestination();
+				}
+			}
+		}
+		
 		if(!e.isPeriodic()) {
 			addAppEdge(
-					e.getSource() + "_" + userId,
-					e.getDestination() + "_" + userId,
+					source,
+					destination,
 					e.getTupleCpuLength(),
 					e.getTupleNwLength(),
 					e.getTupleType() + "_" + userId,
 					e.getEdgeType());
 		}else {
 			addAppEdge(
-					e.getSource() + "_" + userId,
-					e.getDestination() + "_" + userId,
+					source,
+					destination,
 					e.getPeriodicity(),
 					e.getTupleCpuLength(),
 					e.getTupleNwLength(),
 					e.getTupleType() + "_" + userId,
 					e.getEdgeType());
 		}
+		
+		System.out.println("Added edge from: " + source + " to: " + destination);
 	}
 	
 	/**
@@ -129,7 +158,13 @@ public class Application {
 	}
 	
 	public void addTupleMapping(String moduleName, Pair<String, String> pair, double value){
-		AppModule module = getModuleByName(moduleName + "_" + userId);
+		AppModule module = getModuleByName(moduleName);
+		
+		// If it is not a global module
+		if(module == null) {
+			module = getModuleByName(moduleName + "_" + userId);
+		}
+		
 		Pair<String, String> newPair = new Pair<String, String>(pair.getFirst() + "_" + userId, pair.getSecond() + "_" + userId);
 		module.getSelectivityMap().put(newPair, new FractionalSelectivity(value));
 	}

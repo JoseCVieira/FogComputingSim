@@ -39,6 +39,7 @@ public class AddAppModule extends JDialog {
 	private JTextField moduleSize;
 	
 	private JComboBox<String> clientModule;
+	private JComboBox<String> globalModule;
 	
 	public AddAppModule(final JFrame frame, final ApplicationGui app, final AppModule module) {
 		this.app = app;
@@ -101,7 +102,7 @@ public class AddAppModule extends JDialog {
 				String error_msg = "", name_ = "";
 				int ram_ = -1;
 				long size_ = -1;
-				boolean clientModule_ = false;
+				boolean clientModule_ = false, globalModule_ = false;
 				
 				if (Util.validString(moduleName.getText())) {
 					if(module == null || (module != null && !module.getName().equals(moduleName.getText()))) {		
@@ -118,6 +119,7 @@ public class AddAppModule extends JDialog {
 				if (!Util.validString(moduleRam.getText())) error_msg += "Missing Ram\n";
 				if (!Util.validString(moduleSize.getText())) error_msg += "Missing Mem\n";
 				if (!Util.validString((String) clientModule.getSelectedItem())) error_msg += "Missing Client Module\n";
+				if (!Util.validString((String) globalModule.getSelectedItem())) error_msg += "Missing Global Module\n";
 
 				name_ = moduleName.getText();
 				if((ram_ = Util.stringToInt(moduleRam.getText())) < 0) error_msg += "\nRam should be a positive number";
@@ -125,11 +127,12 @@ public class AddAppModule extends JDialog {
 				
 				if(error_msg == ""){
 					clientModule_ = ((String) clientModule.getSelectedItem()).equals("YES") ? true : false;
+					globalModule_ = ((String) globalModule.getSelectedItem()).equals("YES") ? true : false;
 					
 					if(module != null)
-						module.setValues(name_, ram_, size_, clientModule_);
+						module.setValues(name_, ram_, size_, clientModule_, globalModule_);
 					else
-						app.addAppModule(name_, ram_, size_, clientModule_);
+						app.addAppModule(name_, ram_, size_, clientModule_, globalModule_);
 					setVisible(false);
 				}else
 					Util.prompt(AddAppModule.this, error_msg, "Error");
@@ -163,11 +166,20 @@ public class AddAppModule extends JDialog {
         
         clientModule = Util.createDropDown(springPanel, clientModule, "Client Model: ", clientModuleModel, null);
         
-        if(module != null)
+        
+        @SuppressWarnings({ "rawtypes", "unchecked" })
+		ComboBoxModel<String> globalModuleModel = new DefaultComboBoxModel(Arrays.asList("YES", "NO").toArray());
+        globalModule = new JComboBox<>(globalModuleModel);
+        
+        globalModule = Util.createDropDown(springPanel, globalModule, "Client Model: ", globalModuleModel, null);        
+        
+        if(module != null) {
         	clientModuleModel.setSelectedItem(module.isClientModule() ? "Yes" : "No");
+        	globalModuleModel.setSelectedItem(module.isGlobalModule() ? "Yes" : "No");
+        }
         
 		//rows, cols, initX, initY, xPad, yPad
-        SpringUtilities.makeCompactGrid(springPanel, 4, 2, 6, 6, 6, 6);
+        SpringUtilities.makeCompactGrid(springPanel, 5, 2, 6, 6, 6, 6);
 		return springPanel;
 	}
 }

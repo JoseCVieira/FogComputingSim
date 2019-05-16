@@ -7,6 +7,10 @@ public class Config {
 	// Optimization Algorithm
 	public static final boolean PRINT_DETAILS = true;
 	
+	// Simulation
+	public static final boolean PRINT_COMMUNICATION_DETAILS = false;
+	public static final boolean PRINT_COST_DETAILS = false;
+	
 	/**
 	 * Configuration parameters for the optimization problem
 	 */
@@ -19,7 +23,7 @@ public class Config {
 	public static final double OP_W = 0.01;
 	
 	// Power weight
-	public static final double PW_W = 1000;
+	public static final double PW_W = 100;
 	
 	// Processing weight
 	public static final double PR_W = 0.01;
@@ -33,10 +37,16 @@ public class Config {
 	// GA
 	public static final boolean PRINT_BEST_ITER = true;
 	public static final int POPULATION_SIZE = 15;
-	public static final int MAX_ITER = 50000;
+	public static final int MAX_ITER = 5000;
 	public static final int MAX_ITER_PLACEMENT_CONVERGENCE = 10;
 	public static final int MAX_ITER_ROUTING_CONVERGENCE = 20;
 	public static final double CONVERGENCE_ERROR = 0.001;
+	
+	// PSO
+	public static final double DEFAULT_INERTIA = 0.729844;
+    public static final double DEFAULT_COGNITIVE = 2;//1.496180;
+    public static final double DEFAULT_SOCIAL = 2;//1.496180;
+
 	
 	// Random topology
 	public static final String CLOUD_NAME = "Cloud";

@@ -126,10 +126,11 @@ public class Bridge {
 				int ram = ((Long) model.get("ram")).intValue();
 				long mem = (Long) model.get("mem");
 				boolean clientModule = (Boolean) model.get("clientModule");
+				boolean globalModule = (Boolean) model.get("globalModule");
 				
 				for(ApplicationGui app : graph.getAppList()) {
 					if(app.getAppId().equals(appId)) {
-						app.addAppModule(name, ram, mem, clientModule);
+						app.addAppModule(name, ram, mem, clientModule, globalModule);
 						break;
 					}
 				}
@@ -298,7 +299,8 @@ public class Bridge {
 				jobj.put("name", appModule.getName());
 				jobj.put("ram", appModule.getRam());
 				jobj.put("mem", appModule.getSize());
-				jobj.put("clientModule", appModule.isClientModule());				
+				jobj.put("clientModule", appModule.isClientModule());
+				jobj.put("globalModule", appModule.isGlobalModule());
 				modules.add(jobj);
 				
 				for(Pair<String, String> pair : appModule.getSelectivityMap().keySet()) {

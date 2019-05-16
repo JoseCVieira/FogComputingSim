@@ -23,20 +23,16 @@ import org.fog.application.AppLoop;
 import org.fog.application.AppModule;
 import org.fog.application.Application;
 import org.fog.placement.Controller;
+import org.fog.core.Config;
 import org.fog.core.Constants;
 import org.fog.utils.FogEvents;
 import org.fog.utils.Logger;
 import org.fog.utils.NetworkUsageMonitor;
 import org.fog.utils.TimeKeeper;
 
-public class FogDevice extends PowerDatacenter {
-	private static final boolean PRINT_COMMUNICATION_DETAILS = false;
-	private static final boolean PRINT_COST_DETAILS = false;
-	
-	private Map<String, Map<String, Integer>> moduleInstanceCount;
+public class FogDevice extends PowerDatacenter {	
 	private List<Pair<Integer, Double>> associatedActuatorIds;
-	private Map<String, List<String>> appToModulesMap;
-	private List<String> activeApplications;
+	private List<String> deployedModules;
 	
 	private Map<Integer, Queue<Pair<Tuple, Integer>>> tupleQueue;
 	private Map<Integer, Boolean> tupleLinkBusy;
@@ -62,20 +58,12 @@ public class FogDevice extends PowerDatacenter {
 			double schedulingInterval) throws Exception {
 		super(name, characteristics, vmAllocationPolicy, storageList, schedulingInterval);
 		
-		setModuleInstanceCount(new HashMap<String, Map<String, Integer>>());
-		setAssociatedActuatorIds(new ArrayList<Pair<Integer, Double>>());
-		appToModulesMap = new HashMap<String, List<String>>();
-		setActiveApplications(new ArrayList<String>());
-		
-		this.lastMipsUtilization = 0;
-		this.lastRamUtilization = 0;
-		this.lastMemUtilization = 0;
-		this.lastBwUtilization = 0;
-		
+		deployedModules = new ArrayList<String>();
 		setNeighborsIds(new ArrayList<Integer>());
 		setLatencyMap(new HashMap<Integer, Double>());
 		setBandwidthMap(new HashMap<Integer, Double>());
 		setRoutingTable(new HashMap<Map<String,String>, Integer>());
+		setAssociatedActuatorIds(new ArrayList<Pair<Integer, Double>>());
 		
 		setTupleQueue(new HashMap<Integer, Queue<Pair<Tuple,Integer>>>());
 		setTupleLinkBusy(new HashMap<Integer, Boolean>());
@@ -125,9 +113,6 @@ public class FogDevice extends PowerDatacenter {
 			break;
 		case FogEvents.UPDATE_TUPLE_QUEUE:
 			updateTupleQueue(ev);
-			break;
-		case FogEvents.ACTIVE_APP_UPDATE:
-			updateActiveApplications(ev);
 			break;
 		case FogEvents.ACTUATOR_JOINED:
 			processActuatorJoined(ev);
@@ -181,12 +166,6 @@ public class FogDevice extends PowerDatacenter {
 		int actuatorId = ev.getSource();
 		double delay = (double)ev.getData();
 		getAssociatedActuatorIds().add(new Pair<Integer, Double>(actuatorId, delay));
-	}
-
-	
-	protected void updateActiveApplications(SimEvent ev) {
-		Application app = (Application)ev.getData();
-		getActiveApplications().add(app.getAppId());
 	}
 	
 	public String getOperatorName(int vmId){
@@ -265,10 +244,8 @@ public class FogDevice extends PowerDatacenter {
 						Tuple tuple = (Tuple)cl;
 						TimeKeeper.getInstance().tupleEndedExecution(tuple);
 						Application application = controller.getApplications().get(tuple.getAppId());
-						Logger.debug(getName(), "Completed execution of tuple "+tuple.getCloudletId() +
-								"on " + tuple.getDestModuleName());
-						List<Tuple> resultantTuples = application.getResultantTuples(tuple.getDestModuleName(),
-								tuple, vm.getId());
+						Logger.debug(getName(), "Completed execution of tuple "+tuple.getCloudletId() + "on " + tuple.getDestModuleName());
+						List<Tuple> resultantTuples = application.getResultantTuples(tuple.getDestModuleName(), tuple, vm.getId());
 						
 						for(Tuple resTuple : resultantTuples){
 							resTuple.setModuleCopyMap(new HashMap<String, Integer>(tuple.getModuleCopyMap()));
@@ -366,7 +343,7 @@ public class FogDevice extends PowerDatacenter {
 		lastMipsUtilization = totalMipsAllocated/getHost().getTotalMips();
 		lastUtilizationUpdateTime = timeNow;
 		
-		if(PRINT_COST_DETAILS) printCost();
+		if(Config.PRINT_COST_DETAILS) printCost();
 	}
 
 	protected void processAppSubmit(SimEvent ev) {
@@ -386,7 +363,7 @@ public class FogDevice extends PowerDatacenter {
 			}
 		}
 		
-		if(PRINT_COMMUNICATION_DETAILS) printCommunication(tuple);
+		if(Config.PRINT_COMMUNICATION_DETAILS) printCommunication(tuple);
 		
 		Map<String, String> communication = new HashMap<String, String>();
 		communication.put(tuple.getSrcModuleName(), tuple.getDestModuleName());
@@ -416,15 +393,15 @@ public class FogDevice extends PowerDatacenter {
 				{add((double) getHost().getTotalMips());}});
 			}
 		}
-		
-		if(appToModulesMap.containsKey(tuple.getAppId()) &&
-				appToModulesMap.get(tuple.getAppId()).contains(tuple.getDestModuleName())){
-				
+
+		if(deployedModules.contains(tuple.getDestModuleName())){
 			int vmId = -1;
 			
-			for(Vm vm : getHost().getVmList())
-				if(((AppModule)vm).getName().equals(tuple.getDestModuleName()))
+			for(Vm vm : getHost().getVmList()) {
+				if(((AppModule)vm).getName().equals(tuple.getDestModuleName())) {
 					vmId = vm.getId();
+				}
+			}
 				
 			if(vmId < 0 || (tuple.getModuleCopyMap().containsKey(tuple.getDestModuleName()) && 
 					tuple.getModuleCopyMap().get(tuple.getDestModuleName()) != vmId))
@@ -434,7 +411,7 @@ public class FogDevice extends PowerDatacenter {
 			updateTimingsOnReceipt(tuple);
 			executeTuple(ev, tuple.getDestModuleName());
 		}else{
-			if(PRINT_COMMUNICATION_DETAILS) printCommunication(tuple);
+			if(Config.PRINT_COMMUNICATION_DETAILS) printCommunication(tuple);
 			
 			Map<String, String> communication = new HashMap<String, String>();
 			communication.put(tuple.getSrcModuleName(), tuple.getDestModuleName());
@@ -488,12 +465,7 @@ public class FogDevice extends PowerDatacenter {
 	
 	protected void processModuleArrival(SimEvent ev){
 		AppModule module = (AppModule)ev.getData();
-		String appId = module.getAppId();
-		
-		if(!appToModulesMap.containsKey(appId))
-			appToModulesMap.put(appId, new ArrayList<String>());
-
-		appToModulesMap.get(appId).add(module.getName());
+		deployedModules.add(module.getName());
 
 		processVmCreate(ev, false);
 		System.out.println("Creating " + module.getName() + " on device " + getName());
@@ -584,14 +556,6 @@ public class FogDevice extends PowerDatacenter {
 	public void setNeighborsIds(List<Integer> neighborsIds) {
 		this.neighborsIds = neighborsIds;
 	}
-	
-	public List<String> getActiveApplications() {
-		return activeApplications;
-	}
-	
-	public void setActiveApplications(List<String> activeApplications) {
-		this.activeApplications = activeApplications;
-	}
 
 	public List<Pair<Integer, Double>> getAssociatedActuatorIds() {
 		return associatedActuatorIds;
@@ -631,15 +595,6 @@ public class FogDevice extends PowerDatacenter {
 
 	public void setTotalCost(double totalCost) {
 		this.totalCost = totalCost;
-	}
-
-	public Map<String, Map<String, Integer>> getModuleInstanceCount() {
-		return moduleInstanceCount;
-	}
-
-	public void setModuleInstanceCount(
-			Map<String, Map<String, Integer>> moduleInstanceCount) {
-		this.moduleInstanceCount = moduleInstanceCount;
 	}
 	
 	public void setController(Controller controller) {

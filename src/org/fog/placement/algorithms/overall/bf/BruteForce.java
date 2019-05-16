@@ -60,8 +60,8 @@ public class BruteForce extends Algorithm {
 					for(int j = 0; j < NR_MODULES; j++) {
 						for(int z = 0; z < NR_MODULES; z++) {
 							if(getmDependencyMap()[j][z] != 0) {
-								initialNodes.add(findModulePlacement(modulePlacementMap, j));
-								finalNodes.add(findModulePlacement(modulePlacementMap, z));
+								initialNodes.add(Job.findModulePlacement(modulePlacementMap, j));
+								finalNodes.add(Job.findModulePlacement(modulePlacementMap, z));
 							}
 						}
 					}
@@ -128,13 +128,6 @@ public class BruteForce extends Algorithm {
 				}
 			}
 		}
-	}
-	
-	private static int findModulePlacement(int[][] chromosome, int colomn) {
-		for(int i = 0; i < chromosome.length; i++)
-			if(chromosome[i][colomn] == 1)
-				return i;
-		return -1;
 	}
 	
 	private int[][] convertListToMatrix(List<Integer> initials, List<Integer> finals) {
