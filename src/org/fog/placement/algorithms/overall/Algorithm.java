@@ -124,7 +124,7 @@ public abstract class Algorithm {
 		mBandwidthMap = new double[NR_MODULES][NR_MODULES];
 		
 		extractDevicesCharacteristics(fogDevices, sensors, actuators);
-		extractAppCharacteristics(fogBrokers, fogDevices, applications, sensors, actuators);
+		extractAppCharacteristics(fogBrokers, fogDevices, applications, hashSet);
 		computeApplicationCharacteristics(applications, sensors);
 		computeLatencyMap(fogDevices, sensors, actuators);
 		
@@ -164,7 +164,7 @@ public abstract class Algorithm {
 	}
 	
 	private void extractAppCharacteristics(final List<FogBroker> fogBrokers, final List<FogDevice> fogDevices,
-			final List<Application> applications, final List<Sensor> sensors, final List<Actuator> actuators) {
+			final List<Application> applications, final LinkedHashSet<String> hashSet) {
 		
 		for(int i  = 0; i < NR_NODES; i++) {
 			for(int j  = 0; j < NR_MODULES; j++) {
@@ -192,47 +192,10 @@ public abstract class Algorithm {
 				}
 			}
 			
-			// sensors and actuators are added to its client in order to optimize tuples latency
-			for(AppEdge appEdge : application.getEdges()) {
-				
-				if(getModuleIndexByModuleName(appEdge.getSource()) == -1) {
-					for(Sensor sensor : sensors) {
-						if(sensor.getAppId().equals(application.getAppId())) {
-							for(FogDevice fogDevice : fogDevices) {
-								if(fogDevice.getId() == sensor.getGatewayDeviceId()) {
-									int deviceIndex = getNodeIndexByNodeName(fogDevice.getName());
-									
-									for(int z = 0; z < NR_NODES; z++) {
-										if(z != deviceIndex) {
-											possibleDeployment[z][i] = 0;
-										}
-									}
-									mName[i++] = appEdge.getSource();
-									break;
-								}
-							}
-						}
-					}
-				}
-				
-				if(getModuleIndexByModuleName(appEdge.getDestination()) == -1) {
-					for(Actuator actuator : actuators) {
-						if(actuator.getAppId().equals(application.getAppId())) {
-							for(FogDevice fogDevice : fogDevices) {
-								if(fogDevice.getId() == actuator.getGatewayDeviceId()) {
-									int deviceIndex = getNodeIndexByNodeName(fogDevice.getName());
-									
-									for(int z = 0; z < NR_NODES; z++) {
-										if(z != deviceIndex) {
-											possibleDeployment[z][i] = 0;
-										}
-									}
-									mName[i++] = appEdge.getDestination();
-									break;
-								}
-							}
-						}
-					}
+			// Add the sensors and actuators modules
+			for(String str : hashSet) {
+				if(getModuleIndexByModuleName(str) == -1) {
+					mName[i++] = str;
 				}
 			}
 		}
@@ -517,13 +480,6 @@ public abstract class Algorithm {
 	private int getModuleIndexByModuleName(String name) {
 		for(int i = 0; i < NR_MODULES; i++)
 			if(mName[i] != null && mName[i].equals(name))
-				return i;
-		return -1;
-	}
-	
-	private int getNodeIndexByNodeName(String name) {
-		for(int i = 0; i < NR_NODES; i++)
-			if(fName[i] != null && fName[i].equals(name))
 				return i;
 		return -1;
 	}
