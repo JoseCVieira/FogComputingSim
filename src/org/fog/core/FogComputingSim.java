@@ -165,15 +165,14 @@ public class FogComputingSim {
 	    System.out.println("| Options:                                   |");
 	    System.out.println("|       1. Linear Programming                |");
 	    System.out.println("|       2. Genetic Algorithm                 |");
-	    System.out.println("|       3. Particle Swarm Optimization       |");
-	    System.out.println("|       4. Random Algorithm                  |");
-	    System.out.println("|       5. Brute Force                       |");
-	    System.out.println("|       6. Markov Decision Process           |");
-	    System.out.println("|       7. Compare all algorithms            |");
+	    System.out.println("|       3. Random Algorithm                  |");
+	    System.out.println("|       4. Brute Force                       |");
+	    System.out.println("|       5. Markov Decision Process           |");
+	    System.out.println("|       6. Compare all algorithms            |");
 	    System.out.println("|       0. Exit                              |");
 	    System.out.println("|                                            |");
 	    System.out.println("——————————————————————————————————————————————");
-	    System.out.print("\n Option: ");
+	    System.out.print("\n Algorithm: ");
 	    
 	    int option = -1;
 	    while(option == -1) {
@@ -195,7 +194,7 @@ public class FogComputingSim {
 			}
 		    
 		    if(option == -1)
-		    	System.out.print("Invalid input. Option: ");
+		    	System.out.print("Invalid input. Algorithm: ");
 	    }
 	    
 	    return option;
@@ -204,7 +203,7 @@ public class FogComputingSim {
 	@SuppressWarnings("resource")
 	private static void menuTopology() {
 		System.out.println("————————————————————————————————————————————————————————");
-		System.out.println("|  FOG COMPUTING SIMULATOR MENU - TOPOLOGY             |");
+		System.out.println("|       FOG COMPUTING SIMULATOR MENU - TOPOLOGY        |");
 		System.out.println("|                                                      |");
 	    System.out.println("| Options:                                             |");
 	    System.out.println("|       1. GUI                                         |");
@@ -216,7 +215,7 @@ public class FogComputingSim {
 	    System.out.println("|       0. Back                                        |");
 	    System.out.println("|                                                      |");
 	    System.out.println("————————————————————————————————————————————————————————");
-	    System.out.print("\n Option: ");
+	    System.out.print("\n Topology: ");
 	    
 	    FogTest fogTest = null;
 	    while(fogTest == null) {
@@ -228,6 +227,7 @@ public class FogComputingSim {
 				option = -1;
 			}
 		    
+		    boolean returning = false;
 		    switch (option) {
 			    case EXIT:
 			    	return;
@@ -252,59 +252,25 @@ public class FogComputingSim {
 					fogTest = new TEMPFog();
 					break;
 				case FILE:
-					Path path = FileSystems.getDefault().getPath(".");
-					String dir = path + "/topologies/";
-					
-					System.out.println("Topologies found inside " + dir + ":");
-					
-					File folder = new File(dir);
-					File[] listOfFiles = folder.listFiles();
-					
-					if(listOfFiles.length == 0) {
-						System.out.println("There are no available topologies in this folder.\n");
-						break;
+					String filePath = menuFile();
+					if(filePath != null) {
+						Graph graph= Bridge.jsonToGraph(filePath);
+				    	fogTest = new RunGUI(graph);
+					}else {
+						returning = true;
 					}
-
-					for (int i = 0; i < listOfFiles.length; i++) {
-						if (listOfFiles[i].isFile()) {
-							System.out.println("File[" + i + "]: " + listOfFiles[i].getName());
-						}
-					}
-					System.out.print("Insert the file number. Option: ");
-					
-					int fileIndex = -1;
-				    
-					while(fileIndex == -1) {
-					    try {
-					    	fileIndex = new Scanner(System.in).nextInt();
-					    	
-					    	if(fileIndex < 0 || fileIndex > listOfFiles.length) {
-					    		fileIndex = -1;
-					    	}
-						} catch (Exception e) {
-							fileIndex = -1;
-						}
-					    
-					    if(fileIndex == -1) {
-					    	System.out.println("Invalid number. Option: ");
-					    }
-					}			        
-			        
-			        String filePath = path + "/topologies/" + listOfFiles[fileIndex].getName();
-			        
-			        if(!new File(filePath).exists())
-			        	break;
-			        
-			        Graph graph= Bridge.jsonToGraph(filePath);
-			    	fogTest = new RunGUI(graph);
-					
 			    	break;
 				default:
 					break;
 			}
 		    
 		    if(fogTest == null) {
-		    	System.out.print("Invalid input. Option: ");
+		    	if(returning) {
+		    		returning = false;
+		    		System.out.print("Topology: ");
+		    		continue;
+		    	}
+		    	System.out.print("Invalid input. Topology: ");
 		    }
 	    }
 	    
@@ -315,6 +281,69 @@ public class FogComputingSim {
 		sensors = fogTest.getSensors();
 		actuators = fogTest.getActuators();
 		appToFogMap = fogTest.getAppToFogMap();
+	}
+	
+	@SuppressWarnings("resource")
+	private static String menuFile() {
+		Path path = FileSystems.getDefault().getPath(".");
+		String dir = path + "/topologies/";
+		
+		System.out.println("Topologies found inside " + dir + ":");
+		
+		File folder = new File(dir);
+		File[] listOfFiles = folder.listFiles();
+		
+		if(listOfFiles.length == 0) {
+			System.out.println("There are no available topologies in this folder.\n");
+			return null;
+		}
+		
+		
+		
+		System.out.println("————————————————————————————————————————————————————————");
+		System.out.println("|          FOG COMPUTING SIMULATOR MENU - FILE         |");
+		System.out.println("|                                                      |");
+		System.out.println(String.format("%-54s |", "|    Topologies found inside " + dir + ":"));
+		System.out.println("|                                                      |");
+	    System.out.println("| Options:                                             |");
+	    
+	    for (int i = 0; i < listOfFiles.length; i++) {
+			if (listOfFiles[i].isFile()) {
+				System.out.println(String.format("%-54s |", "|       " + (i+1) + ". " + listOfFiles[i].getName()));
+			}
+		}
+	    
+	    System.out.println("|       0. Back                                        |");
+	    System.out.println("|                                                      |");
+	    System.out.println("————————————————————————————————————————————————————————");
+	    System.out.print("\n File: ");
+	    
+
+		
+		int fileIndex = -1;
+	    
+		while(fileIndex == -1) {
+		    try {
+		    	fileIndex = new Scanner(System.in).nextInt();
+		    	
+		    	if(fileIndex == 0)
+		    		return null;
+		    	
+		    	fileIndex--;
+		    	
+		    	if(fileIndex < 0 || fileIndex > listOfFiles.length) {
+		    		fileIndex = -1;
+		    	}
+			} catch (Exception e) {
+				fileIndex = -1;
+			}
+		    
+		    if(fileIndex == -1) {
+		    	System.out.println("Invalid number. File: ");
+		    }
+		}			        
+        
+        return path + "/topologies/" + listOfFiles[fileIndex].getName();
 	}
 	
 	private static void deployApplications(Map<String, List<String>> modulePlacementMap) {

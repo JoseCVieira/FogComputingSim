@@ -152,7 +152,9 @@ public class Job {
 						dijkstra.execute(nodes.get(z));
 						LinkedList<Vertex> path = dijkstra.getPath(nodes.get(finalNodes.get(i)));
 						
-				        if(path != null && path.size() <= nrFogNodes - j) {
+						
+						// If path is null, means that both start and finish refer to the same node, thus it can be added
+				        if((path != null && path.size() <= nrFogNodes - j) || path == null) {
 				        	validValues.add(z);
 				        }
 					}
@@ -161,7 +163,6 @@ public class Job {
 				routingMap[i][j] = validValues.get(new Random().nextInt(validValues.size()));
 			}
 		}
-		
 		return routingMap;
 	}
 	

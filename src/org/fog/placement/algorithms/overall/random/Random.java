@@ -27,7 +27,7 @@ public class Random extends Algorithm {
 	public Job execute() {		
 		long start = System.currentTimeMillis();
 		
-		while (iteration <= Config.MAX_ITER) {
+		while (iteration <= Config.MAX_ITER_RANDOM) {
 			Job job = Job.generateRandomJob(this, getNumberOfNodes(), getNumberOfModules());
 			
 			if(bestCost > job.getCost()) {

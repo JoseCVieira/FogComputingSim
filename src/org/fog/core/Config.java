@@ -16,23 +16,23 @@ public class Config {
 	 */
 	
 	public static final boolean NORMALIZE = true;
-	public static final double WILLING_TO_WAST_ENERGY_FOG_NODE = 0.01;
+	public static final double WILLING_TO_WAST_ENERGY_FOG_NODE = 1;
 	public static final double WILLING_TO_WAST_ENERGY_CLIENT = 1;	
 	
 	// Operational weight
-	public static final double OP_W = 0.01;
+	public static final double OP_W = 1;
 	
 	// Power weight
-	public static final double PW_W = 100;
+	public static final double PW_W = 1;
 	
 	// Processing weight
-	public static final double PR_W = 0.01;
+	public static final double PR_W = 1;
 	
 	// Latency weight
-	public static final double LT_W = 0.01;
+	public static final double LT_W = 1;
 	
 	// Bandwidth weight
-	public static final double BW_W = 0.01;
+	public static final double BW_W = 1;
 	
 	// GA
 	public static final boolean PRINT_BEST_ITER = true;
@@ -41,6 +41,9 @@ public class Config {
 	public static final int MAX_ITER_PLACEMENT_CONVERGENCE = 10;
 	public static final int MAX_ITER_ROUTING_CONVERGENCE = 20;
 	public static final double CONVERGENCE_ERROR = 0.001;
+	
+	// RANDOM ALGORITHM
+	public static final int MAX_ITER_RANDOM = 50000;
 	
 	// PSO
 	public static final double DEFAULT_INERTIA = 0.729844;
