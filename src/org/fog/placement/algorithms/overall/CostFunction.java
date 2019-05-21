@@ -28,7 +28,7 @@ public class CostFunction {
 		cost += calculateOperationalCost(algorithm, modulePlacementMap, routingMap, initialModules, finalModules);
 		cost += calculatePowerCost(algorithm, modulePlacementMap);
 		cost += calculateProcessingCost(algorithm, modulePlacementMap);
-		cost += calculateTransmittingCost(algorithm, routingMap, initialModules, finalModules);
+		cost += calculateTransmittingCost(algorithm, routingMap, initialModules, finalModules);		
 		
 		return cost;
 	}
@@ -37,6 +37,16 @@ public class CostFunction {
 	private static double isPossibleCombination(Algorithm algorithm, int[][] modulePlacementMap, int[][] routingMap,
 			List<Integer> initialModules, List<Integer> finalModules) {
 		double cost = 0;
+		
+		// If placement does not respects possible deployment matrix
+		for(int i  = 0; i < algorithm.getNumberOfNodes(); i++) {
+			for(int j = 0; j < algorithm.getNumberOfModules(); j++) {
+				if(modulePlacementMap[i][j] > algorithm.getPossibleDeployment()[i][j]) {
+					cost += Constants.MIN_SOLUTION;
+				}
+			}
+		}
+		
 		
 		// If some module is not placed or placed in more than one fog node (never happens but is also verified)
 		for(int j = 0; j < algorithm.getNumberOfModules(); j++) {
@@ -156,8 +166,8 @@ public class CostFunction {
 		
 		cost = Config.PR_W * Math.pow(numerator, 2)/(algorithm.getNumberOfNodes()*denominator);*/
 		
-		for(int i = 0; i < modulePlacementMap.length; i++) {
-			for(int j = 0; j < modulePlacementMap[i].length; j++) {
+		for(int i = 0; i < algorithm.getNumberOfNodes(); i++) {
+			for(int j = 0; j < algorithm.getNumberOfModules(); j++){
 				cost += Config.PR_W*(modulePlacementMap[i][j] * algorithm.getmMips()[j] / algorithm.getfMips()[i]);
 			}
 		}

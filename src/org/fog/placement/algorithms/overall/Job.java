@@ -1,6 +1,7 @@
 package org.fog.placement.algorithms.overall;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -12,7 +13,7 @@ import org.fog.placement.algorithms.routing.Graph;
 import org.fog.placement.algorithms.routing.Vertex;
 import org.fog.utils.Util;
 
-public class Job {
+public class Job implements Comparable<Job> {
 	private int[][] modulePlacementMap;
 	private int[][] routingMap;
 	private double cost;
@@ -183,6 +184,41 @@ public class Job {
 			if(chromosome[i][colomn] == 1)
 				return i;
 		return -1;
+	}
+	
+	@Override
+	public int compareTo(Job job) {
+		return Double.compare(this.cost, job.getCost());
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		long temp;
+		temp = Double.doubleToLongBits(cost);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		result = prime * result + Arrays.deepHashCode(modulePlacementMap);
+		result = prime * result + Arrays.deepHashCode(routingMap);
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Job other = (Job) obj;
+		if (Double.doubleToLongBits(cost) != Double.doubleToLongBits(other.cost))
+			return false;
+		if (!Arrays.deepEquals(modulePlacementMap, other.modulePlacementMap))
+			return false;
+		if (!Arrays.deepEquals(routingMap, other.routingMap))
+			return false;
+		return true;
 	}
 	
 }

@@ -46,10 +46,11 @@ public class Config {
 	public static final int MAX_ITER_RANDOM = 50000;
 	
 	// PSO
+	public static final int POPULATION_SIZE_PSO = 10;
+	public static final int MAX_ITER_PSO = 200000;
 	public static final double DEFAULT_INERTIA = 0.729844;
-    public static final double DEFAULT_COGNITIVE = 2;//1.496180;
-    public static final double DEFAULT_SOCIAL = 2;//1.496180;
-
+    public static final double DEFAULT_COGNITIVE = 2.07;//1.496180;
+    public static final double DEFAULT_SOCIAL = 2.07;//1.496180;
 	
 	// Random topology
 	public static final String CLOUD_NAME = "Cloud";

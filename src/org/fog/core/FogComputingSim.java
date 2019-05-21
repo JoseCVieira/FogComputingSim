@@ -91,7 +91,7 @@ public class FogComputingSim {
 			case LP:
 				System.out.println("Running the optimization algorithm: Linear programming.");
 				algorithm = new LinearProgramming(fogBrokers, fogDevices, applications, sensors, actuators);
-				solution = algorithm.execute();				
+				solution = algorithm.execute();
 				break;
 			case GA:
 				System.out.println("Running the optimization algorithm: Genetic Algorithm.");
@@ -159,19 +159,19 @@ public class FogComputingSim {
 	
 	@SuppressWarnings("resource")
 	private static int menuAlgorithm() {
-		System.out.println("——————————————————————————————————————————————");
-		System.out.println("|  FOG COMPUTING SIMULATOR MENU - ALGORITHM  |");
-		System.out.println("|                                            |");
-	    System.out.println("| Options:                                   |");
-	    System.out.println("|       1. Linear Programming                |");
-	    System.out.println("|       2. Genetic Algorithm                 |");
-	    System.out.println("|       3. Random Algorithm                  |");
-	    System.out.println("|       4. Brute Force                       |");
-	    System.out.println("|       5. Markov Decision Process           |");
-	    System.out.println("|       6. Compare all algorithms            |");
-	    System.out.println("|       0. Exit                              |");
-	    System.out.println("|                                            |");
-	    System.out.println("——————————————————————————————————————————————");
+		System.out.println("—————————————————————————————————————————————————");
+		System.out.println("|    FOG COMPUTING SIMULATOR MENU - ALGORITHM   |");
+		System.out.println("|                                               |");
+	    System.out.println("| Options:                                      |");
+	    System.out.println("|       1. Linear Programming                   |");
+	    System.out.println("|       2. Genetic Algorithm                    |");
+	    System.out.println("|       3. Random Algorithm                     |");
+	    System.out.println("|       4. Brute Force                          |");
+	    System.out.println("|       5. Markov Decision Process              |");
+	    System.out.println("|       6. Compare all algorithms               |");
+	    System.out.println("|       0. Exit                                 |");
+	    System.out.println("|                                               |");
+	    System.out.println("—————————————————————————————————————————————————");
 	    System.out.print("\n Algorithm: ");
 	    
 	    int option = -1;
@@ -331,7 +331,7 @@ public class FogComputingSim {
 		    	
 		    	fileIndex--;
 		    	
-		    	if(fileIndex < 0 || fileIndex > listOfFiles.length) {
+		    	if(fileIndex < 0 || fileIndex > listOfFiles.length - 1) {
 		    		fileIndex = -1;
 		    	}
 			} catch (Exception e) {

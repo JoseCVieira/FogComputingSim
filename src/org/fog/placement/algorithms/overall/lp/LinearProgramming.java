@@ -17,7 +17,7 @@ import org.fog.placement.algorithms.overall.util.AlgorithmUtils;
 import ilog.concert.*;
 import ilog.cplex.*;
 
-public class LinearProgramming extends Algorithm {	
+public class LinearProgramming extends Algorithm {
 	public LinearProgramming(final List<FogBroker> fogBrokers, final List<FogDevice> fogDevices, final List<Application> applications,
 			final List<Sensor> sensors, final List<Actuator> actuators) {
 		super(fogBrokers, fogDevices, applications, sensors, actuators);
