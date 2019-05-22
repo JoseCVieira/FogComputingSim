@@ -47,7 +47,7 @@ public class AlgorithmUtils {
             	}else if(matrix[i][j] == 0) {
 					System.out.format(centerString(20, "-"));
             	}else {
-					System.out.format(centerString(20, String.format("%.2f", matrix[i][j])));
+					System.out.format(centerString(20, String.format("%.3E", matrix[i][j])));
             	}
             }
             System.out.println();
@@ -124,7 +124,6 @@ public class AlgorithmUtils {
 			System.out.println("mMips: " + al.getmMips()[i]);
 			System.out.println("mRam: " + al.getmRam()[i]);
 			System.out.println("mMem: " + al.getmMem()[i]);
-			System.out.println("mBw: " + al.getmBw()[i]);
 			
 			if(i < al.getNumberOfModules() -1)
 				System.out.println();

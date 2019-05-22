@@ -24,11 +24,27 @@ public class CostFunction {
 		}
 		
 		double cost = 0;
+		double old = 0;
+		
 		cost += isPossibleCombination(algorithm, modulePlacementMap, routingMap, initialModules, finalModules);
+		System.out.println("OK: " + (cost - old));
+		old = cost;
+		
 		cost += calculateOperationalCost(algorithm, modulePlacementMap, routingMap, initialModules, finalModules);
+		System.out.println("OP: " + (cost - old));
+		old = cost;
+		
 		cost += calculatePowerCost(algorithm, modulePlacementMap);
+		System.out.println("PW: " + (cost - old));
+		old = cost;
+		
 		cost += calculateProcessingCost(algorithm, modulePlacementMap);
-		cost += calculateTransmittingCost(algorithm, routingMap, initialModules, finalModules);		
+		System.out.println("PR: " + (cost - old));
+		old = cost;
+		
+		cost += calculateTransmittingCost(algorithm, routingMap, initialModules, finalModules);
+		System.out.println("TX: " + (cost - old));
+		old = cost;
 		
 		return cost;
 	}

@@ -17,7 +17,7 @@ public class Config {
 	
 	public static final boolean NORMALIZE = true;
 	public static final double WILLING_TO_WAST_ENERGY_FOG_NODE = 1;
-	public static final double WILLING_TO_WAST_ENERGY_CLIENT = 1;	
+	public static final double WILLING_TO_WAST_ENERGY_CLIENT = 0.1;	
 	
 	// Operational weight
 	public static final double OP_W = 1;

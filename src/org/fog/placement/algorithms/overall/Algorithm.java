@@ -21,7 +21,6 @@ import org.fog.entities.FogBroker;
 import org.fog.entities.FogDevice;
 import org.fog.entities.FogDeviceCharacteristics;
 import org.fog.entities.Sensor;
-import org.fog.placement.algorithms.overall.util.AlgorithmMathUtils;
 import org.fog.placement.algorithms.overall.util.AlgorithmUtils;
 import org.fog.utils.FogLinearPowerModel;
 import org.fog.utils.distribution.DeterministicDistribution;
@@ -30,6 +29,7 @@ import org.fog.utils.distribution.NormalDistribution;
 import org.fog.utils.distribution.UniformDistribution;
 
 public abstract class Algorithm {
+	
 	protected Map<Integer, Double> valueIterMap = new HashMap<Integer, Double>();
 	protected long elapsedTime;
 	
@@ -56,7 +56,6 @@ public abstract class Algorithm {
 	protected double mMips[];
 	protected double mRam[];
 	protected double mMem[];
-	protected double mBw[];
 	
 	// Node to Node
 	protected double[][] fLatencyMap;
@@ -107,7 +106,6 @@ public abstract class Algorithm {
 		mMips = new double[NR_MODULES];
 		mRam = new double[NR_MODULES];
 		mMem = new double[NR_MODULES];
-		mBw = new double[NR_MODULES];
 		
 		fLatencyMap = new double[NR_NODES][NR_NODES];
 		fBandwidthMap = new double[NR_NODES][NR_NODES];
@@ -187,8 +185,7 @@ public abstract class Algorithm {
 					mName[i] = module.getName();
 					mMips[i] = 0;
 					mRam[i] = module.getRam();
-					mMem[i] = module.getSize();
-					mBw[i++] = 0;
+					mMem[i++] = module.getSize();
 				}
 			}
 			
@@ -348,7 +345,6 @@ public abstract class Algorithm {
 								if(!isSensorTuple(sensors, appEdge.getTupleType())) {
 									appModule.setBw((long) (appModule.getBw() + probability*appEdge.getTupleNwLength()/interval));
 									mBandwidthMap[edgeSourceIndex][edgeDestIndex] += probability*appEdge.getTupleNwLength()/interval;
-									mBw[edgeSourceIndex] += probability*appEdge.getTupleNwLength()/interval;
 								}
 								
 								module = appModule;
@@ -394,58 +390,165 @@ public abstract class Algorithm {
 	}
 	
 	private void normalizeValues() {
-		double maxValue, aux;
+		double max, min;		
+		max = computeMax(fMipsPrice);
+		min = computeMin(fMipsPrice);
+		fMipsPrice = normalize(fMipsPrice, max, 0);
+		fRamPrice = normalize(fRamPrice, max, 0);
+		fMemPrice = normalize(fMemPrice, max, 0);
+		fBwPrice = normalize(fBwPrice, max, 0);
 		
-		// PRICES
-		maxValue = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fMipsPrice), false);
-		maxValue = (aux = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fRamPrice), false)) > maxValue ? aux : maxValue;
-		maxValue = (aux = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fMemPrice), false)) > maxValue ? aux : maxValue;
-		maxValue = (aux = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fBwPrice), false)) > maxValue ? aux : maxValue;
+		max = computeMax(fMips, mMips);
+		min = computeMin(fMips, mMips);
+		fMips = normalize(fMips, max, 0);
+		mMips = normalize(mMips, max, 0);
 		
-		fMipsPrice = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fMipsPrice), (Number) maxValue, false);
-		fRamPrice = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fRamPrice), (Number) maxValue, false);
-		fMemPrice = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fMemPrice), (Number) maxValue, false);
-		fBwPrice = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fBwPrice), (Number) maxValue, false);		
+		max = computeMax(fRam, mRam);
+		min = computeMin(fRam, mRam);
+		fRam = normalize(fRam, max, 0);
+		mRam = normalize(mRam, max, 0);
 		
-		// MIPS
-		maxValue = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fMips), false);
-		maxValue = (aux = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(mMips), false)) > maxValue ? aux : maxValue;
-		fMips = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fMips), (Number) maxValue, false);
-		mMips = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(mMips), (Number) maxValue, false);
+		max = computeMax(fMem, mMem);
+		min = computeMin(fMem, mMem);
+		fMem = normalize(fMem, max, 0);
+		mMem = normalize(mMem, max, 0);
 		
-		// RAM
-		maxValue = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fRam), false);
-		maxValue = (aux = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(mRam), false)) > maxValue ? aux : maxValue;
-		fRam = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fRam), (Number) maxValue, false);
-		mRam = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(mRam), (Number) maxValue, false);
+		max = computeMax(fBusyPw, fIdlePw);
+		min = computeMin(fBusyPw, fIdlePw);
+		fBusyPw = normalize(fBusyPw, max, 0);
+		fIdlePw = normalize(fIdlePw, max, 0);
 		
-		// MEM
-		maxValue = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fMem), false);
-		maxValue = (aux = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(mMem), false)) > maxValue ? aux : maxValue;
-		fMem = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fMem), (Number) maxValue, false);
-		mMem = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(mMem), (Number) maxValue, false);
+		max = computeMax(fBandwidthMap, mBandwidthMap);
+		min = computeMin(fBandwidthMap, mBandwidthMap);
+		fBandwidthMap = normalize(fBandwidthMap, max, 0);
+		mBandwidthMap = normalize(mBandwidthMap, max, 0);
 		
-		// BW
-		maxValue = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fBandwidthMap), true);
-		maxValue = (aux = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(mBandwidthMap), false)) > maxValue ? aux : maxValue;
-		maxValue = (aux = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(mBw), false)) > maxValue ? aux : maxValue;
-		fBandwidthMap = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fBandwidthMap), (Number) maxValue, true);
-		mBandwidthMap = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(mBandwidthMap), (Number) maxValue, false);
-		mBw = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(mBw), (Number) maxValue, false);
+		max = computeMax(fLatencyMap);
+		min = computeMin(fLatencyMap);
+		fLatencyMap = normalize(fLatencyMap, max, 0);
 		
-		// PW
-		maxValue = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fBusyPw), false);
-		maxValue = (aux = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fIdlePw), false)) > maxValue ? aux : maxValue;
-		fBusyPw = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fBusyPw), (Number) maxValue, false);
-		fIdlePw = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fIdlePw), (Number) maxValue, false);
+		max = computeMax(mDependencyMap);
+		min = computeMin(mDependencyMap);
+		mDependencyMap = normalize(mDependencyMap, max, 0);
 		
-		// LATENCY
-		maxValue = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(fLatencyMap), true);
-		fLatencyMap = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(fLatencyMap), (Number) maxValue, true);
+		AlgorithmUtils.print("fMipsPrice", fMipsPrice);
+		AlgorithmUtils.print("fRamPrice", fRamPrice);
+		AlgorithmUtils.print("fMemPrice", fMemPrice);
+		AlgorithmUtils.print("fBwPrice", fBwPrice);
 		
-		// DEPENDENCIES
-		maxValue = AlgorithmMathUtils.max(AlgorithmMathUtils.toNumber(mDependencyMap), false);
-		mDependencyMap = AlgorithmMathUtils.scalarDivision(AlgorithmMathUtils.toNumber(mDependencyMap), (Number) maxValue, false);
+		AlgorithmUtils.print("fMips", fMips);
+		AlgorithmUtils.print("mMips", mMips);
+		
+		AlgorithmUtils.print("fRam", fRam);
+		AlgorithmUtils.print("mRam", mRam);
+		
+		AlgorithmUtils.print("fMem", fMem);
+		AlgorithmUtils.print("mMem", mMem);
+		
+		AlgorithmUtils.print("fBusyPw", fBusyPw);
+		AlgorithmUtils.print("fIdlePw", fIdlePw);
+		AlgorithmUtils.print("fPwWeight", fPwWeight);
+		
+		AlgorithmUtils.print("fBandwidthMap", fBandwidthMap);
+		AlgorithmUtils.print("mBandwidthMap", mBandwidthMap);
+		
+		AlgorithmUtils.print("fLatencyMap", fLatencyMap);
+		
+		AlgorithmUtils.print("mDependencyMap", mDependencyMap);
+	}
+	
+	private double computeMax(double[]... vectors) {
+		double max = 0;
+		
+		for (int i = 0; i < vectors.length; i++) {
+			for (int j = 0; j < vectors[i].length; j++) {
+				if(vectors[i][j] == Constants.INF) {
+					continue;
+				}
+				
+				if (max < vectors[i][j]) {
+					max = vectors[i][j];
+				}
+			}
+		}
+		
+		return max;
+	}
+	
+	private double computeMin(double[]... vectors) {
+		double min = Constants.INF;
+		
+		for (int i = 0; i < vectors.length; i++) {
+			for (int j = 0; j < vectors[i].length; j++) {
+				if (min > vectors[i][j]) {
+					min = vectors[i][j];
+				}
+			}
+		}
+		
+		return min;
+	}
+	
+	private double computeMax(double[][]... matrices) {
+		double max = 0;
+		
+		for (int i = 0; i < matrices.length; i++) {
+			for (int j = 0; j < matrices[i].length; j++) {
+				for (int z = 0; z < matrices[i][0].length; z++) {
+					if(matrices[i][j][z] == Constants.INF) {
+						continue;
+					}
+					
+					if (max < matrices[i][j][z]) {
+						max = matrices[i][j][z];
+					}
+				}
+			}
+		}
+		
+		return max;
+	}
+	
+	private double computeMin(double[][]... matrices) {
+		double min = Constants.INF;
+		
+		for (int i = 0; i < matrices.length; i++) {
+			for (int j = 0; j < matrices[i].length; j++) {
+				for (int z = 0; z < matrices[i][0].length; z++) {					
+					if (min > matrices[i][j][z]) {
+						min = matrices[i][j][z];
+					}
+				}
+			}
+		}
+		
+		return min;
+	}
+	
+	private double[] normalize(double[] vector, double max, double min) {
+		for (int i = 0; i < vector.length; i++) {
+			if(vector[i] == Constants.INF) {
+				continue;
+			}
+			
+			vector[i] = (vector[i] - min) / (max - min);
+		}
+		
+		return vector;
+	}
+	
+	private double[][] normalize(double[][] matix, double max, double min) {
+		for (int i = 0; i < matix.length; i++) {
+			for (int j = 0; j < matix[0].length; j++) {
+				if(matix[i][j] == Constants.INF) {
+					continue;
+				}
+				
+				matix[i][j] = (matix[i][j] - min) / (max - min);
+			}
+		}
+		
+		return matix;
 	}
 	
 	public abstract Job execute();
@@ -595,10 +698,6 @@ public abstract class Algorithm {
 
 	public double[] getmMem() {
 		return mMem;
-	}
-
-	public double[] getmBw() {
-		return mBw;
 	}
 
 	public double[] getfBusyPw() {

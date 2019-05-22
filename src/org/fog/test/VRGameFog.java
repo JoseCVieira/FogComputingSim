@@ -12,8 +12,8 @@ import org.fog.entities.FogDevice;
 import org.fog.utils.distribution.DeterministicDistribution;
 
 public class VRGameFog extends FogTest {	
-	private static int numOfDepts = 1;//4;
-	private static int numOfMobilesPerDept = 2;//6;
+	private static int numOfDepts = 4;
+	private static int numOfMobilesPerDept = 6;
 	private static double EEG_TRANSMISSION_TIME = 5.1;
 	
 	public VRGameFog() {
@@ -64,7 +64,7 @@ public class VRGameFog extends FogTest {
 		Application application = new Application("VRGame", -1);
 		application.addAppModule("client", 100, true, false);
 		application.addAppModule("calculator", 100, false, false);
-		application.addAppModule("connector", 100, false, true);
+		application.addAppModule("connector", 100, false, false);
 		
 		application.addAppEdge("EEG", "client", 3000, 500, "EEG", AppEdge.SENSOR);
 		application.addAppEdge("client", "calculator", 3500, 500, "_SENSOR", AppEdge.MODULE);
