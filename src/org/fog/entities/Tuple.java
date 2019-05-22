@@ -17,7 +17,6 @@ public class Tuple extends Cloudlet{
 	private int actualTupleId;
 	private int direction;
 	private int sourceModuleId;
-	private int clientId;
 	
 	/**
 	 * Map to keep track of which module instances has a tuple traversed.
@@ -27,13 +26,12 @@ public class Tuple extends Cloudlet{
 	
 	public Tuple(String appId, int cloudletId, long cloudletLength, int pesNumber,
 			long cloudletFileSize, long cloudletOutputSize, UtilizationModel utilizationModelCpu,
-			UtilizationModel utilizationModelRam, UtilizationModel utilizationModelBw, int clientId) {
+			UtilizationModel utilizationModelRam, UtilizationModel utilizationModelBw) {
 		
 		super(cloudletId, cloudletLength, pesNumber, cloudletFileSize, cloudletOutputSize,
 				utilizationModelCpu, utilizationModelRam, utilizationModelBw);
 		
 		setAppId(appId);
-		setClientId(clientId);
 		setDirection(NOT_ACTUATOR);
 		setModuleCopyMap(new HashMap<String, Integer>());
 	}
@@ -100,14 +98,6 @@ public class Tuple extends Cloudlet{
 
 	public void setSourceModuleId(int sourceModuleId) {
 		this.sourceModuleId = sourceModuleId;
-	}
-	
-	public int getClientId() {
-		return clientId;
-	}
-
-	public void setClientId(int clientId) {
-		this.clientId = clientId;
 	}
 	
 	@Override

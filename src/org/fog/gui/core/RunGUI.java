@@ -54,7 +54,6 @@ public class RunGUI extends FogTest {
 			for(FogDeviceGui fog : clients) {
 				FogBroker broker = getFogBrokerByName(fog.getName());
 				Application application = createApplication(graph, fog.getApplication(), broker.getId());
-				application.setClientId(getFogDeviceByName(fog.getName()).getId());
 				
 				for(FogDevice fogDevice : fogDevices) {
 					if(fogDevice.getName().equals(fog.getName())) {

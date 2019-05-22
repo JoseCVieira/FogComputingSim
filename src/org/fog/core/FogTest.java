@@ -143,7 +143,6 @@ public abstract class FogTest {
 			if(appToFogMap.containsKey(fogDevice.getName())) {
 				for(String app : appToFogMap.get(fogDevice.getName())) {
 					Application application = createApplication(app, broker.getId());
-					application.setClientId(fogDevice.getId());
 					applications.add(application);
 				}
 			}

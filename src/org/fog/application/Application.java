@@ -22,7 +22,6 @@ public class Application {
 	private List<AppLoop> loops; // List of application loops to monitor for delay
 	private String appId;
 	private int userId;
-	private int clientId;
 	
 	public Application(String appId, int userId) {
 		setAppId(appId);
@@ -221,8 +220,7 @@ public class Application {
 							inputTuple.getCloudletOutputSize(),
 							inputTuple.getUtilizationModelCpu(),
 							inputTuple.getUtilizationModelRam(),
-							inputTuple.getUtilizationModelBw(),
-							clientId);
+							inputTuple.getUtilizationModelBw());
 					tuple.setActualTupleId(inputTuple.getActualTupleId());
 					tuple.setUserId(inputTuple.getUserId());
 					tuple.setAppId(inputTuple.getAppId());
@@ -255,8 +253,7 @@ public class Application {
 					100,
 					new UtilizationModelFull(), 
 					new UtilizationModelFull(), 
-					new UtilizationModelFull(),
-					clientId);
+					new UtilizationModelFull());
 			
 			tuple.setUserId(getUserId());
 			tuple.setAppId(getAppId());
@@ -318,18 +315,10 @@ public class Application {
 	public void setEdgeMap(Map<String, AppEdge> edgeMap) {
 		this.edgeMap = edgeMap;
 	}
-
-	public int getClientId() {
-		return clientId;
-	}
-
-	public void setClientId(int clientId) {
-		this.clientId = clientId;
-	}
 	
 	@Override
 	public String toString() {
-		return "Application [appId=" + appId + ", userId=" + userId + ", clientId=" + clientId + "]";
+		return "Application [appId=" + appId + ", userId=" + userId + "]";
 	}
 
 }

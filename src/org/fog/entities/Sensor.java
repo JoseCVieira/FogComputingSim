@@ -63,7 +63,7 @@ public class Sensor extends SimEntity{
 		
 		Tuple tuple = new Tuple(getAppId(), FogUtils.generateTupleId(), cpuLength, 1,
 				nwLength, OUTPUT_SIZE, new UtilizationModelFull(), new UtilizationModelFull(),
-				new UtilizationModelFull(), -1);
+				new UtilizationModelFull());
 		
 		tuple.setUserId(getUserId());
 		tuple.setTupleType(getTupleType());
