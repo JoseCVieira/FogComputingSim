@@ -122,8 +122,8 @@ public abstract class Algorithm {
 		mBandwidthMap = new double[NR_MODULES][NR_MODULES];
 		
 		extractDevicesCharacteristics(fogDevices, sensors, actuators);
-		extractAppCharacteristics(fogBrokers, fogDevices, applications, sensors, actuators);
-		computeApplicationCharacteristics(applications, sensors);
+		extractAppCharacteristics(/*fogBrokers, */fogDevices, applications, hashSet);
+		computeApplicationCharacteristics(applications, fogDevices, sensors);
 		computeLatencyMap(fogDevices, sensors, actuators);
 		
 		if(Config.NORMALIZE) {
@@ -161,8 +161,8 @@ public abstract class Algorithm {
 		}
 	}
 	
-	private void extractAppCharacteristics(final List<FogBroker> fogBrokers, final List<FogDevice> fogDevices,
-			final List<Application> applications, final List<Sensor> sensors, final List<Actuator> actuators) {
+	private void extractAppCharacteristics(final List<FogDevice> fogDevices, final List<Application> applications,
+			final LinkedHashSet<String> hashSet) {
 		
 		for(int i  = 0; i < NR_NODES; i++) {
 			for(int j  = 0; j < NR_MODULES; j++) {
@@ -172,145 +172,92 @@ public abstract class Algorithm {
 		
 		int i = 0;
 		for(Application application : applications) {
-			for(AppModule module : application.getModules()) { // Mips and Bw will be computed later
-				boolean found = false;
-				for(int j = 0; j < mName.length; j++) {
-					if(mName[j] != null && !mName[j].isEmpty() && mName[j].equals(module.getName())) {
-						found = true;
-						break;
-					}
-				}
+			for(AppModule module : application.getModules()) {
 				
-				if(!found) {
+				// MIPS and BW will be computed later
+				if(getModuleIndexByModuleName(module.getName()) == -1) {
 					mName[i] = module.getName();
-					mMips[i] = 0;
 					mRam[i] = module.getRam();
-					mMem[i++] = module.getSize();
-				}
-			}
-			
-			// sensors and actuators are added to its client in order to optimize tuples latency
-			for(AppEdge appEdge : application.getEdges()) {
-				
-				if(getModuleIndexByModuleName(appEdge.getSource()) == -1) {
-					for(Sensor sensor : sensors) {
-						if(sensor.getAppId().equals(application.getAppId())) {
-							for(FogDevice fogDevice : fogDevices) {
-								if(fogDevice.getId() == sensor.getGatewayDeviceId()) {
-									int deviceIndex = getNodeIndexByNodeName(fogDevice.getName());
-									
-									for(int z = 0; z < NR_NODES; z++) {
-										if(z != deviceIndex) {
-											possibleDeployment[z][i] = 0;
-										}
-									}
-									mName[i++] = appEdge.getSource();
-									break;
-								}
+					mMem[i] = module.getSize();
+					
+					if(module.isClientModule()) {
+						String[] parts = module.getName().split("_");
+						int nodeId = Integer.parseInt(parts[parts.length-1]);
+						int nodeIndex = getNodeIndexByNodeId(nodeId);
+						
+						fPwWeight[nodeIndex] = 1/Config.WILLING_TO_WAST_ENERGY_CLIENT;
+						
+						for(int j  = 0; j < NR_NODES; j++) {
+							if(j != nodeIndex) {
+								possibleDeployment[j][i] = 0;
 							}
 						}
 					}
-				}
-				
-				if(getModuleIndexByModuleName(appEdge.getDestination()) == -1) {
-					for(Actuator actuator : actuators) {
-						if(actuator.getAppId().equals(application.getAppId())) {
-							for(FogDevice fogDevice : fogDevices) {
-								if(fogDevice.getId() == actuator.getGatewayDeviceId()) {
-									int deviceIndex = getNodeIndexByNodeName(fogDevice.getName());
-									
-									for(int z = 0; z < NR_NODES; z++) {
-										if(z != deviceIndex) {
-											possibleDeployment[z][i] = 0;
-										}
-									}
-									mName[i++] = appEdge.getDestination();
-									break;
-								}
-							}
-						}
-					}
+					
+					i++;
 				}
 			}
 		}
 		
-		for(FogDevice fogDevice : fogDevices) {
-			int clientIndex = getNodeIndexByNodeId(fogDevice.getId());
-			
-			FogBroker fogBroker = null;
-			for(FogBroker broker : fogBrokers)
-				if(broker.getName().equals(fogDevice.getName()))
-					fogBroker = broker;
-			
-			if(fogBroker == null) {
-				fPwWeight[clientIndex] = 1/Config.WILLING_TO_WAST_ENERGY_FOG_NODE;
-				continue;
-			}
-			
-			List<Application> userApps = new ArrayList<Application>();
-			
-			for(Application application : applications)
-				if(fogBroker.getId() == application.getUserId())
-					userApps.add(application);
-			
-			if(!userApps.isEmpty()) { // Is a client and not a fog node
-				fPwWeight[clientIndex] = 1/Config.WILLING_TO_WAST_ENERGY_CLIENT;
+		// Add the sensors and actuators modules
+		for(String str : hashSet) {
+			if(getModuleIndexByModuleName(str) == -1) {
+				mName[i] = str;
 				
-				for(Application app : applications) {
-					if(!userApps.contains(app)) { // Is not one of its own applications
-						for(AppModule module : app.getModules()) {
-							possibleDeployment[clientIndex][getModuleIndexByModuleName(module.getName())] = 0;
-						}
-					}else {
-						for(AppModule module : app.getModules()) {							
-							if(module.isClientModule()) {
-								for(int j = 0; j < NR_NODES; j++) {
-									if(j != clientIndex) {
-										possibleDeployment[j][getModuleIndexByModuleName(module.getName())] = 0;
-									}
-								}
-							}
-						}
+				String[] parts = str.split("_");
+				int nodeId = Integer.parseInt(parts[parts.length-1]);
+				int nodeIndex = getNodeIndexByNodeId(nodeId);
+				
+				fPwWeight[nodeIndex] = 1/Config.WILLING_TO_WAST_ENERGY_CLIENT;
+				
+				for(int j  = 0; j < NR_NODES; j++) {
+					if(j != nodeIndex) {
+						possibleDeployment[j][i] = 0;
 					}
 				}
-			}else
-				fPwWeight[clientIndex] = 1/Config.WILLING_TO_WAST_ENERGY_FOG_NODE;
+				
+				i++;
+			}
 		}
 	}
 	
-	private void computeApplicationCharacteristics(final List<Application> applications, final List<Sensor> sensors) {
+	private void computeApplicationCharacteristics(final List<Application> applications, final List<FogDevice> fogDevices,
+			final List<Sensor> sensors) {
 		final int INTERVAL = 0;
 		final int PROBABILITY = 1;
 		
-		Sensor sensor = null;		
+		Sensor sensor = null;
 		for(Application application : applications) {
-			for(Sensor s : sensors)
-				if(s.getAppId().equals(application.getAppId()))
-					sensor = s;
-		
+			
 			TreeMap<String, List<Double>> producers = new TreeMap<String, List<Double>>();
 			List<Double> values;
 			
-			Distribution distribution = sensor.getTransmitDistribution();
-			double avg = 0.0;
-			if(distribution.getDistributionType() == Distribution.DETERMINISTIC)
-				avg = ((DeterministicDistribution)distribution).getValue();
-			else if(distribution.getDistributionType() == Distribution.NORMAL)
-				avg = ((NormalDistribution)distribution).getMean() - 3*((NormalDistribution)distribution).getStdDev();
-			else
-				avg = ((UniformDistribution)distribution).getMin();
-			
-			values = new ArrayList<Double>();
-			values.add(avg);
-			values.add(1.0);
-			producers.put(sensor.getTupleType(), values);
-			
-			for(AppEdge appEdge : application.getEdges()) {
-				if(appEdge.isPeriodic()) {
+			for(Sensor s : sensors) {
+				if(s.getAppId().equals(application.getAppId())) {
+					sensor = s;
+					
+					Distribution distribution = sensor.getTransmitDistribution();
+					double avg = 0.0;
+					if(distribution.getDistributionType() == Distribution.DETERMINISTIC)
+						avg = ((DeterministicDistribution)distribution).getValue();
+					else if(distribution.getDistributionType() == Distribution.NORMAL)
+						avg = ((NormalDistribution)distribution).getMean() - 3*((NormalDistribution)distribution).getStdDev();
+					else
+						avg = ((UniformDistribution)distribution).getMin();
+					
 					values = new ArrayList<Double>();
-					values.add(appEdge.getPeriodicity());
+					values.add(avg);
 					values.add(1.0);
-					producers.put(appEdge.getTupleType(), values);
+					producers.put(sensor.getTupleType(), values);
+					
+					for(AppEdge appEdge : application.getEdges()) {
+						if(appEdge.isPeriodic()) {
+							values = new ArrayList<Double>();
+							values.add(appEdge.getPeriodicity());
+							values.add(1.0);
+							producers.put(appEdge.getTupleType(), values);
+						}
+					}
 				}
 			}
 			
@@ -329,9 +276,9 @@ public abstract class Algorithm {
 				
 				for(AppEdge appEdge : application.getEdges()) {
 					if(appEdge.getTupleType().equals(toProcess)) {
-						
 						int col = getModuleIndexByModuleName(appEdge.getSource());
 						int row = getModuleIndexByModuleName(appEdge.getDestination());
+						
 						mDependencyMap[col][row] += probability/interval;
 						
 						for(AppModule appModule : application.getModules()) { // BW and MIPS to sensors and actuators are not used
@@ -620,13 +567,6 @@ public abstract class Algorithm {
 	private int getModuleIndexByModuleName(String name) {
 		for(int i = 0; i < NR_MODULES; i++)
 			if(mName[i] != null && mName[i].equals(name))
-				return i;
-		return -1;
-	}
-	
-	private int getNodeIndexByNodeName(String name) {
-		for(int i = 0; i < NR_NODES; i++)
-			if(fName[i] != null && fName[i].equals(name))
 				return i;
 		return -1;
 	}

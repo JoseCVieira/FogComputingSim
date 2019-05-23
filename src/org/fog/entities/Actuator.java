@@ -47,7 +47,6 @@ public class Actuator extends SimEntity{
 		Logger.debug(getName(), "Received tuple " + tuple.getCloudletId() + " on " + tuple.getDestModuleName());
 		String srcModule = tuple.getSrcModuleName();
 		String destModule = tuple.getDestModuleName();
-		Application app = getApp();
 		
 		for(AppLoop loop : app.getLoops()){
 			if(loop.hasEdge(srcModule, destModule) && loop.isEndModule(destModule)){

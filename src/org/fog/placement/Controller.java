@@ -125,7 +125,7 @@ public class Controller extends SimEntity{
 		
 		for(Sensor sensor : sensors)
 			sensor.setApp(getApplications().get(sensor.getAppId()));
-			
+		
 		for(Actuator ac : actuators)
 			ac.setApp(getApplications().get(ac.getAppId()));
 	}

@@ -32,9 +32,9 @@ import org.fog.placement.algorithms.overall.lp.LinearProgramming;
 import org.fog.placement.algorithms.overall.random.Random;
 import org.fog.placement.algorithms.overall.util.MatlabChartUtils;
 import org.fog.test.DCNSFog;
+import org.fog.test.NewVRGameFog;
 import org.fog.test.RandomTopology;
 import org.fog.test.TEMPFog;
-import org.fog.test.VRGameFog;
 import org.fog.utils.Logger;
 import org.fog.utils.TimeKeeper;
 import org.fog.utils.Util;
@@ -80,7 +80,7 @@ public class FogComputingSim {
 			menuTopology();
 		}
 		
-		if(applications == null || applications.isEmpty() || fogBrokers == null || fogBrokers.isEmpty() ||
+		if(applications == null || applications.isEmpty()/* || fogBrokers == null || fogBrokers.isEmpty()*/ ||
 				fogDevices == null || fogDevices.isEmpty() || actuators == null || actuators.isEmpty() ||
 				sensors == null || sensors.isEmpty() || controller == null)
 			throw new IllegalArgumentException("Some of the received arguments are null or empty.");
@@ -148,7 +148,7 @@ public class FogComputingSim {
 		
 		deployApplications(algorithm.extractPlacementMap(solution.getModulePlacementMap()));
 		createRoutingTables(algorithm, solution.getRoutingMap());
-			
+		
 		System.out.println("Starting simulation...");
 		TimeKeeper.getInstance().setSimulationStartTime(Calendar.getInstance().getTimeInMillis());
 		CloudSim.startSimulation();
@@ -243,7 +243,7 @@ public class FogComputingSim {
 					fogTest = new RandomTopology();
 					break;
 				case VRGAME:
-					fogTest = new VRGameFog();
+					fogTest = new NewVRGameFog();
 					break;
 				case DCNS:
 					fogTest = new DCNSFog();
@@ -347,28 +347,21 @@ public class FogComputingSim {
 	}
 	
 	private static void deployApplications(Map<String, List<String>> modulePlacementMap) {
-		for(FogDevice fogDevice : fogDevices) {
-			FogBroker broker = getFogBrokerByName(fogDevice.getName());
-			
+		for(FogDevice fogDevice : fogDevices) {			
 			if(appToFogMap.containsKey(fogDevice.getName())) {
-				for(String app : appToFogMap.get(fogDevice.getName())) {
-					for(Application application : applications) {
-						if(application.getAppId().equals(app + "_" + broker.getId())) {
-							
-							ModuleMapping moduleMapping = ModuleMapping.createModuleMapping();
-							
-							for(AppModule appModule : application.getModules()) {
-								for(String fogName : modulePlacementMap.keySet()) {
-									if(modulePlacementMap.get(fogName).contains(appModule.getName())) {
-										moduleMapping.addModuleToDevice(appModule.getName(), fogName);
-									}
-								}
+				for(Application application : applications) {
+					ModuleMapping moduleMapping = ModuleMapping.createModuleMapping();
+					
+					for(AppModule appModule : application.getModules()) {
+						for(String fogName : modulePlacementMap.keySet()) {
+							if(modulePlacementMap.get(fogName).contains(appModule.getName())) {
+								moduleMapping.addModuleToDevice(appModule.getName(), fogName);
 							}
-							
-							ModulePlacement modulePlacement = new ModulePlacementMapping(fogDevices, application, moduleMapping);
-							controller.submitApplication(application, modulePlacement);
 						}
 					}
+					
+					ModulePlacement modulePlacement = new ModulePlacementMapping(fogDevices, application, moduleMapping);
+					controller.submitApplication(application, modulePlacement);
 				}
 			}
 		}
@@ -393,13 +386,6 @@ public class FogComputingSim {
 		isDisplayingPlot = true;
 		MatlabChartUtils matlabChartUtils = new MatlabChartUtils(algorithm, title);
     	matlabChartUtils.setVisible(true);
-	}
-	
-	private static FogBroker getFogBrokerByName(String name) {
-		for(FogBroker fogBroker : fogBrokers)
-			if(fogBroker.getName().equals(name))
-				return fogBroker;
-		return null;
 	}
 	
 	private static FogDevice getFogDeviceById(int id) {

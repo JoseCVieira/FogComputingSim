@@ -15,7 +15,6 @@ import org.fog.utils.FogUtils;
 
 // Class represents an application in the Distributed Dataflow Model.
 public class Application {
-	
 	private Map<String, AppEdge> edgeMap;
 	private List<AppModule> modules; //List of application modules in the application
 	private List<AppEdge> edges; //List of application edges in the application
@@ -50,21 +49,18 @@ public class Application {
 		getModules().add(module);
 	}
 	
-	public void addAppModule(AppModule m){
+	public void addAppModule(AppModule m, int fogId){
 		AppModule module = null;
 		
 		if(m.isGlobalModule()) {
-			module = new AppModule(FogUtils.generateEntityId(), m.getName(), appId, userId, 
+			module = new AppModule(FogUtils.generateEntityId(), m.getName(), appId, fogId, 
 					m.getMips(), m.getRam(), m.getBw(), m.getSize(), m.getVmm(), new CloudletSchedulerTimeShared(),
 					new HashMap<Pair<String, String>, SelectivityModel>(), m.isClientModule(), m.isGlobalModule());
 		}else {
-			module = new AppModule(FogUtils.generateEntityId(), m.getName() + "_" + userId, appId, userId, 
+			module = new AppModule(FogUtils.generateEntityId(), m.getName() + "_" + fogId, appId, fogId, 
 				m.getMips(), m.getRam(), m.getBw(), m.getSize(), m.getVmm(), new CloudletSchedulerTimeShared(),
 				new HashMap<Pair<String, String>, SelectivityModel>(), m.isClientModule(), m.isGlobalModule());
 		}
-		
-		System.out.println("Added Module: " + module.getName());
-		
 		getModules().add(module);
 	}
 
@@ -86,9 +82,9 @@ public class Application {
 		getEdgeMap().put(edge.getTupleType(), edge);
 	}
 	
-	public void addAppEdge(AppEdge e, List<AppModule> globalModules){
-		String source = e.getSource() + "_" + userId;
-		String destination = e.getDestination() + "_" + userId;
+	public void addAppEdge(AppEdge e, List<AppModule> globalModules, int fogId){
+		String source = e.getSource() + "_" + fogId;
+		String destination = e.getDestination() + "_" + fogId;
 		
 		if(globalModules != null) {
 			for (AppModule gmod : globalModules) {
@@ -108,7 +104,7 @@ public class Application {
 					destination,
 					e.getTupleCpuLength(),
 					e.getTupleNwLength(),
-					e.getTupleType() + "_" + userId,
+					e.getTupleType() + "_" + fogId,
 					e.getEdgeType());
 		}else {
 			addAppEdge(
@@ -117,7 +113,7 @@ public class Application {
 					e.getPeriodicity(),
 					e.getTupleCpuLength(),
 					e.getTupleNwLength(),
-					e.getTupleType() + "_" + userId,
+					e.getTupleType() + "_" + fogId,
 					e.getEdgeType());
 		}
 		
@@ -149,23 +145,25 @@ public class Application {
 	 * @param outputTupleType Type of tuples carried by the output edge
 	 * @param selectivityModel Selectivity model governing the relation between the incoming and outgoing edge
 	 */
-	public void addTupleMapping(String moduleName, String inputTupleType,
-			String outputTupleType, SelectivityModel selectivityModel){
+	public void addTupleMapping(String moduleName, String inputTupleType, String outputTupleType, SelectivityModel selectivityModel){
 		AppModule module = getModuleByName(moduleName);
 		module.getSelectivityMap().put(new Pair<String, String>(inputTupleType, outputTupleType),
 				selectivityModel);
 	}
 	
-	public void addTupleMapping(String moduleName, Pair<String, String> pair, double value){
+	public void addTupleMapping(String moduleName, Pair<String, String> pair, double value, int fogId){
 		AppModule module = getModuleByName(moduleName);
 		
 		// If it is not a global module
 		if(module == null) {
-			module = getModuleByName(moduleName + "_" + userId);
+			module = getModuleByName(moduleName + "_" + fogId);
 		}
 		
-		Pair<String, String> newPair = new Pair<String, String>(pair.getFirst() + "_" + userId, pair.getSecond() + "_" + userId);
+		Pair<String, String> newPair = new Pair<String, String>(pair.getFirst() + "_" + fogId, pair.getSecond() + "_" + fogId);
 		module.getSelectivityMap().put(newPair, new FractionalSelectivity(value));
+		
+		System.out.println("Added tuple mapping on module: " + module.getName() + " from: " + pair.getFirst() + "_" + fogId +
+				" to: " + pair.getSecond() + "_" + fogId);
 	}
 	
 	/**
@@ -213,14 +211,10 @@ public class Application {
 				
 				SelectivityModel selectivityModel = module.getSelectivityMap().get(pair);
 				if(selectivityModel.canSelect()){
-					Tuple tuple = new Tuple(appId, FogUtils.generateTupleId(),
-							(long) (edge.getTupleCpuLength()),
-							inputTuple.getNumberOfPes(),
-							(long) (edge.getTupleNwLength()),
-							inputTuple.getCloudletOutputSize(),
-							inputTuple.getUtilizationModelCpu(),
-							inputTuple.getUtilizationModelRam(),
-							inputTuple.getUtilizationModelBw());
+					Tuple tuple = new Tuple(appId, FogUtils.generateTupleId(), (long) (edge.getTupleCpuLength()),
+							inputTuple.getNumberOfPes(), (long) (edge.getTupleNwLength()), inputTuple.getCloudletOutputSize(),
+							inputTuple.getUtilizationModelCpu(), inputTuple.getUtilizationModelRam(), inputTuple.getUtilizationModelBw());
+					
 					tuple.setActualTupleId(inputTuple.getActualTupleId());
 					tuple.setUserId(inputTuple.getUserId());
 					tuple.setAppId(inputTuple.getAppId());
@@ -245,22 +239,17 @@ public class Application {
 	 * @param sourceDeviceId
 	 * @return
 	 */
-	public Tuple createTuple(AppEdge edge, int sourceModuleId){
-		Tuple tuple = new Tuple(appId, FogUtils.generateTupleId(),
-					(long) (edge.getTupleCpuLength()),
-					1,
-					(long) (edge.getTupleNwLength()),
-					100,
-					new UtilizationModelFull(), 
-					new UtilizationModelFull(), 
-					new UtilizationModelFull());
-			
-			tuple.setUserId(getUserId());
-			tuple.setAppId(getAppId());
-			tuple.setDestModuleName(edge.getDestination());
-			tuple.setSrcModuleName(edge.getSource());
-			tuple.setTupleType(edge.getTupleType());
-			tuple.setSourceModuleId(sourceModuleId);
+	public Tuple createTuple(AppEdge edge, int sourceModuleId, int fogId){
+		Tuple tuple = new Tuple(appId, FogUtils.generateTupleId(), (long) (edge.getTupleCpuLength()),
+				1, (long) (edge.getTupleNwLength()), 100, new UtilizationModelFull(), new UtilizationModelFull(), 
+				new UtilizationModelFull());
+		
+		tuple.setUserId(fogId);
+		tuple.setAppId(getAppId());
+		tuple.setDestModuleName(edge.getDestination());
+		tuple.setSrcModuleName(edge.getSource());
+		tuple.setTupleType(edge.getTupleType());
+		tuple.setSourceModuleId(sourceModuleId);
 		
 		if(edge.getEdgeType() == AppEdge.ACTUATOR)
 			tuple.setDirection(Tuple.ACTUATOR);

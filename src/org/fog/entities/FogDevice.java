@@ -135,12 +135,15 @@ public class FogDevice extends PowerDatacenter {
 
 	private AppModule getModuleByName(String moduleName){
 		AppModule module = null;
-		for(Vm vm : getHost().getVmList()){
-			if(((AppModule)vm).getName().equals(moduleName)){
-				module=(AppModule)vm;
-				break;
+		for(FogDevice fogDevice : controller.getFogDevices()) {
+			for(Vm vm : fogDevice.getHost().getVmList()){
+				if(((AppModule)vm).getName().equals(moduleName)){
+					module=(AppModule)vm;
+					break;
+				}
 			}
 		}
+		
 		return module;
 	}
 	
@@ -150,12 +153,14 @@ public class FogDevice extends PowerDatacenter {
 	 */
 	private void sendPeriodicTuple(SimEvent ev) {
 		AppEdge edge = (AppEdge)ev.getData();
-		String srcModule = edge.getSource();
-		AppModule module = getModuleByName(srcModule);
+		String srcModuleName = edge.getSource();
+		String dstModuleName = edge.getDestination();
+		AppModule srcModule = getModuleByName(srcModuleName);
+		AppModule dstModule = getModuleByName(dstModuleName);
 		
-		if(module == null) return;
+		if(srcModule == null || dstModule == null) return;
 		
-		Tuple tuple = controller.getApplications().get(module.getAppId()).createTuple(edge, module.getId());
+		Tuple tuple = controller.getApplications().get(srcModule.getAppId()).createTuple(edge, srcModule.getId(), dstModule.getUserId());
 		updateTimingsOnSending(tuple);
 		sendToSelf(tuple);
 		
@@ -243,6 +248,7 @@ public class FogDevice extends PowerDatacenter {
 						cloudletCompleted = true;
 						Tuple tuple = (Tuple)cl;
 						TimeKeeper.getInstance().tupleEndedExecution(tuple);
+						
 						Application application = controller.getApplications().get(tuple.getAppId());
 						Logger.debug(getName(), "Completed execution of tuple "+tuple.getCloudletId() + "on " + tuple.getDestModuleName());
 						List<Tuple> resultantTuples = application.getResultantTuples(tuple.getDestModuleName(), tuple, vm.getId());
@@ -266,6 +272,7 @@ public class FogDevice extends PowerDatacenter {
 	protected void updateTimingsOnSending(Tuple resTuple) {
 		String srcModule = resTuple.getSrcModuleName();
 		String destModule = resTuple.getDestModuleName();
+		
 		for(AppLoop loop : controller.getApplications().get(resTuple.getAppId()).getLoops()){
 			if(loop.hasEdge(srcModule, destModule) && loop.isStartModule(srcModule)){
 				int tupleId = TimeKeeper.getInstance().getUniqueId();
@@ -423,6 +430,7 @@ public class FogDevice extends PowerDatacenter {
 		Application app = controller.getApplications().get(tuple.getAppId());
 		String srcModule = tuple.getSrcModuleName();
 		String destModule = tuple.getDestModuleName();
+		
 		List<AppLoop> loops = app.getLoops();
 		
 		for(AppLoop loop : loops){
@@ -459,6 +467,10 @@ public class FogDevice extends PowerDatacenter {
 		
 		TimeKeeper.getInstance().tupleStartedExecution(tuple);
 		updateAllocatedMips(moduleName);
+		
+		AppModule dstModule = getModuleByName(tuple.getDestModuleName());
+		tuple.setUserId(dstModule.getUserId());
+		
 		processCloudletSubmit(ev, false);
 		updateAllocatedMips(moduleName);
 	}

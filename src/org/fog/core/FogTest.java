@@ -119,10 +119,10 @@ public abstract class FogTest {
 				actuatorType = appEdge.getDestination();
 		}
 		
-		sensors.add(new Sensor(sensorName + clientName, sensorType + "_" + userId, userId, appName + "_" + userId,
+		sensors.add(new Sensor(sensorName + clientName, sensorType + "_" + userId, userId, appName,
 				distribution, gatewayDeviceId, sensorLat));
 
-		actuators.add(new Actuator(actuatorName + clientName, userId, appName + "_" + userId,
+		actuators.add(new Actuator(actuatorName + clientName, userId, appName,
 				gatewayDeviceId, actuatorLat, actuatorType + "_" + userId));
 		
 		if(!appToFogMap.containsKey(fogDevice.getName())) {
