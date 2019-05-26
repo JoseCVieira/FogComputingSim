@@ -48,7 +48,6 @@ public abstract class Algorithm {
 	protected double fMem[];
 	protected double fBusyPw[];
 	protected double fIdlePw[];
-	protected double fPwWeight[];
 	
 	// Module
 	protected String mName[];
@@ -86,7 +85,6 @@ public abstract class Algorithm {
 		fRamPrice = new double[NR_NODES];
 		fMemPrice = new double[NR_NODES];
 		fBwPrice = new double[NR_NODES];
-		fPwWeight = new double[NR_NODES];
 		
 		LinkedHashSet<String> hashSet = new LinkedHashSet<String>();
 		for(Application application : applications) {
@@ -184,8 +182,6 @@ public abstract class Algorithm {
 						int nodeId = Integer.parseInt(parts[parts.length-1]);
 						int nodeIndex = getNodeIndexByNodeId(nodeId);
 						
-						fPwWeight[nodeIndex] = 1/Config.WILLING_TO_WAST_ENERGY_CLIENT;
-						
 						for(int j  = 0; j < NR_NODES; j++) {
 							if(j != nodeIndex) {
 								possibleDeployment[j][i] = 0;
@@ -206,8 +202,6 @@ public abstract class Algorithm {
 				String[] parts = str.split("_");
 				int nodeId = Integer.parseInt(parts[parts.length-1]);
 				int nodeIndex = getNodeIndexByNodeId(nodeId);
-				
-				fPwWeight[nodeIndex] = 1/Config.WILLING_TO_WAST_ENERGY_CLIENT;
 				
 				for(int j  = 0; j < NR_NODES; j++) {
 					if(j != nodeIndex) {
@@ -269,8 +263,6 @@ public abstract class Algorithm {
 			
 			while(processed < nrEdges) {				
 				Entry<String, List<Double>> entry = producers.pollFirstEntry();
-				
-				System.out.println("entry: " + entry);
 				
 				toProcess = entry.getKey();
 				interval = entry.getValue().get(INTERVAL);
@@ -560,9 +552,6 @@ public abstract class Algorithm {
 		return fMem;
 	}
 	
-	public double[] getfPwWeight() {
-		return fPwWeight;
-	}
 	public String[] getmName() {
 		return mName;
 	}

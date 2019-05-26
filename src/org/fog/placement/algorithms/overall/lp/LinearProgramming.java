@@ -87,8 +87,7 @@ public class LinearProgramming extends Algorithm {
 					double opCost = Config.OP_W*(getfMipsPrice()[i]*getmMips()[j] +
 							getfRamPrice()[i]*getmRam()[j] + getfMemPrice()[i]*getmMem()[j]);
 					
-					double pwCost = Config.PW_W*(getfBusyPw()[i]-getfIdlePw()[i])*
-							(getmMips()[j]/getfMips()[i])*getfPwWeight()[i];
+					double pwCost = Config.PW_W*(getfBusyPw()[i]-getfIdlePw()[i])*(getmMips()[j]/getfMips()[i]);
 					
 					double prCost = Config.PR_W*(getmMips()[j]/getfMips()[i]);
 					
@@ -320,8 +319,7 @@ public class LinearProgramming extends Algorithm {
 			
 			for(int i = 0; i < NR_NODES; i++) {
 				for(int j = 0; j < NR_MODULES; j++) {
-					double pwCost = Config.PW_W*(getfBusyPw()[i]-getfIdlePw()[i])*
-							(getmMips()[j]/getfMips()[i])*getfPwWeight()[i];
+					double pwCost = Config.PW_W*(getfBusyPw()[i]-getfIdlePw()[i])*(getmMips()[j]/getfMips()[i]);
 					objective.addTerm(placementVar[i][j], pwCost);
 				}
 			}

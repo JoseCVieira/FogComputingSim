@@ -160,7 +160,7 @@ public class CostFunction {
 		for(int i = 0; i < algorithm.getNumberOfNodes(); i++) {
 			for(int j = 0; j < algorithm.getNumberOfModules(); j++){
 				cost += Config.PW_W * modulePlacementMap[i][j] * (algorithm.getfBusyPw()[i]-algorithm.getfIdlePw()[i]) *
-						(algorithm.getmMips()[j]/algorithm.getfMips()[i]) * algorithm.getfPwWeight()[i];
+						(algorithm.getmMips()[j]/algorithm.getfMips()[i]);
 			}
 		}
 		

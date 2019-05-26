@@ -50,7 +50,7 @@ public class VRGameFog extends FogTest {
 	
 	@Override
 	protected void createClients() {
-		Application app = getAppExampleByName("VRGame-MP");
+		Application app = getAppExampleByName("VRGame_MP");
 		double sensorLat = 6.0;
 		double actuatorLat = 1.0;
 		String sensorName = "EEG:";
