@@ -298,12 +298,12 @@ public class Gui extends JFrame {
         return "";
     }
     
-    private void saveFile(String type, Graph graph) throws IOException{
+    private void saveFile(String type, Graph graph) throws IOException {
     	JFileChooser fileopen = new JFileChooser();
     	File workingDirectory = new File(System.getProperty("user.dir"));
         fileopen.setCurrentDirectory(workingDirectory);
         
-        FileFilter filter = new FileNameExtensionFilter(type.toUpperCase()+" Files", type);
+        FileFilter filter = new FileNameExtensionFilter(type.toUpperCase() + " Files", type);
         fileopen.addChoosableFileFilter(filter);
 
         int ret = fileopen.showSaveDialog(panel);
@@ -318,7 +318,7 @@ public class Gui extends JFrame {
         }
     }
     
-    private static void setUIFont(javax.swing.plaf.FontUIResource f){
+    private static void setUIFont(javax.swing.plaf.FontUIResource f) {
         @SuppressWarnings("rawtypes")
 		java.util.Enumeration keys = UIManager.getDefaults().keys();
         while (keys.hasMoreElements()) {

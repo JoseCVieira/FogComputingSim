@@ -7,7 +7,6 @@ import org.fog.application.Application;
 import org.fog.core.Config;
 import org.fog.core.Constants;
 import org.fog.entities.Actuator;
-import org.fog.entities.FogBroker;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.placement.algorithms.overall.Algorithm;
@@ -19,9 +18,9 @@ public class BruteForce extends Algorithm {
 	private double bestCost = Constants.MIN_SOLUTION;
 	private int iteration = 0;
 	
-	public BruteForce(final List<FogBroker> fogBrokers, final List<FogDevice> fogDevices, final List<Application> applications,
+	public BruteForce(final List<FogDevice> fogDevices, final List<Application> applications,
 			final List<Sensor> sensors, final List<Actuator> actuators) {
-		super(fogBrokers, fogDevices, applications, sensors, actuators);
+		super(fogDevices, applications, sensors, actuators);
 	}
 	
 	@Override

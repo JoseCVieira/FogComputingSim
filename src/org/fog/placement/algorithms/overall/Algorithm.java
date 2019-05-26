@@ -17,7 +17,6 @@ import org.fog.application.selectivity.FractionalSelectivity;
 import org.fog.core.Config;
 import org.fog.core.Constants;
 import org.fog.entities.Actuator;
-import org.fog.entities.FogBroker;
 import org.fog.entities.FogDevice;
 import org.fog.entities.FogDeviceCharacteristics;
 import org.fog.entities.Sensor;
@@ -68,10 +67,10 @@ public abstract class Algorithm {
 	// Node to Module
 	protected double[][] possibleDeployment;
 	
-	public Algorithm(final List<FogBroker> fogBrokers, final List<FogDevice> fogDevices, final List<Application> applications,
+	public Algorithm(final List<FogDevice> fogDevices, final List<Application> applications,
 			final List<Sensor> sensors, final List<Actuator> actuators) throws IllegalArgumentException {
 		
-		if(fogBrokers == null || applications == null || sensors == null || actuators == null)
+		if(fogDevices == null || applications == null || sensors == null || actuators == null)
 			throw new IllegalArgumentException("Some of the received arguments are null");
 		
 		NR_NODES = fogDevices.size();
@@ -268,8 +267,11 @@ public abstract class Algorithm {
 			AppModule module = null;
 			String toProcess = "";
 			
-			while(processed < nrEdges) {
+			while(processed < nrEdges) {				
 				Entry<String, List<Double>> entry = producers.pollFirstEntry();
+				
+				System.out.println("entry: " + entry);
+				
 				toProcess = entry.getKey();
 				interval = entry.getValue().get(INTERVAL);
 				probability = entry.getValue().get(PROBABILITY);
@@ -337,71 +339,38 @@ public abstract class Algorithm {
 	}
 	
 	private void normalizeValues() {
-		double max, min;		
+		double max;		
 		max = computeMax(fMipsPrice);
-		min = computeMin(fMipsPrice);
-		fMipsPrice = normalize(fMipsPrice, max, 0);
-		fRamPrice = normalize(fRamPrice, max, 0);
-		fMemPrice = normalize(fMemPrice, max, 0);
-		fBwPrice = normalize(fBwPrice, max, 0);
+		fMipsPrice = normalize(fMipsPrice, max);
+		fRamPrice = normalize(fRamPrice, max);
+		fMemPrice = normalize(fMemPrice, max);
+		fBwPrice = normalize(fBwPrice, max);
 		
 		max = computeMax(fMips, mMips);
-		min = computeMin(fMips, mMips);
-		fMips = normalize(fMips, max, 0);
-		mMips = normalize(mMips, max, 0);
+		fMips = normalize(fMips, max);
+		mMips = normalize(mMips, max);
 		
 		max = computeMax(fRam, mRam);
-		min = computeMin(fRam, mRam);
-		fRam = normalize(fRam, max, 0);
-		mRam = normalize(mRam, max, 0);
+		fRam = normalize(fRam, max);
+		mRam = normalize(mRam, max);
 		
 		max = computeMax(fMem, mMem);
-		min = computeMin(fMem, mMem);
-		fMem = normalize(fMem, max, 0);
-		mMem = normalize(mMem, max, 0);
+		fMem = normalize(fMem, max);
+		mMem = normalize(mMem, max);
 		
 		max = computeMax(fBusyPw, fIdlePw);
-		min = computeMin(fBusyPw, fIdlePw);
-		fBusyPw = normalize(fBusyPw, max, 0);
-		fIdlePw = normalize(fIdlePw, max, 0);
+		fBusyPw = normalize(fBusyPw, max);
+		fIdlePw = normalize(fIdlePw, max);
 		
 		max = computeMax(fBandwidthMap, mBandwidthMap);
-		min = computeMin(fBandwidthMap, mBandwidthMap);
-		fBandwidthMap = normalize(fBandwidthMap, max, 0);
-		mBandwidthMap = normalize(mBandwidthMap, max, 0);
+		fBandwidthMap = normalize(fBandwidthMap, max);
+		mBandwidthMap = normalize(mBandwidthMap, max);
 		
 		max = computeMax(fLatencyMap);
-		min = computeMin(fLatencyMap);
-		fLatencyMap = normalize(fLatencyMap, max, 0);
+		fLatencyMap = normalize(fLatencyMap, max);
 		
 		max = computeMax(mDependencyMap);
-		min = computeMin(mDependencyMap);
-		mDependencyMap = normalize(mDependencyMap, max, 0);
-		
-		AlgorithmUtils.print("fMipsPrice", fMipsPrice);
-		AlgorithmUtils.print("fRamPrice", fRamPrice);
-		AlgorithmUtils.print("fMemPrice", fMemPrice);
-		AlgorithmUtils.print("fBwPrice", fBwPrice);
-		
-		AlgorithmUtils.print("fMips", fMips);
-		AlgorithmUtils.print("mMips", mMips);
-		
-		AlgorithmUtils.print("fRam", fRam);
-		AlgorithmUtils.print("mRam", mRam);
-		
-		AlgorithmUtils.print("fMem", fMem);
-		AlgorithmUtils.print("mMem", mMem);
-		
-		AlgorithmUtils.print("fBusyPw", fBusyPw);
-		AlgorithmUtils.print("fIdlePw", fIdlePw);
-		AlgorithmUtils.print("fPwWeight", fPwWeight);
-		
-		AlgorithmUtils.print("fBandwidthMap", fBandwidthMap);
-		AlgorithmUtils.print("mBandwidthMap", mBandwidthMap);
-		
-		AlgorithmUtils.print("fLatencyMap", fLatencyMap);
-		
-		AlgorithmUtils.print("mDependencyMap", mDependencyMap);
+		mDependencyMap = normalize(mDependencyMap, max);
 	}
 	
 	private double computeMax(double[]... vectors) {
@@ -420,20 +389,6 @@ public abstract class Algorithm {
 		}
 		
 		return max;
-	}
-	
-	private double computeMin(double[]... vectors) {
-		double min = Constants.INF;
-		
-		for (int i = 0; i < vectors.length; i++) {
-			for (int j = 0; j < vectors[i].length; j++) {
-				if (min > vectors[i][j]) {
-					min = vectors[i][j];
-				}
-			}
-		}
-		
-		return min;
 	}
 	
 	private double computeMax(double[][]... matrices) {
@@ -456,42 +411,26 @@ public abstract class Algorithm {
 		return max;
 	}
 	
-	private double computeMin(double[][]... matrices) {
-		double min = Constants.INF;
-		
-		for (int i = 0; i < matrices.length; i++) {
-			for (int j = 0; j < matrices[i].length; j++) {
-				for (int z = 0; z < matrices[i][0].length; z++) {					
-					if (min > matrices[i][j][z]) {
-						min = matrices[i][j][z];
-					}
-				}
-			}
-		}
-		
-		return min;
-	}
-	
-	private double[] normalize(double[] vector, double max, double min) {
+	private double[] normalize(double[] vector, double max) {
 		for (int i = 0; i < vector.length; i++) {
 			if(vector[i] == Constants.INF) {
 				continue;
 			}
 			
-			vector[i] = (vector[i] - min) / (max - min);
+			vector[i] = vector[i]/max;
 		}
 		
 		return vector;
 	}
 	
-	private double[][] normalize(double[][] matix, double max, double min) {
+	private double[][] normalize(double[][] matix, double max) {
 		for (int i = 0; i < matix.length; i++) {
 			for (int j = 0; j < matix[0].length; j++) {
 				if(matix[i][j] == Constants.INF) {
 					continue;
 				}
 				
-				matix[i][j] = (matix[i][j] - min) / (max - min);
+				matix[i][j] = matix[i][j]/max;
 			}
 		}
 		

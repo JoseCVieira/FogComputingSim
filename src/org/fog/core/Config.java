@@ -15,7 +15,7 @@ public class Config {
 	 * Configuration parameters for the optimization problem
 	 */
 	
-	public static final boolean NORMALIZE = true;
+	public static final boolean NORMALIZE = false;
 	public static final double WILLING_TO_WAST_ENERGY_FOG_NODE = 1;
 	public static final double WILLING_TO_WAST_ENERGY_CLIENT = 0.1;	
 	

@@ -1,15 +1,15 @@
 package org.fog.test;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
 
 import org.fog.application.AppEdge;
-import org.fog.application.AppLoop;
 import org.fog.application.Application;
-import org.fog.application.selectivity.FractionalSelectivity;
 import org.fog.core.FogTest;
+import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
+import org.fog.entities.Sensor;
 import org.fog.utils.distribution.DeterministicDistribution;
+import org.fog.utils.distribution.Distribution;
 
 public class DCNSFog extends FogTest {
 	static int numOfAreas = 1;
@@ -17,16 +17,11 @@ public class DCNSFog extends FogTest {
 	private static double CAMERA_TRANSMISSION_TIME = 5;
 	
 	public DCNSFog() {
-		System.out.println("Generating DCNS topology...");
-		
-		createExampleApplication();
-		createFogDevices();
-		createClients();
-		createController();
-		createApplications();
+		super("Generating DCNS topology...");
 	}
 	
-	private static void createFogDevices() {
+	@Override
+	protected void createFogDevices() {
 		FogDevice cloud = createFogDevice("cloud", 44800, 40000, 1000000, 10000, 16*103, 16*83.25, 0.01, 0.05, 0.001, 0.0);
 		FogDevice proxy = createFogDevice("proxy-server", 2800, 4000, 1000000, 10000, 107.339, 83.4333, 0.0, 0.05, 0.001, 0.0);
 		
@@ -53,34 +48,47 @@ public class DCNSFog extends FogTest {
 		}
 	}
 	
-	private static void createClients() {
-		for(FogDevice fogDevice : fogDevices)
-			if(fogDevice.getName().startsWith("m"))
-				createClient(fogDevice, "CAMERA:", new DeterministicDistribution(CAMERA_TRANSMISSION_TIME), 1.0, "PTZ_CONTROL:", 1.0);
+	@Override
+	protected void createClients() {
+		Application app = getAppExampleByName("DCNS");
+		double sensorLat = 1.0;
+		double actuatorLat = 1.0;
+		String sensorName = "CAMERA:";
+		String actuatorName = "PTZ_CONTROL:";
+		
+		for(FogDevice fogDevice : fogDevices) {
+			if(fogDevice.getName().startsWith("m")) {
+				Distribution distribution =  new DeterministicDistribution(CAMERA_TRANSMISSION_TIME);
+				
+				String clientName = fogDevice.getName();
+				int userId = fogDevice.getId();
+				
+				String appName = app.getAppId();
+				String sensorType = "", actuatorType = "";
+				
+				for(AppEdge appEdge : app.getEdges()) {
+					if(appEdge.getEdgeType() == AppEdge.SENSOR)
+						sensorType = appEdge.getSource();
+					else if(appEdge.getEdgeType() == AppEdge.ACTUATOR)
+						actuatorType = appEdge.getDestination();
+				}
+				
+				sensors.add(new Sensor(sensorName + clientName, sensorType + "_" + userId, userId, appName,
+						distribution, userId, sensorLat));
+
+				actuators.add(new Actuator(actuatorName + clientName, userId, appName,
+						userId, actuatorLat, actuatorType + "_" + userId));
+				
+				if(!appToFogMap.containsKey(fogDevice.getName())) {
+					LinkedHashSet<String> appList = new LinkedHashSet<String>();
+					appList.add(appName);
+					appToFogMap.put(fogDevice.getName(), appList);
+				}else {
+					appToFogMap.get(fogDevice.getName()).add(appName);
+				}
+				
+			}
+		}
 	}
 	
-	@SuppressWarnings("serial")
-	private static void createExampleApplication() {
-		Application application = new Application("DCNS", -1);
-		application.addAppModule("object_detector", 100, false, false);
-		application.addAppModule("motion_detector", 100, true, false);
-		application.addAppModule("object_tracker", 100, false, false);
-		application.addAppModule("user_interface", 100, false, false);
-		
-		application.addAppEdge("CAMERA", "motion_detector", 1000, 20000, "CAMERA", AppEdge.SENSOR);
-		application.addAppEdge("motion_detector", "object_detector", 2000, 2000, "MOTION_VIDEO_STREAM", AppEdge.MODULE);
-		application.addAppEdge("object_detector", "user_interface", 500, 2000, "DETECTED_OBJECT", AppEdge.MODULE);
-		application.addAppEdge("object_detector", "object_tracker", 1000, 100, "OBJECT_LOCATION", AppEdge.MODULE);
-		application.addAppEdge("object_tracker", "PTZ_CONTROL", 100, 28, 100, "PTZ_PARAMS", AppEdge.ACTUATOR);
-		
-		application.addTupleMapping("motion_detector", "CAMERA", "MOTION_VIDEO_STREAM", new FractionalSelectivity(1.0));
-		application.addTupleMapping("object_detector", "MOTION_VIDEO_STREAM", "OBJECT_LOCATION", new FractionalSelectivity(1.0));
-		application.addTupleMapping("object_detector", "MOTION_VIDEO_STREAM", "DETECTED_OBJECT", new FractionalSelectivity(0.05));
-		
-		final AppLoop loop1 = new AppLoop(new ArrayList<String>(){{add("motion_detector");add("object_detector");add("object_tracker");}});
-		final AppLoop loop2 = new AppLoop(new ArrayList<String>(){{add("object_tracker");add("PTZ_CONTROL");}});
-		List<AppLoop> loops = new ArrayList<AppLoop>(){{add(loop1);add(loop2);}};
-		application.setLoops(loops);
-		exampleApplications.add(application);
-	}
 }

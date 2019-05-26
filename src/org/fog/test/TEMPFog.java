@@ -1,14 +1,14 @@
 package org.fog.test;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
 
 import org.fog.application.AppEdge;
-import org.fog.application.AppLoop;
 import org.fog.application.Application;
-import org.fog.application.selectivity.FractionalSelectivity;
 import org.fog.core.FogTest;
+import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
+import org.fog.entities.Sensor;
+import org.fog.utils.distribution.Distribution;
 import org.fog.utils.distribution.NormalDistribution;
 
 public class TEMPFog extends FogTest {
@@ -18,16 +18,11 @@ public class TEMPFog extends FogTest {
 	private static double TEMP_TRANSMISSION_TIME_DEV = 2;
 	
 	public TEMPFog() {
-		System.out.println("Generating DCNS topology...");
-		
-		createExampleApplication();
-		createFogDevices();
-		createClients();
-		createController();
-		createApplications();
+		super("Generating DCNS topology...");
 	}
 	
-	private static void createFogDevices() {
+	@Override
+	protected void createFogDevices() {
 		FogDevice cloud = createFogDevice("cloud", 100000, 10240, 1000000, 1000, 16*103, 16*83.25, 10, 0.05, 0.001, 0.0);
 		
 		fogDevices.add(cloud);
@@ -50,36 +45,47 @@ public class TEMPFog extends FogTest {
 		}
 	}
 	
-	private static void createClients() {	
-		for(FogDevice fogDevice : fogDevices)
-			if(fogDevice.getName().startsWith("m"))
-				createClient(fogDevice, "TEMP:", new NormalDistribution(TEMP_TRANSMISSION_TIME_MEAN, TEMP_TRANSMISSION_TIME_DEV), 2.0, "MOTOR:", 2.0);
+	@Override
+	protected void createClients() {
+		Application app = getAppExampleByName("TEMP");
+		double sensorLat = 2.0;
+		double actuatorLat = 2.0;
+		String sensorName = "TEMP:";
+		String actuatorName = "MOTOR:";
+		
+		for(FogDevice fogDevice : fogDevices) {
+			if(fogDevice.getName().startsWith("m")) {
+				Distribution distribution =  new NormalDistribution(TEMP_TRANSMISSION_TIME_MEAN, TEMP_TRANSMISSION_TIME_DEV);
+				
+				String clientName = fogDevice.getName();
+				int userId = fogDevice.getId();
+				
+				String appName = app.getAppId();
+				String sensorType = "", actuatorType = "";
+				
+				for(AppEdge appEdge : app.getEdges()) {
+					if(appEdge.getEdgeType() == AppEdge.SENSOR)
+						sensorType = appEdge.getSource();
+					else if(appEdge.getEdgeType() == AppEdge.ACTUATOR)
+						actuatorType = appEdge.getDestination();
+				}
+				
+				sensors.add(new Sensor(sensorName + clientName, sensorType + "_" + userId, userId, appName,
+						distribution, userId, sensorLat));
+
+				actuators.add(new Actuator(actuatorName + clientName, userId, appName,
+						userId, actuatorLat, actuatorType + "_" + userId));
+				
+				if(!appToFogMap.containsKey(fogDevice.getName())) {
+					LinkedHashSet<String> appList = new LinkedHashSet<String>();
+					appList.add(appName);
+					appToFogMap.put(fogDevice.getName(), appList);
+				}else {
+					appToFogMap.get(fogDevice.getName()).add(appName);
+				}
+				
+			}
+		}
 	}
 	
-	@SuppressWarnings("serial")
-	private static void createExampleApplication() {		
-		Application application = new Application("TEMP", -1);
-		application.addAppModule("client", 100, false, false);
-		application.addAppModule("classifier", 100, false, false);
-		application.addAppModule("tuner", 100, false, false);
-	
-		application.addAppEdge("TEMP", "client", 1000, 100, "TEMP", AppEdge.SENSOR);
-		application.addAppEdge("client", "classifier", 8000, 100, "_SENSOR", AppEdge.MODULE);
-		application.addAppEdge("classifier", "tuner", 1000000, 100, "HISTORY", AppEdge.MODULE);
-		application.addAppEdge("classifier", "client", 1000, 100, "CLASSIFICATION", AppEdge.MODULE);
-		application.addAppEdge("tuner", "classifier", 1000, 100, "TUNING_PARAMS", AppEdge.MODULE);
-		application.addAppEdge("client", "MOTOR", 1000, 100, "ACTUATOR", AppEdge.ACTUATOR);
-		
-		application.addTupleMapping("client", "TEMP", "_SENSOR", new FractionalSelectivity(1.0));
-		application.addTupleMapping("client", "CLASSIFICATION", "ACTUATOR", new FractionalSelectivity(1.0));
-		application.addTupleMapping("classifier", "_SENSOR", "CLASSIFICATION", new FractionalSelectivity(1.0));
-		application.addTupleMapping("classifier", "_SENSOR", "HISTORY", new FractionalSelectivity(0.1));
-		application.addTupleMapping("tuner", "HISTORY", "TUNING_PARAMS", new FractionalSelectivity(1.0));
-		
-		final AppLoop loop1 = new AppLoop(new ArrayList<String>(){{add("TEMP");add("client");add("classifier");add("client");add("MOTOR");}});
-		final AppLoop loop2 = new AppLoop(new ArrayList<String>(){{add("classifier");add("tuner");add("classifier");}});
-		List<AppLoop> loops = new ArrayList<AppLoop>(){{add(loop1);add(loop2);}};
-		application.setLoops(loops);
-		exampleApplications.add(application);
-	}
 }

@@ -4,6 +4,7 @@ import java.io.File;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.Calendar;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -13,7 +14,6 @@ import org.cloudbus.cloudsim.core.CloudSim;
 import org.fog.application.AppModule;
 import org.fog.application.Application;
 import org.fog.entities.Actuator;
-import org.fog.entities.FogBroker;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.gui.Gui;
@@ -32,9 +32,9 @@ import org.fog.placement.algorithms.overall.lp.LinearProgramming;
 import org.fog.placement.algorithms.overall.random.Random;
 import org.fog.placement.algorithms.overall.util.MatlabChartUtils;
 import org.fog.test.DCNSFog;
-import org.fog.test.NewVRGameFog;
 import org.fog.test.RandomTopology;
 import org.fog.test.TEMPFog;
+import org.fog.test.VRGameFog;
 import org.fog.utils.Logger;
 import org.fog.utils.TimeKeeper;
 import org.fog.utils.Util;
@@ -56,12 +56,11 @@ public class FogComputingSim {
 	private static final int FILE = 6;
 	
 	private static List<Application> applications;
-	private static List<FogBroker> fogBrokers;
 	private static List<FogDevice> fogDevices;
 	private static List<Sensor> sensors;
 	private static List<Actuator> actuators;
 	private static Controller controller;
-	private static Map<String, List<String>> appToFogMap;
+	private static Map<String, LinkedHashSet<String>> appToFogMap;
 	
 	public static boolean isDisplayingPlot = false;
 	
@@ -80,9 +79,8 @@ public class FogComputingSim {
 			menuTopology();
 		}
 		
-		if(applications == null || applications.isEmpty()/* || fogBrokers == null || fogBrokers.isEmpty()*/ ||
-				fogDevices == null || fogDevices.isEmpty() || actuators == null || actuators.isEmpty() ||
-				sensors == null || sensors.isEmpty() || controller == null)
+		if(applications == null || applications.isEmpty() || fogDevices == null || fogDevices.isEmpty() ||
+				actuators == null || actuators.isEmpty() || sensors == null || sensors.isEmpty() || controller == null)
 			throw new IllegalArgumentException("Some of the received arguments are null or empty.");
 		
 		Job solution = null;
@@ -90,24 +88,24 @@ public class FogComputingSim {
 		switch (option) {
 			case LP:
 				System.out.println("Running the optimization algorithm: Linear programming.");
-				algorithm = new LinearProgramming(fogBrokers, fogDevices, applications, sensors, actuators);
+				algorithm = new LinearProgramming(fogDevices, applications, sensors, actuators);
 				solution = algorithm.execute();
 				break;
 			case GA:
 				System.out.println("Running the optimization algorithm: Genetic Algorithm.");
-				algorithm = new GeneticAlgorithm(fogBrokers, fogDevices, applications, sensors, actuators);
+				algorithm = new GeneticAlgorithm(fogDevices, applications, sensors, actuators);
 				solution = algorithm.execute();
 				plotResult(algorithm, "Genetic Algorithm");
 				break;
 			case RAND:
 				System.out.println("Running the optimization algorithm: Random Algorithm.");
-				algorithm = new Random(fogBrokers, fogDevices, applications, sensors, actuators);
+				algorithm = new Random(fogDevices, applications, sensors, actuators);
 				solution = algorithm.execute();
 				plotResult(algorithm, "Random Algorithm");
 				break;
 			case BF:
 				System.out.println("Running the optimization algorithm: Brute Force.");
-				algorithm = new BruteForce(fogBrokers, fogDevices, applications, sensors, actuators);
+				algorithm = new BruteForce(fogDevices, applications, sensors, actuators);
 				solution = algorithm.execute();
 				plotResult(algorithm, "Brute Force");
 				break;
@@ -117,21 +115,21 @@ public class FogComputingSim {
 				break;
 			case ALL:
 				System.out.println("Running the optimization algorithm: Linear programming.");
-				algorithm = new LinearProgramming(fogBrokers, fogDevices, applications, sensors, actuators);
+				algorithm = new LinearProgramming(fogDevices, applications, sensors, actuators);
 				solution = algorithm.execute();
 				
 				System.out.println("Running the optimization algorithm: Genetic Algorithm.");
-				algorithm = new GeneticAlgorithm(fogBrokers, fogDevices, applications, sensors, actuators);
+				algorithm = new GeneticAlgorithm(fogDevices, applications, sensors, actuators);
 				solution = algorithm.execute();
 				plotResult(algorithm, "Genetic Algorithm");
 				
 				System.out.println("Running the optimization algorithm: Random Algorithm.");
-				algorithm = new Random(fogBrokers, fogDevices, applications, sensors, actuators);
+				algorithm = new Random(fogDevices, applications, sensors, actuators);
 				solution = algorithm.execute();
 				plotResult(algorithm, "Random Algorithm");
 				
 				System.out.println("Running the optimization algorithm: Brute Force.");
-				algorithm = new BruteForce(fogBrokers, fogDevices, applications, sensors, actuators);
+				algorithm = new BruteForce(fogDevices, applications, sensors, actuators);
 				solution = algorithm.execute();
 				plotResult(algorithm, "Brute Force");
 				break;
@@ -236,14 +234,14 @@ public class FogComputingSim {
 					
 					while(fogTest == null) {
 						Util.promptEnterKey("Press \"ENTER\" to continue...");
-						fogTest = gui.getRunGUI();
+						fogTest = gui.getRunGUI(); // fogTest = gui.getFogTest();
 					}
 					break;
 				case RANDOM:
 					fogTest = new RandomTopology();
 					break;
 				case VRGAME:
-					fogTest = new NewVRGameFog();
+					fogTest = new VRGameFog();
 					break;
 				case DCNS:
 					fogTest = new DCNSFog();
@@ -275,7 +273,6 @@ public class FogComputingSim {
 	    }
 	    
 	    applications = fogTest.getApplications();
-		fogBrokers = fogTest.getFogBrokers();
 		fogDevices = fogTest.getFogDevices();
 		controller = fogTest.getController();
 		sensors = fogTest.getSensors();

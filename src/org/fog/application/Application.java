@@ -11,24 +11,41 @@ import org.cloudbus.cloudsim.UtilizationModelFull;
 import org.fog.application.selectivity.FractionalSelectivity;
 import org.fog.application.selectivity.SelectivityModel;
 import org.fog.entities.Tuple;
+import org.fog.gui.core.ApplicationGui;
 import org.fog.utils.FogUtils;
+import org.fog.utils.Logger;
 
 // Class represents an application in the Distributed Dataflow Model.
 public class Application {
 	private Map<String, AppEdge> edgeMap;
-	private List<AppModule> modules; //List of application modules in the application
-	private List<AppEdge> edges; //List of application edges in the application
-	private List<AppLoop> loops; // List of application loops to monitor for delay
+	private List<AppModule> modules; 	//List of application modules in the application
+	private List<AppEdge> edges; 		//List of application edges in the application
+	private List<AppLoop> loops; 		// List of application loops to monitor for delay
 	private String appId;
-	private int userId;
 	
-	public Application(String appId, int userId) {
+	public Application(String appId) {
 		setAppId(appId);
-		setUserId(userId);
 		setModules(new ArrayList<AppModule>());
 		setEdges(new ArrayList<AppEdge>());
 		setLoops(new ArrayList<AppLoop>());
 		setEdgeMap(new HashMap<String, AppEdge>());
+	}
+	
+	public Application(ApplicationGui applicationGui) {
+		setAppId(applicationGui.getAppId());
+		setModules(applicationGui.getModules());
+		setEdges(applicationGui.getEdges());
+		setEdgeMap(applicationGui.getEdgeMap());
+		
+		List<AppLoop> loops = new ArrayList<AppLoop>();
+		for(List<String> loop : applicationGui.getLoops()) {
+			ArrayList<String> l = new ArrayList<String>();
+			for(String name : loop)
+				l.add(name);
+			loops.add(new AppLoop(l));
+		}
+		
+		setLoops(loops);
 	}
 	
 	/**
@@ -42,7 +59,12 @@ public class Application {
 		long bw = 0;
 		String vmm = "Xen";
 		
-		AppModule module = new AppModule(FogUtils.generateEntityId(), moduleName, appId, userId, 
+		if(clientModule && glogbalModule) {
+			System.err.println("Modules cannot be simultaneously client module and global module.");
+			System.exit(0);
+		}
+			
+		AppModule module = new AppModule(FogUtils.generateEntityId(), moduleName, appId, -1, 
 			mips, ram, bw, size, vmm, new CloudletSchedulerTimeShared(), new HashMap<Pair<String, String>, SelectivityModel>(),
 			clientModule, glogbalModule);
 		
@@ -51,6 +73,11 @@ public class Application {
 	
 	public void addAppModule(AppModule m, int fogId){
 		AppModule module = null;
+		
+		if(m.isClientModule() && m.isGlobalModule()) {
+			System.err.println("Modules cannot be simultaneously client module and global module.");
+			System.exit(0);
+		}
 		
 		if(m.isGlobalModule()) {
 			module = new AppModule(FogUtils.generateEntityId(), m.getName(), appId, fogId, 
@@ -61,7 +88,9 @@ public class Application {
 				m.getMips(), m.getRam(), m.getBw(), m.getSize(), m.getVmm(), new CloudletSchedulerTimeShared(),
 				new HashMap<Pair<String, String>, SelectivityModel>(), m.isClientModule(), m.isGlobalModule());
 		}
+		
 		getModules().add(module);
+		Logger.debug(getAppId(), "Added module: " + module.getName());
 	}
 
 	/**
@@ -117,7 +146,7 @@ public class Application {
 					e.getEdgeType());
 		}
 		
-		System.out.println("Added edge from: " + source + " to: " + destination);
+		Logger.debug(getAppId(), "Added edge from: " + source + " to: " + destination);
 	}
 	
 	/**
@@ -162,7 +191,7 @@ public class Application {
 		Pair<String, String> newPair = new Pair<String, String>(pair.getFirst() + "_" + fogId, pair.getSecond() + "_" + fogId);
 		module.getSelectivityMap().put(newPair, new FractionalSelectivity(value));
 		
-		System.out.println("Added tuple mapping on module: " + module.getName() + " from: " + pair.getFirst() + "_" + fogId +
+		Logger.debug(getAppId(), "Added tuple mapping on module: " + module.getName() + " from: " + pair.getFirst() + "_" + fogId +
 				" to: " + pair.getSecond() + "_" + fogId);
 	}
 	
@@ -199,7 +228,7 @@ public class Application {
 	 * @param inputTuple incoming tuple, whose execution creates resultant tuples
 	 * @return
 	 */
-	public List<Tuple> getResultantTuples(String moduleName, Tuple inputTuple, int sourceModuleId){
+	public List<Tuple> getResultantTuples(String moduleName, Tuple inputTuple, int sourceModuleId) {
 		List<Tuple> tuples = new ArrayList<Tuple>();
 		AppModule module = getModuleByName(moduleName);
 		
@@ -289,14 +318,6 @@ public class Application {
 		this.loops = loops;
 	}
 
-	public int getUserId() {
-		return userId;
-	}
-
-	public void setUserId(int userId) {
-		this.userId = userId;
-	}
-
 	public Map<String, AppEdge> getEdgeMap() {
 		return edgeMap;
 	}
@@ -307,7 +328,7 @@ public class Application {
 	
 	@Override
 	public String toString() {
-		return "Application [appId=" + appId + ", userId=" + userId + "]";
+		return "Application [appId=" + appId + "]";
 	}
 
 }
