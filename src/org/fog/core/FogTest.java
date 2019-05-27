@@ -187,15 +187,8 @@ public abstract class FogTest {
 					application.getLoops().addAll(loops);
 			}
 		}
-		
-		
-		for(Application application : applications) {
-			for(AppModule appModule : application.getModules()) {
-				System.out.println(appModule.getName());
-			}
-			System.out.println("\n\n");
-		}
 	}
+	
 	// Check if module has a repeated name. Inside the same client, modules need to have unique name as well as edges.
 	// Thus check for repeated names.
 	private boolean isValid(Application appToDeploy, FogDevice fogDevice) {

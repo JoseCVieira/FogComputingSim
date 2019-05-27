@@ -19,10 +19,21 @@ import ilog.cplex.*;
 public class LinearProgramming extends Algorithm {
 	List<Integer> initialModules = new ArrayList<Integer>();
 	List<Integer> finalModules = new ArrayList<Integer>();
+	private int[][] hollowMatrix;
 	
 	public LinearProgramming(final List<FogDevice> fogDevices, final List<Application> applications,
 			final List<Sensor> sensors, final List<Actuator> actuators) {
 		super(fogDevices, applications, sensors, actuators);
+		
+		hollowMatrix = new int[NR_NODES][NR_NODES];
+		
+		for(int i = 0; i < NR_NODES; i++) {
+			for(int j = 0; j < NR_NODES; j++) {
+				if(i != j) {
+					hollowMatrix[i][j] = 1;
+				}
+			}
+		}
 	}
 	
 	@Override
@@ -36,11 +47,11 @@ public class LinearProgramming extends Algorithm {
 			}
 		}
 		
-		double opBest = computeOpBest();
-		double pwBest = computePwBest();
-		double prBest = computePrBest();
-		double ltBest = computeLtBest();
-		double bwBest = computeBwBest();
+		double opBest = 1;//computeOpBest();
+		double pwBest = 1;//computePwBest();
+		double prBest = 1;//computePrBest();
+		double ltBest = 1;//computeLtBest();
+		double bwBest = 1;//computeBwBest();
 		
 		if(opBest < 0 || pwBest < 0 || prBest < 0 || ltBest < 0 || bwBest < 0) {
 			System.out.println("Model not solved");
@@ -104,7 +115,7 @@ public class LinearProgramming extends Algorithm {
 				for(int j = 0; j < NR_NODES; j++) {
 					for(int z = 0; z < NR_NODES; z++) {
 						double latencyCost = Config.LT_W*(getfLatencyMap()[j][z]*dependencies);
-						double bandwidthCost =  Config.BW_W*(bwNeeded/(getfBandwidthMap()[j][z] + Constants.EPSILON));
+						double bandwidthCost =  Config.BW_W*(bwNeeded/(getfBandwidthMap()[j][z] + Constants.EPSILON))*hollowMatrix[j][z];
 						double txOpCost = Config.OP_W*(getfBwPrice()[j]*bwNeeded);
 						
 						// Transmission cost + transmission operational cost + transition cost
@@ -125,12 +136,46 @@ public class LinearProgramming extends Algorithm {
 			
 			// Solve
 			if (cplex.solve()) {
-				System.out.println("\nopBest: " + opBest);
+				System.out.println("\n\nLP RESULTS:\n");
+				System.out.println("opBest: " + opBest);
 				System.out.println("pwBest: " + pwBest);
 				System.out.println("prBest: " + prBest);
 				System.out.println("ltBest: " + ltBest);
 				System.out.println("bwBest: " + bwBest);
-				System.out.println("LP result = " + cplex.getObjValue() + "\n");
+				
+				double totalOp = 0;
+				double totalPw = 0;
+				double totalPr = 0;
+				double totalLt = 0;
+				double totalBw = 0;
+				for(int i = 0; i < NR_NODES; i++) {
+					for(int j = 0; j < NR_MODULES; j++) {
+						
+						totalOp += Config.OP_W*(getfMipsPrice()[i]*getmMips()[j] + getfRamPrice()[i]*getmRam()[j] + getfMemPrice()[i]*getmMem()[j])*cplex.getValue(placementVar[i][j]);
+						totalPw += Config.PW_W*(getfBusyPw()[i]-getfIdlePw()[i])*(getmMips()[j]/getfMips()[i])*cplex.getValue(placementVar[i][j]);
+						totalPr += Config.PR_W*(getmMips()[j]/getfMips()[i])*cplex.getValue(placementVar[i][j]);
+					}
+				}
+				
+				for(int i = 0; i < getNumberOfDependencies(); i++) {
+					double dependencies = getmDependencyMap()[initialModules.get(i)][finalModules.get(i)];
+					double bwNeeded = getmBandwidthMap()[initialModules.get(i)][finalModules.get(i)];
+					
+					for(int j = 0; j < NR_NODES; j++) {
+						for(int z = 0; z < NR_NODES; z++) {
+							totalLt += Config.LT_W*(getfLatencyMap()[j][z]*dependencies)*cplex.getValue(routingVar[i][j][z]);
+							totalBw +=  Config.BW_W*(bwNeeded/(getfBandwidthMap()[j][z] + Constants.EPSILON))*hollowMatrix[j][z]*cplex.getValue(routingVar[i][j][z]);
+							totalOp += Config.OP_W*(getfBwPrice()[j]*bwNeeded)*cplex.getValue(routingVar[i][j][z]);
+						}
+					}
+				}
+				
+				System.out.println("\ntotalOp: " + totalOp);
+				System.out.println("totalPw: " + totalPw);
+				System.out.println("totalPr: " + totalPr);
+				System.out.println("totalLt: " + totalLt);
+				System.out.println("totalBw: " + totalBw);
+				System.out.println("LP result1 = " + cplex.getObjValue() + "\n\n");
 				
 				long finish = System.currentTimeMillis();
 				elapsedTime = finish - start;
@@ -152,7 +197,9 @@ public class LinearProgramming extends Algorithm {
 						for(int z = 0; z < NR_NODES; z++)
 							routingMap[i][j][z] = (int) cplex.getValue(routingVar[i][j][z]);
 				
+				System.out.println("\nSOLUTION (JOB) RESULTS:\n");
 				Job solution = new Job(this, modulePlacementMap, routingMap);
+				System.out.println("LP result = " + solution.getCost() + "\n\n");
 				
 				valueIterMap.put(0, solution.getCost());
 			    
@@ -429,7 +476,7 @@ public class LinearProgramming extends Algorithm {
 				
 				for(int j = 0; j < NR_NODES; j++) {
 					for(int z = 0; z < NR_NODES; z++) {
-						double bandwidthCost =  Config.BW_W*(bwNeeded/(getfBandwidthMap()[j][z] + Constants.EPSILON));
+						double bandwidthCost =  Config.BW_W*(bwNeeded/(getfBandwidthMap()[j][z] + Constants.EPSILON))*hollowMatrix[j][z];
 						objective.addTerm(routingVar[i][j][z], bandwidthCost);
 					}
 				}

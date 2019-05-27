@@ -24,27 +24,24 @@ public class CostFunction {
 		}
 		
 		double cost = 0;
-		double old = 0;
 		
 		cost += isPossibleCombination(algorithm, modulePlacementMap, routingMap, initialModules, finalModules);
-		System.out.println("OK: " + (cost - old));
-		old = cost;
+		System.out.println("OK: " + cost);
 		
 		cost += calculateOperationalCost(algorithm, modulePlacementMap, routingMap, initialModules, finalModules);
-		System.out.println("OP: " + (cost - old));
-		old = cost;
+		System.out.println("OP: " + calculateOperationalCost(algorithm, modulePlacementMap, routingMap, initialModules, finalModules));
 		
 		cost += calculatePowerCost(algorithm, modulePlacementMap);
-		System.out.println("PW: " + (cost - old));
-		old = cost;
+		System.out.println("PW: " + calculatePowerCost(algorithm, modulePlacementMap));
 		
 		cost += calculateProcessingCost(algorithm, modulePlacementMap);
-		System.out.println("PR: " + (cost - old));
-		old = cost;
+		System.out.println("PR: " + calculateProcessingCost(algorithm, modulePlacementMap));
 		
-		cost += calculateTransmittingCost(algorithm, routingMap, initialModules, finalModules);
-		System.out.println("TX: " + (cost - old));
-		old = cost;
+		cost += calculateLatencyCost(algorithm, routingMap, initialModules, finalModules);
+		System.out.println("LT: " + calculateLatencyCost(algorithm, routingMap, initialModules, finalModules));
+		
+		cost += calculateBandwidthCost(algorithm, routingMap, initialModules, finalModules);
+		System.out.println("BW: " + calculateBandwidthCost(algorithm, routingMap, initialModules, finalModules));
 		
 		return cost;
 	}
@@ -191,17 +188,32 @@ public class CostFunction {
 		return cost;
 	}
 	
-	private static double calculateTransmittingCost(Algorithm algorithm, int[][] routingMap,
+	private static double calculateLatencyCost(Algorithm algorithm, int[][] routingMap,
 			List<Integer> initialModules, List<Integer> finalModules) {
 		double cost = 0;
 		
 		for(int i = 0; i < algorithm.getNumberOfDependencies(); i++) {
-			double bwNeeded = algorithm.getmBandwidthMap()[initialModules.get(i)][finalModules.get(i)];
 			double dependencies = algorithm.getmDependencyMap()[initialModules.get(i)][finalModules.get(i)];
 			
 			for(int j = 1; j < algorithm.getNumberOfNodes(); j++) {
 				if(routingMap[i][j] != routingMap[i][j-1]) {
 					cost += Config.LT_W*(algorithm.getfLatencyMap()[routingMap[i][j-1]][routingMap[i][j]] * dependencies);
+				}
+			}
+		}
+		
+		return cost;
+	}
+	
+	private static double calculateBandwidthCost(Algorithm algorithm, int[][] routingMap,
+			List<Integer> initialModules, List<Integer> finalModules) {
+		double cost = 0;
+		
+		for(int i = 0; i < algorithm.getNumberOfDependencies(); i++) {
+			double bwNeeded = algorithm.getmBandwidthMap()[initialModules.get(i)][finalModules.get(i)];
+			
+			for(int j = 1; j < algorithm.getNumberOfNodes(); j++) {
+				if(routingMap[i][j] != routingMap[i][j-1]) {
 					cost += Config.BW_W*(bwNeeded/(algorithm.getfBandwidthMap()[routingMap[i][j-1]][routingMap[i][j]] + Constants.EPSILON));
 				}
 			}
@@ -209,4 +221,5 @@ public class CostFunction {
 		
 		return cost;
 	}
+	
 }
