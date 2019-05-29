@@ -24,24 +24,31 @@ public class CostFunction {
 		}
 		
 		double cost = 0;
+		double aux = 0;
 		
-		cost += isPossibleCombination(algorithm, modulePlacementMap, routingMap, initialModules, finalModules);
-		System.out.println("OK: " + cost);
+		aux = isPossibleCombination(algorithm, modulePlacementMap, routingMap, initialModules, finalModules);
+		cost += aux;
+		System.out.println("OK: " + aux);
 		
-		cost += calculateOperationalCost(algorithm, modulePlacementMap, routingMap, initialModules, finalModules);
-		System.out.println("OP: " + calculateOperationalCost(algorithm, modulePlacementMap, routingMap, initialModules, finalModules));
+		aux = calculateOperationalCost(algorithm, modulePlacementMap, routingMap, initialModules, finalModules);
+		cost += aux;
+		System.out.println("OP: " + aux);
 		
-		cost += calculatePowerCost(algorithm, modulePlacementMap);
-		System.out.println("PW: " + calculatePowerCost(algorithm, modulePlacementMap));
+		aux = calculatePowerCost(algorithm, modulePlacementMap);
+		cost += aux;
+		System.out.println("PW: " + aux);
 		
-		cost += calculateProcessingCost(algorithm, modulePlacementMap);
-		System.out.println("PR: " + calculateProcessingCost(algorithm, modulePlacementMap));
+		aux = calculateProcessingCost(algorithm, modulePlacementMap);
+		cost += aux;
+		System.out.println("PR: " + aux);
 		
-		cost += calculateLatencyCost(algorithm, routingMap, initialModules, finalModules);
-		System.out.println("LT: " + calculateLatencyCost(algorithm, routingMap, initialModules, finalModules));
+		aux = calculateLatencyCost(algorithm, routingMap, initialModules, finalModules);
+		cost += aux;
+		System.out.println("LT: " + aux);
 		
-		cost += calculateBandwidthCost(algorithm, routingMap, initialModules, finalModules);
-		System.out.println("BW: " + calculateBandwidthCost(algorithm, routingMap, initialModules, finalModules));
+		aux = calculateBandwidthCost(algorithm, routingMap, initialModules, finalModules);
+		cost += aux;
+		System.out.println("BW: " + aux);
 		
 		return cost;
 	}
@@ -104,6 +111,7 @@ public class CostFunction {
 			}
 		}
 		
+		// If bandwidth links usage are exceeded
 		double bwUsage[][] = new double[algorithm.getNumberOfNodes()][algorithm.getNumberOfNodes()];
 		for(int i = 0; i < algorithm.getNumberOfDependencies(); i++) {
 			double bwNeeded = algorithm.getmBandwidthMap()[initialModules.get(i)][finalModules.get(i)];
@@ -119,6 +127,16 @@ public class CostFunction {
 			for(int j = 0; j < algorithm.getNumberOfNodes(); j++) {
 				if(bwUsage[i][j] > algorithm.getfBandwidthMap()[i][j]) {
 					cost += Constants.MIN_SOLUTION;
+				}
+			}
+		}
+		
+		for(int i = 0; i < algorithm.getNumberOfDependencies(); i++) {
+			for(int j = 1; j < algorithm.getNumberOfNodes(); j++) {
+				if(routingMap[i][j-1] != routingMap[i][j]) {					
+					if(algorithm.getfLatencyMap()[routingMap[i][j-1]][routingMap[i][j]] == Constants.INF) {
+						cost += Constants.MIN_SOLUTION;
+					}
 				}
 			}
 		}

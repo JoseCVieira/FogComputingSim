@@ -123,7 +123,7 @@ public abstract class Algorithm {
 		computeApplicationCharacteristics(applications, fogDevices, sensors);
 		computeLatencyMap(fogDevices, sensors, actuators);
 		
-		if(Config.NORMALIZE) {
+		if(Config.SINGLE_OBJECTIVE) {
 			normalizeValues();
 		}
 		

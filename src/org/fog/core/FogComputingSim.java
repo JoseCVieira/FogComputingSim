@@ -29,6 +29,7 @@ import org.fog.placement.algorithms.overall.Job;
 import org.fog.placement.algorithms.overall.bf.BruteForce;
 import org.fog.placement.algorithms.overall.ga.GeneticAlgorithm;
 import org.fog.placement.algorithms.overall.lp.LinearProgramming;
+import org.fog.placement.algorithms.overall.lp.MultiObjectiveLinearProgramming;
 import org.fog.placement.algorithms.overall.random.Random;
 import org.fog.placement.algorithms.overall.util.MatlabChartUtils;
 import org.fog.test.DCNSFog;
@@ -40,12 +41,13 @@ import org.fog.utils.TimeKeeper;
 import org.fog.utils.Util;
 
 public class FogComputingSim {
-	private static final int LP = 1;
-	private static final int GA = 2;
-	private static final int RAND = 3;
-	private static final int BF = 4;
-	private static final int MDP = 5;
-	private static final int ALL = 6;
+	private static final int MOLP = 1;
+	private static final int LP = 2;
+	private static final int GA = 3;
+	private static final int RAND = 4;
+	private static final int BF = 5;
+	private static final int MDP = 6;
+	private static final int ALL = 7;
 
 	private static final int EXIT = 0;
 	private static final int GUI = 1;
@@ -86,8 +88,14 @@ public class FogComputingSim {
 		Job solution = null;
 		Algorithm algorithm = null;
 		switch (option) {
+			case MOLP:
+				Config.SINGLE_OBJECTIVE = false;
+				System.out.println("Running the optimization algorithm: Multiobjective Linear Programming.");
+				algorithm = new MultiObjectiveLinearProgramming(fogDevices, applications, sensors, actuators);
+				solution = algorithm.execute();
+				break;
 			case LP:
-				System.out.println("Running the optimization algorithm: Linear programming.");
+				System.out.println("Running the optimization algorithm: Linear Programming.");
 				algorithm = new LinearProgramming(fogDevices, applications, sensors, actuators);
 				solution = algorithm.execute();
 				break;
@@ -114,6 +122,10 @@ public class FogComputingSim {
 				System.exit(-1);
 				break;
 			case ALL:
+				System.out.println("Running the optimization algorithm: Multiobjective Linear Programming.");
+				algorithm = new MultiObjectiveLinearProgramming(fogDevices, applications, sensors, actuators);
+				solution = algorithm.execute();
+				
 				System.out.println("Running the optimization algorithm: Linear programming.");
 				algorithm = new LinearProgramming(fogDevices, applications, sensors, actuators);
 				solution = algorithm.execute();
@@ -138,7 +150,7 @@ public class FogComputingSim {
 				System.exit(-1);
 		}
 		
-		if(solution == null || solution.getModulePlacementMap() == null || solution.getRoutingMap() == null || solution.getCost() >= Constants.MIN_SOLUTION) {
+		if(solution == null || solution.getModulePlacementMap() == null || solution.getRoutingMap() == null/* || solution.getCost() >= Constants.MIN_SOLUTION*/) {
 			System.err.println("There is no possible combination to deploy all applications.\n");
 			System.err.println("FogComputingSim will terminate abruptally.\n");
 			System.exit(-1);
@@ -161,12 +173,13 @@ public class FogComputingSim {
 		System.out.println("|    FOG COMPUTING SIMULATOR MENU - ALGORITHM   |");
 		System.out.println("|                                               |");
 	    System.out.println("| Options:                                      |");
-	    System.out.println("|       1. Linear Programming                   |");
-	    System.out.println("|       2. Genetic Algorithm                    |");
-	    System.out.println("|       3. Random Algorithm                     |");
-	    System.out.println("|       4. Brute Force                          |");
-	    System.out.println("|       5. Markov Decision Process              |");
-	    System.out.println("|       6. Compare all algorithms               |");
+	    System.out.println("|       1. Multiobjective Linear Programming    |");
+	    System.out.println("|       2. Linear Programming                   |");
+	    System.out.println("|       3. Genetic Algorithm                    |");
+	    System.out.println("|       4. Random Algorithm                     |");
+	    System.out.println("|       5. Brute Force                          |");
+	    System.out.println("|       6. Markov Decision Process              |");
+	    System.out.println("|       7. Compare all algorithms               |");
 	    System.out.println("|       0. Exit                                 |");
 	    System.out.println("|                                               |");
 	    System.out.println("—————————————————————————————————————————————————");
@@ -183,7 +196,7 @@ public class FogComputingSim {
 					break;
 		    	}
 		    	
-		    	if(option < LP || option > ALL) {
+		    	if(option < 0 || option > ALL) {
 		    		option = -1;
 		    	}
 		    	

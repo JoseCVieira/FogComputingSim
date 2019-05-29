@@ -44,9 +44,7 @@ public abstract class FogTest {
 	protected abstract void createFogDevices();
 	protected abstract void createClients();
 	
-	public FogTest() {
-		
-	}
+	public FogTest() { }
 	
 	public FogTest(String toPrint) {
 		System.out.println(toPrint);

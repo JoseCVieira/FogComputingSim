@@ -337,7 +337,7 @@ public class LinearProgramming extends Algorithm {
 				}
 			}
 			
-			cplex.addMinimize(objective);
+			cplex.addMaximize(objective);
 			constraints(cplex, placementVar, routingVar);
 
 			if (cplex.solve()) {
@@ -371,7 +371,7 @@ public class LinearProgramming extends Algorithm {
 				}
 			}
 			
-			cplex.addMinimize(objective);
+			cplex.addMaximize(objective);
 			constraints(cplex, placementVar, null);
 
 			if (cplex.solve()) {
@@ -404,7 +404,7 @@ public class LinearProgramming extends Algorithm {
 				}
 			}
 			
-			cplex.addMinimize(objective);
+			cplex.addMaximize(objective);
 			constraints(cplex, placementVar, null);
 
 			if (cplex.solve()) {
@@ -443,7 +443,7 @@ public class LinearProgramming extends Algorithm {
 				}
 			}
 			
-			cplex.addMinimize(objective);
+			cplex.addMaximize(objective);
 			constraints(cplex, null, routingVar);
 
 			if (cplex.solve()) {
@@ -482,7 +482,7 @@ public class LinearProgramming extends Algorithm {
 				}
 			}
 			
-			cplex.addMinimize(objective);
+			cplex.addMaximize(objective);
 			constraints(cplex, null, routingVar);
 
 			if (cplex.solve()) {

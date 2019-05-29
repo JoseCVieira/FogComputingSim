@@ -9,7 +9,6 @@ import java.util.Random;
 import org.apache.commons.math3.util.Pair;
 import org.fog.application.AppEdge;
 import org.fog.application.Application;
-import org.fog.core.Config;
 import org.fog.core.Constants;
 import org.fog.core.FogTest;
 import org.fog.entities.Actuator;
@@ -22,6 +21,18 @@ import org.fog.utils.distribution.DeterministicDistribution;
 import org.fog.utils.distribution.Distribution;
 
 public class RandomTopology extends FogTest {
+	private static final String CLOUD_NAME = "Cloud";
+	private static final int NR_FOG_DEVICES = 5;
+	
+	private static final int MAX_CONN_LAT = 100;
+	private static final int MAX_CONN_BW = 10000;
+	
+	private static final double CONNECTION_PROB = 0.4;
+	private static final double DEPLOY_APP_PROB = 0.35;
+	
+	private static final double RESOURCES_DEV = 100;
+	private static final double ENERGY_DEV = 5;
+	private static final double COST_DEV = 1E-5;
 	
 	public RandomTopology() {
 		super("Generating a new random topology...");
@@ -29,32 +40,32 @@ public class RandomTopology extends FogTest {
 	
 	@Override
 	protected void createFogDevices() {
-		FogDevice cloud = createFogDevice(Config.CLOUD_NAME, Double.MAX_VALUE, (int) Constants.INF, (int) Constants.INF, (int) Constants.INF,
+		FogDevice cloud = createFogDevice(CLOUD_NAME, Double.MAX_VALUE, (int) Constants.INF, (int) Constants.INF, (int) Constants.INF,
 				16*GuiConfig.BUSY_POWER, 16*GuiConfig.IDLE_POWER, GuiConfig.RATE_MIPS, GuiConfig.RATE_RAM,
 				GuiConfig.RATE_MEM, GuiConfig.RATE_BW);
 		
 		fogDevices.add(cloud);
 		
 		int iter = 1;
-		int nrFogNodes = Config.NR_FOG_DEVICES - 1;
+		int nrFogNodes = NR_FOG_DEVICES - 1;
 		
 		while(nrFogNodes > 0) {
 			int nr = Util.rand(0, nrFogNodes);
 			nrFogNodes -= nr;
 			
 			for(int i = 0; i < nr; i++) {
-				double mips = Util.normalRand(GuiConfig.MIPS/iter, Config.RESOURCES_DEV/iter);
-				double ram = Util.normalRand(GuiConfig.RAM/iter, Config.RESOURCES_DEV/iter);
-				double strg = Util.normalRand(GuiConfig.MEM/iter, Config.RESOURCES_DEV/iter);
-				double bw = Util.normalRand(GuiConfig.BW/iter,Config. RESOURCES_DEV/iter);
+				double mips = Util.normalRand(GuiConfig.MIPS/iter, RESOURCES_DEV/iter);
+				double ram = Util.normalRand(GuiConfig.RAM/iter, RESOURCES_DEV/iter);
+				double strg = Util.normalRand(GuiConfig.MEM/iter, RESOURCES_DEV/iter);
+				double bw = Util.normalRand(GuiConfig.BW/iter, RESOURCES_DEV/iter);
 				
-				double bPw = Util.normalRand(GuiConfig.BUSY_POWER, Config.ENERGY_DEV);
-				double iPw = Util.normalRand(GuiConfig.IDLE_POWER, Config.ENERGY_DEV);
+				double bPw = Util.normalRand(GuiConfig.BUSY_POWER, ENERGY_DEV);
+				double iPw = Util.normalRand(GuiConfig.IDLE_POWER, ENERGY_DEV);
 				
-				double rateMips = Util.normalRand(GuiConfig.RATE_MIPS, Config.COST_DEV);
-				double rateRam = Util.normalRand(GuiConfig.RATE_RAM, Config.COST_DEV);
-				double rateStrg = Util.normalRand(GuiConfig.RATE_MEM, Config.COST_DEV);
-				double rateBw = Util.normalRand(GuiConfig.RATE_BW, Config.COST_DEV);
+				double rateMips = Util.normalRand(GuiConfig.RATE_MIPS, COST_DEV);
+				double rateRam = Util.normalRand(GuiConfig.RATE_RAM, COST_DEV);
+				double rateStrg = Util.normalRand(GuiConfig.RATE_MEM, COST_DEV);
+				double rateBw = Util.normalRand(GuiConfig.RATE_BW, COST_DEV);
 				
 				FogDevice fogDevice = createFogDevice("L"+iter+":F"+i, mips, (int) ram, (long) strg, (long) bw, bPw, iPw,
 						rateMips, rateRam, rateStrg, rateBw);
@@ -81,17 +92,17 @@ public class RandomTopology extends FogTest {
 			List<FogDevice> toRemove = new ArrayList<FogDevice>();
 			
 			for(FogDevice f : notConnctedDevices) {
-				if(new Random().nextFloat() < Config.CONNECTION_PROB) {
+				if(new Random().nextFloat() < CONNECTION_PROB) {
 					toRemove.add(f);
 					
 					fogDevice.getNeighborsIds().add(f.getId());
 					f.getNeighborsIds().add(fogDevice.getId());
 					
-					fogDevice.getLatencyMap().put(f.getId(), (double) Util.rand(Config.MAX_CONN_LAT/3, Config.MAX_CONN_LAT));
-					f.getLatencyMap().put(fogDevice.getId(), (double) Util.rand(Config.MAX_CONN_LAT/3, Config.MAX_CONN_LAT));
+					fogDevice.getLatencyMap().put(f.getId(), (double) Util.rand(MAX_CONN_LAT/3, MAX_CONN_LAT));
+					f.getLatencyMap().put(fogDevice.getId(), (double) Util.rand(MAX_CONN_LAT/3, MAX_CONN_LAT));
 					
-					fogDevice.getBandwidthMap().put(f.getId(), (double) Util.rand(Config.MAX_CONN_BW/3, Config.MAX_CONN_BW));
-					f.getBandwidthMap().put(fogDevice.getId(), (double) Util.rand(Config.MAX_CONN_BW/3, Config.MAX_CONN_BW));
+					fogDevice.getBandwidthMap().put(f.getId(), (double) Util.rand(MAX_CONN_BW/3, MAX_CONN_BW));
+					f.getBandwidthMap().put(fogDevice.getId(), (double) Util.rand(MAX_CONN_BW/3, MAX_CONN_BW));
 					
 					fogDevice.getTupleQueue().put(f.getId(), new LinkedList<Pair<Tuple, Integer>>());
 					f.getTupleQueue().put(fogDevice.getId(), new LinkedList<Pair<Tuple, Integer>>());
@@ -114,9 +125,9 @@ public class RandomTopology extends FogTest {
 		
 		while(nrApps == 0) {
 			for(FogDevice fogDevice : fogDevices) {
-				if(fogDevice.getName().equals(Config.CLOUD_NAME)) continue;
+				if(fogDevice.getName().equals(CLOUD_NAME)) continue;
 				
-				if(new Random().nextFloat() < Config.DEPLOY_APP_PROB) {
+				if(new Random().nextFloat() < DEPLOY_APP_PROB) {
 					
 					Distribution distribution = new DeterministicDistribution(Util.normalRand(GuiConfig.SENSOR_DESTRIBUTION, 1.0));
 					double sensorLat = Util.normalRand(GuiConfig.SENSOR_LATENCY, 1);

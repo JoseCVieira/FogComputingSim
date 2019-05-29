@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Random;
 
 import org.fog.core.Constants;
+import org.fog.placement.algorithms.overall.util.AlgorithmUtils;
 import org.fog.placement.algorithms.routing.DijkstraAlgorithm;
 import org.fog.placement.algorithms.routing.Edge;
 import org.fog.placement.algorithms.routing.Graph;
@@ -57,6 +58,18 @@ public class Job implements Comparable<Job> {
 			}
 		}
 		
+		List<Integer> initialModules = new ArrayList<Integer>();
+		List<Integer> finalModules = new ArrayList<Integer>();
+		
+		for(int i = 0; i < nrModules; i++) {
+			for (int j = 0; j < nrModules; j++) {
+				if(algorithm.getmDependencyMap()[i][j] != 0) {
+					initialModules.add(i);
+					finalModules.add(j);
+				}
+			}
+		}
+		
 		for(int i = 0; i < nrDependencies; i++) {
 			iter = 1;
 			int from = routingMap[i][0];
@@ -79,6 +92,11 @@ public class Job implements Comparable<Job> {
 				routingMap[i][j] = from;
 			}
 		}
+		
+		for(int i = 0; i < nrNodes; i++) {
+			System.out.println(algorithm.getfName()[i]);
+		}
+		AlgorithmUtils.print("FINAL", routingMap);
 		
 		this.modulePlacementMap = modulePlacementMap;
 		this.routingMap = routingMap;
