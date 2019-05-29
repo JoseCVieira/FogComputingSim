@@ -140,17 +140,17 @@ public class FogComputingSim {
 				solution = algorithm.execute();
 				plotResult(algorithm, "Random Algorithm");
 				
-				System.out.println("Running the optimization algorithm: Brute Force.");
+				/*System.out.println("Running the optimization algorithm: Brute Force.");
 				algorithm = new BruteForce(fogDevices, applications, sensors, actuators);
 				solution = algorithm.execute();
-				plotResult(algorithm, "Brute Force");
+				plotResult(algorithm, "Brute Force");*/
 				break;
 			default:
 				System.err.println("Unknown algorithm.\nFogComputingSim will terminate abruptally.\n");
 				System.exit(-1);
 		}
 		
-		if(solution == null || solution.getModulePlacementMap() == null || solution.getRoutingMap() == null/* || solution.getCost() >= Constants.MIN_SOLUTION*/) {
+		if(solution == null || solution.getModulePlacementMap() == null || solution.getRoutingMap() == null || !solution.isValid()) {
 			System.err.println("There is no possible combination to deploy all applications.\n");
 			System.err.println("FogComputingSim will terminate abruptally.\n");
 			System.exit(-1);

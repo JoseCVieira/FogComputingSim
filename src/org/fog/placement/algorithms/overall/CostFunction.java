@@ -7,7 +7,7 @@ import org.fog.core.Config;
 import org.fog.core.Constants;
 
 public class CostFunction {	
-	public static double computeCost(Job job, Algorithm algorithm) {
+	public static void computeCost(Job job, Algorithm algorithm) {
 		List<Integer> initialModules = new ArrayList<Integer>();
 		List<Integer> finalModules = new ArrayList<Integer>();
 		
@@ -28,29 +28,32 @@ public class CostFunction {
 		
 		aux = isPossibleCombination(algorithm, modulePlacementMap, routingMap, initialModules, finalModules);
 		cost += aux;
-		System.out.println("OK: " + aux);
+		//System.out.println("OK: " + aux);
+		
+		if(cost == 0)
+			job.setValid(true);
 		
 		aux = calculateOperationalCost(algorithm, modulePlacementMap, routingMap, initialModules, finalModules);
 		cost += aux;
-		System.out.println("OP: " + aux);
+		//System.out.println("OP: " + aux);
 		
 		aux = calculatePowerCost(algorithm, modulePlacementMap);
 		cost += aux;
-		System.out.println("PW: " + aux);
+		//System.out.println("PW: " + aux);
 		
 		aux = calculateProcessingCost(algorithm, modulePlacementMap);
 		cost += aux;
-		System.out.println("PR: " + aux);
+		//System.out.println("PR: " + aux);
 		
 		aux = calculateLatencyCost(algorithm, routingMap, initialModules, finalModules);
 		cost += aux;
-		System.out.println("LT: " + aux);
+		//System.out.println("LT: " + aux);
 		
 		aux = calculateBandwidthCost(algorithm, routingMap, initialModules, finalModules);
 		cost += aux;
-		System.out.println("BW: " + aux);
+		//System.out.println("BW: " + aux);
 		
-		return cost;
+		job.setCost(cost);
 	}
 	
 	// Sums minimum possible value when it is not possible to allow GA to converge easier than return infinity
@@ -62,7 +65,7 @@ public class CostFunction {
 		for(int i  = 0; i < algorithm.getNumberOfNodes(); i++) {
 			for(int j = 0; j < algorithm.getNumberOfModules(); j++) {
 				if(modulePlacementMap[i][j] > algorithm.getPossibleDeployment()[i][j]) {
-					cost += Constants.MIN_SOLUTION;
+					cost += Constants.REFERENCE_COST;
 				}
 			}
 		}
@@ -76,7 +79,7 @@ public class CostFunction {
 					sum++;
 			
 			if(sum != 1) {
-				cost += Constants.MIN_SOLUTION;
+				cost += Constants.REFERENCE_COST;
 			}
 		}
 		
@@ -87,7 +90,7 @@ public class CostFunction {
 				if(algorithm.getmDependencyMap()[i][j] != 0) {
 					if(routingMap[iter][0] != Job.findModulePlacement(modulePlacementMap, i) ||
 							routingMap[iter][algorithm.getNumberOfNodes() - 1] != Job.findModulePlacement(modulePlacementMap, j)) {
-						cost += Constants.MIN_SOLUTION;
+						cost += Constants.REFERENCE_COST;
 					}
 					iter++;
 				}
@@ -107,7 +110,7 @@ public class CostFunction {
 			}
 			
 			if(totalMips > algorithm.getfMips()[i] || totalRam > algorithm.getfRam()[i] || totalMem > algorithm.getfMem()[i]) {
-				cost += Constants.MIN_SOLUTION;
+				cost += Constants.REFERENCE_COST;
 			}
 		}
 		
@@ -126,7 +129,7 @@ public class CostFunction {
 		for(int i = 0; i < algorithm.getNumberOfNodes(); i++) {
 			for(int j = 0; j < algorithm.getNumberOfNodes(); j++) {
 				if(bwUsage[i][j] > algorithm.getfBandwidthMap()[i][j]) {
-					cost += Constants.MIN_SOLUTION;
+					cost += Constants.REFERENCE_COST;
 				}
 			}
 		}
@@ -135,7 +138,7 @@ public class CostFunction {
 			for(int j = 1; j < algorithm.getNumberOfNodes(); j++) {
 				if(routingMap[i][j-1] != routingMap[i][j]) {					
 					if(algorithm.getfLatencyMap()[routingMap[i][j-1]][routingMap[i][j]] == Constants.INF) {
-						cost += Constants.MIN_SOLUTION;
+						cost += Constants.REFERENCE_COST;
 					}
 				}
 			}

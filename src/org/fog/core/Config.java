@@ -20,7 +20,7 @@ public class Config {
 	// weights for single objective
 	public static final double OP_W = 1; 	// Operational cost weight
 	public static final double PW_W = 1; 	// Power cost weight
-	public static final double PR_W = 1;	// Processing cost weight
+	public static final double PR_W = 100000;	// Processing cost weight
 	public static final double LT_W = 1;	// Latency cost weight
 	public static final double BW_W = 1;	// Bandwidth cost weight
 	
@@ -39,13 +39,15 @@ public class Config {
 			1	// Bandwidth cost
 	};
 	
+	public static final double CONVERGENCE_ERROR = 0.01;
+	
 	// Genetic algorithm
-	public static final int POPULATION_SIZE = 15;
-	public static final int MAX_ITER = 5000;
-	public static final int MAX_ITER_PLACEMENT_CONVERGENCE = 10;
-	public static final int MAX_ITER_ROUTING_CONVERGENCE = 20;
-	public static final double CONVERGENCE_ERROR = 0.001;
+	public static final int POPULATION_SIZE_GA = 30;
+	public static final int MAX_ITER_PLACEMENT_GA = 500;
+	public static final int MAX_ITER_ROUTING_GA = 10;
+	public static final int MAX_ITER_PLACEMENT_CONVERGENCE_GA = 10;
+	public static final int MAX_ITER_ROUTING_CONVERGENCE_GA = 3;
 	
 	// Random algorithm
-	public static final int MAX_ITER_RANDOM = 50000;
+	public static final int MAX_ITER_RANDOM = 5000;
 }

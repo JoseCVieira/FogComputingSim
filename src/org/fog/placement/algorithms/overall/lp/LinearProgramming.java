@@ -17,6 +17,8 @@ import ilog.concert.*;
 import ilog.cplex.*;
 
 public class LinearProgramming extends Algorithm {
+	private static final boolean NORMALIZE = false;
+	
 	List<Integer> initialModules = new ArrayList<Integer>();
 	List<Integer> finalModules = new ArrayList<Integer>();
 	private int[][] hollowMatrix;
@@ -47,28 +49,31 @@ public class LinearProgramming extends Algorithm {
 			}
 		}
 		
-		double opBest = 1;//computeOpBest();
-		double pwBest = 1;//computePwBest();
-		double prBest = 1;//computePrBest();
-		double ltBest = 1;//computeLtBest();
-		double bwBest = 1;//computeBwBest();
-		
-		if(opBest < 0 || pwBest < 0 || prBest < 0 || ltBest < 0 || bwBest < 0) {
-			System.out.println("Model not solved");
-			return null;
+		double opBest = 1, pwBest = 1, prBest = 1, ltBest = 1, bwBest = 1;
+		if(NORMALIZE) {
+			opBest = computeOpBest();
+			pwBest = computePwBest();
+			prBest = computePrBest();
+			ltBest = computeLtBest();
+			bwBest = computeBwBest();
+			
+			if(opBest < 0 || pwBest < 0 || prBest < 0 || ltBest < 0 || bwBest < 0) {
+				System.out.println("Model not solved");
+				return null;
+			}
+			
+			opBest = opBest == 0 ? 1 : opBest;
+			pwBest = pwBest == 0 ? 1 : pwBest;
+			prBest = prBest == 0 ? 1 : prBest;
+			ltBest = ltBest == 0 ? 1 : ltBest;
+			bwBest = bwBest == 0 ? 1 : bwBest;
+			
+			System.out.println("\nopBest: " + opBest);
+			System.out.println("pwBest: " + pwBest);
+			System.out.println("prBest: " + prBest);
+			System.out.println("ltBest: " + ltBest);
+			System.out.println("bwBest: " + bwBest+"\n");
 		}
-		
-		opBest = opBest == 0 ? 1 : opBest;
-		pwBest = pwBest == 0 ? 1 : pwBest;
-		prBest = prBest == 0 ? 1 : prBest;
-		ltBest = ltBest == 0 ? 1 : ltBest;
-		bwBest = bwBest == 0 ? 1 : bwBest;
-		
-		System.out.println("\nopBest: " + opBest);
-		System.out.println("pwBest: " + pwBest);
-		System.out.println("prBest: " + prBest);
-		System.out.println("ltBest: " + ltBest);
-		System.out.println("bwBest: " + bwBest+"\n");
 		
 		try {
 			// Define new model
@@ -95,16 +100,13 @@ public class LinearProgramming extends Algorithm {
 			for(int i = 0; i < NR_NODES; i++) {
 				for(int j = 0; j < NR_MODULES; j++) {
 					
-					double opCost = Config.OP_W*(getfMipsPrice()[i]*getmMips()[j] +
-							getfRamPrice()[i]*getmRam()[j] + getfMemPrice()[i]*getmMem()[j]);
-					
+					double opCost = Config.OP_W*(getfMipsPrice()[i]*getmMips()[j] + getfRamPrice()[i]*getmRam()[j] + getfMemPrice()[i]*getmMem()[j]);
 					double pwCost = Config.PW_W*(getfBusyPw()[i]-getfIdlePw()[i])*(getmMips()[j]/getfMips()[i]);
-					
 					double prCost = Config.PR_W*(getmMips()[j]/getfMips()[i]);
 					
-					objective.addTerm(placementVar[i][j], opCost/opBest);	// Operational cost
-					objective.addTerm(placementVar[i][j], pwCost/pwBest);	// Power cost
-					objective.addTerm(placementVar[i][j], prCost/prBest);	// Processing cost
+					objective.addTerm(placementVar[i][j], opCost/opBest);				// Operational cost
+					objective.addTerm(placementVar[i][j], pwCost/pwBest);				// Power cost
+					objective.addTerm(placementVar[i][j], prCost/prBest);				// Processing cost
 				}
 			}
 			
@@ -119,9 +121,9 @@ public class LinearProgramming extends Algorithm {
 						double txOpCost = Config.OP_W*(getfBwPrice()[j]*bwNeeded);
 						
 						// Transmission cost + transmission operational cost + transition cost
-						objective.addTerm(routingVar[i][j][z], latencyCost/ltBest);
-						objective.addTerm(routingVar[i][j][z], bandwidthCost/bwBest);
-						objective.addTerm(routingVar[i][j][z], txOpCost/opBest);
+						objective.addTerm(routingVar[i][j][z], latencyCost/ltBest);		// Latency cost
+						objective.addTerm(routingVar[i][j][z], bandwidthCost/bwBest);	// Bandwidth cost
+						objective.addTerm(routingVar[i][j][z], txOpCost/opBest);		// Operational cost
 					}
 				}
 			}

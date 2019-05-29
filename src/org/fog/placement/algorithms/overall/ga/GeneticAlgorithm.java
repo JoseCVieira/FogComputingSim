@@ -15,10 +15,10 @@ import org.fog.placement.algorithms.overall.Job;
 import org.fog.placement.algorithms.overall.util.AlgorithmUtils;
 
 public class GeneticAlgorithm extends Algorithm {
-	private static final int FITTEST = (int)((10*Config.POPULATION_SIZE)/100);  // 10% of fittest population
+	private static final int FITTEST = (int)((10*Config.POPULATION_SIZE_GA)/100);  // 10% of fittest population
 	
 	private Job bestSolution = null;
-	private double bestCost = Constants.MIN_SOLUTION;
+	private double bestCost = Constants.REFERENCE_COST;
 	private int iteration = 0;
 	
 	public GeneticAlgorithm(final List<FogDevice> fogDevices, final List<Application> applications,
@@ -28,17 +28,17 @@ public class GeneticAlgorithm extends Algorithm {
 	
 	@Override
 	public Job execute() {
-		Individual[] population = new Individual[Config.POPULATION_SIZE];
+		Individual[] population = new Individual[Config.POPULATION_SIZE_GA];
 		
 		int convergenceIter = 0;
 		int generation = 1;
 		
 		long start = System.currentTimeMillis();
 		
-	    for (int i = 0; i < Config.POPULATION_SIZE; i++)
+	    for (int i = 0; i < Config.POPULATION_SIZE_GA; i++)
 	    	population[i] = new Individual(this, new Job(Job.generateRandomPlacement(this, NR_NODES, NR_MODULES)));
 	    
-	    while (generation <= Config.MAX_ITER) {
+	    while (generation <= Config.MAX_ITER_PLACEMENT_GA) {
 	    	population = GARouting(population);
 	    	
 	    	Arrays.sort(population);
@@ -46,8 +46,8 @@ public class GeneticAlgorithm extends Algorithm {
 	    	double iterBest = population[0].getFitness();
 			
     		if(Math.abs(bestCost - iterBest) <= Config.CONVERGENCE_ERROR) {
-				if(++convergenceIter == Config.MAX_ITER_PLACEMENT_CONVERGENCE)
-					generation = Config.MAX_ITER + 1;
+				if(++convergenceIter == Config.MAX_ITER_PLACEMENT_CONVERGENCE_GA)
+					generation = Config.MAX_ITER_PLACEMENT_GA + 1;
 			}else
     			convergenceIter = 0;
     		
@@ -61,25 +61,23 @@ public class GeneticAlgorithm extends Algorithm {
     				System.out.println("iteration: " + iteration + " value: " + bestCost);
     		}
     		
-    		if(generation > Config.MAX_ITER) {
-    			continue;
-    		}
+    		if(generation > Config.MAX_ITER_PLACEMENT_GA) break;
 	  
 	        // otherwise generate new offsprings for new generation
-	        Individual[] newGeneration = new Individual[Config.POPULATION_SIZE];
+	        Individual[] newGeneration = new Individual[Config.POPULATION_SIZE_GA];
 	        
 	        for(int i = 0; i < FITTEST; i++) {
 	        	newGeneration[i] = new Individual(this, new Job(population[i].getChromosome().getModulePlacementMap()));
 	        }
 	        
 	        // from 50% of fittest population, Individuals will mate to produce offspring
-	        for(int i = FITTEST; i < Config.POPULATION_SIZE; i++) {
-	        	int r1 = new Random().nextInt((int) (Config.POPULATION_SIZE*0.5));
-	        	int r2 = new Random().nextInt((int) (Config.POPULATION_SIZE*0.5));
+	        for(int i = FITTEST; i < Config.POPULATION_SIZE_GA; i++) {
+	        	int r1 = new Random().nextInt((int) (Config.POPULATION_SIZE_GA*0.5));
+	        	int r2 = new Random().nextInt((int) (Config.POPULATION_SIZE_GA*0.5));
 	        	newGeneration[i] = new Individual(this, new Job(population[r1].matePlacement(population[r2])));
 	        }
 	        
-	        for(int i = 0; i < Config.POPULATION_SIZE; i++) 
+	        for(int i = 0; i < Config.POPULATION_SIZE_GA; i++) 
 	        	population[i] = newGeneration[i];
 	        
 	        generation++;
@@ -96,27 +94,27 @@ public class GeneticAlgorithm extends Algorithm {
 	
 	public Individual[] GARouting(Individual[] population) {
 		
-		for (int i = 0; i < Config.POPULATION_SIZE; i++) {
+		for (int i = 0; i < Config.POPULATION_SIZE_GA; i++) {
 			int[][] modulePlacementMap = population[i].getChromosome().getModulePlacementMap();
-			Individual[] populationR = new Individual[Config.POPULATION_SIZE];
+			Individual[] populationR = new Individual[Config.POPULATION_SIZE_GA];
 			
-			for (int j = 0; j < Config.POPULATION_SIZE; j++) {
+			for (int j = 0; j < Config.POPULATION_SIZE_GA; j++) {
 				int[][] routingMap = Job.generateRandomRouting(this, modulePlacementMap, NR_NODES);
 				populationR[j] = new Individual(this, new Job(this, modulePlacementMap, routingMap));
 			}
 			
 			int generation = 1;
-			double bestValue = Constants.MIN_SOLUTION;
+			double bestValue = Constants.REFERENCE_COST;
 			int convergenceIter = 0;
 			
-			while (generation <= Config.MAX_ITER) {
+			while (generation <= Config.MAX_ITER_ROUTING_GA) {
 	    		Arrays.sort(populationR);
 	    		
 	    		double iterBest = populationR[0].getFitness();
     			
 	    		if(Math.abs(bestValue - iterBest) <= Constants.EPSILON) {
-    				if(++convergenceIter == Config.MAX_ITER_ROUTING_CONVERGENCE) {
-    					generation = Config.MAX_ITER + 1;
+    				if(++convergenceIter == Config.MAX_ITER_ROUTING_CONVERGENCE_GA) {
+    					generation = Config.MAX_ITER_PLACEMENT_GA + 1;
     				}
     			}else
 	    			convergenceIter = 0;
@@ -125,22 +123,20 @@ public class GeneticAlgorithm extends Algorithm {
     				bestValue = iterBest;
 	    		}
 	    		
-	    		if(generation > Config.MAX_ITER) {
-	    			continue;
-	    		}
+	    		if(generation > Config.MAX_ITER_PLACEMENT_GA) break;
 	    		
-		        Individual[] newGeneration = new Individual[Config.POPULATION_SIZE];
+		        Individual[] newGeneration = new Individual[Config.POPULATION_SIZE_GA];
 		        
 		        for(int z = 0; z < FITTEST; z++)
 		        	newGeneration[z] = populationR[z];
 		        
-		        for(int z = FITTEST; z < Config.POPULATION_SIZE; z++) {
-		        	int r1 = new Random().nextInt((int) (Config.POPULATION_SIZE*0.5));
-		        	int r2 = new Random().nextInt((int) (Config.POPULATION_SIZE*0.5));
+		        for(int z = FITTEST; z < Config.POPULATION_SIZE_GA; z++) {
+		        	int r1 = new Random().nextInt((int) (Config.POPULATION_SIZE_GA*0.5));
+		        	int r2 = new Random().nextInt((int) (Config.POPULATION_SIZE_GA*0.5));
 		        	newGeneration[z] = populationR[r1].mateRouting(populationR[r2]);
 		        }
 		        
-		        for(int z = 0; z < Config.POPULATION_SIZE; z++) 
+		        for(int z = 0; z < Config.POPULATION_SIZE_GA; z++) 
 		        	populationR[z] = newGeneration[z];
 		        
 		        iteration++;

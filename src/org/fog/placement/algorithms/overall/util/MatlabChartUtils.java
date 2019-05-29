@@ -64,7 +64,7 @@ public class MatlabChartUtils extends JFrame implements ChartMouseListener {
 		for(Integer iter : valueIterMap.keySet()) {			
 			double value = valueIterMap.get(iter);
 			
-			if(value >= Constants.MIN_SOLUTION)
+			if(value >= Constants.REFERENCE_COST)
 				continue;
 			
 			series.add((double) iter, value);

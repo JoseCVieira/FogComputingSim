@@ -15,7 +15,7 @@ import org.fog.placement.algorithms.overall.util.AlgorithmUtils;
 
 public class BruteForce extends Algorithm {	
 	private Job bestSolution = null;
-	private double bestCost = Constants.MIN_SOLUTION;
+	private double bestCost = Constants.REFERENCE_COST;
 	private int iteration = 0;
 	
 	public BruteForce(final List<FogDevice> fogDevices, final List<Application> applications,

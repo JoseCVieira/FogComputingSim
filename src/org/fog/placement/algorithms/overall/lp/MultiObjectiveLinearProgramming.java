@@ -81,9 +81,9 @@ public class MultiObjectiveLinearProgramming extends Algorithm {
 					double pw = (getfBusyPw()[i]-getfIdlePw()[i])*(getmMips()[j]/getfMips()[i]);
 					double pr = getmMips()[j]/getfMips()[i];
 					
-					opObjective = cplex.sum(opObjective, cplex.prod(placementVar[i][j], op));
-					pwObjective = cplex.sum(pwObjective, cplex.prod(placementVar[i][j], pw));
-					prObjective = cplex.sum(prObjective, cplex.prod(placementVar[i][j], pr));					
+					opObjective = cplex.sum(opObjective, cplex.prod(placementVar[i][j], op));		// Operational cost
+					pwObjective = cplex.sum(pwObjective, cplex.prod(placementVar[i][j], pw));		// Power cost
+					prObjective = cplex.sum(prObjective, cplex.prod(placementVar[i][j], pr));		// Processing cost	
 				}
 			}
 			
@@ -97,9 +97,9 @@ public class MultiObjectiveLinearProgramming extends Algorithm {
 						double bw = bwNeeded/(getfBandwidthMap()[j][z] + Constants.EPSILON)*hollowMatrix[j][z];
 						double op = getfBwPrice()[j]*bwNeeded;
 						
-						ltObjective = cplex.sum(ltObjective, cplex.prod(routingVar[i][j][z], lt));
-						bwObjective = cplex.sum(bwObjective, cplex.prod(routingVar[i][j][z], bw));
-						opObjective = cplex.sum(opObjective, cplex.prod(routingVar[i][j][z], op));
+						ltObjective = cplex.sum(ltObjective, cplex.prod(routingVar[i][j][z], lt));	// Latency cost
+						bwObjective = cplex.sum(bwObjective, cplex.prod(routingVar[i][j][z], bw));	// Bandwidth cost
+						opObjective = cplex.sum(opObjective, cplex.prod(routingVar[i][j][z], op));	// Operational cost
 					}
 				}
 			}

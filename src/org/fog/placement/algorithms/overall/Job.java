@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Random;
 
 import org.fog.core.Constants;
-import org.fog.placement.algorithms.overall.util.AlgorithmUtils;
 import org.fog.placement.algorithms.routing.DijkstraAlgorithm;
 import org.fog.placement.algorithms.routing.Edge;
 import org.fog.placement.algorithms.routing.Graph;
@@ -18,11 +17,13 @@ public class Job implements Comparable<Job> {
 	private int[][] modulePlacementMap;
 	private int[][] routingMap;
 	private double cost;
+	private boolean isValid;
 	
 	public Job(Job anotherJob) {
 		this.modulePlacementMap = Util.copy(anotherJob.getModulePlacementMap());
 		this.routingMap = Util.copy(anotherJob.getRoutingMap());
 		this.cost = anotherJob.getCost();
+		this.setValid(anotherJob.isValid());
 	}
 	
 	public Job(int[][] modulePlacementMap) {
@@ -38,7 +39,7 @@ public class Job implements Comparable<Job> {
 	public Job(Algorithm algorithm, int[][] modulePlacementMap, int[][] routingMap) {
 		this.modulePlacementMap = modulePlacementMap;
 		this.routingMap = routingMap;
-		this.cost = CostFunction.computeCost(this, algorithm);
+		CostFunction.computeCost(this, algorithm);
 	}
 	
 	public Job(Algorithm algorithm, int[][] modulePlacementMap, int[][][] routingVectorMap) {
@@ -93,14 +94,9 @@ public class Job implements Comparable<Job> {
 			}
 		}
 		
-		for(int i = 0; i < nrNodes; i++) {
-			System.out.println(algorithm.getfName()[i]);
-		}
-		AlgorithmUtils.print("FINAL", routingMap);
-		
 		this.modulePlacementMap = modulePlacementMap;
 		this.routingMap = routingMap;
-		this.cost = CostFunction.computeCost(this, algorithm);
+		CostFunction.computeCost(this, algorithm);
 	}
 	
 	public static Job generateRandomJob(Algorithm algorithm, int nrFogNodes, int nrModules) {
@@ -195,6 +191,18 @@ public class Job implements Comparable<Job> {
 	
 	public double getCost() {
 		return cost;
+	}
+	
+	public void setCost(double cost) {
+		this.cost = cost;
+	}
+	
+	public boolean isValid() {
+		return isValid;
+	}
+
+	public void setValid(boolean isValid) {
+		this.isValid = isValid;
 	}
 	
 	public static int findModulePlacement(int[][] chromosome, int colomn) {

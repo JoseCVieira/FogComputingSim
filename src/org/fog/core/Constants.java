@@ -3,8 +3,7 @@ package org.fog.core;
 public class Constants {
 	public static final double INF = Double.MAX_VALUE;
 	public static final double EPSILON = 1E-9;
-	
-	public static final double MIN_SOLUTION = Short.MAX_VALUE;
+	public static final double REFERENCE_COST = Integer.MAX_VALUE;
 	
 	public static final String FOG_TYPE = "FOG_DEVICE";
 	public static final String SENSOR_TYPE = "SENSOR";
