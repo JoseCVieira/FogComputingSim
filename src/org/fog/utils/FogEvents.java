@@ -11,9 +11,9 @@ public class FogEvents {
 	public static final int CALCULATE_INPUT_RATE = BASE + 7;
 	public static final int CALCULATE_UTIL = BASE + 8;
 	public static final int UPDATE_RESOURCE_USAGE = BASE + 9;
-	public static final int TUPLE_FINISHED = BASE + 10;
+	//public static final int TUPLE_FINISHED = BASE + 10;
 	//public static final int ACTIVE_APP_UPDATE = BASE + 11;
-	public static final int CONTROLLER_RESOURCE_MANAGE = BASE + 12;
+	//public static final int CONTROLLER_RESOURCE_MANAGE = BASE + 12;
 	public static final int ADAPTIVE_OPERATOR_REPLACEMENT = BASE + 13;
 	public static final int GET_RESOURCE_USAGE = BASE + 14;
 	public static final int RESOURCE_USAGE = BASE + 15;

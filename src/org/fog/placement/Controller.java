@@ -61,8 +61,7 @@ public class Controller extends SimEntity{
 			else
 				send(getId(), getAppLaunchDelays().get(appId), FogEvents.APP_SUBMIT, applications.get(appId));
 		}
-
-		send(getId(), Constants.RESOURCE_MANAGE_INTERVAL, FogEvents.CONTROLLER_RESOURCE_MANAGE);
+		
 		send(getId(), Constants.MAX_SIMULATION_TIME, FogEvents.STOP_SIMULATION);
 		
 		for(FogDevice dev : getFogDevices()) {
@@ -76,12 +75,6 @@ public class Controller extends SimEntity{
 		switch(ev.getTag()){
 		case FogEvents.APP_SUBMIT:
 			processAppSubmit(ev);
-			break;
-		case FogEvents.TUPLE_FINISHED:
-			processTupleFinished(ev);
-			break;
-		case FogEvents.CONTROLLER_RESOURCE_MANAGE:
-			manageResources();
 			break;
 		case FogEvents.STOP_SIMULATION:
 			CloudSim.stopSimulation();
@@ -107,13 +100,6 @@ public class Controller extends SimEntity{
 			}
 		}
 		return null;
-	}
-
-	protected void manageResources(){
-		send(getId(), Constants.RESOURCE_MANAGE_INTERVAL, FogEvents.CONTROLLER_RESOURCE_MANAGE);
-	}
-	
-	private void processTupleFinished(SimEvent ev) {
 	}
 	
 	@Override

@@ -54,7 +54,7 @@ public class Application {
 	 * @param moduleName
 	 * @param ram
 	 */
-	public void addAppModule(String moduleName, int ram, boolean clientModule, boolean glogbalModule){
+	public void addAppModule(String moduleName, int ram, boolean clientModule, boolean glogbalModule) {
 		int mips = 0;
 		long size = 10000;
 		long bw = 0;
@@ -70,7 +70,7 @@ public class Application {
 		getModules().add(module);
 	}
 	
-	public void addAppModule(AppModule m, int fogId){
+	public void addAppModule(AppModule m, int fogId) {
 		AppModule module = null;
 		
 		if(m.isClientModule() && m.isGlobalModule())
@@ -100,15 +100,14 @@ public class Application {
 	 * @param direction
 	 * @param edgeType
 	 */
-	public void addAppEdge(String source, String destination, double tupleCpuLength, 
-			double tupleNwLength, String tupleType, int edgeType){
+	public void addAppEdge(String source, String destination, double tupleCpuLength, double tupleNwLength, String tupleType, int edgeType) {
 		AppEdge edge = new AppEdge(source, destination, tupleCpuLength, tupleNwLength,
 				tupleType, edgeType);
 		getEdges().add(edge);
 		getEdgeMap().put(edge.getTupleType(), edge);
 	}
 	
-	public void addAppEdge(AppEdge e, List<AppModule> globalModules, int fogId){
+	public void addAppEdge(AppEdge e, List<AppModule> globalModules, int fogId) {
 		String source = e.getSource() + "_" + fogId;
 		String destination = e.getDestination() + "_" + fogId;
 		
@@ -171,13 +170,13 @@ public class Application {
 	 * @param outputTupleType Type of tuples carried by the output edge
 	 * @param selectivityModel Selectivity model governing the relation between the incoming and outgoing edge
 	 */
-	public void addTupleMapping(String moduleName, String inputTupleType, String outputTupleType, SelectivityModel selectivityModel){
+	public void addTupleMapping(String moduleName, String inputTupleType, String outputTupleType, SelectivityModel selectivityModel) {
 		AppModule module = getModuleByName(moduleName);
 		module.getSelectivityMap().put(new Pair<String, String>(inputTupleType, outputTupleType),
 				selectivityModel);
 	}
 	
-	public void addTupleMapping(String moduleName, Pair<String, String> pair, double value, int fogId){
+	public void addTupleMapping(String moduleName, Pair<String, String> pair, double value, int fogId) {
 		AppModule module = getModuleByName(moduleName);
 		
 		// If it is not a global module
@@ -197,7 +196,7 @@ public class Application {
 	 * @param srcModule
 	 * @return
 	 */
-	public List<AppEdge> getPeriodicEdges(String srcModule){
+	public List<AppEdge> getPeriodicEdges(String srcModule) {
 		List<AppEdge> result = new ArrayList<AppEdge>();
 		for(AppEdge edge : edges){
 			if(edge.isPeriodic() && edge.getSource().equals(srcModule))
@@ -211,8 +210,8 @@ public class Application {
 	 * @param name the module name to be returned
 	 * @return
 	 */
-	public AppModule getModuleByName(String name){
-		for(AppModule module : modules){
+	public AppModule getModuleByName(String name) {
+		for(AppModule module : modules) {
 			if(module.getName().equals(name))
 				return module;
 		}
@@ -265,7 +264,7 @@ public class Application {
 	 * @param sourceDeviceId
 	 * @return
 	 */
-	public Tuple createTuple(AppEdge edge, int sourceModuleId, int fogId){
+	public Tuple createTuple(AppEdge edge, int sourceModuleId, int fogId) {
 		Tuple tuple = new Tuple(appId, FogUtils.generateTupleId(), (long) (edge.getTupleCpuLength()),
 				1, (long) (edge.getTupleNwLength()), 100, new UtilizationModelFull(), new UtilizationModelFull(), 
 				new UtilizationModelFull());
