@@ -8,6 +8,9 @@ import org.fog.core.FogTest;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
+import org.fog.utils.Location;
+import org.fog.utils.Movement;
+import org.fog.utils.Util;
 import org.fog.utils.distribution.Distribution;
 import org.fog.utils.distribution.NormalDistribution;
 
@@ -23,12 +26,17 @@ public class TEMPFog extends FogTest {
 	
 	@Override
 	protected void createFogDevices() {
-		FogDevice cloud = createFogDevice("cloud", 100000, 10240, 1000000, 1000, 16*103, 16*83.25, 10, 0.05, 0.001, 0.0);
+		Movement movement = new Movement(0.0, Movement.EAST, new Location(0, 0));
+		FogDevice cloud = createFogDevice("cloud", 100000, 10240, 1000000, 1000, 16*103, 16*83.25, 10, 0.05, 0.001, 0.0, movement);
 		
 		fogDevices.add(cloud);
 		
 		for(int i = 0; i < numOfRouters; i++){
-			FogDevice dept = createFogDevice("d-"+i, 1000, 1024, 1000000, 1000, 107.339, 83.4333, 0.0, 0.05, 0.001, 0.0);
+			double posx = Util.rand(-500, 500);
+			double posy = Util.rand(250, 500);
+			
+			movement = new Movement(0.0, Movement.EAST, new Location(posx, posy));
+			FogDevice dept = createFogDevice("d-"+i, 1000, 1024, 1000000, 1000, 107.339, 83.4333, 0.0, 0.05, 0.001, 0.0, movement);
 			
 			fogDevices.add(dept);
 			
@@ -36,7 +44,12 @@ public class TEMPFog extends FogTest {
 			
 			
 			for(int j = 0; j < numOfMobilesPerRouter; j++){
-				FogDevice mobile = createFogDevice("m-"+i+"-"+j, 1000, 1024, 1000000, 1000, 87.53, 82.44, 0.0, 0.05, 0.001, 0.0);
+				posx = Util.rand(-500, 500);
+				posy = Util.rand(400, 600);
+				int direction = Util.rand(Movement.EAST, Movement.SOUTHEAST);
+				
+				movement = new Movement(1.0, direction, new Location(posx, posy));
+				FogDevice mobile = createFogDevice("m-"+i+"-"+j, 1000, 1024, 1000000, 1000, 87.53, 82.44, 0.0, 0.05, 0.001, 0.0, movement);
 				
 				fogDevices.add(mobile);
 				

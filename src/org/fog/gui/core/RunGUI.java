@@ -27,6 +27,8 @@ import org.fog.entities.Tuple;
 import org.fog.policy.AppModuleAllocationPolicy;
 import org.fog.utils.FogLinearPowerModel;
 import org.fog.utils.FogUtils;
+import org.fog.utils.Location;
+import org.fog.utils.Movement;
 
 public class RunGUI extends FogTest {
 	private final Graph graph;
@@ -104,8 +106,9 @@ public class RunGUI extends FogTest {
 				fog.getCostPerSec(), fog.getRateMips(), fog.getRateRam(), fog.getRateStorage(), fog.getRateBw());
 		
 		try {
+			Movement movement = new Movement(0.0, Movement.EAST, new Location(0, 0));
 			return new FogDevice(fog.getName(), characteristics, new AppModuleAllocationPolicy(hostList),
-					new LinkedList<Storage>(), Constants.SCHEDULING_INTERVAL);
+					new LinkedList<Storage>(), Constants.SCHEDULING_INTERVAL, movement);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;

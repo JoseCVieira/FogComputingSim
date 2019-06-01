@@ -65,8 +65,10 @@ public class Controller extends SimEntity{
 		send(getId(), Constants.RESOURCE_MANAGE_INTERVAL, FogEvents.CONTROLLER_RESOURCE_MANAGE);
 		send(getId(), Constants.MAX_SIMULATION_TIME, FogEvents.STOP_SIMULATION);
 		
-		for(FogDevice dev : getFogDevices())
+		for(FogDevice dev : getFogDevices()) {
 			sendNow(dev.getId(), FogEvents.RESOURCE_MGMT);
+			sendNow(dev.getId(), FogEvents.UPDATE_PERIODIC_MOVEMENT);
+		}
 	}
 
 	@Override

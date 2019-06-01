@@ -64,7 +64,7 @@ public class FogComputingSim {
 	private static Controller controller;
 	private static Map<String, LinkedHashSet<String>> appToFogMap;
 	
-	public static boolean isDisplayingPlot = false;
+	public static boolean isDisplayingPlot = false; // Used when displaying a plot to wait until user presses the ENTER key to terminate
 	
 	public static void main(String[] args) {
 		if(Config.DEBUG_MODE) {
@@ -118,8 +118,7 @@ public class FogComputingSim {
 				plotResult(algorithm, "Brute Force");
 				break;
 			case MDP:
-				System.err.println("MDP is not implemented yet.\nFogComputingSim will terminate abruptally.\n");
-				System.exit(-1);
+				err("MDP is not implemented yet");
 				break;
 			case ALL:
 				System.out.println("Running the optimization algorithm: Multiobjective Linear Programming.");
@@ -140,20 +139,17 @@ public class FogComputingSim {
 				solution = algorithm.execute();
 				plotResult(algorithm, "Random Algorithm");
 				
-				/*System.out.println("Running the optimization algorithm: Brute Force.");
+				System.out.println("Running the optimization algorithm: Brute Force.");
 				algorithm = new BruteForce(fogDevices, applications, sensors, actuators);
 				solution = algorithm.execute();
-				plotResult(algorithm, "Brute Force");*/
+				plotResult(algorithm, "Brute Force");
 				break;
 			default:
-				System.err.println("Unknown algorithm.\nFogComputingSim will terminate abruptally.\n");
-				System.exit(-1);
+				err("Unknown algorithm");
 		}
 		
 		if(solution == null || solution.getModulePlacementMap() == null || solution.getRoutingMap() == null || !solution.isValid()) {
-			System.err.println("There is no possible combination to deploy all applications.\n");
-			System.err.println("FogComputingSim will terminate abruptally.\n");
-			System.exit(-1);
+			err("There is no possible combination to deploy all applications");
 		}
 		
 		deployApplications(algorithm.extractPlacementMap(solution.getModulePlacementMap()));
@@ -403,6 +399,12 @@ public class FogComputingSim {
 			if(fogDevice.getId() == id)
 				return fogDevice;
 		return null;
+	}
+	
+	public static void err (String err) {
+		System.err.println("err: [ " + err + " ]");
+		System.err.println("FogComputingSim will terminate abruptally.\n");
+		System.exit(-1);
 	}
 	
 }

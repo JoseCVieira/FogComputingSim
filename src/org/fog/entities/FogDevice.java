@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Random;
 
 import org.apache.commons.math3.util.Pair;
 import org.cloudbus.cloudsim.Cloudlet;
@@ -27,8 +28,10 @@ import org.fog.core.Config;
 import org.fog.core.Constants;
 import org.fog.utils.FogEvents;
 import org.fog.utils.Logger;
+import org.fog.utils.Movement;
 import org.fog.utils.NetworkUsageMonitor;
 import org.fog.utils.TimeKeeper;
+import org.fog.utils.Util;
 
 public class FogDevice extends PowerDatacenter {	
 	private List<Pair<Integer, Double>> associatedActuatorIds;
@@ -53,9 +56,10 @@ public class FogDevice extends PowerDatacenter {
 	private double energyConsumption;
 	private double totalCost;
 	
-	public FogDevice(String name, FogDeviceCharacteristics characteristics,
-			VmAllocationPolicy vmAllocationPolicy, List<Storage> storageList,
-			double schedulingInterval) throws Exception {
+	private Movement movement;
+	
+	public FogDevice(String name, FogDeviceCharacteristics characteristics, VmAllocationPolicy vmAllocationPolicy, List<Storage> storageList,
+			double schedulingInterval, Movement movement) throws Exception {
 		super(name, characteristics, vmAllocationPolicy, storageList, schedulingInterval);
 		
 		deployedModules = new ArrayList<String>();
@@ -74,6 +78,8 @@ public class FogDevice extends PowerDatacenter {
 		setVmList(new ArrayList<Vm>());
 		setStorageList(storageList);
 		
+		setMovement(movement);
+		
 		for (Host host : getCharacteristics().getHostList())
 			host.setDatacenter(this);
 		
@@ -83,11 +89,6 @@ public class FogDevice extends PowerDatacenter {
 		
 		// stores id of this class
 		getCharacteristics().setId(super.getId());
-		
-		setLastProcessTime(0.0);
-		lastUtilizationUpdateTime = 0;
-		setEnergyConsumption(0);
-		setTotalCost(0);
 	}
 	
 	@Override
@@ -119,6 +120,10 @@ public class FogDevice extends PowerDatacenter {
 			break;
 		case FogEvents.RESOURCE_MGMT:
 			manageResources(ev);
+			break;
+		case FogEvents.UPDATE_PERIODIC_MOVEMENT:
+			updatePeriodicMovement();
+			break;
 		default:
 			break;
 		}
@@ -557,6 +562,35 @@ public class FogDevice extends PowerDatacenter {
 		System.out.println("lastBwUtilization: " + lastBwUtilization);
 	}
 	
+	// Update position and randomly change movement characteristics except for static nodes
+	// which are characterized by 0 velocity
+	private void updatePeriodicMovement() {
+		movement.updateLocation();
+		
+		if(movement.getVelocity() != 0) {
+			Random random = new Random();
+			
+			if(random.nextDouble() < Config.PROB_CHANGE_DIRECTION)
+				movement.setDirection(random.nextInt(Movement.SOUTHEAST + 1));
+			
+			if(random.nextDouble() < Config.PROB_CHANGE_VELOCITY) {
+				double value = random.nextDouble();
+				
+				if(value < Config.PROB_MIN_VELOCITY) {
+					movement.setVelocity(Math.abs(Util.normalRand(Config.MIN_VELOCITY, 1)));
+				}else if(value >= Config.PROB_MIN_VELOCITY && value <= Config.PROB_MED_VELOCITY + Config.PROB_MIN_VELOCITY) {
+					movement.setVelocity(Math.abs(Util.normalRand(Config.MED_VELOCITY, 1)));
+				}else {
+					movement.setVelocity(Math.abs(Util.normalRand(Config.MAX_VELOCITY, 1)));
+				}
+			}
+		}
+		
+		send(getId(), 1, FogEvents.UPDATE_PERIODIC_MOVEMENT);
+		
+		System.out.println(this + "\n\n");
+	}
+	
 	public PowerHost getHost(){
 		return (PowerHost) getHostList().get(0);
 	}
@@ -641,19 +675,21 @@ public class FogDevice extends PowerDatacenter {
 		this.tupleLinkBusy = tupleLinkBusy;
 	}
 	
+	public Movement getMovement() {
+		return movement;
+	}
+
+	public void setMovement(Movement movement) {
+		this.movement = movement;
+	}
+
 	@Override
 	public String toString() {
-		String str = "";
-		
-		str = "\nID: " + getId() + " Name: " + getName() + "\n"+
-		"NeighborsIds: " + neighborsIds + "\n"+
-		"MIPS: " + getHost().getTotalMips() + "\n"+
-		"RAM: " + getHost().getRam() + "\n"+
-		"MEM: " + getHost().getStorage() + "\n"+
-		"BW: " + getHost().getBw() + "\n"+
-		"bandwidthMap: " + bandwidthMap + "\n"+
-		"LatencyMap: " + latencyMap + "\n\n";
-		return str;
+		return "FogDevice [\nName=" + getName() + "\nId=" + getId() + "\ndeployedModules=" + deployedModules
+				+ "\nneighborsIds=" + neighborsIds + "\nlatencyMap=" + latencyMap + "\nbandwidthMap=" + bandwidthMap
+				+ "\nroutingTable=" + routingTable + "\nmovement=" + movement + "\nassociatedActuatorIds=" + associatedActuatorIds
+				+ "\nMIPS=" + getHost().getTotalMips() + "\nRAM=" + getHost().getRam() + "\nMEM=" + getHost().getStorage()
+				+ "\nBW=" + getHost().getBw() + "]";
 	}
 	
 }

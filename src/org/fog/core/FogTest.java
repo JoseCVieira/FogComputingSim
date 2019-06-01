@@ -31,6 +31,7 @@ import org.fog.placement.Controller;
 import org.fog.policy.AppModuleAllocationPolicy;
 import org.fog.utils.FogLinearPowerModel;
 import org.fog.utils.FogUtils;
+import org.fog.utils.Movement;
 
 public abstract class FogTest {
 	protected static List<Application> exampleApplications = new ArrayList<Application>();
@@ -56,8 +57,8 @@ public abstract class FogTest {
 		deployApplications();
 	}
 	
-	protected static FogDevice createFogDevice(String name, double mips, int ram, long strg, long bw, double bPw,
-			double iPw, double costPerMips, double costPerMem, double costPerStorage, double costPerBw) {
+	protected static FogDevice createFogDevice(String name, double mips, int ram, long strg, long bw, double bPw, double iPw, double costPerMips,
+			double costPerMem, double costPerStorage, double costPerBw, Movement movement) {
 		List<Pe> processingElementsList = new ArrayList<Pe>();
 		processingElementsList.add(new Pe(0, new PeProvisioner(mips)));
 
@@ -80,7 +81,7 @@ public abstract class FogTest {
 		
 		try {
 			return new FogDevice(name, characteristics, new AppModuleAllocationPolicy(hostList),
-					new LinkedList<Storage>(), Constants.SCHEDULING_INTERVAL);
+					new LinkedList<Storage>(), Constants.SCHEDULING_INTERVAL, movement);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
@@ -127,11 +128,8 @@ public abstract class FogTest {
 				}
 				
 				// Terminate if there are repeated either modules or edges with repeated names
-				if(!isValid(appToDeploy, fogDevice)) {
-					System.err.println("It is mandatory that both applications' modules and edges running inside each client to have unique names.\n");
-					System.err.println("FogComputingSim will terminate abruptally.\n");
-					System.exit(-1);
-				}
+				if(!isValid(appToDeploy, fogDevice))
+					FogComputingSim.err("It is mandatory that both applications' modules and edges running inside each client to have unique names");
 				
 				for(AppModule appModule : appToDeploy.getModules()) {
 					

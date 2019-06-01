@@ -89,9 +89,14 @@ public class Util {
 	 * @return: random number
 	 */
 	public static int rand(int min, int max) {
-        Random r = new java.util.Random();
+        Random r = new Random();
         return min + r.nextInt(max - min + 1);
     }
+	
+	public static double rand(double min, double max) {
+		Random r = new Random();
+		return min + (max - min) * r.nextDouble();
+	}
 	
 	public static double normalRand(double mean, double dev) {
 		Random r = new Random();

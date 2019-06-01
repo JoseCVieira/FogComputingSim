@@ -10,6 +10,7 @@ import org.cloudbus.cloudsim.CloudletSchedulerTimeShared;
 import org.cloudbus.cloudsim.UtilizationModelFull;
 import org.fog.application.selectivity.FractionalSelectivity;
 import org.fog.application.selectivity.SelectivityModel;
+import org.fog.core.FogComputingSim;
 import org.fog.entities.Tuple;
 import org.fog.gui.core.ApplicationGui;
 import org.fog.utils.FogUtils;
@@ -59,10 +60,8 @@ public class Application {
 		long bw = 0;
 		String vmm = "Xen";
 		
-		if(clientModule && glogbalModule) {
-			System.err.println("Modules cannot be simultaneously client module and global module.");
-			System.exit(0);
-		}
+		if(clientModule && glogbalModule)
+			FogComputingSim.err("Modules cannot be simultaneously client module and global module");
 			
 		AppModule module = new AppModule(FogUtils.generateEntityId(), moduleName, appId, -1, 
 			mips, ram, bw, size, vmm, new CloudletSchedulerTimeShared(), new HashMap<Pair<String, String>, SelectivityModel>(),
@@ -74,10 +73,8 @@ public class Application {
 	public void addAppModule(AppModule m, int fogId){
 		AppModule module = null;
 		
-		if(m.isClientModule() && m.isGlobalModule()) {
-			System.err.println("Modules cannot be simultaneously client module and global module.");
-			System.exit(0);
-		}
+		if(m.isClientModule() && m.isGlobalModule())
+			FogComputingSim.err("Modules cannot be simultaneously client module and global module");
 		
 		if(m.isGlobalModule()) {
 			module = new AppModule(FogUtils.generateEntityId(), m.getName(), appId, fogId, 

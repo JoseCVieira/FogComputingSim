@@ -16,6 +16,8 @@ import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.entities.Tuple;
 import org.fog.gui.GuiConfig;
+import org.fog.utils.Location;
+import org.fog.utils.Movement;
 import org.fog.utils.Util;
 import org.fog.utils.distribution.DeterministicDistribution;
 import org.fog.utils.distribution.Distribution;
@@ -40,9 +42,10 @@ public class RandomTopology extends FogTest {
 	
 	@Override
 	protected void createFogDevices() {
+		Movement movement = new Movement(0.0, Movement.EAST, new Location(0, 0));
 		FogDevice cloud = createFogDevice(CLOUD_NAME, Double.MAX_VALUE, (int) Constants.INF, (int) Constants.INF, (int) Constants.INF,
 				16*GuiConfig.BUSY_POWER, 16*GuiConfig.IDLE_POWER, GuiConfig.RATE_MIPS, GuiConfig.RATE_RAM,
-				GuiConfig.RATE_MEM, GuiConfig.RATE_BW);
+				GuiConfig.RATE_MEM, GuiConfig.RATE_BW, movement);
 		
 		fogDevices.add(cloud);
 		
@@ -67,8 +70,12 @@ public class RandomTopology extends FogTest {
 				double rateStrg = Util.normalRand(GuiConfig.RATE_MEM, COST_DEV);
 				double rateBw = Util.normalRand(GuiConfig.RATE_BW, COST_DEV);
 				
+				double posx = Util.rand(-500, 500);
+				double posy = Util.rand(250, 500);
+				
+				movement = new Movement(0.0, Movement.EAST, new Location(posx, posy));
 				FogDevice fogDevice = createFogDevice("L"+iter+":F"+i, mips, (int) ram, (long) strg, (long) bw, bPw, iPw,
-						rateMips, rateRam, rateStrg, rateBw);
+						rateMips, rateRam, rateStrg, rateBw, movement);
 				
 				fogDevices.add(fogDevice);			
 			}

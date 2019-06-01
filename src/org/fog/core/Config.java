@@ -1,17 +1,6 @@
 package org.fog.core;
 
-public class Config {
-	// -------------------------------------------------------------- General --------------------------------------------------------------
-	
-	// Algorithms
-	public static final boolean PRINT_DETAILS = true;
-	public static final boolean PRINT_BEST_ITER = true;
-	
-	// Simulation
-	public static final boolean DEBUG_MODE = false;
-	public static final boolean PRINT_COMMUNICATION_DETAILS = false;
-	public static final boolean PRINT_COST_DETAILS = false;
-	
+public class Config {	
 	// --------------------------------------- Configuration parameters for the optimization problem ---------------------------------------
 	
 	// Type
@@ -50,4 +39,24 @@ public class Config {
 	
 	// Random algorithm
 	public static final int MAX_ITER_RANDOM = 5000;
+	
+	// -------------------------------------------------------------- General --------------------------------------------------------------
+	
+		// Algorithms
+		public static final boolean PRINT_DETAILS = true;
+		public static final boolean PRINT_BEST_ITER = true;
+		
+		// Simulation
+		public static final boolean DEBUG_MODE = false;
+		public static final boolean PRINT_COMMUNICATION_DETAILS = false;
+		public static final boolean PRINT_COST_DETAILS = false;
+		
+		public static final double PROB_CHANGE_DIRECTION = 0.25;
+		public static final double PROB_CHANGE_VELOCITY = 0.35;
+		public static final double PROB_MAX_VELOCITY = 0.1667;
+		public static final double PROB_MED_VELOCITY = 0.6667;
+		public static final double PROB_MIN_VELOCITY = 0.1667;
+		public static final double MAX_VELOCITY = 25;
+		public static final double MED_VELOCITY = 5;
+		public static final double MIN_VELOCITY = 0;	
 }
