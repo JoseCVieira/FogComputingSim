@@ -8,6 +8,12 @@ public class Location {
 		this.setX(x);
 		this.setY(y);
 	}
+	
+	public static double computeDistance(Location l1, Location l2) {
+		double first = Math.pow(l1.getX() - l2.getX(), 2);
+		double second = Math.pow(l1.getY() - l2.getY(), 2);
+		return Math.sqrt(first + second);
+	}
 
 	public double getX() {
 		return x;

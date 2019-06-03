@@ -93,16 +93,12 @@ public class Sensor extends SimEntity{
 	
 	@Override
 	public void startEntity() {
-		send(gatewayDeviceId, CloudSim.getMinTimeBetweenEvents(), FogEvents.SENSOR_JOINED, null);
 		send(getId(), getTransmitDistribution().getNextValue(), FogEvents.EMIT_TUPLE);
 	}
 
 	@Override
 	public void processEvent(SimEvent ev) {
 		switch(ev.getTag()){
-		case FogEvents.TUPLE_ACK:
-			//transmit(transmitDistribution.getNextValue());
-			break;
 		case FogEvents.EMIT_TUPLE:
 			transmit();
 			send(getId(), getTransmitDistribution().getNextValue(), FogEvents.EMIT_TUPLE);
@@ -193,13 +189,6 @@ public class Sensor extends SimEntity{
 
 	public void setLatency(Double latency) {
 		this.latency = latency;
-	}
-
-	@Override
-	public String toString() {
-		return "Sensor [gatewayDeviceId=" + gatewayDeviceId + ", appId=" + appId + ", userId=" +
-				userId + ", tupleType=" + tupleType + ", sensorName=" + sensorName + ", destModuleName=" +
-				destModuleName + ", latency=" + latency + "]";
 	}
 
 }

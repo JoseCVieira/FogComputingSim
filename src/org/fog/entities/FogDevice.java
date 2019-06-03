@@ -103,9 +103,6 @@ public class FogDevice extends PowerDatacenter {
 		case FogEvents.RELEASE_OPERATOR:
 			processOperatorRelease(ev);
 			break;
-		case FogEvents.SENSOR_JOINED:
-			processSensorJoining(ev);
-			break;
 		case FogEvents.SEND_PERIODIC_TUPLE:
 			sendPeriodicTuple(ev);
 			break;
@@ -387,8 +384,7 @@ public class FogDevice extends PowerDatacenter {
 		
 		Logger.debug(getName(), "Received tuple " + tuple.getCloudletId() + " with tupleType = " +
 				tuple.getTupleType() + " Source : " + CloudSim.getEntityName(ev.getSource())+" Dest : " +
-				CloudSim.getEntityName(ev.getDestination()));
-		send(ev.getSource(), CloudSim.getMinTimeBetweenEvents(), FogEvents.TUPLE_ACK);		
+				CloudSim.getEntityName(ev.getDestination()));	
 		
 		if(tuple.getDirection() == Tuple.ACTUATOR){
 			sendTupleToActuator(tuple);
@@ -460,10 +456,6 @@ public class FogDevice extends PowerDatacenter {
 				break;
 			}
 		}
-	}
-
-	protected void processSensorJoining(SimEvent ev){
-		send(ev.getSource(), CloudSim.getMinTimeBetweenEvents(), FogEvents.TUPLE_ACK);
 	}
 	
 	protected void executeTuple(SimEvent ev, String moduleName){

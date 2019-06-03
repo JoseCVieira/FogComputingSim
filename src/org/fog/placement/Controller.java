@@ -12,6 +12,7 @@ import org.cloudbus.cloudsim.core.SimEvent;
 import org.fog.application.AppLoop;
 import org.fog.application.AppModule;
 import org.fog.application.Application;
+import org.fog.core.Config;
 import org.fog.core.Constants;
 import org.fog.core.FogComputingSim;
 import org.fog.entities.Actuator;
@@ -22,7 +23,7 @@ import org.fog.utils.NetworkUsageMonitor;
 import org.fog.utils.TimeKeeper;
 import org.fog.utils.Util;
 
-public class Controller extends SimEntity{
+public class Controller extends SimEntity {
 	private static final int MAX_COLUMN_SIZE = 50;
 	
 	private Map<String, ModulePlacement> appModulePlacementPolicy;
@@ -63,6 +64,7 @@ public class Controller extends SimEntity{
 		}
 		
 		send(getId(), Constants.MAX_SIMULATION_TIME, FogEvents.STOP_SIMULATION);
+		sendNow(getId(), FogEvents.VERIFY_HANDOFF);
 		
 		for(FogDevice dev : getFogDevices()) {
 			sendNow(dev.getId(), FogEvents.RESOURCE_MGMT);
@@ -76,6 +78,9 @@ public class Controller extends SimEntity{
 		case FogEvents.APP_SUBMIT:
 			processAppSubmit(ev);
 			break;
+		case FogEvents.VERIFY_HANDOFF:
+			verifyHandoff();
+			break;
 		case FogEvents.STOP_SIMULATION:
 			CloudSim.stopSimulation();
 			printTimeDetails();
@@ -87,6 +92,8 @@ public class Controller extends SimEntity{
 				Util.promptEnterKey("Press \"ENTER\" to exit...");
 			
 			System.exit(0);
+			break;
+		default:
 			break;
 		}
 	}
@@ -140,6 +147,11 @@ public class Controller extends SimEntity{
 				sendNow(deviceId, FogEvents.LAUNCH_MODULE, module);
 			}
 		}
+	}
+	
+	
+	private void verifyHandoff() {
+		sendNow(getId(), Config.REARRANGE_NETWORK_PERIOD, FogEvents.VERIFY_HANDOFF);
 	}
 	
 	private void printTimeDetails() {
@@ -285,4 +297,5 @@ public class Controller extends SimEntity{
 	public void setAppModulePlacementPolicy(Map<String, ModulePlacement> appModulePlacementPolicy) {
 		this.appModulePlacementPolicy = appModulePlacementPolicy;
 	}
+	
 }
