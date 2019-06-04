@@ -22,39 +22,50 @@ public class Movement {
 		setLocation(location);
 	}
 	
-	public void updateLocation() {
+	public Location computeNextLocation() {
+		double nextX = location.getX();
+		double nextY = location.getY();
+		
 		switch (direction) {
 		case EAST:
-			location.setX(location.getX() + velocity);
+			nextX = location.getX() + velocity;
 			break;
 		case WEST:
-			location.setX(location.getX() - velocity);
+			nextX = location.getX() - velocity;
 			break;
 		case SOUTH:
-			location.setY(location.getY() + velocity);
+			nextY = location.getY() + velocity;
 			break;
 		case NORTH:
-			location.setY(location.getY() - velocity);
+			nextY = location.getY() - velocity;
 			break;
 		case SOUTHEAST:
-			location.setX(location.getX() + velocity/2);
-			location.setY(location.getY() + velocity/2);
+			nextX = location.getX() + velocity/2;
+			nextY = location.getY() + velocity/2;
 			break;
 		case NORTHWEST:
-			location.setX(location.getX() - velocity/2);
-			location.setY(location.getY() - velocity/2);
+			nextX = location.getX() - velocity/2;
+			nextY = location.getY() - velocity/2;
 			break;
 		case SOUTHWEST:
-			location.setX(location.getX() - velocity/2);
-			location.setY(location.getY() + velocity/2);
+			nextX = location.getX() - velocity/2;
+			nextY = location.getY() + velocity/2;
 			break;
 		case NORTHEAST:
-			location.setX(location.getX() + velocity/2);
-			location.setY(location.getY() - velocity/2);
+			nextX = location.getX() + velocity/2;
+			nextY = location.getY() - velocity/2;
 			break;
 		default:
 			break;
 		}
+		
+		return new Location(nextX, nextY);
+	}
+	
+	public void updateLocation() {
+		Location newLocation = computeNextLocation();
+		location.setX(newLocation.getX());
+		location.setY(newLocation.getY());
 	}
 	
 	public double getVelocity() {

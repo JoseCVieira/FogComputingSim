@@ -22,6 +22,7 @@ import org.fog.application.AppModule;
 import org.fog.application.Application;
 import org.fog.application.selectivity.FractionalSelectivity;
 import org.fog.entities.Actuator;
+import org.fog.entities.Client;
 import org.fog.entities.FogDevice;
 import org.fog.entities.FogDeviceCharacteristics;
 import org.fog.entities.Sensor;
@@ -58,7 +59,7 @@ public abstract class FogTest {
 	}
 	
 	protected static FogDevice createFogDevice(String name, double mips, int ram, long strg, long bw, double bPw, double iPw, double costPerMips,
-			double costPerMem, double costPerStorage, double costPerBw, Movement movement) {
+			double costPerMem, double costPerStorage, double costPerBw, Movement movement, boolean client) {
 		List<Pe> processingElementsList = new ArrayList<Pe>();
 		processingElementsList.add(new Pe(0, new PeProvisioner(mips)));
 
@@ -80,8 +81,12 @@ public abstract class FogTest {
 				GuiConfig.COST_PER_SEC, costPerMips, costPerMem, costPerStorage, costPerBw);
 		
 		try {
-			return new FogDevice(name, characteristics, new AppModuleAllocationPolicy(hostList),
-					new LinkedList<Storage>(), Constants.SCHEDULING_INTERVAL, movement);
+			if(!client)
+				return new FogDevice(name, characteristics, new AppModuleAllocationPolicy(hostList), new LinkedList<Storage>(),
+						Constants.SCHEDULING_INTERVAL, movement);
+			else 
+				return new Client(name, characteristics, new AppModuleAllocationPolicy(hostList), new LinkedList<Storage>(),
+						Constants.SCHEDULING_INTERVAL, movement);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;

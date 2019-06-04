@@ -16,9 +16,11 @@ import org.fog.core.Config;
 import org.fog.core.Constants;
 import org.fog.core.FogComputingSim;
 import org.fog.entities.Actuator;
+import org.fog.entities.Client;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.utils.FogEvents;
+import org.fog.utils.Location;
 import org.fog.utils.NetworkUsageMonitor;
 import org.fog.utils.TimeKeeper;
 import org.fog.utils.Util;
@@ -46,25 +48,18 @@ public class Controller extends SimEntity {
 		setActuators(actuators);
 		setSensors(sensors);
 	}
-
-	public FogDevice getFogDeviceById(int id){
-		for(FogDevice fogDevice : getFogDevices())
-			if(id==fogDevice.getId())
-				return fogDevice;
-		return null;
-	}
 	
 	@Override
 	public void startEntity() {
 		for(String appId : applications.keySet()){
-			if(getAppLaunchDelays().get(appId)==0)
+			if(getAppLaunchDelays().get(appId) == 0)
 				processAppSubmit(applications.get(appId));
 			else
 				send(getId(), getAppLaunchDelays().get(appId), FogEvents.APP_SUBMIT, applications.get(appId));
 		}
 		
 		send(getId(), Constants.MAX_SIMULATION_TIME, FogEvents.STOP_SIMULATION);
-		sendNow(getId(), FogEvents.VERIFY_HANDOFF);
+		sendNow(getId(), FogEvents.VERIFY_HANDOVER);
 		
 		for(FogDevice dev : getFogDevices()) {
 			sendNow(dev.getId(), FogEvents.RESOURCE_MGMT);
@@ -78,8 +73,8 @@ public class Controller extends SimEntity {
 		case FogEvents.APP_SUBMIT:
 			processAppSubmit(ev);
 			break;
-		case FogEvents.VERIFY_HANDOFF:
-			verifyHandoff();
+		case FogEvents.VERIFY_HANDOVER:
+			verifyHandover();
 			break;
 		case FogEvents.STOP_SIMULATION:
 			CloudSim.stopSimulation();
@@ -96,17 +91,6 @@ public class Controller extends SimEntity {
 		default:
 			break;
 		}
-	}
-
-	private String getStringForLoopId(int loopId){
-		for(String appId : getApplications().keySet()){
-			Application app = getApplications().get(appId);
-			for(AppLoop loop : app.getLoops()){
-				if(loop.getLoopId() == loopId)
-					return loop.getModules().toString();
-			}
-		}
-		return null;
 	}
 	
 	@Override
@@ -149,9 +133,75 @@ public class Controller extends SimEntity {
 		}
 	}
 	
+	// Clients always connect to the closest fog device (which offer the best received signal strength)
+	// However, similarly to what happens in mobile communications, handover has a threshold in order to avoid
+	// abuse of handover in the border areas
+	private void verifyHandover() {
+		for(FogDevice client : fogDevices) {
+			if(client instanceof Client) {
+				Client clientTmp = (Client) client;
+				
+				// Already in handover process
+				if(clientTmp.isHandoverStatus()) continue;
+					
+				FogDevice firstHop = getFogDeviceById(clientTmp.getBandwidthMap().entrySet().iterator().next().getKey());
+				
+				// Current distance
+				double distance = Location.computeDistance(clientTmp.getMovement().getLocation(), firstHop.getMovement().getLocation());
+				double bestDistance = distance;
+				FogDevice bestFogNode = firstHop;
+				
+				// Check if there is a better fog node for that client
+				for(FogDevice fogNode : fogDevices) {
+					if(!(fogNode instanceof Client)) {
+						double tmpDistance = Location.computeDistance(clientTmp.getMovement().getLocation(), fogNode.getMovement().getLocation());
+						if(bestDistance > tmpDistance) {
+							bestDistance = tmpDistance;
+							bestFogNode = fogNode;
+						}
+					}
+				}
+				
+				// If the current distance is better than the old one, than change its connection
+				if(distance > bestDistance + Config.HANDOFF_THRESHOLD) {
+					for(String appId : applications.keySet()) {
+						Application application = applications.get(appId);
+						
+						for(AppModule module : application.getModules()) {
+							if(module.isClientModule()) {
+								String[] parts = module.getName().split("_");
+								int nodeId = Integer.parseInt(parts[parts.length-1]);
+								
+								if(nodeId == client.getId()) {
+									// TODO to implement
+								}
+							}
+						}
+					}
+					clientTmp.setHandoverStatus(true);
+				}
+			}
+		}
+		
+		sendNow(getId(), Config.REARRANGE_NETWORK_PERIOD, FogEvents.VERIFY_HANDOVER);
+	}
 	
-	private void verifyHandoff() {
-		sendNow(getId(), Config.REARRANGE_NETWORK_PERIOD, FogEvents.VERIFY_HANDOFF);
+	private String getStringForLoopId(int loopId){
+		for(String appId : getApplications().keySet()){
+			Application app = getApplications().get(appId);
+			for(AppLoop loop : app.getLoops()){
+				if(loop.getLoopId() == loopId)
+					return loop.getModules().toString();
+			}
+		}
+		return null;
+	}
+	
+	private FogDevice getFogDeviceById(int id){
+		for(FogDevice fogDevice : getFogDevices())
+			if(id==fogDevice.getId())
+				return fogDevice;
+		return null;
 	}
 	
 	private void printTimeDetails() {

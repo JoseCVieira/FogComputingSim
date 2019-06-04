@@ -27,7 +27,7 @@ public class TEMPFog extends FogTest {
 	@Override
 	protected void createFogDevices() {
 		Movement movement = new Movement(0.0, Movement.EAST, new Location(0, 0));
-		FogDevice cloud = createFogDevice("cloud", 100000, 10240, 1000000, 1000, 16*103, 16*83.25, 10, 0.05, 0.001, 0.0, movement);
+		FogDevice cloud = createFogDevice("cloud", 100000, 10240, 1000000, 1000, 16*103, 16*83.25, 10, 0.05, 0.001, 0.0, movement, false);
 		
 		fogDevices.add(cloud);
 		
@@ -36,7 +36,7 @@ public class TEMPFog extends FogTest {
 			double posy = Util.rand(250, 500);
 			
 			movement = new Movement(0.0, Movement.EAST, new Location(posx, posy));
-			FogDevice dept = createFogDevice("d-"+i, 1000, 1024, 1000000, 1000, 107.339, 83.4333, 0.0, 0.05, 0.001, 0.0, movement);
+			FogDevice dept = createFogDevice("d-"+i, 1000, 1024, 1000000, 1000, 107.339, 83.4333, 0.0, 0.05, 0.001, 0.0, movement, false);
 			
 			fogDevices.add(dept);
 			
@@ -49,7 +49,7 @@ public class TEMPFog extends FogTest {
 				int direction = Util.rand(Movement.EAST, Movement.SOUTHEAST);
 				
 				movement = new Movement(1.0, direction, new Location(posx, posy));
-				FogDevice mobile = createFogDevice("m-"+i+"-"+j, 1000, 1024, 1000000, 1000, 87.53, 82.44, 0.0, 0.05, 0.001, 0.0, movement);
+				FogDevice mobile = createFogDevice("m-"+i+"-"+j, 1000, 1024, 1000000, 1000, 87.53, 82.44, 0.0, 0.05, 0.001, 0.0, movement, true);
 				
 				fogDevices.add(mobile);
 				

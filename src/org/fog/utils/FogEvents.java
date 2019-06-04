@@ -19,8 +19,8 @@ public class FogEvents {
 	public static final int RESOURCE_USAGE = BASE + 15;
 	public static final int CONTROL_MSG_ARRIVAL = BASE + 16;
 	public static final int UPDATE_TUPLE_QUEUE = BASE + 17;
-	/*public static final int UPDATE_NORTH_TUPLE_QUEUE = BASE + 17;
-	public static final int UPDATE_SOUTH_TUPLE_QUEUE = BASE + 18;*/
+	//public static final int UPDATE_NORTH_TUPLE_QUEUE = BASE + 17;
+	//public static final int UPDATE_SOUTH_TUPLE_QUEUE = BASE + 18;
 	public static final int ACTUATOR_JOINED = BASE + 19;
 	public static final int STOP_SIMULATION = BASE + 20;
 	public static final int SEND_PERIODIC_TUPLE = BASE + 21;
@@ -31,6 +31,6 @@ public class FogEvents {
 	
 	// Mobile events
 	public static final int UPDATE_PERIODIC_MOVEMENT = BASE + 26;
-	public static final int VERIFY_HANDOFF = BASE + 27;
+	public static final int VERIFY_HANDOVER = BASE + 27;
 	
 }

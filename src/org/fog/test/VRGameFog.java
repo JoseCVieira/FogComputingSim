@@ -27,10 +27,10 @@ public class VRGameFog extends FogTest {
 	protected void createFogDevices() {		
 		// Does not matter what direction because velocity is 0
 		Movement movement = new Movement(0.0, Movement.EAST, new Location(0, 0));
-		FogDevice cloud = createFogDevice("cloud", 44800, 40000, 1000000, 10000, 16*103, 16*83.25, 0.01, 0.05, 0.001, 0.0, movement);
+		FogDevice cloud = createFogDevice("cloud", 44800, 40000, 1000000, 10000, 16*103, 16*83.25, 0.01, 0.05, 0.001, 0.0, movement, false);
 		
 		movement = new Movement(0.0, Movement.EAST, new Location(0, 250));
-		FogDevice proxy = createFogDevice("proxy-server", 2800, 4000, 1000000, 10000, 107.339, 83.4333, 0.0, 0.05, 0.001, 0.0, movement);
+		FogDevice proxy = createFogDevice("proxy-server", 2800, 4000, 1000000, 10000, 107.339, 83.4333, 0.0, 0.05, 0.001, 0.0, movement, false);
 		
 		fogDevices.add(cloud);
 		fogDevices.add(proxy);
@@ -42,7 +42,7 @@ public class VRGameFog extends FogTest {
 			double posy = Util.rand(250, 500);
 			
 			movement = new Movement(0.0, Movement.EAST, new Location(posx, posy));
-			FogDevice dept = createFogDevice("d-"+i, 2800, 4000, 1000000, 10000, 107.339, 83.4333, 0.0, 0.05, 0.001, 0.0, movement);
+			FogDevice dept = createFogDevice("d-"+i, 2800, 4000, 1000000, 10000, 107.339, 83.4333, 0.0, 0.05, 0.001, 0.0, movement, false);
 			
 			fogDevices.add(dept);
 			
@@ -55,7 +55,7 @@ public class VRGameFog extends FogTest {
 				int direction = Util.rand(Movement.EAST, Movement.SOUTHEAST);
 				
 				movement = new Movement(1.0, direction, new Location(posx, posy));
-				FogDevice mobile = createFogDevice("m-"+i+"-"+j, 1000, 1000, 1000000, 10000, 87.53, 82.44, 0.0, 0.05, 0.001, 0.0, movement);
+				FogDevice mobile = createFogDevice("m-"+i+"-"+j, 1000, 1000, 1000000, 10000, 87.53, 82.44, 0.0, 0.05, 0.001, 0.0, movement, true);
 				
 				fogDevices.add(mobile);
 				

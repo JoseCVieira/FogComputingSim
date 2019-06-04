@@ -52,9 +52,10 @@ public class Config {
 		public static final boolean PRINT_COST_DETAILS = false;
 		
 		public static final int REARRANGE_NETWORK_PERIOD = 10;
+		public static final int HANDOFF_THRESHOLD = 25;
 		
-		public static final int MAX_DISTANCE = 5000; //Max Ap coverage distance - It should modify
-		public static final int MAX_DISTANCE_TO_HANDOFF = 40; //It cannot be less than Max_SPEED 
+		// For test purposes
+		public static final int SQUARE_SIDE = 500;
 		
 		public static final double PROB_CHANGE_DIRECTION = 0.25;
 		public static final double PROB_CHANGE_VELOCITY = 0.35;

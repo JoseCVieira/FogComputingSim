@@ -27,14 +27,14 @@ import org.fog.placement.Controller;
 import org.fog.core.Config;
 import org.fog.core.Constants;
 import org.fog.utils.FogEvents;
+import org.fog.utils.Location;
 import org.fog.utils.Logger;
 import org.fog.utils.Movement;
 import org.fog.utils.NetworkUsageMonitor;
 import org.fog.utils.TimeKeeper;
 import org.fog.utils.Util;
 
-public class FogDevice extends PowerDatacenter {	
-	private List<Pair<Integer, Double>> associatedActuatorIds;
+public class FogDevice extends PowerDatacenter {
 	private List<String> deployedModules;
 	
 	private Map<Integer, Queue<Pair<Tuple, Integer>>> tupleQueue;
@@ -67,7 +67,6 @@ public class FogDevice extends PowerDatacenter {
 		setLatencyMap(new HashMap<Integer, Double>());
 		setBandwidthMap(new HashMap<Integer, Double>());
 		setRoutingTable(new HashMap<Map<String,String>, Integer>());
-		setAssociatedActuatorIds(new ArrayList<Pair<Integer, Double>>());
 		
 		setTupleQueue(new HashMap<Integer, Queue<Pair<Tuple,Integer>>>());
 		setTupleLinkBusy(new HashMap<Integer, Boolean>());
@@ -111,9 +110,6 @@ public class FogDevice extends PowerDatacenter {
 			break;
 		case FogEvents.UPDATE_TUPLE_QUEUE:
 			updateTupleQueue(ev);
-			break;
-		case FogEvents.ACTUATOR_JOINED:
-			processActuatorJoined(ev);
 			break;
 		case FogEvents.RESOURCE_MGMT:
 			manageResources(ev);
@@ -167,12 +163,6 @@ public class FogDevice extends PowerDatacenter {
 		sendToSelf(tuple);
 		
 		send(getId(), edge.getPeriodicity(), FogEvents.SEND_PERIODIC_TUPLE, edge);
-	}
-
-	protected void processActuatorJoined(SimEvent ev) {
-		int actuatorId = ev.getSource();
-		double delay = (double)ev.getData();
-		getAssociatedActuatorIds().add(new Pair<Integer, Double>(actuatorId, delay));
 	}
 	
 	public String getOperatorName(int vmId){
@@ -359,37 +349,9 @@ public class FogDevice extends PowerDatacenter {
 		Application app = (Application)ev.getData();
 		controller.getApplications().put(app.getAppId(), app);
 	}
-	
-	protected void sendTupleToActuator(Tuple tuple){
-		for(Pair<Integer, Double> actuatorAssociation : getAssociatedActuatorIds()){
-			int actuatorId = actuatorAssociation.getFirst();
-			double delay = actuatorAssociation.getSecond();
-			String actuatorType = ((Actuator)CloudSim.getEntity(actuatorId)).getActuatorType();
-			
-			if(tuple.getDestModuleName().equals(actuatorType)){
-				send(actuatorId, delay, FogEvents.TUPLE_ARRIVAL, tuple);
-				return;
-			}
-		}
-		
-		if(Config.PRINT_COMMUNICATION_DETAILS) printCommunication(tuple);
-		
-		Map<String, String> communication = new HashMap<String, String>();
-		communication.put(tuple.getSrcModuleName(), tuple.getDestModuleName());
-		sendTo(tuple, routingTable.get(communication));
-	}
 
 	protected void processTupleArrival(SimEvent ev){
 		Tuple tuple = (Tuple)ev.getData();
-		
-		Logger.debug(getName(), "Received tuple " + tuple.getCloudletId() + " with tupleType = " +
-				tuple.getTupleType() + " Source : " + CloudSim.getEntityName(ev.getSource())+" Dest : " +
-				CloudSim.getEntityName(ev.getDestination()));	
-		
-		if(tuple.getDirection() == Tuple.ACTUATOR){
-			sendTupleToActuator(tuple);
-			return;
-		}
 		
 		if(getHost().getVmList().size() > 0){
 			final AppModule operator = (AppModule)getHost().getVmList().get(0);
@@ -537,7 +499,7 @@ public class FogDevice extends PowerDatacenter {
 		send(getId(), CloudSim.getMinTimeBetweenEvents(), FogEvents.TUPLE_ARRIVAL, tuple);
 	}
 	
-	private void printCommunication(Tuple tuple){
+	protected void printCommunication(Tuple tuple){
 		Map<String, String> communication = new HashMap<String, String>();
 		communication.put(tuple.getSrcModuleName(), tuple.getDestModuleName());
 		
@@ -562,21 +524,38 @@ public class FogDevice extends PowerDatacenter {
 		if(movement.getVelocity() != 0) {
 			Random random = new Random();
 			
-			if(random.nextDouble() < Config.PROB_CHANGE_DIRECTION)
-				movement.setDirection(random.nextInt(Movement.SOUTHEAST + 1));
-			
-			if(random.nextDouble() < Config.PROB_CHANGE_VELOCITY) {
-				double value = random.nextDouble();
+			double changeDirProb = Config.PROB_CHANGE_DIRECTION;
+			double changeVelProb = Config.PROB_CHANGE_VELOCITY;
+			while(true) {
+				if(random.nextDouble() < changeDirProb)
+					movement.setDirection(random.nextInt(Movement.SOUTHEAST + 1));
 				
-				if(value < Config.PROB_MIN_VELOCITY) {
-					movement.setVelocity(Math.abs(Util.normalRand(Config.MIN_VELOCITY, 1)));
-				}else if(value >= Config.PROB_MIN_VELOCITY && value <= Config.PROB_MED_VELOCITY + Config.PROB_MIN_VELOCITY) {
-					movement.setVelocity(Math.abs(Util.normalRand(Config.MED_VELOCITY, 1)));
-				}else {
-					movement.setVelocity(Math.abs(Util.normalRand(Config.MAX_VELOCITY, 1)));
+				if(random.nextDouble() < changeVelProb) {
+					double value = random.nextDouble();
+					
+					if(value < Config.PROB_MIN_VELOCITY) {
+						movement.setVelocity(Math.abs(Util.normalRand(Config.MIN_VELOCITY, 1)));
+					}else if(value >= Config.PROB_MIN_VELOCITY && value <= Config.PROB_MED_VELOCITY + Config.PROB_MIN_VELOCITY) {
+						movement.setVelocity(Math.abs(Util.normalRand(Config.MED_VELOCITY, 1)));
+					}else {
+						movement.setVelocity(Math.abs(Util.normalRand(Config.MAX_VELOCITY, 1)));
+					}
 				}
+				
+				// Change the direction or velocity just to ensure devices are within the defined square for test purposes (it can be removed)
+				// The movement model which is defined in the current method can also be modified
+				// Compute next position (but does not update; just to check if it will end up within the defined square)
+				Location newLocation = movement.computeNextLocation();
+				
+				if(newLocation.getX() > 0 && newLocation.getX() < Config.SQUARE_SIDE && newLocation.getY() > 0 && newLocation.getY() < Config.SQUARE_SIDE)
+					break;
+				else {
+					changeDirProb = 1;
+					changeVelProb = 1;
+				}
+					
 			}
-		}
+		}			
 		
 		send(getId(), 1, FogEvents.UPDATE_PERIODIC_MOVEMENT);
 		
@@ -593,14 +572,6 @@ public class FogDevice extends PowerDatacenter {
 	
 	public void setNeighborsIds(List<Integer> neighborsIds) {
 		this.neighborsIds = neighborsIds;
-	}
-
-	public List<Pair<Integer, Double>> getAssociatedActuatorIds() {
-		return associatedActuatorIds;
-	}
-
-	public void setAssociatedActuatorIds(List<Pair<Integer, Double>> associatedActuatorIds) {
-		this.associatedActuatorIds = associatedActuatorIds;
 	}
 	
 	public double getEnergyConsumption() {
@@ -679,9 +650,8 @@ public class FogDevice extends PowerDatacenter {
 	public String toString() {
 		return "FogDevice [\nName=" + getName() + "\nId=" + getId() + "\ndeployedModules=" + deployedModules
 				+ "\nneighborsIds=" + neighborsIds + "\nlatencyMap=" + latencyMap + "\nbandwidthMap=" + bandwidthMap
-				+ "\nroutingTable=" + routingTable + "\nmovement=" + movement + "\nassociatedActuatorIds=" + associatedActuatorIds
-				+ "\nMIPS=" + getHost().getTotalMips() + "\nRAM=" + getHost().getRam() + "\nMEM=" + getHost().getStorage()
-				+ "\nBW=" + getHost().getBw() + "]";
+				+ "\nroutingTable=" + routingTable + "\nmovement=" + movement + "\nMIPS=" + getHost().getTotalMips()
+				+ "\nRAM=" + getHost().getRam() + "\nMEM=" + getHost().getStorage() + "\nBW=" + getHost().getBw() + "]";
 	}
 	
 }
