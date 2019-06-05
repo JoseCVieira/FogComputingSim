@@ -24,7 +24,6 @@ public class Sensor extends SimEntity{
 	private String sensorName;
 	private String destModuleName;
 	private int userId;
-	private int controllerId;
 	private int gatewayDeviceId;
 	private double latency;
 	private Application app;
@@ -165,14 +164,6 @@ public class Sensor extends SimEntity{
 
 	public void setTransmitDistribution(Distribution transmitDistribution) {
 		this.transmitDistribution = transmitDistribution;
-	}
-
-	public int getControllerId() {
-		return controllerId;
-	}
-
-	public void setControllerId(int controllerId) {
-		this.controllerId = controllerId;
 	}
 
 	public Application getApp() {

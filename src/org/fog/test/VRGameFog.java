@@ -4,6 +4,7 @@ import java.util.LinkedHashSet;
 
 import org.fog.application.AppEdge;
 import org.fog.application.Application;
+import org.fog.core.Config;
 import org.fog.core.FogTest;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
@@ -38,8 +39,8 @@ public class VRGameFog extends FogTest {
 		connectFogDevices(cloud, proxy, 100.0, 100.0, 10000.0, 10000.0);
 		
 		for(int i = 0; i < numOfDepts; i++){
-			double posx = Util.rand(-500, 500);
-			double posy = Util.rand(250, 500);
+			double posx = Util.rand(0, Config.SQUARE_SIDE);
+			double posy = Util.rand(0, Config.SQUARE_SIDE);
 			
 			movement = new Movement(0.0, Movement.EAST, new Location(posx, posy));
 			FogDevice dept = createFogDevice("d-"+i, 2800, 4000, 1000000, 10000, 107.339, 83.4333, 0.0, 0.05, 0.001, 0.0, movement, false);
@@ -50,8 +51,8 @@ public class VRGameFog extends FogTest {
 			
 			
 			for(int j = 0; j < numOfMobilesPerDept; j++){
-				posx = Util.rand(-500, 500);
-				posy = Util.rand(400, 600);
+				posx = Util.rand(0, Config.SQUARE_SIDE);
+				posy = Util.rand(0, Config.SQUARE_SIDE);
 				int direction = Util.rand(Movement.EAST, Movement.SOUTHEAST);
 				
 				movement = new Movement(1.0, direction, new Location(posx, posy));

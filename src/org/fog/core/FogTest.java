@@ -28,7 +28,6 @@ import org.fog.entities.FogDeviceCharacteristics;
 import org.fog.entities.Sensor;
 import org.fog.entities.Tuple;
 import org.fog.gui.GuiConfig;
-import org.fog.placement.Controller;
 import org.fog.policy.AppModuleAllocationPolicy;
 import org.fog.utils.FogLinearPowerModel;
 import org.fog.utils.FogUtils;
@@ -41,7 +40,6 @@ public abstract class FogTest {
 	protected static List<Actuator> actuators = new ArrayList<Actuator>();
 	protected static List<Sensor> sensors = new ArrayList<Sensor>();
 	protected static Map<String, LinkedHashSet<String>> appToFogMap = new HashMap<String, LinkedHashSet<String>>();
-	protected static Controller controller = null;
 	
 	protected abstract void createFogDevices();
 	protected abstract void createClients();
@@ -53,7 +51,6 @@ public abstract class FogTest {
 		
 		createExampleApplications();
 		createFogDevices();
-		createController();
 		createClients();
 		deployApplications();
 	}
@@ -108,13 +105,6 @@ public abstract class FogTest {
 		
 		fog1.getTupleLinkBusy().put(fog2.getId(), false);
 		fog2.getTupleLinkBusy().put(fog1.getId(), false);
-	}
-	
-	protected static void createController() {
-		controller = new Controller("master-controller", fogDevices, sensors, actuators);
-		
-		for(FogDevice fogDevice : fogDevices)
-			fogDevice.setController(controller);
 	}
 	
 	protected void deployApplications() {
@@ -354,10 +344,6 @@ public abstract class FogTest {
 	
 	public List<Sensor> getSensors() {
 		return sensors;
-	}
-	
-	public Controller getController() {
-		return controller;
 	}
 	
 	public Map<String, LinkedHashSet<String>> getAppToFogMap() {

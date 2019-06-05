@@ -39,7 +39,6 @@ public class RunGUI extends FogTest {
 		
 		createExampleApplications();
 		createFogDevices();
-		createController();
 		createClients();
 		deployApplications();
 	}

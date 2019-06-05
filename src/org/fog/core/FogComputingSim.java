@@ -11,7 +11,6 @@ import java.util.Scanner;
 
 import org.cloudbus.cloudsim.Log;
 import org.cloudbus.cloudsim.core.CloudSim;
-import org.fog.application.AppModule;
 import org.fog.application.Application;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
@@ -21,17 +20,6 @@ import org.fog.gui.core.Bridge;
 import org.fog.gui.core.Graph;
 import org.fog.gui.core.RunGUI;
 import org.fog.placement.Controller;
-import org.fog.placement.ModuleMapping;
-import org.fog.placement.ModulePlacement;
-import org.fog.placement.ModulePlacementMapping;
-import org.fog.placement.algorithms.overall.Algorithm;
-import org.fog.placement.algorithms.overall.Job;
-import org.fog.placement.algorithms.overall.bf.BruteForce;
-import org.fog.placement.algorithms.overall.ga.GeneticAlgorithm;
-import org.fog.placement.algorithms.overall.lp.LinearProgramming;
-import org.fog.placement.algorithms.overall.lp.MultiObjectiveLinearProgramming;
-import org.fog.placement.algorithms.overall.random.Random;
-import org.fog.placement.algorithms.overall.util.MatlabChartUtils;
 import org.fog.test.DCNSFog;
 import org.fog.test.RandomTopology;
 import org.fog.test.TEMPFog;
@@ -41,13 +29,13 @@ import org.fog.utils.TimeKeeper;
 import org.fog.utils.Util;
 
 public class FogComputingSim {
-	private static final int MOLP = 1;
-	private static final int LP = 2;
-	private static final int GA = 3;
-	private static final int RAND = 4;
-	private static final int BF = 5;
-	private static final int MDP = 6;
-	private static final int ALL = 7;
+	public static final int MOLP = 1;
+	public static final int LP = 2;
+	public static final int GA = 3;
+	public static final int RAND = 4;
+	public static final int BF = 5;
+	public static final int MDP = 6;
+	public static final int ALL = 7;
 
 	private static final int EXIT = 0;
 	private static final int GUI = 1;
@@ -61,10 +49,7 @@ public class FogComputingSim {
 	private static List<FogDevice> fogDevices;
 	private static List<Sensor> sensors;
 	private static List<Actuator> actuators;
-	private static Controller controller;
 	private static Map<String, LinkedHashSet<String>> appToFogMap;
-	
-	public static boolean isDisplayingPlot = false; // Used when displaying a plot to wait until user presses the ENTER key to terminate
 	
 	public static void main(String[] args) {
 		if(Config.DEBUG_MODE) {
@@ -82,78 +67,15 @@ public class FogComputingSim {
 		}
 		
 		if(applications == null || applications.isEmpty() || fogDevices == null || fogDevices.isEmpty() ||
-				actuators == null || actuators.isEmpty() || sensors == null || sensors.isEmpty() || controller == null)
+				actuators == null || actuators.isEmpty() || sensors == null || sensors.isEmpty())
 			throw new IllegalArgumentException("Some of the received arguments are null or empty.");
 		
-		Job solution = null;
-		Algorithm algorithm = null;
-		switch (option) {
-			case MOLP:
-				Config.SINGLE_OBJECTIVE = false;
-				System.out.println("Running the optimization algorithm: Multiobjective Linear Programming.");
-				algorithm = new MultiObjectiveLinearProgramming(fogDevices, applications, sensors, actuators);
-				solution = algorithm.execute();
-				break;
-			case LP:
-				System.out.println("Running the optimization algorithm: Linear Programming.");
-				algorithm = new LinearProgramming(fogDevices, applications, sensors, actuators);
-				solution = algorithm.execute();
-				break;
-			case GA:
-				System.out.println("Running the optimization algorithm: Genetic Algorithm.");
-				algorithm = new GeneticAlgorithm(fogDevices, applications, sensors, actuators);
-				solution = algorithm.execute();
-				plotResult(algorithm, "Genetic Algorithm");
-				break;
-			case RAND:
-				System.out.println("Running the optimization algorithm: Random Algorithm.");
-				algorithm = new Random(fogDevices, applications, sensors, actuators);
-				solution = algorithm.execute();
-				plotResult(algorithm, "Random Algorithm");
-				break;
-			case BF:
-				System.out.println("Running the optimization algorithm: Brute Force.");
-				algorithm = new BruteForce(fogDevices, applications, sensors, actuators);
-				solution = algorithm.execute();
-				plotResult(algorithm, "Brute Force");
-				break;
-			case MDP:
-				err("MDP is not implemented yet");
-				break;
-			case ALL:
-				System.out.println("Running the optimization algorithm: Multiobjective Linear Programming.");
-				algorithm = new MultiObjectiveLinearProgramming(fogDevices, applications, sensors, actuators);
-				solution = algorithm.execute();
-				
-				System.out.println("Running the optimization algorithm: Linear programming.");
-				algorithm = new LinearProgramming(fogDevices, applications, sensors, actuators);
-				solution = algorithm.execute();
-				
-				System.out.println("Running the optimization algorithm: Genetic Algorithm.");
-				algorithm = new GeneticAlgorithm(fogDevices, applications, sensors, actuators);
-				solution = algorithm.execute();
-				plotResult(algorithm, "Genetic Algorithm");
-				
-				System.out.println("Running the optimization algorithm: Random Algorithm.");
-				algorithm = new Random(fogDevices, applications, sensors, actuators);
-				solution = algorithm.execute();
-				plotResult(algorithm, "Random Algorithm");
-				
-				System.out.println("Running the optimization algorithm: Brute Force.");
-				algorithm = new BruteForce(fogDevices, applications, sensors, actuators);
-				solution = algorithm.execute();
-				plotResult(algorithm, "Brute Force");
-				break;
-			default:
-				err("Unknown algorithm");
-		}
+		Controller controller = new Controller("master-controller", applications, fogDevices, sensors, actuators, appToFogMap, option);
 		
-		if(solution == null || solution.getModulePlacementMap() == null || solution.getRoutingMap() == null || !solution.isValid()) {
-			err("There is no possible combination to deploy all applications");
-		}
+		for(FogDevice fogDevice : fogDevices)
+			fogDevice.setController(controller);
 		
-		deployApplications(algorithm.extractPlacementMap(solution.getModulePlacementMap()));
-		createRoutingTables(algorithm, solution.getRoutingMap());
+		controller.executeAlgorithm();
 		
 		System.out.println("Starting simulation...");
 		TimeKeeper.getInstance().setSimulationStartTime(Calendar.getInstance().getTimeInMillis());
@@ -243,7 +165,7 @@ public class FogComputingSim {
 					
 					while(fogTest == null) {
 						Util.promptEnterKey("Press \"ENTER\" to continue...");
-						fogTest = gui.getRunGUI(); // fogTest = gui.getFogTest();
+						fogTest = gui.getRunGUI();
 					}
 					break;
 				case RANDOM:
@@ -283,7 +205,6 @@ public class FogComputingSim {
 	    
 	    applications = fogTest.getApplications();
 		fogDevices = fogTest.getFogDevices();
-		controller = fogTest.getController();
 		sensors = fogTest.getSensors();
 		actuators = fogTest.getActuators();
 		appToFogMap = fogTest.getAppToFogMap();
@@ -352,56 +273,7 @@ public class FogComputingSim {
         return path + "/topologies/" + listOfFiles[fileIndex].getName();
 	}
 	
-	private static void deployApplications(Map<String, List<String>> modulePlacementMap) {
-		for(FogDevice fogDevice : fogDevices) {			
-			if(appToFogMap.containsKey(fogDevice.getName())) {
-				for(Application application : applications) {
-					ModuleMapping moduleMapping = ModuleMapping.createModuleMapping();
-					
-					for(AppModule appModule : application.getModules()) {
-						for(String fogName : modulePlacementMap.keySet()) {
-							if(modulePlacementMap.get(fogName).contains(appModule.getName())) {
-								moduleMapping.addModuleToDevice(appModule.getName(), fogName);
-							}
-						}
-					}
-					
-					ModulePlacement modulePlacement = new ModulePlacementMapping(fogDevices, application, moduleMapping);
-					controller.submitApplication(application, modulePlacement);
-				}
-			}
-		}
-	}
-	
-	private static void createRoutingTables(Algorithm algorithm, int[][] routingMatrix) {
-		Map<Map<Integer, Map<String, String>>, Integer> routingMap = algorithm.extractRoutingMap(routingMatrix);
-		
-		for(Map<Integer, Map<String, String>> hop : routingMap.keySet()) {
-			for(Integer node : hop.keySet()) {
-
-				FogDevice fogDevice = getFogDeviceById(algorithm.getfId()[node]);
-				if(fogDevice == null) //sensor and actuators do not need routing map
-					continue;
-				
-				fogDevice.getRoutingTable().put(hop.get(node), algorithm.getfId()[routingMap.get(hop)]);
-			}
-		}
-	}
-	
-	private static void plotResult(Algorithm algorithm, String title) {
-		isDisplayingPlot = true;
-		MatlabChartUtils matlabChartUtils = new MatlabChartUtils(algorithm, title);
-    	matlabChartUtils.setVisible(true);
-	}
-	
-	private static FogDevice getFogDeviceById(int id) {
-		for(FogDevice fogDevice : fogDevices)
-			if(fogDevice.getId() == id)
-				return fogDevice;
-		return null;
-	}
-	
-	public static void err (String err) {
+	public static void err(String err) {
 		System.err.println("err: [ " + err + " ]");
 		System.err.println("FogComputingSim will terminate abruptally.\n");
 		System.exit(-1);
