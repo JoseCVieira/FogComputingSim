@@ -16,7 +16,6 @@ import org.fog.utils.Movement;
 
 public class Client extends FogDevice {
 	private List<Pair<Integer, Double>> associatedActuatorIds;
-	private boolean handoverStatus;
 
 	public Client(String name, FogDeviceCharacteristics characteristics, VmAllocationPolicy vmAllocationPolicy,
 			List<Storage> storageList, double schedulingInterval, Movement movement) throws Exception {
@@ -79,14 +78,6 @@ public class Client extends FogDevice {
 
 	public void setAssociatedActuatorIds(List<Pair<Integer, Double>> associatedActuatorIds) {
 		this.associatedActuatorIds = associatedActuatorIds;
-	}
-
-	public boolean isHandoverStatus() {
-		return handoverStatus;
-	}
-
-	public void setHandoverStatus(boolean handoverStatus) {
-		this.handoverStatus = handoverStatus;
 	}
 
 }

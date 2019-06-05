@@ -75,7 +75,7 @@ public class FogComputingSim {
 		for(FogDevice fogDevice : fogDevices)
 			fogDevice.setController(controller);
 		
-		controller.executeAlgorithm();
+		controller.runAlgorithm();
 		
 		System.out.println("Starting simulation...");
 		TimeKeeper.getInstance().setSimulationStartTime(Calendar.getInstance().getTimeInMillis());

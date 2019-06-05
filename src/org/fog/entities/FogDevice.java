@@ -559,7 +559,7 @@ public class FogDevice extends PowerDatacenter {
 		
 		send(getId(), 1, FogEvents.UPDATE_PERIODIC_MOVEMENT);
 		
-		System.out.println(this + "\n\n");
+		//System.out.println(this + "\n\n");
 	}
 	
 	public PowerHost getHost(){

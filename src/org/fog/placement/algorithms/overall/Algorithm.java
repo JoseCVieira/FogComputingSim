@@ -588,6 +588,10 @@ public abstract class Algorithm {
 		return possibleDeployment;
 	}
 	
+	public void setPossibleDeployment(double[][] possibleDeployment) {
+		this.possibleDeployment = possibleDeployment;
+	}
+	
 	public double[][] getmBandwidthMap(){
 		return mBandwidthMap;
 	}

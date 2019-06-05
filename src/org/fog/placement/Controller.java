@@ -1,5 +1,6 @@
 package org.fog.placement;
 
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -24,6 +25,8 @@ import org.fog.placement.algorithms.overall.ga.GeneticAlgorithm;
 import org.fog.placement.algorithms.overall.lp.LinearProgramming;
 import org.fog.placement.algorithms.overall.lp.MultiObjectiveLinearProgramming;
 import org.fog.placement.algorithms.overall.random.Random;
+import org.fog.placement.algorithms.overall.util.AlgorithmMathUtils;
+import org.fog.placement.algorithms.overall.util.AlgorithmUtils;
 import org.fog.utils.FogEvents;
 import org.fog.utils.Location;
 import org.fog.utils.Util;
@@ -39,7 +42,11 @@ public class Controller extends SimEntity {
 	private List<Actuator> actuators;
 	private Map<String, LinkedHashSet<String>> appToFogMap;
 	
+	private Algorithm algorithm;
+	private Job solution;
+	
 	private int algorithmOp;
+	private boolean handoverInProgress;
 	
 	public Controller(String name, List<Application> applications, List<FogDevice> fogDevices, List<Sensor> sensors,
 			List<Actuator> actuators, Map<String, LinkedHashSet<String>> appToFogMap, int algorithmOp) {
@@ -50,7 +57,6 @@ public class Controller extends SimEntity {
 		setAppModulePlacementPolicy(new HashMap<String, ModulePlacement>());
 		
 		setFogDevices(fogDevices);
-		
 		this.appList = applications;
 		this.sensors = sensors;
 		this.actuators = actuators;
@@ -87,9 +93,9 @@ public class Controller extends SimEntity {
 			break;
 		case FogEvents.STOP_SIMULATION:
 			CloudSim.stopSimulation();
-			new OutputDetails(this);
+			new OutputControllerResults(this);
 			
-			if(OutputDetails.isDisplayingPlot)
+			if(OutputControllerResults.isDisplayingPlot)
 				Util.promptEnterKey("Press \"ENTER\" to exit...");
 			
 			System.exit(0);
@@ -100,7 +106,8 @@ public class Controller extends SimEntity {
 	}
 	
 	@Override
-	public void shutdownEntity() {	
+	public void shutdownEntity() {
+		
 	}
 	
 	public void submitApplication(Application application, int delay, ModulePlacement modulePlacement){
@@ -143,12 +150,14 @@ public class Controller extends SimEntity {
 	// However, similarly to what happens in mobile communications, handover has a threshold in order to avoid
 	// abuse of handover in the border areas
 	private void verifyHandover() {
+		if(handoverInProgress)
+			return;
+		
+		Map<Client, FogDevice> handovers = new HashMap<Client, FogDevice>();
+		
 		for(FogDevice client : fogDevices) {
 			if(client instanceof Client) {
 				Client clientTmp = (Client) client;
-				
-				// Already in handover process
-				if(clientTmp.isHandoverStatus()) continue;
 					
 				FogDevice firstHop = getFogDeviceById(clientTmp.getBandwidthMap().entrySet().iterator().next().getKey());
 				
@@ -170,30 +179,26 @@ public class Controller extends SimEntity {
 				
 				// If the current distance is better than the old one, than change its connection
 				if(distance > bestDistance + Config.HANDOFF_THRESHOLD) {
-					for(String appId : getApplications().keySet()) {
-						Application application = getApplications().get(appId);
-						
-						for(AppModule module : application.getModules()) {
-							if(module.isClientModule()) {
-								String[] parts = module.getName().split("_");
-								int nodeId = Integer.parseInt(parts[parts.length-1]);
-								
-								if(nodeId == client.getId()) {
-									// TODO to implement
-								}
-							}
-						}
-					}
-					clientTmp.setHandoverStatus(true);
+					handovers.put(clientTmp, bestFogNode);
 				}
 			}
 		}
-		sendNow(getId(), Config.REARRANGE_NETWORK_PERIOD, FogEvents.VERIFY_HANDOVER);
+		
+		if(!handovers.isEmpty()) {
+			handoverInProgress = true;
+			
+			if(Config.PRINT_HANDOVER_DETAILS)
+				printHandoverDetails(handovers);
+			
+			reconfigure();
+			
+			handoverInProgress = false;
+		}
+		
+		send(getId(), 1, FogEvents.VERIFY_HANDOVER);
 	}
 	
-	public void executeAlgorithm() {
-		Job solution = null;
-		Algorithm algorithm = null;
+	public void runAlgorithm() {
 		switch (algorithmOp) {
 			case FogComputingSim.MOLP:
 				Config.SINGLE_OBJECTIVE = false;
@@ -210,19 +215,19 @@ public class Controller extends SimEntity {
 				System.out.println("Running the optimization algorithm: Genetic Algorithm.");
 				algorithm = new GeneticAlgorithm(fogDevices, appList, sensors, actuators);
 				solution = algorithm.execute();
-				OutputDetails.plotResult(algorithm, "Genetic Algorithm");
+				OutputControllerResults.plotResult(algorithm, "Genetic Algorithm");
 				break;
 			case FogComputingSim.RAND:
 				System.out.println("Running the optimization algorithm: Random Algorithm.");
 				algorithm = new Random(fogDevices, appList, sensors, actuators);
 				solution = algorithm.execute();
-				OutputDetails.plotResult(algorithm, "Random Algorithm");
+				OutputControllerResults.plotResult(algorithm, "Random Algorithm");
 				break;
 			case FogComputingSim.BF:
 				System.out.println("Running the optimization algorithm: Brute Force.");
 				algorithm = new BruteForce(fogDevices, appList, sensors, actuators);
 				solution = algorithm.execute();
-				OutputDetails.plotResult(algorithm, "Brute Force");
+				OutputControllerResults.plotResult(algorithm, "Brute Force");
 				break;
 			case FogComputingSim.MDP:
 				FogComputingSim.err("MDP is not implemented yet");
@@ -239,17 +244,17 @@ public class Controller extends SimEntity {
 				System.out.println("Running the optimization algorithm: Genetic Algorithm.");
 				algorithm = new GeneticAlgorithm(fogDevices, appList, sensors, actuators);
 				solution = algorithm.execute();
-				OutputDetails.plotResult(algorithm, "Genetic Algorithm");
+				OutputControllerResults.plotResult(algorithm, "Genetic Algorithm");
 				
 				System.out.println("Running the optimization algorithm: Random Algorithm.");
 				algorithm = new Random(fogDevices, appList, sensors, actuators);
 				solution = algorithm.execute();
-				OutputDetails.plotResult(algorithm, "Random Algorithm");
+				OutputControllerResults.plotResult(algorithm, "Random Algorithm");
 				
 				System.out.println("Running the optimization algorithm: Brute Force.");
 				algorithm = new BruteForce(fogDevices, appList, sensors, actuators);
 				solution = algorithm.execute();
-				OutputDetails.plotResult(algorithm, "Brute Force");
+				OutputControllerResults.plotResult(algorithm, "Brute Force");
 				break;
 			default:
 				FogComputingSim.err("Unknown algorithm");
@@ -263,8 +268,18 @@ public class Controller extends SimEntity {
 		createRoutingTables(algorithm, solution.getRoutingMap());
 	}
 	
+	public void reconfigure() {
+		algorithm.setPossibleDeployment(AlgorithmMathUtils.toDouble(solution.getModulePlacementMap()));
+		solution = algorithm.execute();
+		
+		for(FogDevice fogDevice : fogDevices) {
+			fogDevice.getRoutingTable().clear();
+		}
+		
+		createRoutingTables(algorithm, solution.getRoutingMap());
+	}
+	
 	private void deployApplications(Map<String, List<String>> modulePlacementMap) {
-		System.out.println("AQUI");
 		for(FogDevice fogDevice : fogDevices) {
 			if(appToFogMap.containsKey(fogDevice.getName())) {
 				for(Application application : appList) {
@@ -283,7 +298,6 @@ public class Controller extends SimEntity {
 				}
 			}
 		}
-		System.out.println("AQUI2");
 	}
 	
 	private void createRoutingTables(Algorithm algorithm, int[][] routingMatrix) {
@@ -306,6 +320,26 @@ public class Controller extends SimEntity {
 			if(id==fogDevice.getId())
 				return fogDevice;
 		return null;
+	}
+	
+	private void printHandoverDetails(Map<Client, FogDevice> handovers) {
+		System.out.println("Performing handover over the following devices:\n");
+		
+		for(Client client : handovers.keySet()) {
+			FogDevice from = getFogDeviceById(client.getBandwidthMap().entrySet().iterator().next().getKey());
+			FogDevice to = handovers.get(client);
+			
+			System.out.println(String.format("%-8s", "Client: ") + AlgorithmUtils.centerString(20, client.getName()) + locationToString(client));
+			System.out.println(String.format("%-8s", "From: ") + AlgorithmUtils.centerString(20, from.getName()) + locationToString(from));
+			System.out.println(String.format("%-8s", "To: ") + AlgorithmUtils.centerString(20, to.getName()) + locationToString(to) + "\n");
+		}
+	}
+	
+	private String locationToString(FogDevice fogDevice) {
+		DecimalFormat decimalFormat = new DecimalFormat("#.##");
+		
+		return " at position (X=" + Float.valueOf(decimalFormat.format(fogDevice.getMovement().getLocation().getX()))
+				+ ", Y=" + Float.valueOf(decimalFormat.format(fogDevice.getMovement().getLocation().getY())) + ")";
 	}
 	
 	public List<FogDevice> getFogDevices() {

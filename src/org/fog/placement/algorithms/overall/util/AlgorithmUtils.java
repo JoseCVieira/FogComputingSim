@@ -273,7 +273,7 @@ public class AlgorithmUtils {
 		System.out.println("\n**Elapsed time: " + al.getElapsedTime() + " ms**");		
 	}
 	
-	public static String centerString (int width, String s) {
+	public static String centerString(int width, String s) {
 	    return String.format("%-" + width  + "s",
 	    		String.format("%" + (s.length() + (width - s.length()) / 2) + "s", s));
 	}

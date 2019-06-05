@@ -13,7 +13,7 @@ import org.fog.utils.NetworkUsageMonitor;
 import org.fog.utils.TimeKeeper;
 import org.fog.utils.Util;
 
-public class OutputDetails {
+public class OutputControllerResults {
 	private static final int MAX_COLUMN_SIZE = 50;
 	
 	private Controller controller;
@@ -21,7 +21,7 @@ public class OutputDetails {
 	
 	public static boolean isDisplayingPlot = false; // Used when displaying a plot to wait until user presses the ENTER key to terminate
 	
-	public OutputDetails(Controller controller) {
+	public OutputControllerResults(Controller controller) {
 		this.controller = controller;
 		this.u = new Util();
 		
