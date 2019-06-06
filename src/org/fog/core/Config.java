@@ -23,8 +23,8 @@ public class Config {
 	public static final int[] priorities = new int[] {
 			1,	// Operational cost
 			1,	// Power cost
-			2,	// Processing cost
-			1,	// Latency cost
+			1,	// Processing cost
+			2,	// Latency cost
 			1	// Bandwidth cost
 	};
 	
@@ -52,7 +52,9 @@ public class Config {
 	public static final boolean PRINT_COST_DETAILS = false;
 	public static final boolean PRINT_HANDOVER_DETAILS = true;
 	
-	public static final int REARRANGE_NETWORK_PERIOD = 1;
+	public static final int MAX_HANDOVER_TIME = 1200;
+	public static final int MIN_HANDOVER_TIME = 700;
+	public static final int REARRANGE_NETWORK_PERIOD = 10;
 	public static final int HANDOFF_THRESHOLD = 25;
 	
 	// For test purposes

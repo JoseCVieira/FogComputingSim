@@ -24,7 +24,7 @@ import org.fog.placement.algorithms.overall.bf.BruteForce;
 import org.fog.placement.algorithms.overall.ga.GeneticAlgorithm;
 import org.fog.placement.algorithms.overall.lp.LinearProgramming;
 import org.fog.placement.algorithms.overall.lp.MultiObjectiveLinearProgramming;
-import org.fog.placement.algorithms.overall.random.Random;
+import org.fog.placement.algorithms.overall.random.RandomAlgorithm;
 import org.fog.placement.algorithms.overall.util.AlgorithmMathUtils;
 import org.fog.placement.algorithms.overall.util.AlgorithmUtils;
 import org.fog.utils.FogEvents;
@@ -110,6 +110,76 @@ public class Controller extends SimEntity {
 		
 	}
 	
+	public void runAlgorithm() {
+		switch (algorithmOp) {
+			case FogComputingSim.MOLP:
+				Config.SINGLE_OBJECTIVE = false;
+				System.out.println("Running the optimization algorithm: Multiobjective Linear Programming.");
+				algorithm = new MultiObjectiveLinearProgramming(fogDevices, appList, sensors, actuators);
+				solution = algorithm.execute();
+				break;
+			case FogComputingSim.LP:
+				System.out.println("Running the optimization algorithm: Linear Programming.");
+				algorithm = new LinearProgramming(fogDevices, appList, sensors, actuators);
+				solution = algorithm.execute();
+				break;
+			case FogComputingSim.GA:
+				System.out.println("Running the optimization algorithm: Genetic Algorithm.");
+				algorithm = new GeneticAlgorithm(fogDevices, appList, sensors, actuators);
+				solution = algorithm.execute();
+				OutputControllerResults.plotResult(algorithm, "Genetic Algorithm");
+				break;
+			case FogComputingSim.RAND:
+				System.out.println("Running the optimization algorithm: Random Algorithm.");
+				algorithm = new RandomAlgorithm(fogDevices, appList, sensors, actuators);
+				solution = algorithm.execute();
+				OutputControllerResults.plotResult(algorithm, "Random Algorithm");
+				break;
+			case FogComputingSim.BF:
+				System.out.println("Running the optimization algorithm: Brute Force.");
+				algorithm = new BruteForce(fogDevices, appList, sensors, actuators);
+				solution = algorithm.execute();
+				OutputControllerResults.plotResult(algorithm, "Brute Force");
+				break;
+			case FogComputingSim.MDP:
+				FogComputingSim.err("MDP is not implemented yet");
+				break;
+			case FogComputingSim.ALL:
+				System.out.println("Running the optimization algorithm: Multiobjective Linear Programming.");
+				algorithm = new MultiObjectiveLinearProgramming(fogDevices, appList, sensors, actuators);
+				solution = algorithm.execute();
+				
+				System.out.println("Running the optimization algorithm: Linear programming.");
+				algorithm = new LinearProgramming(fogDevices, appList, sensors, actuators);
+				solution = algorithm.execute();
+				
+				System.out.println("Running the optimization algorithm: Genetic Algorithm.");
+				algorithm = new GeneticAlgorithm(fogDevices, appList, sensors, actuators);
+				solution = algorithm.execute();
+				OutputControllerResults.plotResult(algorithm, "Genetic Algorithm");
+				
+				System.out.println("Running the optimization algorithm: Random Algorithm.");
+				algorithm = new RandomAlgorithm(fogDevices, appList, sensors, actuators);
+				solution = algorithm.execute();
+				OutputControllerResults.plotResult(algorithm, "Random Algorithm");
+				
+				System.out.println("Running the optimization algorithm: Brute Force.");
+				algorithm = new BruteForce(fogDevices, appList, sensors, actuators);
+				solution = algorithm.execute();
+				OutputControllerResults.plotResult(algorithm, "Brute Force");
+				break;
+			default:
+				FogComputingSim.err("Unknown algorithm");
+		}
+		
+		if(solution == null || solution.getModulePlacementMap() == null || solution.getRoutingMap() == null || !solution.isValid()) {
+			FogComputingSim.err("There is no possible combination to deploy all applications");
+		}
+		
+		deployApplications(algorithm.extractPlacementMap(solution.getModulePlacementMap()));
+		createRoutingTables(algorithm, solution.getRoutingMap());
+	}
+	
 	public void submitApplication(Application application, int delay, ModulePlacement modulePlacement){
 		getApplications().put(application.getAppId(), application);
 		getAppLaunchDelays().put(application.getAppId(), delay);
@@ -158,6 +228,9 @@ public class Controller extends SimEntity {
 		for(FogDevice client : fogDevices) {
 			if(client instanceof Client) {
 				Client clientTmp = (Client) client;
+				
+				if(clientTmp.isHandoverInProgress())
+					continue;
 					
 				FogDevice firstHop = getFogDeviceById(clientTmp.getBandwidthMap().entrySet().iterator().next().getKey());
 				
@@ -180,103 +253,34 @@ public class Controller extends SimEntity {
 				// If the current distance is better than the old one, than change its connection
 				if(distance > bestDistance + Config.HANDOFF_THRESHOLD) {
 					handovers.put(clientTmp, bestFogNode);
+					clientTmp.setHandoverInProgress(true);
 				}
 			}
 		}
 		
 		if(!handovers.isEmpty()) {
 			handoverInProgress = true;
-			
-			if(Config.PRINT_HANDOVER_DETAILS)
-				printHandoverDetails(handovers);
-			
-			reconfigure();
-			
+			reconfigure(handovers);
 			handoverInProgress = false;
 		}
 		
-		send(getId(), 1, FogEvents.VERIFY_HANDOVER);
+		send(getId(), Config.REARRANGE_NETWORK_PERIOD, FogEvents.VERIFY_HANDOVER);
 	}
 	
-	public void runAlgorithm() {
-		switch (algorithmOp) {
-			case FogComputingSim.MOLP:
-				Config.SINGLE_OBJECTIVE = false;
-				System.out.println("Running the optimization algorithm: Multiobjective Linear Programming.");
-				algorithm = new MultiObjectiveLinearProgramming(fogDevices, appList, sensors, actuators);
-				solution = algorithm.execute();
-				break;
-			case FogComputingSim.LP:
-				System.out.println("Running the optimization algorithm: Linear Programming.");
-				algorithm = new LinearProgramming(fogDevices, appList, sensors, actuators);
-				solution = algorithm.execute();
-				break;
-			case FogComputingSim.GA:
-				System.out.println("Running the optimization algorithm: Genetic Algorithm.");
-				algorithm = new GeneticAlgorithm(fogDevices, appList, sensors, actuators);
-				solution = algorithm.execute();
-				OutputControllerResults.plotResult(algorithm, "Genetic Algorithm");
-				break;
-			case FogComputingSim.RAND:
-				System.out.println("Running the optimization algorithm: Random Algorithm.");
-				algorithm = new Random(fogDevices, appList, sensors, actuators);
-				solution = algorithm.execute();
-				OutputControllerResults.plotResult(algorithm, "Random Algorithm");
-				break;
-			case FogComputingSim.BF:
-				System.out.println("Running the optimization algorithm: Brute Force.");
-				algorithm = new BruteForce(fogDevices, appList, sensors, actuators);
-				solution = algorithm.execute();
-				OutputControllerResults.plotResult(algorithm, "Brute Force");
-				break;
-			case FogComputingSim.MDP:
-				FogComputingSim.err("MDP is not implemented yet");
-				break;
-			case FogComputingSim.ALL:
-				System.out.println("Running the optimization algorithm: Multiobjective Linear Programming.");
-				algorithm = new MultiObjectiveLinearProgramming(fogDevices, appList, sensors, actuators);
-				solution = algorithm.execute();
-				
-				System.out.println("Running the optimization algorithm: Linear programming.");
-				algorithm = new LinearProgramming(fogDevices, appList, sensors, actuators);
-				solution = algorithm.execute();
-				
-				System.out.println("Running the optimization algorithm: Genetic Algorithm.");
-				algorithm = new GeneticAlgorithm(fogDevices, appList, sensors, actuators);
-				solution = algorithm.execute();
-				OutputControllerResults.plotResult(algorithm, "Genetic Algorithm");
-				
-				System.out.println("Running the optimization algorithm: Random Algorithm.");
-				algorithm = new Random(fogDevices, appList, sensors, actuators);
-				solution = algorithm.execute();
-				OutputControllerResults.plotResult(algorithm, "Random Algorithm");
-				
-				System.out.println("Running the optimization algorithm: Brute Force.");
-				algorithm = new BruteForce(fogDevices, appList, sensors, actuators);
-				solution = algorithm.execute();
-				OutputControllerResults.plotResult(algorithm, "Brute Force");
-				break;
-			default:
-				FogComputingSim.err("Unknown algorithm");
+	public void reconfigure(Map<Client, FogDevice> handovers) {
+		if(Config.PRINT_HANDOVER_DETAILS)
+			printHandoverDetails(handovers);
+		
+		for(Client client : handovers.keySet()) {
+			FogDevice from = getFogDeviceById(client.getBandwidthMap().entrySet().iterator().next().getKey());
+			FogDevice to = handovers.get(client);
+			algorithm.changeConnectionMap(client, from, to);
 		}
 		
-		if(solution == null || solution.getModulePlacementMap() == null || solution.getRoutingMap() == null || !solution.isValid()) {
-			FogComputingSim.err("There is no possible combination to deploy all applications");
-		}
-		
-		deployApplications(algorithm.extractPlacementMap(solution.getModulePlacementMap()));
-		createRoutingTables(algorithm, solution.getRoutingMap());
-	}
-	
-	public void reconfigure() {
 		algorithm.setPossibleDeployment(AlgorithmMathUtils.toDouble(solution.getModulePlacementMap()));
 		solution = algorithm.execute();
 		
-		for(FogDevice fogDevice : fogDevices) {
-			fogDevice.getRoutingTable().clear();
-		}
-		
-		createRoutingTables(algorithm, solution.getRoutingMap());
+		updateRoutingTables(algorithm, solution.getRoutingMap(), handovers);
 	}
 	
 	private void deployApplications(Map<String, List<String>> modulePlacementMap) {
@@ -301,6 +305,35 @@ public class Controller extends SimEntity {
 	}
 	
 	private void createRoutingTables(Algorithm algorithm, int[][] routingMatrix) {
+		Map<Map<Integer, Map<String, String>>, Integer> routingMap = algorithm.extractRoutingMap(routingMatrix);
+		
+		for(Map<Integer, Map<String, String>> hop : routingMap.keySet()) {
+			for(Integer node : hop.keySet()) {
+
+				FogDevice fogDevice = getFogDeviceById(algorithm.getfId()[node]);
+				if(fogDevice == null) //sensor and actuators do not need routing map
+					continue;
+				
+				fogDevice.getRoutingTable().put(hop.get(node), algorithm.getfId()[routingMap.get(hop)]);
+			}
+		}
+	}
+	
+	private void updateRoutingTables(Algorithm algorithm, int[][] routingMatrix, Map<Client, FogDevice> handovers) {
+		
+		for(Client client : handovers.keySet()) {
+			FogDevice to = handovers.get(client);
+			FogDevice from = getFogDeviceById(client.getBandwidthMap().entrySet().iterator().next().getKey());
+			
+			int handoffDuration = Util.rand(Config.MIN_HANDOVER_TIME, Config.MAX_HANDOVER_TIME);
+			send(from.getId(), handoffDuration, FogEvents.REMOVE_LINK, client);
+			send(client.getId(), handoffDuration, FogEvents.HANDOVER_COMPLETED);
+			
+			sendNow(client.getId(), FogEvents.REMOVE_LINK, from);
+			sendNow(client.getId(), FogEvents.ADD_NEW_LINK, to);
+			sendNow(to.getId(), FogEvents.ADD_NEW_LINK, client);
+		}
+		
 		Map<Map<Integer, Map<String, String>>, Integer> routingMap = algorithm.extractRoutingMap(routingMatrix);
 		
 		for(Map<Integer, Map<String, String>> hop : routingMap.keySet()) {

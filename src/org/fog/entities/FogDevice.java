@@ -2,6 +2,7 @@ package org.fog.entities;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -116,6 +117,12 @@ public class FogDevice extends PowerDatacenter {
 			break;
 		case FogEvents.UPDATE_PERIODIC_MOVEMENT:
 			updatePeriodicMovement();
+			break;
+		case FogEvents.ADD_NEW_LINK:
+			addNewLink(ev);
+			break;
+		case FogEvents.REMOVE_LINK:
+			removeLink(ev);
 			break;
 		default:
 			break;
@@ -560,6 +567,27 @@ public class FogDevice extends PowerDatacenter {
 		send(getId(), 1, FogEvents.UPDATE_PERIODIC_MOVEMENT);
 		
 		//System.out.println(this + "\n\n");
+	}
+	
+	// TODO how latency and bandwidth will work?
+	private void addNewLink(SimEvent ev) {
+		FogDevice fogDevice = (FogDevice)ev.getData();
+		
+		getLatencyMap().put(fogDevice.getId(), 25.0);
+		getBandwidthMap().put(fogDevice.getId(), 10000.0);
+		getNeighborsIds().add(fogDevice.getId());
+		getTupleQueue().put(fogDevice.getId(), new LinkedList<Pair<Tuple, Integer>>());
+		getTupleLinkBusy().put(fogDevice.getId(), false);
+	}
+	
+	private void removeLink(SimEvent ev) {
+		FogDevice fogDevice = (FogDevice)ev.getData();
+		
+		getLatencyMap().remove(fogDevice.getId());
+		getBandwidthMap().remove(fogDevice.getId());
+		getNeighborsIds().remove(new Integer(fogDevice.getId()));
+		getTupleQueue().remove(fogDevice.getId());
+		getTupleLinkBusy().remove(fogDevice.getId());
 	}
 	
 	public PowerHost getHost(){

@@ -12,12 +12,12 @@ import org.fog.placement.algorithms.overall.Algorithm;
 import org.fog.placement.algorithms.overall.Job;
 import org.fog.placement.algorithms.overall.util.AlgorithmUtils;
 
-public class Random extends Algorithm {
+public class RandomAlgorithm extends Algorithm {
 	private Job bestSolution = null;
 	private double bestCost = Constants.REFERENCE_COST;
 	private int iteration = 0;
 
-	public Random(List<FogDevice> fogDevices, List<Application> applications,
+	public RandomAlgorithm(List<FogDevice> fogDevices, List<Application> applications,
 			List<Sensor> sensors, List<Actuator> actuators) throws IllegalArgumentException {
 		super(fogDevices, applications, sensors, actuators);
 	}

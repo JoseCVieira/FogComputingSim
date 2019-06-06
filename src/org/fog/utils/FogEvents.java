@@ -32,5 +32,8 @@ public class FogEvents {
 	// Mobile events
 	public static final int UPDATE_PERIODIC_MOVEMENT = BASE + 26;
 	public static final int VERIFY_HANDOVER = BASE + 27;
+	public static final int REMOVE_LINK = BASE + 28;
+	public static final int ADD_NEW_LINK = BASE + 29;
+	public static final int HANDOVER_COMPLETED = BASE + 30;
 	
 }

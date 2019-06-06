@@ -17,6 +17,7 @@ import org.fog.application.selectivity.FractionalSelectivity;
 import org.fog.core.Config;
 import org.fog.core.Constants;
 import org.fog.entities.Actuator;
+import org.fog.entities.Client;
 import org.fog.entities.FogDevice;
 import org.fog.entities.FogDeviceCharacteristics;
 import org.fog.entities.Sensor;
@@ -107,12 +108,6 @@ public abstract class Algorithm {
 		fLatencyMap = new double[NR_NODES][NR_NODES];
 		fBandwidthMap = new double[NR_NODES][NR_NODES];
 		
-		for (int i = 0; i < NR_NODES; i++) {
-			for (int j = 0; j < NR_NODES; j++) {
-				fLatencyMap[i][j] = Constants.INF;
-			}
-		}
-		
 		possibleDeployment = new double[NR_NODES][NR_MODULES];
 		
 		mDependencyMap = new double[NR_MODULES][NR_MODULES];
@@ -121,7 +116,7 @@ public abstract class Algorithm {
 		extractDevicesCharacteristics(fogDevices, sensors, actuators);
 		extractAppCharacteristics(/*fogBrokers, */fogDevices, applications, hashSet);
 		computeApplicationCharacteristics(applications, fogDevices, sensors);
-		computeLatencyMap(fogDevices, sensors, actuators);
+		computeConnectionMap(fogDevices, sensors, actuators);
 		
 		if(Config.SINGLE_OBJECTIVE) {
 			normalizeValues();
@@ -311,8 +306,13 @@ public abstract class Algorithm {
 		}
 	}
 	
-	private void computeLatencyMap(final List<FogDevice> fogDevices,
-			final List<Sensor> sensors, final List<Actuator> actuators) {
+	private void computeConnectionMap(final List<FogDevice> fogDevices, final List<Sensor> sensors, final List<Actuator> actuators) {
+		for (int i = 0; i < NR_NODES; i++) {
+			for (int j = 0; j < NR_NODES; j++) {
+				fLatencyMap[i][j] = Constants.INF;
+				fBandwidthMap[i][j] = 0;
+			}
+		}
 		
 		for(FogDevice fogDevice : fogDevices) {
 			int dId = fogDevice.getId();
@@ -321,13 +321,28 @@ public abstract class Algorithm {
 				int lat = fogDevice.getLatencyMap().get(neighborId).intValue();
 				double bw = fogDevice.getBandwidthMap().get(neighborId);
 				
-				getfLatencyMap()[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(neighborId)] = lat;
-				getfBandwidthMap()[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(neighborId)] = bw;
+				fLatencyMap[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(neighborId)] = lat;
+				fBandwidthMap[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(neighborId)] = bw;
 			}
 			
-			getfLatencyMap()[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(dId)] = 0;
-			getfBandwidthMap()[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(dId)] = Constants.INF;
+			fLatencyMap[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(dId)] = 0;
+			fBandwidthMap[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(dId)] = Constants.INF;
 		}
+	}
+	
+	// TODO how latency and bandwidth will work?
+	public void changeConnectionMap(Client client, FogDevice from, FogDevice to) {
+		fLatencyMap[getNodeIndexByNodeId(client.getId())][getNodeIndexByNodeId(from.getId())] = Constants.INF;
+		fBandwidthMap[getNodeIndexByNodeId(client.getId())][getNodeIndexByNodeId(from.getId())] = 0;
+		
+		fLatencyMap[getNodeIndexByNodeId(from.getId())][getNodeIndexByNodeId(client.getId())] = Constants.INF;
+		fBandwidthMap[getNodeIndexByNodeId(from.getId())][getNodeIndexByNodeId(client.getId())] = 0;
+		
+		fLatencyMap[getNodeIndexByNodeId(client.getId())][getNodeIndexByNodeId(to.getId())] = 25.0;
+		fBandwidthMap[getNodeIndexByNodeId(client.getId())][getNodeIndexByNodeId(to.getId())] = 10000.0;
+		
+		fLatencyMap[getNodeIndexByNodeId(to.getId())][getNodeIndexByNodeId(client.getId())] = 25.0;
+		fBandwidthMap[getNodeIndexByNodeId(to.getId())][getNodeIndexByNodeId(client.getId())] = 10000.0;
 	}
 	
 	private void normalizeValues() {

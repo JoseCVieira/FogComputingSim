@@ -16,6 +16,7 @@ import org.fog.utils.Movement;
 
 public class Client extends FogDevice {
 	private List<Pair<Integer, Double>> associatedActuatorIds;
+	private boolean handoverInProgress;
 
 	public Client(String name, FogDeviceCharacteristics characteristics, VmAllocationPolicy vmAllocationPolicy,
 			List<Storage> storageList, double schedulingInterval, Movement movement) throws Exception {
@@ -29,6 +30,9 @@ public class Client extends FogDevice {
 		switch(ev.getTag()){
 		case FogEvents.ACTUATOR_JOINED:
 			processActuatorJoined(ev);
+			break;
+		case FogEvents.HANDOVER_COMPLETED:
+			setHandoverInProgress(false);
 			break;
 		default:
 			super.processOtherEvent(ev);
@@ -78,6 +82,14 @@ public class Client extends FogDevice {
 
 	public void setAssociatedActuatorIds(List<Pair<Integer, Double>> associatedActuatorIds) {
 		this.associatedActuatorIds = associatedActuatorIds;
+	}
+
+	public boolean isHandoverInProgress() {
+		return handoverInProgress;
+	}
+
+	public void setHandoverInProgress(boolean handoverOnProgress) {
+		this.handoverInProgress = handoverOnProgress;
 	}
 
 }
