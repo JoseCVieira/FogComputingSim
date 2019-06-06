@@ -320,6 +320,7 @@ public class Controller extends SimEntity {
 	}
 	
 	private void updateRoutingTables(Algorithm algorithm, int[][] routingMatrix, Map<Client, FogDevice> handovers) {
+		Map<Map<Integer, Map<String, String>>, Integer> routingMap = algorithm.extractRoutingMap(routingMatrix);
 		
 		for(Client client : handovers.keySet()) {
 			FogDevice to = handovers.get(client);
@@ -333,8 +334,6 @@ public class Controller extends SimEntity {
 			sendNow(client.getId(), FogEvents.ADD_NEW_LINK, to);
 			sendNow(to.getId(), FogEvents.ADD_NEW_LINK, client);
 		}
-		
-		Map<Map<Integer, Map<String, String>>, Integer> routingMap = algorithm.extractRoutingMap(routingMatrix);
 		
 		for(Map<Integer, Map<String, String>> hop : routingMap.keySet()) {
 			for(Integer node : hop.keySet()) {

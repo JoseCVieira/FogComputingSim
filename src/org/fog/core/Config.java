@@ -53,7 +53,7 @@ public class Config {
 	public static final boolean PRINT_HANDOVER_DETAILS = true;
 	
 	public static final int MAX_HANDOVER_TIME = 1200;
-	public static final int MIN_HANDOVER_TIME = 700;
+	public static final int MIN_HANDOVER_TIME = 1000;
 	public static final int REARRANGE_NETWORK_PERIOD = 10;
 	public static final int HANDOFF_THRESHOLD = 25;
 	

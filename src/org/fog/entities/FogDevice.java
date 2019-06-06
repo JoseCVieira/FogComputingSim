@@ -588,6 +588,17 @@ public class FogDevice extends PowerDatacenter {
 		getNeighborsIds().remove(new Integer(fogDevice.getId()));
 		getTupleQueue().remove(fogDevice.getId());
 		getTupleLinkBusy().remove(fogDevice.getId());
+		
+		// Clean unused entries from routing table
+		Map<Map<String, String>, Integer> newTable = new HashMap<Map<String,String>, Integer>();
+		
+		for(Map<String, String> map : routingTable.keySet()) {
+			if(routingTable.get(map) != fogDevice.getId()) {
+				newTable.put(map, routingTable.get(map));
+			}
+		}
+		
+		routingTable = newTable;
 	}
 	
 	public PowerHost getHost(){
