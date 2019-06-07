@@ -134,7 +134,7 @@ public class CloudSim {
 		}
 	}
 	
-	public static void init(Calendar cal) { // ADDED-------------------
+	public static void init(Calendar cal) {
 		int numUser = 1;
 		boolean traceFlag = false;
 		

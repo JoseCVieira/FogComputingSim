@@ -7,6 +7,7 @@ import org.fog.utils.TimeKeeper;
 public class AppLoop {
 	private int loopId;
 	private List<String> modules;
+	
 	public AppLoop(List<String> modules){
 		setLoopId(TimeKeeper.getInstance().getUniqueId());
 		setModules(modules);

@@ -11,11 +11,10 @@ import org.fog.utils.FogUtils;
 
 /**
  * Class representing an application module, the processing elements of the application model of iFogSim.
- * @author Harshit Gupta
  *
  */
-public class AppModule extends PowerVm{
 
+public class AppModule extends PowerVm{
 	private String name;
 	private String appId;
 	private boolean clientModule;
@@ -28,23 +27,9 @@ public class AppModule extends PowerVm{
 		super(id, userId, mips, 1, ram, bw, size, 1, vmm, cloudletScheduler, 300);
 		
 		setName(name);
-		setId(id);
 		setAppId(appId);
-		setUserId(userId);
 		setUid(getUid(userId, id));
-		setMips(mips);
-		setNumberOfPes(1);
-		setRam(ram);
-		setBw(bw);
-		setSize(size);
-		setVmm(vmm);
-		setCloudletScheduler(cloudletScheduler);
-		setInMigration(false);
 		setBeingInstantiated(true);
-		setCurrentAllocatedBw(0);
-		setCurrentAllocatedMips(null);
-		setCurrentAllocatedRam(0);
-		setCurrentAllocatedSize(0);
 		setSelectivityMap(selectivityMap);
 		setClientModule(clientModule);
 		setGlobalModule(glogbalModule);
@@ -56,28 +41,13 @@ public class AppModule extends PowerVm{
 		
 		setName(operator.getName());
 		setAppId(operator.getAppId());
-		setInMigration(false);
 		setBeingInstantiated(true);
-		setCurrentAllocatedBw(0);
-		setCurrentAllocatedMips(null);
-		setCurrentAllocatedRam(0);
-		setCurrentAllocatedSize(0);
 		setSelectivityMap(operator.getSelectivityMap());
 		setClientModule(operator.isClientModule());
 		setGlobalModule(operator.isGlobalModule());
 	}
 	
-	public void setValues(String name, double mips, int ram, long size, long bw, boolean clientModule, boolean glogbalModule) { //Added
-		setName(name);
-		setMips(mips);
-		setRam(ram);
-		setBw(bw);
-		setSize(size);
-		setClientModule(clientModule);
-		setGlobalModule(glogbalModule);
-	}
-	
-	public void setValues(String name, int ram, long size, boolean clientModule, boolean glogbalModule) { //Added
+	public void setValues(String name, int ram, long size, boolean clientModule, boolean glogbalModule) {
 		setName(name);
 		setRam(ram);
 		setSize(size);
