@@ -86,7 +86,7 @@ public class GeneticAlgorithm extends Algorithm {
 	    long finish = System.currentTimeMillis();
 	    elapsedTime = finish - start;
 	    
-	    if(Config.PRINT_DETAILS && bestSolution != null)
+	    if(Config.PRINT_DETAILS)
 	    	AlgorithmUtils.printResults(this, bestSolution);
 		
 		return bestSolution;

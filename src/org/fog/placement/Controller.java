@@ -347,7 +347,7 @@ public class Controller extends SimEntity {
 		}
 	}
 	
-	private FogDevice getFogDeviceById(int id){
+	public FogDevice getFogDeviceById(int id){
 		for(FogDevice fogDevice : getFogDevices())
 			if(id==fogDevice.getId())
 				return fogDevice;

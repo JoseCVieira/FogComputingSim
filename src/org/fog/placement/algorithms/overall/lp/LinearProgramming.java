@@ -132,53 +132,15 @@ public class LinearProgramming extends Algorithm {
 			constraints(cplex, placementVar, routingVar);
 			
 			// Display option
-			cplex.setParam(IloCplex.Param.Simplex.Display, 0);
+			if(Config.PRINT_DETAILS)
+				cplex.setParam(IloCplex.Param.Simplex.Display, 0);
+			else
+				cplex.setOut(null);
 
 			long start = System.currentTimeMillis();
 			
 			// Solve
 			if (cplex.solve()) {
-				System.out.println("\n\nLP RESULTS:\n");
-				System.out.println("opBest: " + opBest);
-				System.out.println("pwBest: " + pwBest);
-				System.out.println("prBest: " + prBest);
-				System.out.println("ltBest: " + ltBest);
-				System.out.println("bwBest: " + bwBest);
-				
-				double totalOp = 0;
-				double totalPw = 0;
-				double totalPr = 0;
-				double totalLt = 0;
-				double totalBw = 0;
-				for(int i = 0; i < NR_NODES; i++) {
-					for(int j = 0; j < NR_MODULES; j++) {
-						
-						totalOp += Config.OP_W*(getfMipsPrice()[i]*getmMips()[j] + getfRamPrice()[i]*getmRam()[j] + getfMemPrice()[i]*getmMem()[j])*cplex.getValue(placementVar[i][j]);
-						totalPw += Config.PW_W*(getfBusyPw()[i]-getfIdlePw()[i])*(getmMips()[j]/getfMips()[i])*cplex.getValue(placementVar[i][j]);
-						totalPr += Config.PR_W*(getmMips()[j]/getfMips()[i])*cplex.getValue(placementVar[i][j]);
-					}
-				}
-				
-				for(int i = 0; i < getNumberOfDependencies(); i++) {
-					double dependencies = getmDependencyMap()[initialModules.get(i)][finalModules.get(i)];
-					double bwNeeded = getmBandwidthMap()[initialModules.get(i)][finalModules.get(i)];
-					
-					for(int j = 0; j < NR_NODES; j++) {
-						for(int z = 0; z < NR_NODES; z++) {
-							totalLt += Config.LT_W*(getfLatencyMap()[j][z]*dependencies)*cplex.getValue(routingVar[i][j][z]);
-							totalBw +=  Config.BW_W*(bwNeeded/(getfBandwidthMap()[j][z] + Constants.EPSILON))*hollowMatrix[j][z]*cplex.getValue(routingVar[i][j][z]);
-							totalOp += Config.OP_W*(getfBwPrice()[j]*bwNeeded)*cplex.getValue(routingVar[i][j][z]);
-						}
-					}
-				}
-				
-				System.out.println("\ntotalOp: " + totalOp);
-				System.out.println("totalPw: " + totalPw);
-				System.out.println("totalPr: " + totalPr);
-				System.out.println("totalLt: " + totalLt);
-				System.out.println("totalBw: " + totalBw);
-				System.out.println("LP result1 = " + cplex.getObjValue() + "\n\n");
-				
 				long finish = System.currentTimeMillis();
 				elapsedTime = finish - start;
 				
@@ -199,14 +161,58 @@ public class LinearProgramming extends Algorithm {
 						for(int z = 0; z < NR_NODES; z++)
 							routingMap[i][j][z] = (int) cplex.getValue(routingVar[i][j][z]);
 				
-				System.out.println("\nSOLUTION (JOB) RESULTS:\n");
+				
 				Job solution = new Job(this, modulePlacementMap, routingMap);
-				System.out.println("LP result = " + solution.getCost() + "\n\n");
+				
 				
 				valueIterMap.put(0, solution.getCost());
 			    
-			    if(Config.PRINT_DETAILS)
+			    if(Config.PRINT_DETAILS) {
+			    	System.out.println("\n\nLP RESULTS:\n");
+					System.out.println("opBest: " + opBest);
+					System.out.println("pwBest: " + pwBest);
+					System.out.println("prBest: " + prBest);
+					System.out.println("ltBest: " + ltBest);
+					System.out.println("bwBest: " + bwBest);
+					
+					double totalOp = 0;
+					double totalPw = 0;
+					double totalPr = 0;
+					double totalLt = 0;
+					double totalBw = 0;
+					for(int i = 0; i < NR_NODES; i++) {
+						for(int j = 0; j < NR_MODULES; j++) {
+							
+							totalOp += Config.OP_W*(getfMipsPrice()[i]*getmMips()[j] + getfRamPrice()[i]*getmRam()[j] + getfMemPrice()[i]*getmMem()[j])*cplex.getValue(placementVar[i][j]);
+							totalPw += Config.PW_W*(getfBusyPw()[i]-getfIdlePw()[i])*(getmMips()[j]/getfMips()[i])*cplex.getValue(placementVar[i][j]);
+							totalPr += Config.PR_W*(getmMips()[j]/getfMips()[i])*cplex.getValue(placementVar[i][j]);
+						}
+					}
+					
+					for(int i = 0; i < getNumberOfDependencies(); i++) {
+						double dependencies = getmDependencyMap()[initialModules.get(i)][finalModules.get(i)];
+						double bwNeeded = getmBandwidthMap()[initialModules.get(i)][finalModules.get(i)];
+						
+						for(int j = 0; j < NR_NODES; j++) {
+							for(int z = 0; z < NR_NODES; z++) {
+								totalLt += Config.LT_W*(getfLatencyMap()[j][z]*dependencies)*cplex.getValue(routingVar[i][j][z]);
+								totalBw +=  Config.BW_W*(bwNeeded/(getfBandwidthMap()[j][z] + Constants.EPSILON))*hollowMatrix[j][z]*cplex.getValue(routingVar[i][j][z]);
+								totalOp += Config.OP_W*(getfBwPrice()[j]*bwNeeded)*cplex.getValue(routingVar[i][j][z]);
+							}
+						}
+					}
+					
+					System.out.println("\ntotalOp: " + totalOp);
+					System.out.println("totalPw: " + totalPw);
+					System.out.println("totalPr: " + totalPr);
+					System.out.println("totalLt: " + totalLt);
+					System.out.println("totalBw: " + totalBw);
+					System.out.println("LP result1 = " + cplex.getObjValue() + "\n\n");
+					
+			    	System.out.println("\nSOLUTION (JOB) RESULTS:\n");
+			    	System.out.println("LP result = " + solution.getCost() + "\n\n");
 			    	AlgorithmUtils.printResults(this, solution);
+			    }
 				
 				cplex.end();
 				return solution;

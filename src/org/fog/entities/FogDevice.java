@@ -28,6 +28,7 @@ import org.fog.placement.Controller;
 import org.fog.core.Config;
 import org.fog.core.Constants;
 import org.fog.utils.FogEvents;
+import org.fog.utils.Latency;
 import org.fog.utils.Location;
 import org.fog.utils.Logger;
 import org.fog.utils.Movement;
@@ -392,7 +393,15 @@ public class FogDevice extends PowerDatacenter {
 			
 			Map<String, String> communication = new HashMap<String, String>();
 			communication.put(tuple.getSrcModuleName(), tuple.getDestModuleName());
-			sendTo(tuple, routingTable.get(communication));
+			
+			Integer nexHopId = routingTable.get(communication);
+			
+			// It can be null after some handover is completed. This can happen because, some connections were removed and routing
+			// tables were updated. Thus, once there still can exist some old tuples, they will be lost because we already don't
+			// know where to forward it.
+			if(nexHopId == null) return;
+			
+			sendTo(tuple, nexHopId);
 		}
 	}
 
@@ -473,7 +482,10 @@ public class FogDevice extends PowerDatacenter {
 	protected void updateTupleQueue(SimEvent ev){
 		Integer destId = (Integer)ev.getData();
 		
-		if(!getTupleQueue().get(destId).isEmpty()){
+		// It can be null after some handover is completed. This can happen because, some connections were removed and routing
+		// tables were updated. Thus, once there still can exist some old tuples, they will be lost because we already don't
+		// know where to forward it.
+		if(getTupleQueue().get(destId) != null && !getTupleQueue().get(destId).isEmpty()){
 			Pair<Tuple, Integer> pair = getTupleQueue().get(destId).poll();
 			sendFreeLink(pair.getFirst(), pair.getSecond());
 		}else {
@@ -528,6 +540,13 @@ public class FogDevice extends PowerDatacenter {
 	private void updatePeriodicMovement() {
 		movement.updateLocation();
 		
+		// Update connections latency with all neighborhoods
+		for(int neighborhoodId : neighborsIds) {
+			double connectionLatency = Latency.computeConnectionLatency(this, controller.getFogDeviceById(neighborhoodId));
+			latencyMap.put(neighborhoodId, connectionLatency);
+		}
+		
+		// Define next direction and velocity
 		if(movement.getVelocity() != 0) {
 			Random random = new Random();
 			
@@ -565,7 +584,6 @@ public class FogDevice extends PowerDatacenter {
 		}			
 		
 		send(getId(), 1, FogEvents.UPDATE_PERIODIC_MOVEMENT);
-		
 		//System.out.println(this + "\n\n");
 	}
 	

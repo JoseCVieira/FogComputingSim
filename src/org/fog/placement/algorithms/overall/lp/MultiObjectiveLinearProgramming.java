@@ -124,7 +124,10 @@ public class MultiObjectiveLinearProgramming extends Algorithm {
 			cplex.add(cplex.minimize(cplex.staticLex(objArray, null, Config.priorities, null, null, null)));
 			
 			// Display option
-			cplex.setParam(IloCplex.Param.Simplex.Display, 0);
+			if(Config.PRINT_DETAILS)
+				cplex.setParam(IloCplex.Param.Simplex.Display, 0);
+			else
+				cplex.setOut(null);
 
 			long start = System.currentTimeMillis();
 			
