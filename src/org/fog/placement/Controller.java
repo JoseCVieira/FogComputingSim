@@ -46,7 +46,7 @@ public class Controller extends SimEntity {
 	private Job solution;
 	
 	private int algorithmOp;
-	private boolean handoverInProgress;
+	private boolean reconfigurationInProgress;
 	
 	public Controller(String name, List<Application> applications, List<FogDevice> fogDevices, List<Sensor> sensors,
 			List<Actuator> actuators, Map<String, LinkedHashSet<String>> appToFogMap, int algorithmOp) {
@@ -110,7 +110,7 @@ public class Controller extends SimEntity {
 		
 	}
 	
-	public void runAlgorithm() {
+	public void runAlgorithm() {		
 		switch (algorithmOp) {
 			case FogComputingSim.MOLP:
 				Config.SINGLE_OBJECTIVE = false;
@@ -220,29 +220,29 @@ public class Controller extends SimEntity {
 	// However, similarly to what happens in mobile communications, handover has a threshold in order to avoid
 	// abuse of handover in the border areas
 	private void verifyHandover() {
-		if(handoverInProgress)
+		if(reconfigurationInProgress)
 			return;
 		
 		Map<Client, FogDevice> handovers = new HashMap<Client, FogDevice>();
 		
-		for(FogDevice client : fogDevices) {
-			if(client instanceof Client) {
-				Client clientTmp = (Client) client;
-				
-				if(clientTmp.isHandoverInProgress())
-					continue;
+		for(FogDevice fogDevice : fogDevices) {
+			if(fogDevice.isHandoverInProgress() || fogDevice.isMigrationInProgress())
+				continue;
+			
+			if(fogDevice instanceof Client) {
+				Client client = (Client) fogDevice;
 					
-				FogDevice firstHop = getFogDeviceById(clientTmp.getBandwidthMap().entrySet().iterator().next().getKey());
+				FogDevice firstHop = getFogDeviceById(client.getBandwidthMap().entrySet().iterator().next().getKey());
 				
 				// Current distance
-				double distance = Location.computeDistance(clientTmp.getMovement().getLocation(), firstHop.getMovement().getLocation());
+				double distance = Location.computeDistance(client.getMovement().getLocation(), firstHop.getMovement().getLocation());
 				double bestDistance = distance;
 				FogDevice bestFogNode = firstHop;
 				
 				// Check if there is a better fog node for that client
 				for(FogDevice fogNode : fogDevices) {
 					if(!(fogNode instanceof Client)) {
-						double tmpDistance = Location.computeDistance(clientTmp.getMovement().getLocation(), fogNode.getMovement().getLocation());
+						double tmpDistance = Location.computeDistance(client.getMovement().getLocation(), fogNode.getMovement().getLocation());
 						if(bestDistance > tmpDistance) {
 							bestDistance = tmpDistance;
 							bestFogNode = fogNode;
@@ -252,16 +252,16 @@ public class Controller extends SimEntity {
 				
 				// If the current distance is better than the old one, than change its connection
 				if(distance > bestDistance + Config.HANDOFF_THRESHOLD) {
-					handovers.put(clientTmp, bestFogNode);
-					clientTmp.setHandoverInProgress(true);
+					handovers.put(client, bestFogNode);
+					client.setHandoverInProgress(true);
 				}
 			}
 		}
 		
 		if(!handovers.isEmpty()) {
-			handoverInProgress = true;
+			reconfigurationInProgress = true;
 			reconfigure(handovers);
-			handoverInProgress = false;
+			reconfigurationInProgress = false;
 		}
 		
 		send(getId(), Config.REARRANGE_NETWORK_PERIOD, FogEvents.VERIFY_HANDOVER);
@@ -278,8 +278,10 @@ public class Controller extends SimEntity {
 		}
 		
 		algorithm.setPossibleDeployment(AlgorithmMathUtils.toDouble(solution.getModulePlacementMap()));
+		int[][] previousModulePlacement = solution.getModulePlacementMap();
 		solution = algorithm.execute();
 		
+		//migrateModules(solution.getModulePlacementMap(), previousModulePlacement);
 		updateRoutingTables(algorithm, solution.getRoutingMap(), handovers);
 	}
 	
@@ -300,6 +302,37 @@ public class Controller extends SimEntity {
 					ModulePlacement modulePlacement = new ModulePlacementMapping(fogDevices, application, moduleMapping);
 					submitApplication(application, modulePlacement);
 				}
+			}
+		}
+	}
+	
+	private void migrateModules(int[][] currentModulePlacement, int[][] previousModulePlacement) {
+		for(int j = 0; j < currentModulePlacement[0].length; j++) {
+			int previousPlacement = -1;
+			int currentPlacement = -1;
+			
+			for(int i = 0; i < currentModulePlacement.length; i++) {
+				if(currentModulePlacement[i][j] == 1) {
+					currentPlacement = i;
+				}
+				
+				if(previousModulePlacement[i][j] == 1) {
+					previousPlacement = i;
+				}
+			}
+			
+			if(previousPlacement == -1 || previousPlacement == -1)
+				FogComputingSim.err("Should not happen");
+			
+			if(currentPlacement != previousPlacement) {
+				AppModule module = getModuleByName(algorithm.getmName()[j]);
+				FogDevice from = getFogDeviceByName(algorithm.getfName()[previousPlacement]);
+				FogDevice to = getFogDeviceByName(algorithm.getfName()[currentPlacement]);
+				
+				Map<AppModule, FogDevice> map = new HashMap<AppModule, FogDevice>();
+				map.put(module, to);
+				
+				sendNow(from.getId(), FogEvents.START_MIGRATION, map);
 			}
 		}
 	}
@@ -351,6 +384,24 @@ public class Controller extends SimEntity {
 		for(FogDevice fogDevice : getFogDevices())
 			if(id==fogDevice.getId())
 				return fogDevice;
+		return null;
+	}
+	
+	private FogDevice getFogDeviceByName(String name){
+		for(FogDevice fogDevice : getFogDevices())
+			if(name.equals(fogDevice.getName()))
+				return fogDevice;
+		return null;
+	}
+	
+	private AppModule getModuleByName(String name){
+		for(Application application : appList) {
+			for(AppModule appModule : application.getModules()) {
+				if(appModule.getName().equals(name)) {
+					return appModule;
+				}
+			}
+		}
 		return null;
 	}
 	

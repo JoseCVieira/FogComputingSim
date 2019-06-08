@@ -11,16 +11,16 @@ import org.cloudbus.cloudsim.VmAllocationPolicy;
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.core.SimEvent;
 import org.fog.core.Config;
+import org.fog.utils.Coverage;
 import org.fog.utils.FogEvents;
 import org.fog.utils.Movement;
 
 public class Client extends FogDevice {
 	private List<Pair<Integer, Double>> associatedActuatorIds;
-	private boolean handoverInProgress;
 
 	public Client(String name, FogDeviceCharacteristics characteristics, VmAllocationPolicy vmAllocationPolicy,
-			List<Storage> storageList, double schedulingInterval, Movement movement) throws Exception {
-		super(name, characteristics, vmAllocationPolicy, storageList, schedulingInterval, movement);
+			List<Storage> storageList, double schedulingInterval, Movement movement, Coverage coverage) throws Exception {
+		super(name, characteristics, vmAllocationPolicy, storageList, schedulingInterval, movement, coverage);
 		
 		setAssociatedActuatorIds(new ArrayList<Pair<Integer, Double>>());
 	}
@@ -30,9 +30,6 @@ public class Client extends FogDevice {
 		switch(ev.getTag()){
 		case FogEvents.ACTUATOR_JOINED:
 			processActuatorJoined(ev);
-			break;
-		case FogEvents.HANDOVER_COMPLETED:
-			setHandoverInProgress(false);
 			break;
 		default:
 			super.processOtherEvent(ev);
@@ -82,14 +79,6 @@ public class Client extends FogDevice {
 
 	public void setAssociatedActuatorIds(List<Pair<Integer, Double>> associatedActuatorIds) {
 		this.associatedActuatorIds = associatedActuatorIds;
-	}
-
-	public boolean isHandoverInProgress() {
-		return handoverInProgress;
-	}
-
-	public void setHandoverInProgress(boolean handoverOnProgress) {
-		this.handoverInProgress = handoverOnProgress;
 	}
 
 }

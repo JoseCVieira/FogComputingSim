@@ -29,6 +29,7 @@ import org.fog.entities.Sensor;
 import org.fog.entities.Tuple;
 import org.fog.gui.GuiConfig;
 import org.fog.policy.AppModuleAllocationPolicy;
+import org.fog.utils.Coverage;
 import org.fog.utils.FogLinearPowerModel;
 import org.fog.utils.FogUtils;
 import org.fog.utils.Movement;
@@ -56,7 +57,7 @@ public abstract class FogTest {
 	}
 	
 	protected static FogDevice createFogDevice(String name, double mips, int ram, long strg, long bw, double bPw, double iPw, double costPerMips,
-			double costPerMem, double costPerStorage, double costPerBw, Movement movement, boolean client) {
+			double costPerMem, double costPerStorage, double costPerBw, Movement movement, Coverage coverage, boolean client) {
 		List<Pe> processingElementsList = new ArrayList<Pe>();
 		processingElementsList.add(new Pe(0, new PeProvisioner(mips)));
 
@@ -80,20 +81,17 @@ public abstract class FogTest {
 		try {
 			if(!client)
 				return new FogDevice(name, characteristics, new AppModuleAllocationPolicy(hostList), new LinkedList<Storage>(),
-						Constants.SCHEDULING_INTERVAL, movement);
+						Constants.SCHEDULING_INTERVAL, movement, coverage);
 			else 
 				return new Client(name, characteristics, new AppModuleAllocationPolicy(hostList), new LinkedList<Storage>(),
-						Constants.SCHEDULING_INTERVAL, movement);
+						Constants.SCHEDULING_INTERVAL, movement, coverage);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
 		}
 	}
 	
-	protected static void connectFogDevices(FogDevice fog1, FogDevice fog2, double latUp, double latDown, double bwUp, double bwDown) {
-		fog1.getNeighborsIds().add(fog2.getId());
-		fog2.getNeighborsIds().add(fog1.getId());
-		
+	protected static void connectFogDevices(FogDevice fog1, FogDevice fog2, double latUp, double latDown, double bwUp, double bwDown) {		
 		fog1.getLatencyMap().put(fog2.getId(), latUp);
 		fog2.getLatencyMap().put(fog1.getId(), latDown);
 		

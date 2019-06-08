@@ -17,6 +17,7 @@ import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.entities.Tuple;
 import org.fog.gui.GuiConfig;
+import org.fog.utils.Coverage;
 import org.fog.utils.Location;
 import org.fog.utils.Movement;
 import org.fog.utils.Util;
@@ -43,9 +44,10 @@ public class RandomTopology extends FogTest {
 	@Override
 	protected void createFogDevices() {
 		Movement movement = new Movement(0.0, Movement.EAST, new Location(0, 0));
+		Coverage coverage = new Coverage(500);
 		FogDevice cloud = createFogDevice("Cloud", Double.MAX_VALUE, (int) Constants.INF, (int) Constants.INF, (int) Constants.INF,
 				16*GuiConfig.BUSY_POWER, 16*GuiConfig.IDLE_POWER, GuiConfig.RATE_MIPS, GuiConfig.RATE_RAM,
-				GuiConfig.RATE_MEM, GuiConfig.RATE_BW, movement, false);
+				GuiConfig.RATE_MEM, GuiConfig.RATE_BW, movement, coverage, false);
 		
 		fogDevices.add(cloud);
 		
@@ -94,8 +96,9 @@ public class RandomTopology extends FogTest {
 						client = true;
 				}
 				
+				coverage = new Coverage(500);
 				FogDevice fogDevice = createFogDevice("L"+iter+":F"+i, mips, (int) ram, (long) strg, (long) bw, bPw, iPw,
-						rateMips, rateRam, rateStrg, rateBw, movement, client);
+						rateMips, rateRam, rateStrg, rateBw, movement, coverage, client);
 				
 				fogDevices.add(fogDevice);			
 			}
@@ -121,9 +124,6 @@ public class RandomTopology extends FogTest {
 			for(FogDevice f : notConnctedDevices) {
 				if(new Random().nextFloat() < CONNECTION_PROB) {
 					toRemove.add(f);
-					
-					fogDevice.getNeighborsIds().add(f.getId());
-					f.getNeighborsIds().add(fogDevice.getId());
 					
 					fogDevice.getLatencyMap().put(f.getId(), (double) Util.rand(MAX_CONN_LAT/3, MAX_CONN_LAT));
 					f.getLatencyMap().put(fogDevice.getId(), (double) Util.rand(MAX_CONN_LAT/3, MAX_CONN_LAT));

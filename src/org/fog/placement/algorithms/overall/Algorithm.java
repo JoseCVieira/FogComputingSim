@@ -317,7 +317,7 @@ public abstract class Algorithm {
 		for(FogDevice fogDevice : fogDevices) {
 			int dId = fogDevice.getId();
 			
-			for(int neighborId : fogDevice.getNeighborsIds()) {
+			for(int neighborId : fogDevice.getLatencyMap().keySet()) {
 				int lat = fogDevice.getLatencyMap().get(neighborId).intValue();
 				double bw = fogDevice.getBandwidthMap().get(neighborId);
 				

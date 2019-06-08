@@ -72,8 +72,9 @@ public class FogComputingSim {
 		
 		Controller controller = new Controller("master-controller", applications, fogDevices, sensors, actuators, appToFogMap, option);
 		
-		for(FogDevice fogDevice : fogDevices)
+		for(FogDevice fogDevice : fogDevices) {
 			fogDevice.setController(controller);
+		}
 		
 		controller.runAlgorithm();
 		

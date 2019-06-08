@@ -43,7 +43,7 @@ public class Config {
 	// -------------------------------------------------------------- General --------------------------------------------------------------
 	
 	// Algorithms
-	public static final boolean PRINT_DETAILS = false;
+	public static final boolean PRINT_DETAILS = true;
 	public static final boolean PRINT_BEST_ITER = true;
 	
 	// Simulation

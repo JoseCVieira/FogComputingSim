@@ -34,6 +34,8 @@ public class FogEvents {
 	public static final int VERIFY_HANDOVER = BASE + 27;
 	public static final int REMOVE_LINK = BASE + 28;
 	public static final int ADD_NEW_LINK = BASE + 29;
-	public static final int HANDOVER_COMPLETED = BASE + 30;
+	public static final int START_MIGRATION = BASE + 30;
+	public static final int HANDOVER_COMPLETED = BASE + 31;
+	public static final int MIGRATION_COMPLETED = BASE + 32;
 	
 }

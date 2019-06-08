@@ -25,6 +25,7 @@ import org.fog.entities.FogDeviceCharacteristics;
 import org.fog.entities.Sensor;
 import org.fog.entities.Tuple;
 import org.fog.policy.AppModuleAllocationPolicy;
+import org.fog.utils.Coverage;
 import org.fog.utils.FogLinearPowerModel;
 import org.fog.utils.FogUtils;
 import org.fog.utils.Location;
@@ -65,9 +66,6 @@ public class RunGUI extends FogTest {
 				FogDeviceGui fog2 = (FogDeviceGui)edge.getNode();
 				FogDevice f2 = getFogDeviceByName(fog2.getName());
 				
-				f2.getNeighborsIds().add(f1.getId());
-				f1.getNeighborsIds().add(f2.getId());
-				
 				f2.getLatencyMap().put(f1.getId(), edge.getLatency());
 				f1.getLatencyMap().put(f2.getId(), edge.getLatency());
 				
@@ -106,8 +104,9 @@ public class RunGUI extends FogTest {
 		
 		try {
 			Movement movement = new Movement(0.0, Movement.EAST, new Location(0, 0));
+			Coverage coverage = new Coverage(500);
 			return new FogDevice(fog.getName(), characteristics, new AppModuleAllocationPolicy(hostList),
-					new LinkedList<Storage>(), Constants.SCHEDULING_INTERVAL, movement);
+					new LinkedList<Storage>(), Constants.SCHEDULING_INTERVAL, movement, coverage);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
