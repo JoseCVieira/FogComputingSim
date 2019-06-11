@@ -43,7 +43,7 @@ public class Config {
 	// -------------------------------------------------------------- General --------------------------------------------------------------
 	
 	// Algorithms
-	public static final boolean PRINT_DETAILS = true;
+	public static final boolean PRINT_DETAILS = false;
 	public static final boolean PRINT_BEST_ITER = true;
 	
 	// Simulation
@@ -51,22 +51,21 @@ public class Config {
 	public static final boolean PRINT_COMMUNICATION_DETAILS = false;
 	public static final boolean PRINT_COST_DETAILS = false;
 	public static final boolean PRINT_HANDOVER_DETAILS = true;
-	
-	public static final int MAX_HANDOVER_TIME = 1200;
-	public static final int MIN_HANDOVER_TIME = 1000;
-	public static final int REARRANGE_NETWORK_PERIOD = 10;
+
 	public static final int HANDOFF_THRESHOLD = 25;
+	public static final double CONNECTION_RANGE_LIMIT = 0.1; // 10% of the range
+	public static final double MOBILE_COMMUNICATION_BW = 10*1024;
 	
 	// For test purposes
-	public static final int SQUARE_SIDE = 500;
+	public static final int SQUARE_SIDE = 1000;
 	
 	public static final double PROB_CHANGE_DIRECTION = 0.25;
 	public static final double PROB_CHANGE_VELOCITY = 0.35;
 	public static final double PROB_MAX_VELOCITY = 0.1667;
 	public static final double PROB_MED_VELOCITY = 0.6667;
 	public static final double PROB_MIN_VELOCITY = 0.1667;
-	public static final double MAX_VELOCITY = 25;
-	public static final double MED_VELOCITY = 5;
+	public static final double MAX_VELOCITY = 100;
+	public static final double MED_VELOCITY = 50;
 	public static final double MIN_VELOCITY = 0;
-		
+	
 }

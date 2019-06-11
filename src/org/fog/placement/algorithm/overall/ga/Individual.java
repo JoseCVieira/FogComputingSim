@@ -1,4 +1,4 @@
-package org.fog.placement.algorithms.overall.ga;
+package org.fog.placement.algorithm.overall.ga;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -6,12 +6,12 @@ import java.util.List;
 import java.util.Random;
 
 import org.fog.core.Constants;
-import org.fog.placement.algorithms.overall.Job;
-import org.fog.placement.algorithms.overall.util.AlgorithmUtils;
-import org.fog.placement.algorithms.routing.DijkstraAlgorithm;
-import org.fog.placement.algorithms.routing.Edge;
-import org.fog.placement.algorithms.routing.Graph;
-import org.fog.placement.algorithms.routing.Vertex;
+import org.fog.placement.algorithm.Job;
+import org.fog.placement.algorithm.overall.util.AlgorithmUtils;
+import org.fog.placement.algorithm.routing.DijkstraAlgorithm;
+import org.fog.placement.algorithm.routing.Edge;
+import org.fog.placement.algorithm.routing.Graph;
+import org.fog.placement.algorithm.routing.Vertex;
 
 public class Individual implements Comparable<Individual> {	
 	private GeneticAlgorithm ga;

@@ -1,4 +1,4 @@
-package org.fog.placement.algorithms.overall.util;
+package org.fog.placement.algorithm.overall.util;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -16,7 +16,7 @@ import javax.swing.Popup;
 import javax.swing.PopupFactory;
 
 import org.fog.core.Constants;
-import org.fog.placement.algorithms.overall.Algorithm;
+import org.fog.placement.algorithm.Algorithm;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;

@@ -1,4 +1,4 @@
-package org.fog.placement.algorithms.overall;
+package org.fog.placement.algorithm;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,12 +17,12 @@ import org.fog.application.selectivity.FractionalSelectivity;
 import org.fog.core.Config;
 import org.fog.core.Constants;
 import org.fog.entities.Actuator;
-import org.fog.entities.Client;
 import org.fog.entities.FogDevice;
 import org.fog.entities.FogDeviceCharacteristics;
 import org.fog.entities.Sensor;
-import org.fog.placement.algorithms.overall.util.AlgorithmUtils;
+import org.fog.placement.algorithm.overall.util.AlgorithmUtils;
 import org.fog.utils.FogLinearPowerModel;
+import org.fog.utils.Latency;
 import org.fog.utils.distribution.DeterministicDistribution;
 import org.fog.utils.distribution.Distribution;
 import org.fog.utils.distribution.NormalDistribution;
@@ -330,19 +330,20 @@ public abstract class Algorithm {
 		}
 	}
 	
-	// TODO how latency and bandwidth will work?
-	public void changeConnectionMap(Client client, FogDevice from, FogDevice to) {
-		fLatencyMap[getNodeIndexByNodeId(client.getId())][getNodeIndexByNodeId(from.getId())] = Constants.INF;
-		fBandwidthMap[getNodeIndexByNodeId(client.getId())][getNodeIndexByNodeId(from.getId())] = 0;
+	public void changeConnectionMap(FogDevice mobile, FogDevice from, FogDevice to) {
+		double latency = Latency.computeConnectionLatency(mobile, to);
 		
-		fLatencyMap[getNodeIndexByNodeId(from.getId())][getNodeIndexByNodeId(client.getId())] = Constants.INF;
-		fBandwidthMap[getNodeIndexByNodeId(from.getId())][getNodeIndexByNodeId(client.getId())] = 0;
+		fLatencyMap[getNodeIndexByNodeId(mobile.getId())][getNodeIndexByNodeId(to.getId())] = latency;
+		fBandwidthMap[getNodeIndexByNodeId(mobile.getId())][getNodeIndexByNodeId(to.getId())] = Config.MOBILE_COMMUNICATION_BW;
 		
-		fLatencyMap[getNodeIndexByNodeId(client.getId())][getNodeIndexByNodeId(to.getId())] = 25.0;
-		fBandwidthMap[getNodeIndexByNodeId(client.getId())][getNodeIndexByNodeId(to.getId())] = 10000.0;
+		fLatencyMap[getNodeIndexByNodeId(to.getId())][getNodeIndexByNodeId(mobile.getId())] = latency;
+		fBandwidthMap[getNodeIndexByNodeId(to.getId())][getNodeIndexByNodeId(mobile.getId())] = Config.MOBILE_COMMUNICATION_BW;
 		
-		fLatencyMap[getNodeIndexByNodeId(to.getId())][getNodeIndexByNodeId(client.getId())] = 25.0;
-		fBandwidthMap[getNodeIndexByNodeId(to.getId())][getNodeIndexByNodeId(client.getId())] = 10000.0;
+		fLatencyMap[getNodeIndexByNodeId(mobile.getId())][getNodeIndexByNodeId(from.getId())] = Constants.INF;
+		fBandwidthMap[getNodeIndexByNodeId(mobile.getId())][getNodeIndexByNodeId(from.getId())] = 0;
+		
+		fLatencyMap[getNodeIndexByNodeId(from.getId())][getNodeIndexByNodeId(mobile.getId())] = Constants.INF;
+		fBandwidthMap[getNodeIndexByNodeId(from.getId())][getNodeIndexByNodeId(mobile.getId())] = 0;
 	}
 	
 	private void normalizeValues() {

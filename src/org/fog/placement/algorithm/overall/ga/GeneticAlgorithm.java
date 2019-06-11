@@ -1,4 +1,4 @@
-package org.fog.placement.algorithms.overall.ga;
+package org.fog.placement.algorithm.overall.ga;
 
 import java.util.Arrays;
 import java.util.List;
@@ -10,9 +10,9 @@ import org.fog.core.Constants;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
-import org.fog.placement.algorithms.overall.Algorithm;
-import org.fog.placement.algorithms.overall.Job;
-import org.fog.placement.algorithms.overall.util.AlgorithmUtils;
+import org.fog.placement.algorithm.Algorithm;
+import org.fog.placement.algorithm.Job;
+import org.fog.placement.algorithm.overall.util.AlgorithmUtils;
 
 public class GeneticAlgorithm extends Algorithm {
 	private static final int FITTEST = (int)((10*Config.POPULATION_SIZE_GA)/100);  // 10% of fittest population

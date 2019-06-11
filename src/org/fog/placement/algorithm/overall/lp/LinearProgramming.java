@@ -1,4 +1,4 @@
-package org.fog.placement.algorithms.overall.lp;
+package org.fog.placement.algorithm.overall.lp;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,9 +9,9 @@ import org.fog.core.Constants;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
-import org.fog.placement.algorithms.overall.Algorithm;
-import org.fog.placement.algorithms.overall.Job;
-import org.fog.placement.algorithms.overall.util.AlgorithmUtils;
+import org.fog.placement.algorithm.Algorithm;
+import org.fog.placement.algorithm.Job;
+import org.fog.placement.algorithm.overall.util.AlgorithmUtils;
 
 import ilog.concert.*;
 import ilog.cplex.*;
@@ -21,21 +21,10 @@ public class LinearProgramming extends Algorithm {
 	
 	List<Integer> initialModules = new ArrayList<Integer>();
 	List<Integer> finalModules = new ArrayList<Integer>();
-	private int[][] hollowMatrix;
 	
 	public LinearProgramming(final List<FogDevice> fogDevices, final List<Application> applications,
 			final List<Sensor> sensors, final List<Actuator> actuators) {
 		super(fogDevices, applications, sensors, actuators);
-		
-		hollowMatrix = new int[NR_NODES][NR_NODES];
-		
-		for(int i = 0; i < NR_NODES; i++) {
-			for(int j = 0; j < NR_NODES; j++) {
-				if(i != j) {
-					hollowMatrix[i][j] = 1;
-				}
-			}
-		}
 	}
 	
 	@Override
@@ -117,7 +106,7 @@ public class LinearProgramming extends Algorithm {
 				for(int j = 0; j < NR_NODES; j++) {
 					for(int z = 0; z < NR_NODES; z++) {
 						double latencyCost = Config.LT_W*(getfLatencyMap()[j][z]*dependencies);
-						double bandwidthCost =  Config.BW_W*(bwNeeded/(getfBandwidthMap()[j][z] + Constants.EPSILON))*hollowMatrix[j][z];
+						double bandwidthCost =  Config.BW_W*(bwNeeded/(getfBandwidthMap()[j][z] + Constants.EPSILON));
 						double txOpCost = Config.OP_W*(getfBwPrice()[j]*bwNeeded);
 						
 						// Transmission cost + transmission operational cost + transition cost
@@ -196,7 +185,7 @@ public class LinearProgramming extends Algorithm {
 						for(int j = 0; j < NR_NODES; j++) {
 							for(int z = 0; z < NR_NODES; z++) {
 								totalLt += Config.LT_W*(getfLatencyMap()[j][z]*dependencies)*cplex.getValue(routingVar[i][j][z]);
-								totalBw +=  Config.BW_W*(bwNeeded/(getfBandwidthMap()[j][z] + Constants.EPSILON))*hollowMatrix[j][z]*cplex.getValue(routingVar[i][j][z]);
+								totalBw +=  Config.BW_W*(bwNeeded/(getfBandwidthMap()[j][z] + Constants.EPSILON))*cplex.getValue(routingVar[i][j][z]);
 								totalOp += Config.OP_W*(getfBwPrice()[j]*bwNeeded)*cplex.getValue(routingVar[i][j][z]);
 							}
 						}
@@ -484,7 +473,7 @@ public class LinearProgramming extends Algorithm {
 				
 				for(int j = 0; j < NR_NODES; j++) {
 					for(int z = 0; z < NR_NODES; z++) {
-						double bandwidthCost =  Config.BW_W*(bwNeeded/(getfBandwidthMap()[j][z] + Constants.EPSILON))*hollowMatrix[j][z];
+						double bandwidthCost =  Config.BW_W*(bwNeeded/(getfBandwidthMap()[j][z] + Constants.EPSILON));
 						objective.addTerm(routingVar[i][j][z], bandwidthCost);
 					}
 				}

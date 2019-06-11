@@ -1,4 +1,4 @@
-package org.fog.placement.algorithms.overall.random;
+package org.fog.placement.algorithm.overall.random;
 
 import java.util.List;
 
@@ -8,9 +8,9 @@ import org.fog.core.Constants;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
-import org.fog.placement.algorithms.overall.Algorithm;
-import org.fog.placement.algorithms.overall.Job;
-import org.fog.placement.algorithms.overall.util.AlgorithmUtils;
+import org.fog.placement.algorithm.Algorithm;
+import org.fog.placement.algorithm.Job;
+import org.fog.placement.algorithm.overall.util.AlgorithmUtils;
 
 public class RandomAlgorithm extends Algorithm {
 	private Job bestSolution = null;

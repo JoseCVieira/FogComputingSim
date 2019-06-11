@@ -1,11 +1,12 @@
 package org.fog.placement;
 
-import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.math3.util.Pair;
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.core.SimEntity;
 import org.cloudbus.cloudsim.core.SimEvent;
@@ -15,19 +16,19 @@ import org.fog.core.Config;
 import org.fog.core.Constants;
 import org.fog.core.FogComputingSim;
 import org.fog.entities.Actuator;
-import org.fog.entities.Client;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
-import org.fog.placement.algorithms.overall.Algorithm;
-import org.fog.placement.algorithms.overall.Job;
-import org.fog.placement.algorithms.overall.bf.BruteForce;
-import org.fog.placement.algorithms.overall.ga.GeneticAlgorithm;
-import org.fog.placement.algorithms.overall.lp.LinearProgramming;
-import org.fog.placement.algorithms.overall.lp.MultiObjectiveLinearProgramming;
-import org.fog.placement.algorithms.overall.random.RandomAlgorithm;
-import org.fog.placement.algorithms.overall.util.AlgorithmMathUtils;
-import org.fog.placement.algorithms.overall.util.AlgorithmUtils;
+import org.fog.entities.Tuple;
+import org.fog.placement.algorithm.Algorithm;
+import org.fog.placement.algorithm.Job;
+import org.fog.placement.algorithm.overall.bf.BruteForce;
+import org.fog.placement.algorithm.overall.ga.GeneticAlgorithm;
+import org.fog.placement.algorithm.overall.lp.LinearProgramming;
+import org.fog.placement.algorithm.overall.lp.MultiObjectiveLinearProgramming;
+import org.fog.placement.algorithm.overall.random.RandomAlgorithm;
+import org.fog.placement.algorithm.overall.util.AlgorithmMathUtils;
 import org.fog.utils.FogEvents;
+import org.fog.utils.Latency;
 import org.fog.utils.Location;
 import org.fog.utils.Util;
 
@@ -46,7 +47,6 @@ public class Controller extends SimEntity {
 	private Job solution;
 	
 	private int algorithmOp;
-	private boolean reconfigurationInProgress;
 	
 	public Controller(String name, List<Application> applications, List<FogDevice> fogDevices, List<Sensor> sensors,
 			List<Actuator> actuators, Map<String, LinkedHashSet<String>> appToFogMap, int algorithmOp) {
@@ -74,7 +74,7 @@ public class Controller extends SimEntity {
 		}
 		
 		send(getId(), Constants.MAX_SIMULATION_TIME, FogEvents.STOP_SIMULATION);
-		sendNow(getId(), FogEvents.VERIFY_HANDOVER);
+		sendNow(getId(), FogEvents.UPDATE_TOPOLOGY);
 		
 		for(FogDevice dev : getFogDevices()) {
 			sendNow(dev.getId(), FogEvents.RESOURCE_MGMT);
@@ -88,8 +88,8 @@ public class Controller extends SimEntity {
 		case FogEvents.APP_SUBMIT:
 			processAppSubmit(ev);
 			break;
-		case FogEvents.VERIFY_HANDOVER:
-			verifyHandover();
+		case FogEvents.UPDATE_TOPOLOGY:
+			updateTopology(false);
 			break;
 		case FogEvents.STOP_SIMULATION:
 			CloudSim.stopSimulation();
@@ -110,7 +110,7 @@ public class Controller extends SimEntity {
 		
 	}
 	
-	public void runAlgorithm() {		
+	public void runAlgorithm() {
 		switch (algorithmOp) {
 			case FogComputingSim.MOLP:
 				Config.SINGLE_OBJECTIVE = false;
@@ -216,73 +216,125 @@ public class Controller extends SimEntity {
 		}
 	}
 	
-	// Clients always connect to the closest fog device (which offer the best received signal strength)
-	// However, similarly to what happens in mobile communications, handover has a threshold in order to avoid
-	// abuse of handover in the border areas
-	private void verifyHandover() {
-		if(reconfigurationInProgress)
-			return;
+	// Mobile nodes always connect to the closest fixed fog device (which offer the best received signal strength)
+	// Similarly to what happens in mobile communications, handover has a threshold in order to avoid
+	// abuse of handovers in the border areas
+	public void updateTopology(boolean first) {
+		Map<FogDevice, Map<FogDevice, FogDevice>> handovers = new HashMap<FogDevice, Map<FogDevice,FogDevice>>();
 		
-		Map<Client, FogDevice> handovers = new HashMap<Client, FogDevice>();
-		
-		for(FogDevice fogDevice : fogDevices) {
-			if(fogDevice.isHandoverInProgress() || fogDevice.isMigrationInProgress())
+		for(FogDevice f1 : fogDevices) {
+			
+			// If f1 is a fixed node do nothing
+			if(!f1.getFixedNeighborsIds().isEmpty())
 				continue;
 			
-			if(fogDevice instanceof Client) {
-				Client client = (Client) fogDevice;
-					
-				FogDevice firstHop = getFogDeviceById(client.getBandwidthMap().entrySet().iterator().next().getKey());
+			FogDevice best = null;
+			double bestDistance = Constants.INF;
+			if(!f1.getLatencyMap().isEmpty()) {
+				best = getFogDeviceById(f1.getLatencyMap().entrySet().iterator().next().getKey());
+				bestDistance = Location.computeDistance(f1, best);
+			}
+			
+			for(FogDevice f2 : fogDevices) {
+				if(f1.getId() == f2.getId())
+					continue;
 				
-				// Current distance
-				double distance = Location.computeDistance(client.getMovement().getLocation(), firstHop.getMovement().getLocation());
-				double bestDistance = distance;
-				FogDevice bestFogNode = firstHop;
+				// If f2 is a mobile node do nothing
+				if(f2.getFixedNeighborsIds().isEmpty())
+					continue;
 				
-				// Check if there is a better fog node for that client
-				for(FogDevice fogNode : fogDevices) {
-					if(!(fogNode instanceof Client)) {
-						double tmpDistance = Location.computeDistance(client.getMovement().getLocation(), fogNode.getMovement().getLocation());
-						if(bestDistance > tmpDistance) {
-							bestDistance = tmpDistance;
-							bestFogNode = fogNode;
-						}
+				if(f1.getCoverage().covers(f1, f2, Config.CONNECTION_RANGE_LIMIT) && f2.getCoverage().covers(f2, f1, Config.CONNECTION_RANGE_LIMIT)){
+					double distance = Location.computeDistance(f1, f2);
+					if(distance  + Config.HANDOFF_THRESHOLD < bestDistance) {
+						bestDistance = distance;
+						best = f2;
 					}
 				}
+			}
+			
+			// Mobile nodes need to be connected to a fixed node
+			if(best == null)
+				FogComputingSim.err("There are some mobile devices with no possible communications");
+			
+			if(!f1.getLatencyMap().isEmpty()) {
+				int neighborhoodId = f1.getLatencyMap().entrySet().iterator().next().getKey();
 				
-				// If the current distance is better than the old one, than change its connection
-				if(distance > bestDistance + Config.HANDOFF_THRESHOLD) {
-					handovers.put(client, bestFogNode);
-					client.setHandoverInProgress(true);
+				// If its not the same node which it is already connected
+				// If already has a connection, remove it because there is a better one
+				if(neighborhoodId != best.getId()) {
+					FogDevice from = getFogDeviceById(neighborhoodId);
+					
+					algorithm.changeConnectionMap(f1, from, best);
+					Map<FogDevice, FogDevice> handover = new HashMap<FogDevice, FogDevice>();
+					handover.put(from, best);
+					handovers.put(f1, handover);
 				}
+			}else {
+				Map<FogDevice, FogDevice> handover = new HashMap<FogDevice, FogDevice>();
+				handover.put(best, best);
+				handovers.put(f1, handover);
 			}
 		}
 		
-		if(!handovers.isEmpty()) {
-			reconfigurationInProgress = true;
-			reconfigure(handovers);
-			reconfigurationInProgress = false;
+		if(first) {			
+			for(FogDevice mobile : handovers.keySet()) {
+				Map<FogDevice, FogDevice> handover = handovers.get(mobile);
+				FogDevice from = handover.entrySet().iterator().next().getKey();
+				FogDevice to = handover.get(from);
+				
+				System.out.println("[" + CloudSim.clock() + "] Creating connection between "+mobile.getName()+" and " + to.getName());
+				System.out.println("[" + CloudSim.clock() + "] Creating connection between "+to.getName()+" and " + mobile.getName());
+				
+				double latency = Latency.computeConnectionLatency(mobile, to);
+				mobile.getLatencyMap().put(to.getId(), latency);
+				to.getLatencyMap().put(mobile.getId(), latency);
+				
+				mobile.getBandwidthMap().put(to.getId(), Config.MOBILE_COMMUNICATION_BW);
+				to.getBandwidthMap().put(mobile.getId(), Config.MOBILE_COMMUNICATION_BW);
+				
+				mobile.getTupleQueue().put(to.getId(), new LinkedList<Pair<Tuple, Integer>>());
+				to.getTupleQueue().put(mobile.getId(), new LinkedList<Pair<Tuple, Integer>>());
+				
+				mobile.getTupleLinkBusy().put(to.getId(), false);
+				to.getTupleLinkBusy().put(mobile.getId(), false);
+			}
+				
+			runAlgorithm();
+		}else {
+			algorithm.setPossibleDeployment(AlgorithmMathUtils.toDouble(solution.getModulePlacementMap()));
+			solution = algorithm.execute();
+		
+			for(FogDevice mobile : handovers.keySet()) {
+				Map<FogDevice, FogDevice> handover = handovers.get(mobile);
+				FogDevice from = handover.entrySet().iterator().next().getKey();
+				FogDevice to = handover.get(from);
+				
+				System.out.println("[" + CloudSim.clock() + "] Creating connection between "+mobile.getName()+" and " + to.getName());
+				System.out.println("[" + CloudSim.clock() + "] Creating connection between "+to.getName()+" and " + mobile.getName());
+				
+				double latency = Latency.computeConnectionLatency(mobile, to);
+				mobile.getLatencyMap().put(to.getId(), latency);
+				to.getLatencyMap().put(mobile.getId(), latency);
+				
+				mobile.getBandwidthMap().put(to.getId(), Config.MOBILE_COMMUNICATION_BW);
+				to.getBandwidthMap().put(mobile.getId(), Config.MOBILE_COMMUNICATION_BW);
+				
+				mobile.getTupleQueue().put(to.getId(), new LinkedList<Pair<Tuple, Integer>>());
+				to.getTupleQueue().put(mobile.getId(), new LinkedList<Pair<Tuple, Integer>>());
+				
+				mobile.getTupleLinkBusy().put(to.getId(), false);
+				to.getTupleLinkBusy().put(mobile.getId(), false);
+				
+				
+				// Then, remove the old connections
+				sendNow(mobile.getId(), FogEvents.CONNECTION_LOST, from.getId());
+				sendNow(from.getId(), FogEvents.CONNECTION_LOST, mobile.getId());
+			}
+			
+			createRoutingTables(algorithm, solution.getRoutingMap());
 		}
 		
-		send(getId(), Config.REARRANGE_NETWORK_PERIOD, FogEvents.VERIFY_HANDOVER);
-	}
-	
-	public void reconfigure(Map<Client, FogDevice> handovers) {
-		if(Config.PRINT_HANDOVER_DETAILS)
-			printHandoverDetails(handovers);
-		
-		for(Client client : handovers.keySet()) {
-			FogDevice from = getFogDeviceById(client.getBandwidthMap().entrySet().iterator().next().getKey());
-			FogDevice to = handovers.get(client);
-			algorithm.changeConnectionMap(client, from, to);
-		}
-		
-		algorithm.setPossibleDeployment(AlgorithmMathUtils.toDouble(solution.getModulePlacementMap()));
-		int[][] previousModulePlacement = solution.getModulePlacementMap();
-		solution = algorithm.execute();
-		
-		//migrateModules(solution.getModulePlacementMap(), previousModulePlacement);
-		updateRoutingTables(algorithm, solution.getRoutingMap(), handovers);
+		send(getId(), 1, FogEvents.UPDATE_TOPOLOGY);
 	}
 	
 	private void deployApplications(Map<String, List<String>> modulePlacementMap) {
@@ -340,39 +392,18 @@ public class Controller extends SimEntity {
 	private void createRoutingTables(Algorithm algorithm, int[][] routingMatrix) {
 		Map<Map<Integer, Map<String, String>>, Integer> routingMap = algorithm.extractRoutingMap(routingMatrix);
 		
+		// Clear the current routing tables
+		for(FogDevice fogDevice : fogDevices)
+			fogDevice.getRoutingTable().clear();
+		
+		// Update routing tables afterwards
 		for(Map<Integer, Map<String, String>> hop : routingMap.keySet()) {
 			for(Integer node : hop.keySet()) {
 
 				FogDevice fogDevice = getFogDeviceById(algorithm.getfId()[node]);
-				if(fogDevice == null) //sensor and actuators do not need routing map
-					continue;
 				
-				fogDevice.getRoutingTable().put(hop.get(node), algorithm.getfId()[routingMap.get(hop)]);
-			}
-		}
-	}
-	
-	private void updateRoutingTables(Algorithm algorithm, int[][] routingMatrix, Map<Client, FogDevice> handovers) {
-		Map<Map<Integer, Map<String, String>>, Integer> routingMap = algorithm.extractRoutingMap(routingMatrix);
-		
-		for(Client client : handovers.keySet()) {
-			FogDevice to = handovers.get(client);
-			FogDevice from = getFogDeviceById(client.getBandwidthMap().entrySet().iterator().next().getKey());
-			
-			int handoffDuration = Util.rand(Config.MIN_HANDOVER_TIME, Config.MAX_HANDOVER_TIME);
-			send(from.getId(), handoffDuration, FogEvents.REMOVE_LINK, client);
-			send(client.getId(), handoffDuration, FogEvents.HANDOVER_COMPLETED);
-			
-			sendNow(client.getId(), FogEvents.REMOVE_LINK, from);
-			sendNow(client.getId(), FogEvents.ADD_NEW_LINK, to);
-			sendNow(to.getId(), FogEvents.ADD_NEW_LINK, client);
-		}
-		
-		for(Map<Integer, Map<String, String>> hop : routingMap.keySet()) {
-			for(Integer node : hop.keySet()) {
-
-				FogDevice fogDevice = getFogDeviceById(algorithm.getfId()[node]);
-				if(fogDevice == null) //sensor and actuators do not need routing map
+				 // Sensors and actuators do not need routing map
+				if(fogDevice == null)
 					continue;
 				
 				fogDevice.getRoutingTable().put(hop.get(node), algorithm.getfId()[routingMap.get(hop)]);
@@ -403,26 +434,6 @@ public class Controller extends SimEntity {
 			}
 		}
 		return null;
-	}
-	
-	private void printHandoverDetails(Map<Client, FogDevice> handovers) {
-		System.out.println("Performing handover over the following devices:\n");
-		
-		for(Client client : handovers.keySet()) {
-			FogDevice from = getFogDeviceById(client.getBandwidthMap().entrySet().iterator().next().getKey());
-			FogDevice to = handovers.get(client);
-			
-			System.out.println(String.format("%-8s", "Client: ") + AlgorithmUtils.centerString(20, client.getName()) + locationToString(client));
-			System.out.println(String.format("%-8s", "From: ") + AlgorithmUtils.centerString(20, from.getName()) + locationToString(from));
-			System.out.println(String.format("%-8s", "To: ") + AlgorithmUtils.centerString(20, to.getName()) + locationToString(to) + "\n");
-		}
-	}
-	
-	private String locationToString(FogDevice fogDevice) {
-		DecimalFormat decimalFormat = new DecimalFormat("#.##");
-		
-		return " at position (X=" + Float.valueOf(decimalFormat.format(fogDevice.getMovement().getLocation().getX()))
-				+ ", Y=" + Float.valueOf(decimalFormat.format(fogDevice.getMovement().getLocation().getY())) + ")";
 	}
 	
 	public List<FogDevice> getFogDevices() {

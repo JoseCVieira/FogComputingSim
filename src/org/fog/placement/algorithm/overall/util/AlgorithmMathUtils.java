@@ -1,4 +1,4 @@
-package org.fog.placement.algorithms.overall.util;
+package org.fog.placement.algorithm.overall.util;
 
 import org.fog.core.Constants;
 

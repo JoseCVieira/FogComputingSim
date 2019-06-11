@@ -1,4 +1,4 @@
-package org.fog.placement.algorithms.overall;
+package org.fog.placement.algorithm;
 
 import java.util.ArrayList;
 import java.util.List;

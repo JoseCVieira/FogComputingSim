@@ -1,4 +1,4 @@
-package org.fog.placement.algorithms.routing;
+package org.fog.placement.algorithm.routing;
 
 import java.util.List;
 

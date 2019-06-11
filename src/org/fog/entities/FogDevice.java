@@ -2,7 +2,6 @@ package org.fog.entities;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -49,6 +48,7 @@ public class FogDevice extends PowerDatacenter {
 	private double lastBwUtilization;
 	
 	private List<Integer> fixedNeighborsIds;
+	private Map<Integer, Double> connectionStrength;
 	private Map<Integer, Double> latencyMap;
 	private Map<Integer, Double> bandwidthMap;
 	private Map<Map<String, String>, Integer> routingTable;
@@ -61,15 +61,15 @@ public class FogDevice extends PowerDatacenter {
 	private Movement movement;
 	private Coverage coverage;
 	
-	private boolean handoverInProgress;
-	private boolean migrationInProgress;
+	private static int aux = 0;
 	
 	public FogDevice(String name, FogDeviceCharacteristics characteristics, VmAllocationPolicy vmAllocationPolicy, List<Storage> storageList,
 			double schedulingInterval, Movement movement, Coverage coverage) throws Exception {
 		super(name, characteristics, vmAllocationPolicy, storageList, schedulingInterval);
 		
 		deployedModules = new ArrayList<String>();
-		fixedNeighborsIds = new ArrayList<Integer>();
+		setFixedNeighborsIds(new ArrayList<Integer>());
+		setConnectionStrength(new HashMap<Integer, Double>());
 		setLatencyMap(new HashMap<Integer, Double>());
 		setBandwidthMap(new HashMap<Integer, Double>());
 		setRoutingTable(new HashMap<Map<String,String>, Integer>());
@@ -124,20 +124,11 @@ public class FogDevice extends PowerDatacenter {
 		case FogEvents.UPDATE_PERIODIC_MOVEMENT:
 			updatePeriodicMovement();
 			break;
-		case FogEvents.ADD_NEW_LINK:
-			addNewLink(ev);
-			break;
-		case FogEvents.REMOVE_LINK:
-			removeLink(ev);
+		case FogEvents.CONNECTION_LOST:
+			removeLink((Integer) ev.getData());
 			break;
 		case FogEvents.START_MIGRATION:
 			startMigration(ev);
-			break;
-		case FogEvents.HANDOVER_COMPLETED:
-			setHandoverInProgress(false);
-			break;
-		case FogEvents.MIGRATION_COMPLETED:
-			setMigrationInProgress(false);
 			break;
 		default:
 			break;
@@ -185,14 +176,6 @@ public class FogDevice extends PowerDatacenter {
 		sendToSelf(tuple);
 		
 		send(getId(), edge.getPeriodicity(), FogEvents.SEND_PERIODIC_TUPLE, edge);
-	}
-	
-	public String getOperatorName(int vmId){
-		for(Vm vm : this.getHost().getVmList())
-			if(vm.getId() == vmId)
-				return ((AppModule)vm).getName();
-
-		return null;
 	}
 	
 	/**
@@ -416,7 +399,10 @@ public class FogDevice extends PowerDatacenter {
 			// It can be null after some handover is completed. This can happen because, some connections were removed and routing
 			// tables were updated. Thus, once there still can exist some old tuples, they will be lost because we already don't
 			// know where to forward it.
-			if(nexHopId == null) return;
+			if(nexHopId == null) {
+				System.out.println("Packet drop count: " + aux++);
+				return;
+			}
 			
 			sendTo(tuple, nexHopId);
 		}
@@ -557,17 +543,34 @@ public class FogDevice extends PowerDatacenter {
 	private void updatePeriodicMovement() {
 		movement.updateLocation();
 		
+		List<Integer> toRemove = new ArrayList<Integer>();
+		
 		// Update connections latency with all neighborhoods
 		for(int neighborhoodId : latencyMap.keySet()) {
-			if(!fixedNeighborsIds.contains(neighborhoodId)) {
+			if(!getFixedNeighborsIds().contains(neighborhoodId)) {
 				double connectionLatency = Latency.computeConnectionLatency(this, controller.getFogDeviceById(neighborhoodId));
 				latencyMap.put(neighborhoodId, connectionLatency);
+				
+				double distance = Location.computeDistance(this, controller.getFogDeviceById(neighborhoodId));
+				double strength = 1 - (distance/coverage.getRadius());
+				
+				// Looses connection at 10% of the limit range
+				if(strength < Config.CONNECTION_RANGE_LIMIT) {
+					sendNow(neighborhoodId, FogEvents.CONNECTION_LOST, getId());
+					toRemove.add(neighborhoodId);
+				}else {
+					getConnectionStrength().put(neighborhoodId, distance/coverage.getRadius());
+				}
 			}
+		}
+		
+		for(int neighborhoodId : toRemove) {
+			removeLink(neighborhoodId);
 		}
 		
 		// Define next direction and velocity
 		// Only updates for mobile nodes. Having fixed connections means that this node is a fixed one
-		if(fixedNeighborsIds.isEmpty()) {
+		if(getFixedNeighborsIds().isEmpty()) {
 			Random random = new Random();
 			
 			double changeDirProb = Config.PROB_CHANGE_DIRECTION;
@@ -607,29 +610,20 @@ public class FogDevice extends PowerDatacenter {
 		//System.out.println(this + "\n\n");
 	}
 	
-	// TODO how latency and bandwidth will work?
-	private void addNewLink(SimEvent ev) {
-		FogDevice fogDevice = (FogDevice)ev.getData();
+	private void removeLink(int id) {
+		getLatencyMap().remove(id);
+		getBandwidthMap().remove(id);
+		getTupleQueue().remove(id);
+		getTupleLinkBusy().remove(id);
+		getConnectionStrength().remove(id);
 		
-		getLatencyMap().put(fogDevice.getId(), 25.0);
-		getBandwidthMap().put(fogDevice.getId(), 10000.0);
-		getTupleQueue().put(fogDevice.getId(), new LinkedList<Pair<Tuple, Integer>>());
-		getTupleLinkBusy().put(fogDevice.getId(), false);
-	}
-	
-	private void removeLink(SimEvent ev) {
-		FogDevice fogDevice = (FogDevice)ev.getData();
-		
-		getLatencyMap().remove(fogDevice.getId());
-		getBandwidthMap().remove(fogDevice.getId());
-		getTupleQueue().remove(fogDevice.getId());
-		getTupleLinkBusy().remove(fogDevice.getId());
+		System.out.println("[" + CloudSim.clock() + "] Removing connection between "+getName()+" + and " + controller.getFogDeviceById(id).getName());
 		
 		// Clean unused entries from routing table
 		Map<Map<String, String>, Integer> newTable = new HashMap<Map<String,String>, Integer>();
 		
 		for(Map<String, String> map : routingTable.keySet()) {
-			if(routingTable.get(map) != fogDevice.getId()) {
+			if(routingTable.get(map) != id) {
 				newTable.put(map, routingTable.get(map));
 			}
 		}
@@ -641,15 +635,13 @@ public class FogDevice extends PowerDatacenter {
 	private void startMigration(SimEvent ev) {
 		Map<AppModule, FogDevice> map = (Map<AppModule, FogDevice>)ev.getData();
 		
-		setMigrationInProgress(true);
-		
-		for (AppModule module : map.keySet()) {
+		for(AppModule module : map.keySet()) {
 			FogDevice to = map.get(module);
 			System.out.println("[Migration] Module: " + module.getName() + " from: " + getName() + " to: " + to.getName());
 			
 			Map<String,Object> migrate = new HashMap<String,Object>();
 			migrate.put("vm", module);
-			migrate.put("host", to.getHost());			
+			migrate.put("host", to.getHost());
 			sendNow(getId(), CloudSimTags.VM_MIGRATE, migrate);
 		}
 	}
@@ -693,10 +685,14 @@ public class FogDevice extends PowerDatacenter {
 	public void setController(Controller controller) {
 		this.controller = controller;
 		
+		// Strength signal of the fixed communications is 1 (maximum)
 		for(int neighborId : latencyMap.keySet()) {
-			fixedNeighborsIds.add(neighborId);
+			getFixedNeighborsIds().add(neighborId);
+			getConnectionStrength().put(neighborId, 1.0);
 		}
 		
+		// Add a connection with it self just for the sake of the optimization algorithm
+		getConnectionStrength().put(getId(), 1.0);		
 		updatePeriodicMovement();
 	}
 	
@@ -744,20 +740,20 @@ public class FogDevice extends PowerDatacenter {
 		this.coverage = coverage;
 	}
 	
-	public boolean isHandoverInProgress() {
-		return handoverInProgress;
+	public List<Integer> getFixedNeighborsIds() {
+		return fixedNeighborsIds;
 	}
 
-	public void setHandoverInProgress(boolean handoverOnProgress) {
-		this.handoverInProgress = handoverOnProgress;
+	public void setFixedNeighborsIds(List<Integer> fixedNeighborsIds) {
+		this.fixedNeighborsIds = fixedNeighborsIds;
 	}
 	
-	public boolean isMigrationInProgress() {
-		return migrationInProgress;
+	public Map<Integer, Double> getConnectionStrength() {
+		return connectionStrength;
 	}
 
-	public void setMigrationInProgress(boolean migrationInProgress) {
-		this.migrationInProgress = migrationInProgress;
+	public void setConnectionStrength(Map<Integer, Double> connectionStrength) {
+		this.connectionStrength = connectionStrength;
 	}
 
 	@Override
@@ -766,7 +762,7 @@ public class FogDevice extends PowerDatacenter {
 				+ "\nlatencyMap=" + latencyMap + "\nbandwidthMap=" + bandwidthMap + "\nroutingTable=" + routingTable
 				+ "\nmovement=" + movement + "\nMIPS=" + getHost().getTotalMips() + "\nRAM=" + getHost().getRam()
 				+ "\nMEM=" + getHost().getStorage() + "\nBW=" + getHost().getBw() + "\nVm List=" + getHost().getVmList()
-				+ "\ncoverage=" + coverage + "]";
+				+ "\ncoverage=" + coverage + "\nfixedNeighborsIds=" + fixedNeighborsIds + "]";
 	}
 	
 }

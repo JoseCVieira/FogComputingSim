@@ -1,4 +1,4 @@
-package org.fog.placement.algorithms.overall.lp;
+package org.fog.placement.algorithm.overall.lp;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,9 +9,9 @@ import org.fog.core.Constants;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
-import org.fog.placement.algorithms.overall.Algorithm;
-import org.fog.placement.algorithms.overall.Job;
-import org.fog.placement.algorithms.overall.util.AlgorithmUtils;
+import org.fog.placement.algorithm.Algorithm;
+import org.fog.placement.algorithm.Job;
+import org.fog.placement.algorithm.overall.util.AlgorithmUtils;
 
 import ilog.concert.*;
 import ilog.cplex.*;
@@ -19,21 +19,10 @@ import ilog.cplex.*;
 public class MultiObjectiveLinearProgramming extends Algorithm {
 	List<Integer> initialModules = new ArrayList<Integer>();
 	List<Integer> finalModules = new ArrayList<Integer>();
-	private int[][] hollowMatrix;
 	
 	public MultiObjectiveLinearProgramming(final List<FogDevice> fogDevices, final List<Application> applications,
 			final List<Sensor> sensors, final List<Actuator> actuators) {
 		super(fogDevices, applications, sensors, actuators);
-		
-		hollowMatrix = new int[NR_NODES][NR_NODES];
-		
-		for(int i = 0; i < NR_NODES; i++) {
-			for(int j = 0; j < NR_NODES; j++) {
-				if(i != j) {
-					hollowMatrix[i][j] = 1;
-				}
-			}
-		}
 	}
 	
 	@Override
@@ -94,7 +83,7 @@ public class MultiObjectiveLinearProgramming extends Algorithm {
 				for(int j = 0; j < NR_NODES; j++) {
 					for(int z = 0; z < NR_NODES; z++) {
 						double lt = getfLatencyMap()[j][z]*dependencies;
-						double bw = bwNeeded/(getfBandwidthMap()[j][z] + Constants.EPSILON)*hollowMatrix[j][z];
+						double bw = bwNeeded/(getfBandwidthMap()[j][z] + Constants.EPSILON);
 						double op = getfBwPrice()[j]*bwNeeded;
 						
 						ltObjective = cplex.sum(ltObjective, cplex.prod(routingVar[i][j][z], lt));	// Latency cost

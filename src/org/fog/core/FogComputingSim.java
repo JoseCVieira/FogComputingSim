@@ -76,7 +76,9 @@ public class FogComputingSim {
 			fogDevice.setController(controller);
 		}
 		
-		controller.runAlgorithm();
+		// Add mobile communications in the first place
+		// Run the optimization algorithm in the first place to deploy the applications' modules in the best way
+		controller.updateTopology(true);
 		
 		System.out.println("Starting simulation...");
 		TimeKeeper.getInstance().setSimulationStartTime(Calendar.getInstance().getTimeInMillis());

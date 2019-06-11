@@ -1,4 +1,4 @@
-package org.fog.placement.algorithms.overall;
+package org.fog.placement.algorithm;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -7,10 +7,10 @@ import java.util.List;
 import java.util.Random;
 
 import org.fog.core.Constants;
-import org.fog.placement.algorithms.routing.DijkstraAlgorithm;
-import org.fog.placement.algorithms.routing.Edge;
-import org.fog.placement.algorithms.routing.Graph;
-import org.fog.placement.algorithms.routing.Vertex;
+import org.fog.placement.algorithm.routing.DijkstraAlgorithm;
+import org.fog.placement.algorithm.routing.Edge;
+import org.fog.placement.algorithm.routing.Graph;
+import org.fog.placement.algorithm.routing.Vertex;
 import org.fog.utils.Util;
 
 public class Job implements Comparable<Job> {
