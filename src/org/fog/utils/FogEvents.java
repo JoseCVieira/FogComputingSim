@@ -31,10 +31,16 @@ public class FogEvents {
 	
 	// Mobile events
 	public static final int UPDATE_PERIODIC_MOVEMENT = BASE + 26;
-	public static final int CONNECTION_LOST = BASE + 30;
-	public static final int UPDATE_TOPOLOGY = BASE + 31;
+	public static final int CONNECTION_LOST = BASE + 27;
+	public static final int UPDATE_TOPOLOGY = BASE + 28;
+	
+	
+	
+	public static final int DELIVERY_VM = BASE + 29;
+	public static final int VM_MIGRATE = BASE + 30;
+	public static final int UNLOCKED_MIGRATION = BASE + 31;
 	
 	public static final int START_MIGRATION = BASE + 32;
-	public static final int MIGRATION_COMPLETED = BASE + 34;
+	public static final int MIGRATION_COMPLETED = BASE + 33;
 	
 }

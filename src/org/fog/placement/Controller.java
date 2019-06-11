@@ -53,8 +53,8 @@ public class Controller extends SimEntity {
 		super(name);
 		
 		setApplications(new HashMap<String, Application>());
-		setAppLaunchDelays(new HashMap<String, Integer>());
-		setAppModulePlacementPolicy(new HashMap<String, ModulePlacement>());
+		appLaunchDelays = new HashMap<String, Integer>();
+		appModulePlacementPolicy = new HashMap<String, ModulePlacement>();
 		
 		setFogDevices(fogDevices);
 		this.appList = applications;
@@ -67,10 +67,10 @@ public class Controller extends SimEntity {
 	@Override
 	public void startEntity() {
 		for(String appId : getApplications().keySet()) {
-			if(getAppLaunchDelays().get(appId) == 0)
+			if(appLaunchDelays.get(appId) == 0)
 				processAppSubmit(getApplications().get(appId));
 			else
-				send(getId(), getAppLaunchDelays().get(appId), FogEvents.APP_SUBMIT, getApplications().get(appId));
+				send(getId(), appLaunchDelays.get(appId), FogEvents.APP_SUBMIT, getApplications().get(appId));
 		}
 		
 		send(getId(), Constants.MAX_SIMULATION_TIME, FogEvents.STOP_SIMULATION);
@@ -182,8 +182,8 @@ public class Controller extends SimEntity {
 	
 	public void submitApplication(Application application, int delay, ModulePlacement modulePlacement){
 		getApplications().put(application.getAppId(), application);
-		getAppLaunchDelays().put(application.getAppId(), delay);
-		getAppModulePlacementPolicy().put(application.getAppId(), modulePlacement);
+		appLaunchDelays.put(application.getAppId(), delay);
+		appModulePlacementPolicy.put(application.getAppId(), modulePlacement);
 		
 		for(Sensor sensor : sensors)
 			sensor.setApp(getApplications().get(sensor.getAppId()));
@@ -205,7 +205,7 @@ public class Controller extends SimEntity {
 		System.out.println("Submitted application " + application.getAppId() + " at time= " + CloudSim.clock());
 		getApplications().put(application.getAppId(), application);
 		
-		ModulePlacement modulePlacement = getAppModulePlacementPolicy().get(application.getAppId());
+		ModulePlacement modulePlacement = appModulePlacementPolicy.get(application.getAppId());
 		
 		Map<Integer, List<AppModule>> deviceToModuleMap = modulePlacement.getDeviceToModuleMap();
 		for(Integer deviceId : deviceToModuleMap.keySet()){
@@ -301,9 +301,14 @@ public class Controller extends SimEntity {
 				
 			runAlgorithm();
 		}else {
+			int[][] previousModulePlacement = solution.getModulePlacementMap();
+			
 			algorithm.setPossibleDeployment(AlgorithmMathUtils.toDouble(solution.getModulePlacementMap()));
 			solution = algorithm.execute();
+			
+			createRoutingTables(algorithm, solution.getRoutingMap());
 		
+			// create connections
 			for(FogDevice mobile : handovers.keySet()) {
 				Map<FogDevice, FogDevice> handover = handovers.get(mobile);
 				FogDevice from = handover.entrySet().iterator().next().getKey();
@@ -331,7 +336,8 @@ public class Controller extends SimEntity {
 				sendNow(from.getId(), FogEvents.CONNECTION_LOST, mobile.getId());
 			}
 			
-			createRoutingTables(algorithm, solution.getRoutingMap());
+			// Migrate modules
+			migrateModules(solution.getModulePlacementMap(), previousModulePlacement);
 		}
 		
 		send(getId(), 1, FogEvents.UPDATE_TOPOLOGY);
@@ -380,6 +386,15 @@ public class Controller extends SimEntity {
 				AppModule module = getModuleByName(algorithm.getmName()[j]);
 				FogDevice from = getFogDeviceByName(algorithm.getfName()[previousPlacement]);
 				FogDevice to = getFogDeviceByName(algorithm.getfName()[currentPlacement]);
+				
+				System.out.println("[" + CloudSim.clock() + "] Migration of module: " + module.getName() + " from: " + getName() + " to: " + to.getName());
+				
+				//module.setInMigration(true);
+				//send(from.getId(), 1, FogEvents.DELIVERY_VM, module);
+				//sendNow(to.getId(), FogEvents.VM_MIGRATE, module);
+				
+				/*float migrationLocked = (float) ((smartThing.getVmMobileDevice().getSize()*(smartThing.getSpeed()+1))+20000);
+				send(smartThing.getVmLocalServerCloudlet().getId(),migrationLocked,MobileEvents.UNLOCKED_MIGRATION,smartThing);*/
 				
 				Map<AppModule, FogDevice> map = new HashMap<AppModule, FogDevice>();
 				map.put(module, to);
@@ -442,22 +457,6 @@ public class Controller extends SimEntity {
 
 	public void setFogDevices(List<FogDevice> fogDevices) {
 		this.fogDevices = fogDevices;
-	}
-
-	public Map<String, Integer> getAppLaunchDelays() {
-		return appLaunchDelays;
-	}
-
-	public void setAppLaunchDelays(Map<String, Integer> appLaunchDelays) {
-		this.appLaunchDelays = appLaunchDelays;
-	}
-
-	public Map<String, ModulePlacement> getAppModulePlacementPolicy() {
-		return appModulePlacementPolicy;
-	}
-
-	public void setAppModulePlacementPolicy(Map<String, ModulePlacement> appModulePlacementPolicy) {
-		this.appModulePlacementPolicy = appModulePlacementPolicy;
 	}
 
 	public Map<String, Application> getApplications() {

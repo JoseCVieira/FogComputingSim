@@ -61,7 +61,9 @@ public class FogDevice extends PowerDatacenter {
 	private Movement movement;
 	private Coverage coverage;
 	
-	private static int aux = 0;
+	//TODO
+	private static int pktDrop = 0;
+	private static int pktOk = 0;
 	
 	public FogDevice(String name, FogDeviceCharacteristics characteristics, VmAllocationPolicy vmAllocationPolicy, List<Storage> storageList,
 			double schedulingInterval, Movement movement, Coverage coverage) throws Exception {
@@ -376,8 +378,8 @@ public class FogDevice extends PowerDatacenter {
 				if(((AppModule)vm).getName().equals(tuple.getDestModuleName())) {
 					vmId = vm.getId();
 					
-					if(Config.PRINT_DETAILS)
-						System.out.println("["+getName()+"] executing on -> "+ ((AppModule)vm).getName() + " ["+vmId+"]");
+					//if(Config.PRINT_DETAILS)
+					System.out.println("["+getName()+"] executing on -> "+ ((AppModule)vm).getName() + " ["+vmId+"]");
 				}
 			}
 				
@@ -399,9 +401,13 @@ public class FogDevice extends PowerDatacenter {
 			// It can be null after some handover is completed. This can happen because, some connections were removed and routing
 			// tables were updated. Thus, once there still can exist some old tuples, they will be lost because we already don't
 			// know where to forward it.
+			
 			if(nexHopId == null) {
-				System.out.println("Packet drop count: " + aux++);
+				System.out.println("\nPacket drop count: " + pktDrop++);
+				System.out.println("Packet OK count: " + pktOk + "\n");
 				return;
+			}else {
+				pktOk++;
 			}
 			
 			sendTo(tuple, nexHopId);
@@ -637,7 +643,6 @@ public class FogDevice extends PowerDatacenter {
 		
 		for(AppModule module : map.keySet()) {
 			FogDevice to = map.get(module);
-			System.out.println("[Migration] Module: " + module.getName() + " from: " + getName() + " to: " + to.getName());
 			
 			Map<String,Object> migrate = new HashMap<String,Object>();
 			migrate.put("vm", module);
