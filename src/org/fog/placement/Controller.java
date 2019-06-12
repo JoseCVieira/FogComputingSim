@@ -20,13 +20,6 @@ import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.entities.Tuple;
 import org.fog.placement.algorithm.Algorithm;
-import org.fog.placement.algorithm.Job;
-import org.fog.placement.algorithm.overall.bf.BruteForce;
-import org.fog.placement.algorithm.overall.ga.GeneticAlgorithm;
-import org.fog.placement.algorithm.overall.lp.LinearProgramming;
-import org.fog.placement.algorithm.overall.lp.MultiObjectiveLinearProgramming;
-import org.fog.placement.algorithm.overall.random.RandomAlgorithm;
-import org.fog.placement.algorithm.overall.util.AlgorithmMathUtils;
 import org.fog.utils.FogEvents;
 import org.fog.utils.Latency;
 import org.fog.utils.Location;
@@ -43,10 +36,7 @@ public class Controller extends SimEntity {
 	private List<Actuator> actuators;
 	private Map<String, LinkedHashSet<String>> appToFogMap;
 	
-	private Algorithm algorithm;
-	private Job solution;
-	
-	private int algorithmOp;
+	private ControllerAlgorithm controllerAlgorithm;
 	
 	public Controller(String name, List<Application> applications, List<FogDevice> fogDevices, List<Sensor> sensors,
 			List<Actuator> actuators, Map<String, LinkedHashSet<String>> appToFogMap, int algorithmOp) {
@@ -60,8 +50,9 @@ public class Controller extends SimEntity {
 		this.appList = applications;
 		this.sensors = sensors;
 		this.actuators = actuators;
-		this.algorithmOp = algorithmOp;
 		this.appToFogMap = appToFogMap;
+		
+		controllerAlgorithm = new ControllerAlgorithm(fogDevices, appList, sensors, actuators, algorithmOp);
 	}
 	
 	@Override
@@ -108,76 +99,6 @@ public class Controller extends SimEntity {
 	@Override
 	public void shutdownEntity() {
 		
-	}
-	
-	public void runAlgorithm() {
-		switch (algorithmOp) {
-			case FogComputingSim.MOLP:
-				Config.SINGLE_OBJECTIVE = false;
-				System.out.println("Running the optimization algorithm: Multiobjective Linear Programming.");
-				algorithm = new MultiObjectiveLinearProgramming(fogDevices, appList, sensors, actuators);
-				solution = algorithm.execute();
-				break;
-			case FogComputingSim.LP:
-				System.out.println("Running the optimization algorithm: Linear Programming.");
-				algorithm = new LinearProgramming(fogDevices, appList, sensors, actuators);
-				solution = algorithm.execute();
-				break;
-			case FogComputingSim.GA:
-				System.out.println("Running the optimization algorithm: Genetic Algorithm.");
-				algorithm = new GeneticAlgorithm(fogDevices, appList, sensors, actuators);
-				solution = algorithm.execute();
-				OutputControllerResults.plotResult(algorithm, "Genetic Algorithm");
-				break;
-			case FogComputingSim.RAND:
-				System.out.println("Running the optimization algorithm: Random Algorithm.");
-				algorithm = new RandomAlgorithm(fogDevices, appList, sensors, actuators);
-				solution = algorithm.execute();
-				OutputControllerResults.plotResult(algorithm, "Random Algorithm");
-				break;
-			case FogComputingSim.BF:
-				System.out.println("Running the optimization algorithm: Brute Force.");
-				algorithm = new BruteForce(fogDevices, appList, sensors, actuators);
-				solution = algorithm.execute();
-				OutputControllerResults.plotResult(algorithm, "Brute Force");
-				break;
-			case FogComputingSim.MDP:
-				FogComputingSim.err("MDP is not implemented yet");
-				break;
-			case FogComputingSim.ALL:
-				System.out.println("Running the optimization algorithm: Multiobjective Linear Programming.");
-				algorithm = new MultiObjectiveLinearProgramming(fogDevices, appList, sensors, actuators);
-				solution = algorithm.execute();
-				
-				System.out.println("Running the optimization algorithm: Linear programming.");
-				algorithm = new LinearProgramming(fogDevices, appList, sensors, actuators);
-				solution = algorithm.execute();
-				
-				System.out.println("Running the optimization algorithm: Genetic Algorithm.");
-				algorithm = new GeneticAlgorithm(fogDevices, appList, sensors, actuators);
-				solution = algorithm.execute();
-				OutputControllerResults.plotResult(algorithm, "Genetic Algorithm");
-				
-				System.out.println("Running the optimization algorithm: Random Algorithm.");
-				algorithm = new RandomAlgorithm(fogDevices, appList, sensors, actuators);
-				solution = algorithm.execute();
-				OutputControllerResults.plotResult(algorithm, "Random Algorithm");
-				
-				System.out.println("Running the optimization algorithm: Brute Force.");
-				algorithm = new BruteForce(fogDevices, appList, sensors, actuators);
-				solution = algorithm.execute();
-				OutputControllerResults.plotResult(algorithm, "Brute Force");
-				break;
-			default:
-				FogComputingSim.err("Unknown algorithm");
-		}
-		
-		if(solution == null || solution.getModulePlacementMap() == null || solution.getRoutingMap() == null || !solution.isValid()) {
-			FogComputingSim.err("There is no possible combination to deploy all applications");
-		}
-		
-		deployApplications(algorithm.extractPlacementMap(solution.getModulePlacementMap()));
-		createRoutingTables(algorithm, solution.getRoutingMap());
 	}
 	
 	public void submitApplication(Application application, int delay, ModulePlacement modulePlacement){
@@ -264,7 +185,7 @@ public class Controller extends SimEntity {
 				if(neighborhoodId != best.getId()) {
 					FogDevice from = getFogDeviceById(neighborhoodId);
 					
-					algorithm.changeConnectionMap(f1, from, best);
+					controllerAlgorithm.getAlgorithm().changeConnectionMap(f1, from, best);
 					Map<FogDevice, FogDevice> handover = new HashMap<FogDevice, FogDevice>();
 					handover.put(from, best);
 					handovers.put(f1, handover);
@@ -276,71 +197,67 @@ public class Controller extends SimEntity {
 			}
 		}
 		
-		if(first) {			
+		if(first) {
 			for(FogDevice mobile : handovers.keySet()) {
 				Map<FogDevice, FogDevice> handover = handovers.get(mobile);
 				FogDevice from = handover.entrySet().iterator().next().getKey();
 				FogDevice to = handover.get(from);
 				
-				System.out.println("[" + CloudSim.clock() + "] Creating connection between "+mobile.getName()+" and " + to.getName());
-				System.out.println("[" + CloudSim.clock() + "] Creating connection between "+to.getName()+" and " + mobile.getName());
-				
-				double latency = Latency.computeConnectionLatency(mobile, to);
-				mobile.getLatencyMap().put(to.getId(), latency);
-				to.getLatencyMap().put(mobile.getId(), latency);
-				
-				mobile.getBandwidthMap().put(to.getId(), Config.MOBILE_COMMUNICATION_BW);
-				to.getBandwidthMap().put(mobile.getId(), Config.MOBILE_COMMUNICATION_BW);
-				
-				mobile.getTupleQueue().put(to.getId(), new LinkedList<Pair<Tuple, Integer>>());
-				to.getTupleQueue().put(mobile.getId(), new LinkedList<Pair<Tuple, Integer>>());
-				
-				mobile.getTupleLinkBusy().put(to.getId(), false);
-				to.getTupleLinkBusy().put(mobile.getId(), false);
+				createConnection(mobile, from, to);
 			}
-				
-			runAlgorithm();
-		}else {
-			int[][] previousModulePlacement = solution.getModulePlacementMap();
 			
-			algorithm.setPossibleDeployment(AlgorithmMathUtils.toDouble(solution.getModulePlacementMap()));
-			solution = algorithm.execute();
+			controllerAlgorithm.computeAlgorithm();
 			
-			createRoutingTables(algorithm, solution.getRoutingMap());
+			deployApplications(controllerAlgorithm.getAlgorithm().extractPlacementMap(controllerAlgorithm.getSolution().getModulePlacementMap()));
+			createRoutingTables(controllerAlgorithm.getAlgorithm(), controllerAlgorithm.getSolution().getRoutingMap());
+			
+		}else if(!handovers.isEmpty()){
+			int[][] previousModulePlacement = controllerAlgorithm.getSolution().getModulePlacementMap();
+			
+			//algorithm.setPossibleDeployment(AlgorithmMathUtils.toDouble(solution.getModulePlacementMap()));
+			controllerAlgorithm.recomputeAlgorithm();
+			
+			createRoutingTables(controllerAlgorithm.getAlgorithm(), controllerAlgorithm.getSolution().getRoutingMap());
 		
-			// create connections
+			// Update connections
 			for(FogDevice mobile : handovers.keySet()) {
 				Map<FogDevice, FogDevice> handover = handovers.get(mobile);
 				FogDevice from = handover.entrySet().iterator().next().getKey();
 				FogDevice to = handover.get(from);
 				
-				System.out.println("[" + CloudSim.clock() + "] Creating connection between "+mobile.getName()+" and " + to.getName());
-				System.out.println("[" + CloudSim.clock() + "] Creating connection between "+to.getName()+" and " + mobile.getName());
-				
-				double latency = Latency.computeConnectionLatency(mobile, to);
-				mobile.getLatencyMap().put(to.getId(), latency);
-				to.getLatencyMap().put(mobile.getId(), latency);
-				
-				mobile.getBandwidthMap().put(to.getId(), Config.MOBILE_COMMUNICATION_BW);
-				to.getBandwidthMap().put(mobile.getId(), Config.MOBILE_COMMUNICATION_BW);
-				
-				mobile.getTupleQueue().put(to.getId(), new LinkedList<Pair<Tuple, Integer>>());
-				to.getTupleQueue().put(mobile.getId(), new LinkedList<Pair<Tuple, Integer>>());
-				
-				mobile.getTupleLinkBusy().put(to.getId(), false);
-				to.getTupleLinkBusy().put(mobile.getId(), false);
-				
-				
-				// Then, remove the old connections
-				sendNow(mobile.getId(), FogEvents.CONNECTION_LOST, from.getId());
-				sendNow(from.getId(), FogEvents.CONNECTION_LOST, mobile.getId());
+				createConnection(mobile, from, to);
+				removeConnection(mobile, from);
 			}
 			
 			// Migrate modules
-			migrateModules(solution.getModulePlacementMap(), previousModulePlacement);
+			migrateModules(controllerAlgorithm.getSolution().getModulePlacementMap(), previousModulePlacement);
 		}
 		
 		send(getId(), 1, FogEvents.UPDATE_TOPOLOGY);
+	}
+	
+	private void createConnection(FogDevice mobile, FogDevice from, FogDevice to) {
+		System.out.println("[" + CloudSim.clock() + "] Creating connection between "+mobile.getName()+" and " + to.getName());
+		System.out.println("[" + CloudSim.clock() + "] Creating connection between "+to.getName()+" and " + mobile.getName());
+		
+		double latency = Latency.computeConnectionLatency(mobile, to);
+		mobile.getLatencyMap().put(to.getId(), latency);
+		to.getLatencyMap().put(mobile.getId(), latency);
+		
+		mobile.getBandwidthMap().put(to.getId(), Config.MOBILE_COMMUNICATION_BW);
+		to.getBandwidthMap().put(mobile.getId(), Config.MOBILE_COMMUNICATION_BW);
+		
+		mobile.getTupleQueue().put(to.getId(), new LinkedList<Pair<Tuple, Integer>>());
+		to.getTupleQueue().put(mobile.getId(), new LinkedList<Pair<Tuple, Integer>>());
+		
+		mobile.getTupleLinkBusy().put(to.getId(), false);
+		to.getTupleLinkBusy().put(mobile.getId(), false);
+	}
+	
+	private void removeConnection(FogDevice mobile, FogDevice from) {
+		// Then, remove the old connections
+		sendNow(mobile.getId(), FogEvents.CONNECTION_LOST, from.getId());
+		sendNow(from.getId(), FogEvents.CONNECTION_LOST, mobile.getId());
 	}
 	
 	private void deployApplications(Map<String, List<String>> modulePlacementMap) {
@@ -365,6 +282,8 @@ public class Controller extends SimEntity {
 	}
 	
 	private void migrateModules(int[][] currentModulePlacement, int[][] previousModulePlacement) {
+		appModulePlacementPolicy.clear();
+		
 		for(int j = 0; j < currentModulePlacement[0].length; j++) {
 			int previousPlacement = -1;
 			int currentPlacement = -1;
@@ -383,23 +302,23 @@ public class Controller extends SimEntity {
 				FogComputingSim.err("Should not happen");
 			
 			if(currentPlacement != previousPlacement) {
-				AppModule module = getModuleByName(algorithm.getmName()[j]);
-				FogDevice from = getFogDeviceByName(algorithm.getfName()[previousPlacement]);
-				FogDevice to = getFogDeviceByName(algorithm.getfName()[currentPlacement]);
+				AppModule module = getModuleByName(controllerAlgorithm.getAlgorithm().getmName()[j]);
+				FogDevice from = getFogDeviceByName(controllerAlgorithm.getAlgorithm().getfName()[previousPlacement]);
+				FogDevice to = getFogDeviceByName(controllerAlgorithm.getAlgorithm().getfName()[currentPlacement]);
 				
-				System.out.println("[" + CloudSim.clock() + "] Migration of module: " + module.getName() + " from: " + getName() + " to: " + to.getName());
-				
-				//module.setInMigration(true);
-				//send(from.getId(), 1, FogEvents.DELIVERY_VM, module);
-				//sendNow(to.getId(), FogEvents.VM_MIGRATE, module);
-				
-				/*float migrationLocked = (float) ((smartThing.getVmMobileDevice().getSize()*(smartThing.getSpeed()+1))+20000);
-				send(smartThing.getVmLocalServerCloudlet().getId(),migrationLocked,MobileEvents.UNLOCKED_MIGRATION,smartThing);*/
+				System.out.println("\n[" + CloudSim.clock() + "] Migration of module: " + module.getName() + " from: " + from.getName() + " to: " + to.getName());
 				
 				Map<AppModule, FogDevice> map = new HashMap<AppModule, FogDevice>();
 				map.put(module, to);
+				sendNow(from.getId(), FogEvents.MIGRATION, map);
 				
-				sendNow(from.getId(), FogEvents.START_MIGRATION, map);
+				Application application = getApplicationByModule(module);
+				
+				if(application == null)
+					FogComputingSim.err("Should not happen");
+				
+				sendNow(to.getId(), FogEvents.APP_SUBMIT, application);
+				sendNow(to.getId(), FogEvents.LAUNCH_MODULE, module);
 			}
 		}
 	}
@@ -441,12 +360,18 @@ public class Controller extends SimEntity {
 	}
 	
 	private AppModule getModuleByName(String name){
-		for(Application application : appList) {
-			for(AppModule appModule : application.getModules()) {
-				if(appModule.getName().equals(name)) {
+		for(Application application : appList)
+			for(AppModule appModule : application.getModules())
+				if(appModule.getName().equals(name))
 					return appModule;
-				}
-			}
+		return null;
+	}
+	
+	private Application getApplicationByModule(AppModule appModule){		
+		for(String appId : applications.keySet()) {
+			Application application = applications.get(appId);
+			if(application.getModules().contains(appModule))
+				return application;
 		}
 		return null;
 	}

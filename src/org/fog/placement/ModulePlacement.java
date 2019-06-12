@@ -14,7 +14,6 @@ public abstract class ModulePlacement {
 	private Application application;
 	private Map<String, Integer> moduleToDeviceMap;
 	private Map<Integer, List<AppModule>> deviceToModuleMap;
-	private Map<Integer, Map<String, Integer>> moduleInstanceCountMap;
 	
 	protected abstract void mapModules();
 	
@@ -83,12 +82,10 @@ public abstract class ModulePlacement {
 		this.deviceToModuleMap = deviceToModuleMap;
 	}
 
-	public Map<Integer, Map<String, Integer>> getModuleInstanceCountMap() {
-		return moduleInstanceCountMap;
-	}
-
-	public void setModuleInstanceCountMap(Map<Integer, Map<String, Integer>> moduleInstanceCountMap) {
-		this.moduleInstanceCountMap = moduleInstanceCountMap;
+	@Override
+	public String toString() {
+		return "ModulePlacement [\napplication=" + application + "\nmoduleToDeviceMap=" + moduleToDeviceMap + "\ndeviceToModuleMap="
+				+ deviceToModuleMap + "]";
 	}
 
 }

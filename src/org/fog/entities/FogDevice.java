@@ -129,7 +129,7 @@ public class FogDevice extends PowerDatacenter {
 		case FogEvents.CONNECTION_LOST:
 			removeLink((Integer) ev.getData());
 			break;
-		case FogEvents.START_MIGRATION:
+		case FogEvents.MIGRATION:
 			startMigration(ev);
 			break;
 		default:
@@ -373,7 +373,6 @@ public class FogDevice extends PowerDatacenter {
 
 		if(deployedModules.contains(tuple.getDestModuleName())){
 			int vmId = -1;
-			
 			for(Vm vm : getHost().getVmList()) {
 				if(((AppModule)vm).getName().equals(tuple.getDestModuleName())) {
 					vmId = vm.getId();
@@ -404,6 +403,7 @@ public class FogDevice extends PowerDatacenter {
 			
 			if(nexHopId == null) {
 				System.out.println("\nPacket drop count: " + pktDrop++);
+				System.out.println("Name: " + getName() + " RoutingTable: " + routingTable + " de: " + tuple.getSrcModuleName() + " para: " + tuple.getDestModuleName());
 				System.out.println("Packet OK count: " + pktOk + "\n");
 				return;
 			}else {
@@ -616,7 +616,7 @@ public class FogDevice extends PowerDatacenter {
 		//System.out.println(this + "\n\n");
 	}
 	
-	private void removeLink(int id) {
+	private void removeLink(int id) {		
 		getLatencyMap().remove(id);
 		getBandwidthMap().remove(id);
 		getTupleQueue().remove(id);

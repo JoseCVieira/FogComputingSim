@@ -96,6 +96,49 @@ public class AppModule extends PowerVm{
 	}
 	
 	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((appId == null) ? 0 : appId.hashCode());
+		result = prime * result + (clientModule ? 1231 : 1237);
+		result = prime * result + (globalModule ? 1231 : 1237);
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + ((selectivityMap == null) ? 0 : selectivityMap.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		AppModule other = (AppModule) obj;
+		if (appId == null) {
+			if (other.appId != null)
+				return false;
+		} else if (!appId.equals(other.appId))
+			return false;
+		if (clientModule != other.clientModule)
+			return false;
+		if (globalModule != other.globalModule)
+			return false;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		if (selectivityMap == null) {
+			if (other.selectivityMap != null)
+				return false;
+		} else if (!selectivityMap.equals(other.selectivityMap))
+			return false;
+		return true;
+	}
+	
+	@Override
 	public String toString() {
 		return "AppModule [name=" + name + ", appId=" + appId +"]";
 	}

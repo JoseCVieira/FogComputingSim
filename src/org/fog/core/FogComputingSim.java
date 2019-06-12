@@ -34,8 +34,6 @@ public class FogComputingSim {
 	public static final int GA = 3;
 	public static final int RAND = 4;
 	public static final int BF = 5;
-	public static final int MDP = 6;
-	public static final int ALL = 7;
 
 	private static final int EXIT = 0;
 	private static final int GUI = 1;
@@ -117,7 +115,7 @@ public class FogComputingSim {
 					break;
 		    	}
 		    	
-		    	if(option < 0 || option > ALL) {
+		    	if(option < 0 || option > BF) {
 		    		option = -1;
 		    	}
 		    	
