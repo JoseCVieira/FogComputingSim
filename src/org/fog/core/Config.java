@@ -52,7 +52,7 @@ public class Config {
 	public static final boolean PRINT_COST_DETAILS = false;
 	public static final boolean PRINT_HANDOVER_DETAILS = true;
 
-	public static final int HANDOFF_THRESHOLD = 25;
+	public static final int HANDOVER_THRESHOLD = 25;
 	public static final double MOBILE_COMMUNICATION_BW = 10*1024;		// 10MB
 	public static final double FIXED_COMMUNICATION_BW = 50*1024;		// 50MB
 	public final static double FIXED_COMMUNICATION_LATENCY = 204E-6;	//204us/m
