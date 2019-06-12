@@ -61,10 +61,6 @@ public class FogDevice extends PowerDatacenter {
 	private Movement movement;
 	private Coverage coverage;
 	
-	//TODO
-	private static int pktDrop = 0;
-	private static int pktOk = 0;
-	
 	public FogDevice(String name, FogDeviceCharacteristics characteristics, VmAllocationPolicy vmAllocationPolicy, List<Storage> storageList,
 			double schedulingInterval, Movement movement, Coverage coverage) throws Exception {
 		super(name, characteristics, vmAllocationPolicy, storageList, schedulingInterval);
@@ -130,7 +126,7 @@ public class FogDevice extends PowerDatacenter {
 			removeLink((Integer) ev.getData());
 			break;
 		case FogEvents.MIGRATION:
-			startMigration(ev);
+			migration(ev);
 			break;
 		default:
 			break;
@@ -360,6 +356,16 @@ public class FogDevice extends PowerDatacenter {
 	protected void processTupleArrival(SimEvent ev){
 		Tuple tuple = (Tuple)ev.getData();
 		
+		Map<String, String> communication = new HashMap<String, String>();
+		communication.put(tuple.getSrcModuleName(), tuple.getDestModuleName());
+		
+		// It can be null after some handover is completed. This can happen because, some connections were removed and routing
+		// tables were updated. Thus, once there still can exist some old tuples, they will be lost because we already don't
+		// know where to forward it.
+		if(!routingTable.containsKey(communication) && !deployedModules.contains(tuple.getDestModuleName())) {
+			return;
+		}
+		
 		if(getHost().getVmList().size() > 0){
 			final AppModule operator = (AppModule)getHost().getVmList().get(0);
 			
@@ -377,8 +383,8 @@ public class FogDevice extends PowerDatacenter {
 				if(((AppModule)vm).getName().equals(tuple.getDestModuleName())) {
 					vmId = vm.getId();
 					
-					//if(Config.PRINT_DETAILS)
-					System.out.println("["+getName()+"] executing on -> "+ ((AppModule)vm).getName() + " ["+vmId+"]");
+					if(Config.PRINT_DETAILS)
+						System.out.println("["+getName()+"] executing on -> "+ ((AppModule)vm).getName() + " ["+vmId+"]");
 				}
 			}
 				
@@ -392,24 +398,10 @@ public class FogDevice extends PowerDatacenter {
 		}else{
 			if(Config.PRINT_COMMUNICATION_DETAILS) printCommunication(tuple);
 			
-			Map<String, String> communication = new HashMap<String, String>();
+			communication = new HashMap<String, String>();
 			communication.put(tuple.getSrcModuleName(), tuple.getDestModuleName());
 			
 			Integer nexHopId = routingTable.get(communication);
-			
-			// It can be null after some handover is completed. This can happen because, some connections were removed and routing
-			// tables were updated. Thus, once there still can exist some old tuples, they will be lost because we already don't
-			// know where to forward it.
-			
-			if(nexHopId == null) {
-				System.out.println("\nPacket drop count: " + pktDrop++);
-				System.out.println("Name: " + getName() + " RoutingTable: " + routingTable + " de: " + tuple.getSrcModuleName() + " para: " + tuple.getDestModuleName());
-				System.out.println("Packet OK count: " + pktOk + "\n");
-				return;
-			}else {
-				pktOk++;
-			}
-			
 			sendTo(tuple, nexHopId);
 		}
 	}
@@ -631,7 +623,7 @@ public class FogDevice extends PowerDatacenter {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private void startMigration(SimEvent ev) {
+	private void migration(SimEvent ev) {
 		Map<AppModule, FogDevice> map = (Map<AppModule, FogDevice>)ev.getData();
 		
 		for(AppModule module : map.keySet()) {
@@ -641,6 +633,13 @@ public class FogDevice extends PowerDatacenter {
 			migrate.put("vm", module);
 			migrate.put("host", to.getHost());
 			sendNow(getId(), CloudSimTags.VM_MIGRATE, migrate);
+			
+			getVmList().remove(module);
+			getHost().getVmList().remove(module);
+			deployedModules.remove(module.getName());
+			
+			System.out.println("\n\n\nAfter migration from: " + this + "\n");
+			System.out.println("After migration to: " + to + "\n\n\n");
 		}
 	}
 	

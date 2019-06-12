@@ -310,19 +310,27 @@ public class Controller extends SimEntity {
 				FogDevice from = getFogDeviceByName(controllerAlgorithm.getAlgorithm().getfName()[previousPlacement]);
 				FogDevice to = getFogDeviceByName(controllerAlgorithm.getAlgorithm().getfName()[currentPlacement]);
 				
-				System.out.println("\n[" + CloudSim.clock() + "] Migration of module: " + module.getName() + " from: " + from.getName() + " to: " + to.getName());
+				System.out.println("[" + CloudSim.clock() + "] Migration of module: " + module.getName() + " from: " + from.getName() + " to: " + to.getName());
 				
 				Map<AppModule, FogDevice> map = new HashMap<AppModule, FogDevice>();
 				map.put(module, to);
-				sendNow(from.getId(), FogEvents.MIGRATION, map);
+				
+				module.setInMigration(true);
+				
+				double latency = from.getLatencyMap().get(to.getId());
+				double bw = from.getBandwidthMap().get(to.getId());
+				double totalSize = module.getRam() + module.getSize();
+				double totalDelay = totalSize/bw + latency;
+				
+				send(from.getId(), totalDelay, FogEvents.MIGRATION, map);
 				
 				Application application = getApplicationByModule(module);
 				
 				if(application == null)
 					FogComputingSim.err("Should not happen");
 				
-				sendNow(to.getId(), FogEvents.APP_SUBMIT, application);
-				sendNow(to.getId(), FogEvents.LAUNCH_MODULE, module);
+				send(to.getId(), totalDelay, FogEvents.APP_SUBMIT, application);
+				send(to.getId(), totalDelay, FogEvents.LAUNCH_MODULE, module);
 			}
 		}
 	}
@@ -340,7 +348,7 @@ public class Controller extends SimEntity {
 
 				FogDevice fogDevice = getFogDeviceById(algorithm.getfId()[node]);
 				
-				 // Sensors and actuators do not need routing map
+				// Sensors and actuators do not need routing map
 				if(fogDevice == null)
 					continue;
 				
