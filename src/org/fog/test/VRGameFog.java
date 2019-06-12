@@ -21,10 +21,6 @@ public class VRGameFog extends FogTest {
 	private static final int numOfMobilesPerDept = 1;//6;
 	private static final double EEG_TRANSMISSION_TIME = 5.1;
 	
-	private final static double FIXED_LINK_BANDWIDTH = 50 * 1024;	// 25MB
-	private final static double FIXED_LINK_LATENCY = 204E-6;		//204us/m
-	
-	
 	public VRGameFog() {
 		super("Generating VRGame topology...");
 	}
@@ -43,8 +39,8 @@ public class VRGameFog extends FogTest {
 		fogDevices.add(cloud);
 		fogDevices.add(proxy);
 		
-		double latency = Location.computeDistance(cloud, proxy)*FIXED_LINK_LATENCY;
-		connectFogDevices(cloud, proxy, latency, latency, FIXED_LINK_BANDWIDTH, FIXED_LINK_BANDWIDTH);
+		double latency = Location.computeDistance(cloud, proxy)*Config.FIXED_COMMUNICATION_LATENCY;
+		connectFogDevices(cloud, proxy, latency, latency, Config.FIXED_COMMUNICATION_BW, Config.FIXED_COMMUNICATION_BW);
 		
 		for(int i = 0; i < numOfDepts; i++){
 			double posx = Util.rand(0, Config.SQUARE_SIDE);
@@ -56,8 +52,8 @@ public class VRGameFog extends FogTest {
 			
 			fogDevices.add(dept);
 			
-			latency = Location.computeDistance(dept, proxy)*FIXED_LINK_LATENCY;
-			connectFogDevices(proxy, dept, latency, latency, FIXED_LINK_BANDWIDTH, FIXED_LINK_BANDWIDTH);
+			latency = Location.computeDistance(dept, proxy)*Config.FIXED_COMMUNICATION_LATENCY;
+			connectFogDevices(proxy, dept, latency, latency, Config.FIXED_COMMUNICATION_BW, Config.FIXED_COMMUNICATION_BW);
 			
 			
 			// Connection between should be only between fixed nodes once, mobile connections are computed/executed during simulation

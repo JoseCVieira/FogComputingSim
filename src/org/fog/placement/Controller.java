@@ -150,10 +150,17 @@ public class Controller extends SimEntity {
 				continue;
 			
 			FogDevice best = null;
+			FogDevice bestNeighbor = null;
+			
 			double bestDistance = Constants.INF;
-			if(!f1.getLatencyMap().isEmpty()) {
-				best = getFogDeviceById(f1.getLatencyMap().entrySet().iterator().next().getKey());
-				bestDistance = Location.computeDistance(f1, best);
+			for(int neighborId : f1.getLatencyMap().keySet()) {
+				FogDevice neighbor = getFogDeviceById(neighborId);
+				
+				if(bestDistance > Latency.computeConnectionLatency(f1, neighbor)) {
+					best = neighbor;
+					bestNeighbor = neighbor;
+					bestDistance = Location.computeDistance(f1, best);
+				}
 			}
 			
 			for(FogDevice f2 : fogDevices) {
@@ -164,7 +171,7 @@ public class Controller extends SimEntity {
 				if(f2.getFixedNeighborsIds().isEmpty())
 					continue;
 				
-				if(f1.getCoverage().covers(f1, f2, Config.CONNECTION_RANGE_LIMIT) && f2.getCoverage().covers(f2, f1, Config.CONNECTION_RANGE_LIMIT)){
+				if(f1.getCoverage().covers(f1, f2) && f2.getCoverage().covers(f2, f1)){
 					double distance = Location.computeDistance(f1, f2);
 					if(distance  + Config.HANDOFF_THRESHOLD < bestDistance) {
 						bestDistance = distance;
@@ -178,16 +185,13 @@ public class Controller extends SimEntity {
 				FogComputingSim.err("There are some mobile devices with no possible communications");
 			
 			if(!f1.getLatencyMap().isEmpty()) {
-				int neighborhoodId = f1.getLatencyMap().entrySet().iterator().next().getKey();
 				
 				// If its not the same node which it is already connected
 				// If already has a connection, remove it because there is a better one
-				if(neighborhoodId != best.getId()) {
-					FogDevice from = getFogDeviceById(neighborhoodId);
-					
-					controllerAlgorithm.getAlgorithm().changeConnectionMap(f1, from, best);
+				if(bestNeighbor.getId() != best.getId()) {					
+					controllerAlgorithm.getAlgorithm().changeConnectionMap(f1, bestNeighbor, best);
 					Map<FogDevice, FogDevice> handover = new HashMap<FogDevice, FogDevice>();
-					handover.put(from, best);
+					handover.put(bestNeighbor, best);
 					handovers.put(f1, handover);
 				}
 			}else {

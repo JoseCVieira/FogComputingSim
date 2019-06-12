@@ -559,14 +559,7 @@ public class FogDevice extends PowerDatacenter {
 				
 				double distance = Location.computeDistance(this, controller.getFogDeviceById(neighborhoodId));
 				double strength = 1 - (distance/coverage.getRadius());
-				
-				// Looses connection at 10% of the limit range
-				if(strength < Config.CONNECTION_RANGE_LIMIT) {
-					sendNow(neighborhoodId, FogEvents.CONNECTION_LOST, getId());
-					toRemove.add(neighborhoodId);
-				}else {
-					getConnectionStrength().put(neighborhoodId, distance/coverage.getRadius());
-				}
+				getConnectionStrength().put(neighborhoodId, strength);
 			}
 		}
 		

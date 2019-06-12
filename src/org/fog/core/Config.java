@@ -53,8 +53,9 @@ public class Config {
 	public static final boolean PRINT_HANDOVER_DETAILS = true;
 
 	public static final int HANDOFF_THRESHOLD = 25;
-	public static final double CONNECTION_RANGE_LIMIT = 0.1; // 10% of the range
-	public static final double MOBILE_COMMUNICATION_BW = 10*1024;
+	public static final double MOBILE_COMMUNICATION_BW = 10*1024;		// 10MB
+	public static final double FIXED_COMMUNICATION_BW = 50*1024;		// 50MB
+	public final static double FIXED_COMMUNICATION_LATENCY = 204E-6;	//204us/m
 	
 	// For test purposes
 	public static final int SQUARE_SIDE = 1000;
