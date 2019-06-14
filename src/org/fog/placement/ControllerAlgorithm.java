@@ -66,20 +66,20 @@ public class ControllerAlgorithm {
 		}
 		
 		System.out.println("Running the optimization algorithm: " + algorithmName + ".");
-		solution = algorithm.execute();
+		solution = algorithm.execute(null);
 		
-		if(Config.PRINT_DETAILS)
+		if(Config.PLOT_RESULTS)
 			OutputControllerResults.plotResult(algorithm, algorithmName);
 		
-		if(solution == null || solution.getModulePlacementMap() == null || solution.getRoutingMap() == null || !solution.isValid()) {
+		if(solution == null || solution.getModulePlacementMap() == null || solution.getTupleRoutingMap() == null || !solution.isValid()) {
 			FogComputingSim.err("There is no possible combination to deploy all applications");
 		}
 	}
 	
 	public void recomputeAlgorithm() {
-		solution = algorithm.execute();
+		solution = algorithm.execute(solution.getModulePlacementMap());
 		
-		if(solution == null || solution.getModulePlacementMap() == null || solution.getRoutingMap() == null || !solution.isValid()) {
+		if(solution == null || solution.getModulePlacementMap() == null || solution.getTupleRoutingMap() == null || !solution.isValid()) {
 			FogComputingSim.err("There is no possible combination to deploy all applications");
 		}
 	}

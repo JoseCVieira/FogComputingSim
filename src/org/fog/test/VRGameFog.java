@@ -17,8 +17,8 @@ import org.fog.utils.distribution.DeterministicDistribution;
 import org.fog.utils.distribution.Distribution;
 
 public class VRGameFog extends FogTest {
-	private static final int numOfDepts = 1;//4;
-	private static final int numOfMobilesPerDept = 1;//6;
+	private static final int numOfDepts = 1;//4
+	private static final int numOfMobilesPerDept = 1;//6
 	private static final double EEG_TRANSMISSION_TIME = 5.1;
 	
 	public VRGameFog() {
@@ -26,7 +26,7 @@ public class VRGameFog extends FogTest {
 	}
 	
 	@Override
-	protected void createFogDevices() {		
+	protected void createFogDevices() {
 		// Does not matter what direction because velocity is 0
 		Movement movement = new Movement(0.0, Movement.EAST, new Location(0, 0));
 		Coverage coverage = new Coverage(1500);
@@ -42,7 +42,7 @@ public class VRGameFog extends FogTest {
 		double latency = Location.computeDistance(cloud, proxy)*Config.FIXED_COMMUNICATION_LATENCY;
 		connectFogDevices(cloud, proxy, latency, latency, Config.FIXED_COMMUNICATION_BW, Config.FIXED_COMMUNICATION_BW);
 		
-		for(int i = 0; i < numOfDepts; i++){
+		for(int i = 0; i < numOfDepts; i++) {
 			double posx = Util.rand(0, Config.SQUARE_SIDE);
 			double posy = Util.rand(0, Config.SQUARE_SIDE);
 			

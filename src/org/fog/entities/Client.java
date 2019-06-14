@@ -70,7 +70,7 @@ public class Client extends FogDevice {
 		
 		Map<String, String> communication = new HashMap<String, String>();
 		communication.put(tuple.getSrcModuleName(), tuple.getDestModuleName());
-		sendTo(tuple, getRoutingTable().get(communication));
+		sendTo(tuple, getTupleRoutingTable().get(communication));
 	}
 	
 	public List<Pair<Integer, Double>> getAssociatedActuatorIds() {

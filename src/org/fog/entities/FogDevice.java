@@ -12,6 +12,7 @@ import org.cloudbus.cloudsim.Cloudlet;
 import org.cloudbus.cloudsim.Host;
 import org.cloudbus.cloudsim.Log;
 import org.cloudbus.cloudsim.Storage;
+import org.cloudbus.cloudsim.UtilizationModelFull;
 import org.cloudbus.cloudsim.Vm;
 import org.cloudbus.cloudsim.VmAllocationPolicy;
 import org.cloudbus.cloudsim.core.CloudSim;
@@ -26,8 +27,11 @@ import org.fog.application.Application;
 import org.fog.placement.Controller;
 import org.fog.core.Config;
 import org.fog.core.Constants;
+import org.fog.core.FogComputingSim;
+import org.fog.utils.Analysis;
 import org.fog.utils.Coverage;
 import org.fog.utils.FogEvents;
+import org.fog.utils.FogUtils;
 import org.fog.utils.Latency;
 import org.fog.utils.Location;
 import org.fog.utils.Logger;
@@ -51,7 +55,8 @@ public class FogDevice extends PowerDatacenter {
 	private Map<Integer, Double> connectionStrength;
 	private Map<Integer, Double> latencyMap;
 	private Map<Integer, Double> bandwidthMap;
-	private Map<Map<String, String>, Integer> routingTable;
+	private Map<Map<String, String>, Integer> tupleRoutingTable;
+	private Map<String, Integer> vmRoutingTable;
 	
 	private double lastUtilizationUpdateTime;
 	private double energyConsumption;
@@ -70,8 +75,8 @@ public class FogDevice extends PowerDatacenter {
 		setConnectionStrength(new HashMap<Integer, Double>());
 		setLatencyMap(new HashMap<Integer, Double>());
 		setBandwidthMap(new HashMap<Integer, Double>());
-		setRoutingTable(new HashMap<Map<String,String>, Integer>());
-		
+		setTupleRoutingTable(new HashMap<Map<String,String>, Integer>());
+		setVmRoutingTable(new HashMap<String, Integer>());
 		setTupleQueue(new HashMap<Integer, Queue<Pair<Tuple,Integer>>>());
 		setTupleLinkBusy(new HashMap<Integer, Boolean>());
 		
@@ -127,6 +132,12 @@ public class FogDevice extends PowerDatacenter {
 			break;
 		case FogEvents.MIGRATION:
 			migration(ev);
+			break;
+		case FogEvents.FINISH_MIGRATION:
+			finishMigration(ev);
+			break;
+		case FogEvents.DEALLOCATE_MEMORY:
+			deallocateMemory(ev);
 			break;
 		default:
 			break;
@@ -324,10 +335,7 @@ public class FogDevice extends PowerDatacenter {
 		double timeNow = CloudSim.clock();
 		double timeDif = timeNow-lastUtilizationUpdateTime;
 		
-		double currentEnergyConsumption = getEnergyConsumption();
-		double newEnergyConsumption = currentEnergyConsumption +
-				timeDif*getHost().getPowerModel().getPower(lastMipsUtilization);
-		setEnergyConsumption(newEnergyConsumption);
+		setEnergyConsumption(getEnergyConsumption() + timeDif*getHost().getPowerModel().getPower(lastMipsUtilization));
 		
 		FogDeviceCharacteristics characteristics = (FogDeviceCharacteristics) getCharacteristics();
 		
@@ -353,8 +361,27 @@ public class FogDevice extends PowerDatacenter {
 		controller.getApplications().put(app.getAppId(), app);
 	}
 
-	protected void processTupleArrival(SimEvent ev){
+	protected void processTupleArrival(SimEvent ev) {
 		Tuple tuple = (Tuple)ev.getData();
+		
+		if(tuple instanceof TupleVM) {
+			TupleVM tmp = (TupleVM) tuple;
+			if(tmp.getDestId() == getId()) {
+				Map<Application, AppModule> map = new HashMap<Application, AppModule>();
+				map.put(tmp.getApplication(), tmp.getVm());
+				
+				sendNow(getId(), FogEvents.APP_SUBMIT, tmp.getApplication());
+				sendNow(getId(), FogEvents.LAUNCH_MODULE, tmp.getVm());
+				sendNow(getId(), FogEvents.FINISH_MIGRATION, tmp.getVm());
+				sendNow(tmp.getSrcId(), FogEvents.DEALLOCATE_MEMORY, tmp.getVm());
+				
+				FogComputingSim.print("Received and deploying vm: " + tmp.getVm().getName());
+			}else {
+				FogComputingSim.print("Received vm: " + tmp.getVm().getName() + ", forwarding it to: " + vmRoutingTable.get(tmp.getVm().getName()));
+				sendTo(tmp, vmRoutingTable.get(tmp.getVm().getName()));
+			}
+			return;
+		}
 		
 		Map<String, String> communication = new HashMap<String, String>();
 		communication.put(tuple.getSrcModuleName(), tuple.getDestModuleName());
@@ -362,9 +389,11 @@ public class FogDevice extends PowerDatacenter {
 		// It can be null after some handover is completed. This can happen because, some connections were removed and routing
 		// tables were updated. Thus, once there still can exist some old tuples, they will be lost because we already don't
 		// know where to forward it.
-		if(!routingTable.containsKey(communication) && !deployedModules.contains(tuple.getDestModuleName())) {
+		if((!tupleRoutingTable.containsKey(communication) && !deployedModules.contains(tuple.getDestModuleName())) || moduleInMigration(tuple.getDestModuleName())) {
+			Analysis.incrementPacketDrop();
 			return;
-		}
+		}else
+			Analysis.incrementPacketSuccess();
 		
 		if(getHost().getVmList().size() > 0){
 			final AppModule operator = (AppModule)getHost().getVmList().get(0);
@@ -384,7 +413,7 @@ public class FogDevice extends PowerDatacenter {
 					vmId = vm.getId();
 					
 					if(Config.PRINT_DETAILS)
-						System.out.println("["+getName()+"] executing on -> "+ ((AppModule)vm).getName() + " ["+vmId+"]");
+						FogComputingSim.print("Executing: " + ((AppModule)vm).getName() + " on: " + getName());
 				}
 			}
 				
@@ -401,7 +430,7 @@ public class FogDevice extends PowerDatacenter {
 			communication = new HashMap<String, String>();
 			communication.put(tuple.getSrcModuleName(), tuple.getDestModuleName());
 			
-			Integer nexHopId = routingTable.get(communication);
+			Integer nexHopId = tupleRoutingTable.get(communication);
 			sendTo(tuple, nexHopId);
 		}
 	}
@@ -525,7 +554,7 @@ public class FogDevice extends PowerDatacenter {
 		
 		System.out.println("\n\nTuple:" + tuple);
 		System.out.println("From: " + getId());
-		System.out.println("To: " + routingTable.get(communication) + "\n\n");
+		System.out.println("To: " + tupleRoutingTable.get(communication) + "\n\n");
 	}
 	
 	private void printCost() {
@@ -608,42 +637,86 @@ public class FogDevice extends PowerDatacenter {
 		getTupleLinkBusy().remove(id);
 		getConnectionStrength().remove(id);
 		
-		System.out.println("[" + CloudSim.clock() + "] Removing connection between "+getName()+" + and " + controller.getFogDeviceById(id).getName());
 		
+		if(Config.PRINT_DETAILS)
+			FogComputingSim.print("Removing connection between: " + getName() +  " -> " + controller.getFogDeviceById(id).getName());
+
 		// Clean unused entries from routing table
 		Map<Map<String, String>, Integer> newTable = new HashMap<Map<String,String>, Integer>();
 		
-		for(Map<String, String> map : routingTable.keySet()) {
-			if(routingTable.get(map) != id) {
-				newTable.put(map, routingTable.get(map));
+		for(Map<String, String> map : tupleRoutingTable.keySet()) {
+			if(tupleRoutingTable.get(map) != id) {
+				newTable.put(map, tupleRoutingTable.get(map));
 			}
 		}
 		
-		routingTable = newTable;
+		tupleRoutingTable = newTable;
 	}
 	
 	@SuppressWarnings("unchecked")
 	private void migration(SimEvent ev) {
-		Map<AppModule, FogDevice> map = (Map<AppModule, FogDevice>)ev.getData();
+		Map<FogDevice, Map<Application, AppModule>> map = (Map<FogDevice, Map<Application, AppModule>>)ev.getData();
 		
-		for(AppModule module : map.keySet()) {
-			FogDevice to = map.get(module);
+		Map<Application, AppModule> appMap = null;
+		Application application = null;
+		AppModule vm = null;
+		FogDevice to = null;
+		
+		for(FogDevice fogDevice : map.keySet()) {
+			to = fogDevice;
+			appMap = map.get(fogDevice);
 			
-			Map<String,Object> migrate = new HashMap<String,Object>();
-			migrate.put("vm", module);
-			migrate.put("host", to.getHost());
-			sendNow(getId(), CloudSimTags.VM_MIGRATE, migrate);
-			
-			getVmList().remove(module);
-			getHost().getVmList().remove(module);
-			deployedModules.remove(module.getName());
-			
-			System.out.println("\n\n\nAfter migration from: " + this + "\n");
-			System.out.println("After migration to: " + to + "\n\n\n");
+			for(Application app : appMap.keySet()) {
+				application = app;
+				vm = appMap.get(app);
+			}
 		}
+		
+		Map<String, Object> migrate = new HashMap<String, Object>();
+		migrate.put("vm", vm);
+		migrate.put("host", to.getHost());
+		
+		double totalSize = vm.getRam() + vm.getSize();
+		
+		vm.setInMigration(true);
+		
+		TupleVM tuple = new TupleVM(application.getAppId(), FogUtils.generateTupleId(), 0, 1, (long) totalSize, 0,
+				new UtilizationModelFull(), new UtilizationModelFull(), new UtilizationModelFull(), vm, application, getId(), to.getId());
+		
+		sendTo(tuple, vmRoutingTable.get(vm.getName()));
 	}
 	
-	public PowerHost getHost(){
+	private void finishMigration(SimEvent ev) {
+		AppModule vm = (AppModule)ev.getData();
+		
+		getHost().removeMigratingInVm(vm);
+		
+		if (!getVmAllocationPolicy().allocateHostForVm(vm, getHost()))
+			FogComputingSim.err("VM allocation to the destination host failed");
+	}
+	
+	private void deallocateMemory(SimEvent ev) {
+		AppModule vm = (AppModule)ev.getData();
+		
+		getVmAllocationPolicy().deallocateHostForVm(vm);
+		getVmList().remove(vm);
+		getHost().getVmList().remove(vm);
+		deployedModules.remove(vm.getName());
+	}
+	
+	private boolean moduleInMigration(String name) {
+		for(Vm vm : getHost().getVmList()) {
+			if(((AppModule)vm).getName().equals(name)) {
+				if(vm.isInMigration())
+					return true;
+				else
+					return false;
+			}
+		}
+		return false;
+	}
+	
+	public PowerHost getHost() {
 		return (PowerHost) getHostList().get(0);
 	}
 	
@@ -697,12 +770,12 @@ public class FogDevice extends PowerDatacenter {
 		return controller;
 	}
 	
-	public Map<Map<String, String>, Integer> getRoutingTable() {
-		return routingTable;
+	public Map<Map<String, String>, Integer> getTupleRoutingTable() {
+		return tupleRoutingTable;
 	}
 
-	public void setRoutingTable(Map<Map<String, String>, Integer> routingTable) {
-		this.routingTable = routingTable;
+	public void setTupleRoutingTable(Map<Map<String, String>, Integer> tupleRoutingTable) {
+		this.tupleRoutingTable = tupleRoutingTable;
 	}
 	
 	public Map<Integer, Queue<Pair<Tuple, Integer>>> getTupleQueue() {
@@ -752,11 +825,19 @@ public class FogDevice extends PowerDatacenter {
 	public void setConnectionStrength(Map<Integer, Double> connectionStrength) {
 		this.connectionStrength = connectionStrength;
 	}
+	
+	public Map<String, Integer> getVmRoutingTable() {
+		return vmRoutingTable;
+	}
+
+	public void setVmRoutingTable(Map<String, Integer> vmRoutingTable) {
+		this.vmRoutingTable = vmRoutingTable;
+	}
 
 	@Override
 	public String toString() {
 		return "FogDevice [\nName=" + getName() + "\nId=" + getId() + "\ndeployedModules=" + deployedModules
-				+ "\nlatencyMap=" + latencyMap + "\nbandwidthMap=" + bandwidthMap + "\nroutingTable=" + routingTable
+				+ "\nlatencyMap=" + latencyMap + "\nbandwidthMap=" + bandwidthMap + "\nroutingTable=" + tupleRoutingTable
 				+ "\nmovement=" + movement + "\nMIPS=" + getHost().getTotalMips() + "\nRAM=" + getHost().getRam()
 				+ "\nMEM=" + getHost().getStorage() + "\nBW=" + getHost().getBw() + "\nVm List=" + getHost().getVmList()
 				+ "\ncoverage=" + coverage + "\nfixedNeighborsIds=" + fixedNeighborsIds + "]";

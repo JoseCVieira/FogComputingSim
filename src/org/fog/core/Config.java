@@ -21,11 +21,12 @@ public class Config {
 	 * 		 same importance).
 	 */
 	public static final int[] priorities = new int[] {
-			1,	// Operational cost
-			1,	// Power cost
-			1,	// Processing cost
+			2,	// Operational cost
+			2,	// Power cost
+			2,	// Processing cost
 			2,	// Latency cost
-			1	// Bandwidth cost
+			2,	// Bandwidth cost
+			1	// Migration cost
 	};
 	
 	public static final double CONVERGENCE_ERROR = 0.01;
@@ -43,8 +44,9 @@ public class Config {
 	// -------------------------------------------------------------- General --------------------------------------------------------------
 	
 	// Algorithms
-	public static final boolean PRINT_DETAILS = false;
+	public static final boolean PRINT_DETAILS = true;
 	public static final boolean PRINT_BEST_ITER = true;
+	public static final boolean PLOT_RESULTS= false;
 	
 	// Simulation
 	public static final boolean DEBUG_MODE = false;
@@ -52,6 +54,10 @@ public class Config {
 	public static final boolean PRINT_COST_DETAILS = false;
 	public static final boolean PRINT_HANDOVER_DETAILS = true;
 
+	
+	public static boolean DYNAMIC_SIMULATION = true;
+	public static final boolean ALLOW_MIGRATION = true;
+	
 	public static final int HANDOVER_THRESHOLD = 25;
 	public static final double MOBILE_COMMUNICATION_BW = 10*1024;		// 10MB
 	public static final double FIXED_COMMUNICATION_BW = 50*1024;		// 50MB
@@ -65,7 +71,7 @@ public class Config {
 	public static final double PROB_MAX_VELOCITY = 0.1667;
 	public static final double PROB_MED_VELOCITY = 0.6667;
 	public static final double PROB_MIN_VELOCITY = 0.1667;
-	public static final double MAX_VELOCITY = 10;
+	public static final double MAX_VELOCITY = 5;
 	public static final double MED_VELOCITY = 5;
 	public static final double MIN_VELOCITY = 0;
 	

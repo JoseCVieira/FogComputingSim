@@ -29,7 +29,6 @@ import org.fog.utils.distribution.NormalDistribution;
 import org.fog.utils.distribution.UniformDistribution;
 
 public abstract class Algorithm {
-	
 	protected Map<Integer, Double> valueIterMap = new HashMap<Integer, Double>();
 	protected long elapsedTime;
 	
@@ -256,7 +255,7 @@ public abstract class Algorithm {
 			AppModule module = null;
 			String toProcess = "";
 			
-			while(processed < nrEdges) {				
+			while(processed < nrEdges) {
 				Entry<String, List<Double>> entry = producers.pollFirstEntry();
 				
 				toProcess = entry.getKey();
@@ -445,7 +444,7 @@ public abstract class Algorithm {
 		return matix;
 	}
 	
-	public abstract Job execute();
+	public abstract Job execute(int[][] oldPlacement);
 	
 	public Map<String, List<String>> extractPlacementMap(final int[][] placementMap) {
 		Map<String, List<String>> result = new HashMap<>();
@@ -485,27 +484,6 @@ public abstract class Algorithm {
 					iter++;
 				}
 			}
-		}
-		
-		if(Config.PRINT_DETAILS) {
-			System.out.println("\n*******************************************************");
-			System.out.println("\t\tROUTING MAP:");
-			System.out.println("*******************************************************");
-			
-			for(Map<Integer, Map<String, String>> hop : result.keySet()) {
-				for(Integer node : hop.keySet()) {
-					Map<String, String> tupleTransmission = hop.get(node);
-					Integer nextNode = result.get(hop);
-					
-					for(String sourceModule : tupleTransmission.keySet())
-						System.out.println("Node:  ->" + AlgorithmUtils.centerString(20, fName[node]) + "<-  Source Module:  ->" +
-								AlgorithmUtils.centerString(20, sourceModule) + "<-  Destination Module:  ->" +
-								AlgorithmUtils.centerString(20, tupleTransmission.get(sourceModule)) +
-								"<-  Next Node:  ->" + AlgorithmUtils.centerString(20, fName[nextNode]) + "<-");
-				}
-			}
-			
-			System.out.println("\n");
 		}
 		
 		return result;

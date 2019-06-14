@@ -9,6 +9,7 @@ import org.fog.core.Constants;
 import org.fog.entities.FogDevice;
 import org.fog.placement.algorithm.Algorithm;
 import org.fog.placement.algorithm.overall.util.MatlabChartUtils;
+import org.fog.utils.Analysis;
 import org.fog.utils.NetworkUsageMonitor;
 import org.fog.utils.TimeKeeper;
 import org.fog.utils.Util;
@@ -25,16 +26,22 @@ public class OutputControllerResults {
 		this.controller = controller;
 		this.u = new Util();
 		
+		printPacketDetails();
 		printTimeDetails();
 		printPowerDetails();
 		printCostDetails();
 		printNetworkUsageDetails();
 	}
 	
+	private static void printPacketDetails() {
+		System.out.println("\n\nPacket drop count: " + Analysis.getPacketDrop());
+		System.out.println("Packet success count: " + Analysis.getPacketSuccess());
+	}
+	
 	private void printTimeDetails() {
 		DecimalFormat df = new DecimalFormat("0.00");
 		
-		System.out.println("\n\n");
+		System.out.println("\n");
 		newDetailsField(2, '=');
 		System.out.println("|" + u.centerString((MAX_COLUMN_SIZE*2+1), "EXECUTION TIME") + "|");
 		newDetailsField(2, '-');

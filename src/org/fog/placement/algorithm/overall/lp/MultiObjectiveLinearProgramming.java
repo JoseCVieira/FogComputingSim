@@ -26,7 +26,7 @@ public class MultiObjectiveLinearProgramming extends Algorithm {
 	}
 	
 	@Override
-	public Job execute() {
+	public Job execute(int[][] oldPlacement) {
 		for(int i = 0; i < getNumberOfModules(); i++) {
 			for (int j = 0; j < getNumberOfModules(); j++) {
 				if(getmDependencyMap()[i][j] != 0) {
@@ -45,24 +45,37 @@ public class MultiObjectiveLinearProgramming extends Algorithm {
 			// Variables
 			IloNumVar[][] placementVar = new IloNumVar[NR_NODES][NR_MODULES];
 			IloNumVar[][][] routingVar = new IloNumVar[getNumberOfDependencies()][NR_NODES][NR_NODES];
+			IloNumVar[][][] migrationRoutingVar = new IloNumVar[NR_MODULES][NR_NODES][NR_NODES];
 			
-			for(int i = 0; i < NR_NODES; i++)
-				for(int j = 0; j < NR_MODULES; j++)
+			for(int i = 0; i < NR_NODES; i++) {
+				for(int j = 0; j < NR_MODULES; j++) {
 					placementVar[i][j] = cplex.intVar(0, 1);
+				}
+			}
 			
-			for(int i = 0; i < getNumberOfDependencies(); i++)
-				for(int j = 0; j < NR_NODES; j++)
-					for(int z = 0; z < NR_NODES; z++)
+			for(int i = 0; i < getNumberOfDependencies(); i++) {
+				for(int j = 0; j < NR_NODES; j++) {
+					for(int z = 0; z < NR_NODES; z++) {
 						routingVar[i][j][z] = cplex.intVar(0, 1);
+					}
+				}
+			}
 			
-			// Define objective
-			//IloLinearNumExpr objective = cplex.linearNumExpr();
+			for(int i = 0; i < NR_MODULES; i++) {
+				for(int j = 0; j < NR_NODES; j++) {
+					for(int z = 0; z < NR_NODES; z++) {
+						migrationRoutingVar[i][j][z] = cplex.intVar(0, 1);
+					}
+				}
+			}
 			
+			// Define objectives
 			IloNumExpr opObjective = cplex.numExpr();
 			IloNumExpr pwObjective = cplex.numExpr();
 			IloNumExpr prObjective = cplex.numExpr();
 			IloNumExpr ltObjective = cplex.numExpr();
 			IloNumExpr bwObjective = cplex.numExpr();
+			IloNumExpr mgObjective = cplex.numExpr();
 			
 			for(int i = 0; i < NR_NODES; i++) {
 				for(int j = 0; j < NR_MODULES; j++) {
@@ -93,21 +106,34 @@ public class MultiObjectiveLinearProgramming extends Algorithm {
 				}
 			}
 			
+			for(int i = 0; i < NR_MODULES; i++) {
+				double size = getmMem()[i] + getmRam()[i];
+				
+				for(int j = 0; j < NR_NODES; j++) {
+					for(int z = 0; z < NR_NODES; z++) {
+						double mg = getfLatencyMap()[j][z] + size/(getfBandwidthMap()[j][z] + Constants.EPSILON);
+						mgObjective = cplex.sum(mgObjective, cplex.prod(migrationRoutingVar[i][j][z], mg));
+					}
+				}
+			}
+			
 			//cplex.addMinimize(objective);
-			constraints(cplex, placementVar, routingVar);
+			constraints(cplex, placementVar, routingVar, migrationRoutingVar, oldPlacement);
 			
 			IloObjective opCost = cplex.minimize(opObjective);
 			IloObjective pwCost = cplex.minimize(pwObjective);
 			IloObjective prCost = cplex.minimize(prObjective);
 			IloObjective ltCost = cplex.minimize(ltObjective);
 			IloObjective bwCost = cplex.minimize(bwObjective);
+			IloObjective mgCost = cplex.minimize(mgObjective);
 			
 			IloNumExpr[] objArray = new IloNumExpr[] {
 					opCost.getExpr(),
 					pwCost.getExpr(),
 					prCost.getExpr(),
 					ltCost.getExpr(),
-					bwCost.getExpr()
+					bwCost.getExpr(),
+					mgCost.getExpr()
 			};
 			
 			cplex.add(cplex.minimize(cplex.staticLex(objArray, null, Config.priorities, null, null, null)));
@@ -121,12 +147,13 @@ public class MultiObjectiveLinearProgramming extends Algorithm {
 			long start = System.currentTimeMillis();
 			
 			// Solve
-			if (cplex.solve()) {				
+			if (cplex.solve()) {
 				long finish = System.currentTimeMillis();
 				elapsedTime = finish - start;
 				
 				int[][] modulePlacementMap = new int[NR_NODES][NR_MODULES];
 				int[][][] routingMap = new int[getNumberOfDependencies()][NR_NODES][NR_NODES];
+				int[][][] migrationRoutingMap = new int[NR_MODULES][NR_NODES][NR_NODES];
 				
 				for(int i = 0; i < NR_NODES; i++) {
 					for(int j = 0; j < NR_MODULES; j++) {
@@ -137,12 +164,23 @@ public class MultiObjectiveLinearProgramming extends Algorithm {
 					}
 				}
 				
-				for(int i = 0; i < getNumberOfDependencies(); i++)
-					for(int j = 0; j < NR_NODES; j++)
-						for(int z = 0; z < NR_NODES; z++)
+				for(int i = 0; i < getNumberOfDependencies(); i++) {
+					for(int j = 0; j < NR_NODES; j++) {
+						for(int z = 0; z < NR_NODES; z++) {
 							routingMap[i][j][z] = (int) cplex.getValue(routingVar[i][j][z]);
+						}
+					}
+				}
 				
-				Job solution = new Job(this, modulePlacementMap, routingMap);
+				for(int i = 0; i < NR_MODULES; i++) {
+					for(int j = 0; j < NR_NODES; j++) {
+						for(int z = 0; z < NR_NODES; z++) {
+							migrationRoutingMap[i][j][z] = (int) cplex.getValue(migrationRoutingVar[i][j][z]);
+						}
+					}
+				}
+				
+				Job solution = new Job(this, modulePlacementMap, routingMap, migrationRoutingMap, oldPlacement);
 				
 				valueIterMap.put(0, solution.getCost());
 			    
@@ -163,7 +201,8 @@ public class MultiObjectiveLinearProgramming extends Algorithm {
 		}
 	}
 	
-	private void constraints(IloCplex cplex, IloNumVar[][] placementVar, IloNumVar[][][] routingVar) {
+	private void constraints(IloCplex cplex, IloNumVar[][] placementVar, IloNumVar[][][] routingVar,
+			IloNumVar[][][] migrationRoutingVar, int[][] oldPlacement) {
 		try {
 			// Define constraints
 			IloLinearNumExpr[] usedMipsCapacity = new IloLinearNumExpr[NR_NODES];
@@ -229,9 +268,29 @@ public class MultiObjectiveLinearProgramming extends Algorithm {
 			// Defining the required start and end nodes for each dependency
 			for(int i = 0; i < getNumberOfDependencies(); i++) {
 				for(int j = 0; j < NR_NODES; j++) {
-					cplex.addEq(cplex.diff(cplex.sum(routingVar[i][j]), cplex.sum(transposeR[i][j])), cplex.diff(placementVar[j][initialModules.get(i)], placementVar[j][finalModules.get(i)]));
+					cplex.addEq(cplex.diff(cplex.sum(routingVar[i][j]), cplex.sum(transposeR[i][j])), 
+							cplex.diff(placementVar[j][initialModules.get(i)], placementVar[j][finalModules.get(i)]));
 				}
 			}
+			
+			if(oldPlacement != null) {
+				IloNumVar[][][] transposeMigrationR = new IloNumVar[getNumberOfModules()][NR_NODES][NR_NODES];
+				for(int i = 0; i < NR_MODULES; i++) {
+					for(int j = 0; j < NR_NODES; j++) {
+						for(int z = 0; z < NR_NODES; z++) {
+							transposeMigrationR[i][z][j] = migrationRoutingVar[i][j][z];
+						}
+					}
+				}
+				
+				for(int i = 0; i < NR_MODULES; i++) {
+					for(int j = 0; j < NR_NODES; j++) {
+						cplex.addEq(cplex.diff(cplex.sum(migrationRoutingVar[i][j]), cplex.sum(transposeMigrationR[i][j])), 
+								cplex.diff(oldPlacement[j][i], placementVar[j][i]));
+					}
+				}
+			}
+			
 			
 		} catch (IloException e) {
 			e.printStackTrace();

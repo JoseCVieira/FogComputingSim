@@ -257,7 +257,7 @@ public class AlgorithmUtils {
 		
 		System.out.println("\n******************** ROUTING MAP  *********************\n");
 		
-		int[][] routingMap = job.getRoutingMap();
+		int[][] routingMap = job.getTupleRoutingMap();
 		
 		for (int i = 0; i < routingMap.length; i++) {
 			for (int j = 0; j < routingMap[0].length; j++) {

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Random;
 
 import org.fog.core.Constants;
+import org.fog.placement.algorithm.overall.util.AlgorithmUtils;
 import org.fog.placement.algorithm.routing.DijkstraAlgorithm;
 import org.fog.placement.algorithm.routing.Edge;
 import org.fog.placement.algorithm.routing.Graph;
@@ -15,13 +16,15 @@ import org.fog.utils.Util;
 
 public class Job implements Comparable<Job> {
 	private int[][] modulePlacementMap;
-	private int[][] routingMap;
+	private int[][] tupleRoutingMap;		// Tuple routing map
+	private int[][] migrationRoutingMap;	// Migration routing map
 	private double cost;
 	private boolean isValid;
 	
 	public Job(Job anotherJob) {
 		this.modulePlacementMap = Util.copy(anotherJob.getModulePlacementMap());
-		this.routingMap = Util.copy(anotherJob.getRoutingMap());
+		this.tupleRoutingMap = Util.copy(anotherJob.getTupleRoutingMap());
+		this.setMigrationRoutingMap(Util.copy(anotherJob.getMigrationRoutingMap()));
 		this.cost = anotherJob.getCost();
 		this.setValid(anotherJob.isValid());
 	}
@@ -31,57 +34,44 @@ public class Job implements Comparable<Job> {
 		this.cost = -1;
 	}
 	
-	public Job(int[][] modulePlacementMap, int[][] routingMap) {
+	public Job(Algorithm algorithm, int[][] modulePlacementMap, int[][] tupleRoutingMap, int[][] migrationRoutingMap) {
 		this.modulePlacementMap = modulePlacementMap;
-		this.routingMap = routingMap;
-	}
-	
-	public Job(Algorithm algorithm, int[][] modulePlacementMap, int[][] routingMap) {
-		this.modulePlacementMap = modulePlacementMap;
-		this.routingMap = routingMap;
+		this.tupleRoutingMap = tupleRoutingMap;
+		this.migrationRoutingMap = migrationRoutingMap;
 		CostFunction.computeCost(this, algorithm);
 	}
 	
-	public Job(Algorithm algorithm, int[][] modulePlacementMap, int[][][] routingVectorMap) {
-		int nrDependencies = routingVectorMap.length;
+	public Job(Algorithm algorithm, int[][] modulePlacementMap, int[][][] tupleRoutingVectorMap,
+			int[][][] migrationRoutingVectorMap,int[][] oldPlacement) {
+		int nrDependencies = tupleRoutingVectorMap.length;
 		int nrNodes = algorithm.getNumberOfNodes();
 		int nrModules = algorithm.getNumberOfModules();
-		int[][] routingMap = new int[nrDependencies][nrNodes];
+		int[][] tupleRoutingMap = new int[nrDependencies][nrNodes];
+		int[][] migrationRoutingMap = new int[nrModules][nrNodes];
 		
+		// Tuple routing map
 		int iter = 0;
 		for(int i = 0; i < nrModules; i++) {
 			for (int j = 0; j < nrModules; j++) {
 				if(algorithm.getmDependencyMap()[i][j] != 0) {
 					for(int z = 0; z < nrNodes; z++)
 						if(modulePlacementMap[z][i] == 1)
-							routingMap[iter++][0] = z;
-				}
-			}
-		}
-		
-		List<Integer> initialModules = new ArrayList<Integer>();
-		List<Integer> finalModules = new ArrayList<Integer>();
-		
-		for(int i = 0; i < nrModules; i++) {
-			for (int j = 0; j < nrModules; j++) {
-				if(algorithm.getmDependencyMap()[i][j] != 0) {
-					initialModules.add(i);
-					finalModules.add(j);
+							tupleRoutingMap[iter++][0] = z;
 				}
 			}
 		}
 		
 		for(int i = 0; i < nrDependencies; i++) {
 			iter = 1;
-			int from = routingMap[i][0];
+			int from = tupleRoutingMap[i][0];
 			
 			boolean found = true;
 			while(found) {
 				found = false;
 				
 				for(int j = 0; j < nrNodes; j++) {
-					if(routingVectorMap[i][from][j] == 1) {
-						routingMap[i][iter++] = j;
+					if(tupleRoutingVectorMap[i][from][j] == 1) {
+						tupleRoutingMap[i][iter++] = j;
 						from = j;
 						j = nrNodes;
 						found = true;
@@ -90,19 +80,53 @@ public class Job implements Comparable<Job> {
 			}
 			
 			for(int j = iter; j < nrNodes; j++) {
-				routingMap[i][j] = from;
+				tupleRoutingMap[i][j] = from;
+			}
+		}
+		
+		// Migration routing map
+		if(oldPlacement != null) {
+			for(int i = 0; i < nrModules; i++) {
+				iter = 1;
+				
+				for(int j = 0; j < nrNodes; j++) {
+					if(oldPlacement[j][i] == 1) {
+						migrationRoutingMap[i][0] = j;
+					}
+				}
+				
+				int from = migrationRoutingMap[i][0];
+				
+				boolean found = true;
+				while(found) {
+					found = false;
+					
+					for(int j = 0; j < nrNodes; j++) {
+						if(migrationRoutingVectorMap[i][from][j] == 1) {
+							migrationRoutingMap[i][iter++] = j;
+							from = j;
+							j = nrNodes;
+							found = true;
+						}
+					}
+				}
+				
+				for(int j = iter; j < nrNodes; j++) {
+					migrationRoutingMap[i][j] = from;
+				}
 			}
 		}
 		
 		this.modulePlacementMap = modulePlacementMap;
-		this.routingMap = routingMap;
+		this.tupleRoutingMap = tupleRoutingMap;
+		this.migrationRoutingMap = migrationRoutingMap;
 		CostFunction.computeCost(this, algorithm);
 	}
 	
 	public static Job generateRandomJob(Algorithm algorithm, int nrFogNodes, int nrModules) {
 		int[][] modulePlacementMap = generateRandomPlacement(algorithm, nrFogNodes, nrModules);
-		int[][] routingMap = generateRandomRouting(algorithm, modulePlacementMap, nrFogNodes);
-		return new Job(algorithm, modulePlacementMap, routingMap);
+		int[][] tupleRoutingMap = generateRandomRouting(algorithm, modulePlacementMap, nrFogNodes);
+		return new Job(algorithm, modulePlacementMap, tupleRoutingMap);
 	}
 	
 	public static int[][] generateRandomPlacement(Algorithm algorithm, int nrFogNodes, int nrModules) {
@@ -185,8 +209,8 @@ public class Job implements Comparable<Job> {
 		return modulePlacementMap;
 	}
 
-	public int[][] getRoutingMap() {
-		return routingMap;
+	public int[][] getTupleRoutingMap() {
+		return tupleRoutingMap;
 	}
 	
 	public double getCost() {
@@ -203,6 +227,14 @@ public class Job implements Comparable<Job> {
 
 	public void setValid(boolean isValid) {
 		this.isValid = isValid;
+	}
+	
+	public int[][] getMigrationRoutingMap() {
+		return migrationRoutingMap;
+	}
+
+	public void setMigrationRoutingMap(int[][] migrationRoutingMap) {
+		this.migrationRoutingMap = migrationRoutingMap;
 	}
 	
 	public static int findModulePlacement(int[][] chromosome, int colomn) {
@@ -225,7 +257,7 @@ public class Job implements Comparable<Job> {
 		temp = Double.doubleToLongBits(cost);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		result = prime * result + Arrays.deepHashCode(modulePlacementMap);
-		result = prime * result + Arrays.deepHashCode(routingMap);
+		result = prime * result + Arrays.deepHashCode(tupleRoutingMap);
 		return result;
 	}
 
@@ -242,7 +274,7 @@ public class Job implements Comparable<Job> {
 			return false;
 		if (!Arrays.deepEquals(modulePlacementMap, other.modulePlacementMap))
 			return false;
-		if (!Arrays.deepEquals(routingMap, other.routingMap))
+		if (!Arrays.deepEquals(tupleRoutingMap, other.tupleRoutingMap))
 			return false;
 		return true;
 	}

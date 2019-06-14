@@ -12,7 +12,7 @@ public class CostFunction {
 		List<Integer> finalModules = new ArrayList<Integer>();
 		
 		int[][] modulePlacementMap = job.getModulePlacementMap();
-		int[][] routingMap = job.getRoutingMap();
+		int[][] routingMap = job.getTupleRoutingMap();
 		
 		for(int i = 0; i < algorithm.getNumberOfModules(); i++) {
 			for (int j = 0; j < algorithm.getNumberOfModules(); j++) {
@@ -23,35 +23,16 @@ public class CostFunction {
 			}
 		}
 		
-		double cost = 0;
-		double aux = 0;
-		
-		aux = isPossibleCombination(algorithm, modulePlacementMap, routingMap, initialModules, finalModules);
-		cost += aux;
-		//System.out.println("OK: " + aux);
+		double cost = isPossibleCombination(algorithm, modulePlacementMap, routingMap, initialModules, finalModules);
 		
 		if(cost == 0)
 			job.setValid(true);
 		
-		aux = calculateOperationalCost(algorithm, modulePlacementMap, routingMap, initialModules, finalModules);
-		cost += aux;
-		//System.out.println("OP: " + aux);
-		
-		aux = calculatePowerCost(algorithm, modulePlacementMap);
-		cost += aux;
-		//System.out.println("PW: " + aux);
-		
-		aux = calculateProcessingCost(algorithm, modulePlacementMap);
-		cost += aux;
-		//System.out.println("PR: " + aux);
-		
-		aux = calculateLatencyCost(algorithm, routingMap, initialModules, finalModules);
-		cost += aux;
-		//System.out.println("LT: " + aux);
-		
-		aux = calculateBandwidthCost(algorithm, routingMap, initialModules, finalModules);
-		cost += aux;
-		//System.out.println("BW: " + aux);
+		cost += calculateOperationalCost(algorithm, modulePlacementMap, routingMap, initialModules, finalModules);
+		cost += calculatePowerCost(algorithm, modulePlacementMap);
+		cost += calculateProcessingCost(algorithm, modulePlacementMap);
+		cost += calculateLatencyCost(algorithm, routingMap, initialModules, finalModules);
+		cost += calculateBandwidthCost(algorithm, routingMap, initialModules, finalModules);
 		
 		job.setCost(cost);
 	}

@@ -32,4 +32,5 @@ public class Logger {
 		if(Logger.LOG_LEVEL <= Logger.ERROR)
 			System.out.println(df.format(CloudSim.clock())+" : "+name+" : "+message);
 	}
+	
 }

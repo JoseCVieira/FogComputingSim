@@ -20,6 +20,7 @@ import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.entities.Tuple;
 import org.fog.placement.algorithm.Algorithm;
+import org.fog.placement.algorithm.overall.util.AlgorithmMathUtils;
 import org.fog.utils.FogEvents;
 import org.fog.utils.Latency;
 import org.fog.utils.Location;
@@ -69,7 +70,10 @@ public class Controller extends SimEntity {
 		
 		for(FogDevice dev : getFogDevices()) {
 			sendNow(dev.getId(), FogEvents.RESOURCE_MGMT);
-			sendNow(dev.getId(), FogEvents.UPDATE_PERIODIC_MOVEMENT);
+			
+			if(Config.DYNAMIC_SIMULATION) {
+				sendNow(dev.getId(), FogEvents.UPDATE_PERIODIC_MOVEMENT);
+			}
 		}
 	}
 
@@ -101,7 +105,7 @@ public class Controller extends SimEntity {
 		
 	}
 	
-	public void submitApplication(Application application, int delay, ModulePlacement modulePlacement){
+	public void submitApplication(Application application, int delay, ModulePlacement modulePlacement) {
 		getApplications().put(application.getAppId(), application);
 		appLaunchDelays.put(application.getAppId(), delay);
 		appModulePlacementPolicy.put(application.getAppId(), modulePlacement);
@@ -113,7 +117,7 @@ public class Controller extends SimEntity {
 			ac.setApp(getApplications().get(ac.getAppId()));
 	}
 	
-	public void submitApplication(Application application, ModulePlacement modulePlacement){
+	public void submitApplication(Application application, ModulePlacement modulePlacement) {
 		submitApplication(application, 0, modulePlacement);
 	}
 	
@@ -122,7 +126,7 @@ public class Controller extends SimEntity {
 		processAppSubmit(app);
 	}
 	
-	private void processAppSubmit(Application application){
+	private void processAppSubmit(Application application) {
 		System.out.println("Submitted application " + application.getAppId() + " at time= " + CloudSim.clock());
 		getApplications().put(application.getAppId(), application);
 		
@@ -171,7 +175,7 @@ public class Controller extends SimEntity {
 				if(f2.getFixedNeighborsIds().isEmpty())
 					continue;
 				
-				if(f1.getCoverage().covers(f1, f2) && f2.getCoverage().covers(f2, f1)){
+				if(f1.getCoverage().covers(f1, f2) && f2.getCoverage().covers(f2, f1)) {
 					double distance = Location.computeDistance(f1, f2);
 					if(distance  + Config.HANDOVER_THRESHOLD < bestDistance) {
 						bestDistance = distance;
@@ -213,15 +217,19 @@ public class Controller extends SimEntity {
 			controllerAlgorithm.computeAlgorithm();
 			
 			deployApplications(controllerAlgorithm.getAlgorithm().extractPlacementMap(controllerAlgorithm.getSolution().getModulePlacementMap()));
-			createRoutingTables(controllerAlgorithm.getAlgorithm(), controllerAlgorithm.getSolution().getRoutingMap());
+			createRoutingTables(controllerAlgorithm.getAlgorithm(), controllerAlgorithm.getSolution().getTupleRoutingMap());
 			
-		}else if(!handovers.isEmpty()){
+		}else if(!handovers.isEmpty() && Config.DYNAMIC_SIMULATION){
 			int[][] previousModulePlacement = controllerAlgorithm.getSolution().getModulePlacementMap();
 			
-			//algorithm.setPossibleDeployment(AlgorithmMathUtils.toDouble(solution.getModulePlacementMap()));
+			if(!Config.ALLOW_MIGRATION) {
+				controllerAlgorithm.getAlgorithm().setPossibleDeployment(AlgorithmMathUtils.toDouble(controllerAlgorithm.getSolution().getModulePlacementMap()));
+			}
+			
 			controllerAlgorithm.recomputeAlgorithm();
 			
-			createRoutingTables(controllerAlgorithm.getAlgorithm(), controllerAlgorithm.getSolution().getRoutingMap());
+			createRoutingTables(controllerAlgorithm.getAlgorithm(), controllerAlgorithm.getSolution().getTupleRoutingMap());
+			createMigrationTables(controllerAlgorithm.getAlgorithm(), controllerAlgorithm.getSolution().getMigrationRoutingMap());
 		
 			// Update connections
 			for(FogDevice mobile : handovers.keySet()) {
@@ -239,10 +247,10 @@ public class Controller extends SimEntity {
 		
 		send(getId(), 1, FogEvents.UPDATE_TOPOLOGY);
 	}
-	
+
 	private void createConnection(FogDevice mobile, FogDevice from, FogDevice to) {
-		System.out.println("[" + CloudSim.clock() + "] Creating connection between "+mobile.getName()+" and " + to.getName());
-		System.out.println("[" + CloudSim.clock() + "] Creating connection between "+to.getName()+" and " + mobile.getName());
+		if(Config.PRINT_DETAILS)
+			FogComputingSim.print("Creating connection between: " + mobile.getName() + " <-> " + to.getName());
 		
 		double latency = Latency.computeConnectionLatency(mobile, to);
 		mobile.getLatencyMap().put(to.getId(), latency);
@@ -288,11 +296,11 @@ public class Controller extends SimEntity {
 	private void migrateModules(int[][] currentModulePlacement, int[][] previousModulePlacement) {
 		appModulePlacementPolicy.clear();
 		
-		for(int j = 0; j < currentModulePlacement[0].length; j++) {
+		for(int j = 0; j < controllerAlgorithm.getAlgorithm().getNumberOfModules(); j++) {
 			int previousPlacement = -1;
 			int currentPlacement = -1;
 			
-			for(int i = 0; i < currentModulePlacement.length; i++) {
+			for(int i = 0; i < controllerAlgorithm.getAlgorithm().getNumberOfNodes(); i++) {
 				if(currentModulePlacement[i][j] == 1) {
 					currentPlacement = i;
 				}
@@ -310,37 +318,30 @@ public class Controller extends SimEntity {
 				FogDevice from = getFogDeviceByName(controllerAlgorithm.getAlgorithm().getfName()[previousPlacement]);
 				FogDevice to = getFogDeviceByName(controllerAlgorithm.getAlgorithm().getfName()[currentPlacement]);
 				
-				System.out.println("[" + CloudSim.clock() + "] Migration of module: " + module.getName() + " from: " + from.getName() + " to: " + to.getName());
-				
-				Map<AppModule, FogDevice> map = new HashMap<AppModule, FogDevice>();
-				map.put(module, to);
-				
-				module.setInMigration(true);
-				
-				double latency = from.getLatencyMap().get(to.getId());
-				double bw = from.getBandwidthMap().get(to.getId());
-				double totalSize = module.getRam() + module.getSize();
-				double totalDelay = totalSize/bw + latency;
-				
-				send(from.getId(), totalDelay, FogEvents.MIGRATION, map);
+				if(Config.PRINT_DETAILS)
+					FogComputingSim.print("Migratig module: " + module.getName() +  " from: " + from.getName() + " to: " + to.getName());
 				
 				Application application = getApplicationByModule(module);
 				
 				if(application == null)
 					FogComputingSim.err("Should not happen");
 				
-				send(to.getId(), totalDelay, FogEvents.APP_SUBMIT, application);
-				send(to.getId(), totalDelay, FogEvents.LAUNCH_MODULE, module);
+				Map<FogDevice, Map<Application, AppModule>> map = new HashMap<FogDevice, Map<Application,AppModule>>();
+				Map<Application, AppModule> appMap = new HashMap<Application, AppModule>();
+				appMap.put(application, module);
+				map.put(to, appMap);
+				sendNow(from.getId(), FogEvents.MIGRATION, map);
 			}
 		}
 	}
 	
 	private void createRoutingTables(Algorithm algorithm, int[][] routingMatrix) {
-		Map<Map<Integer, Map<String, String>>, Integer> routingMap = algorithm.extractRoutingMap(routingMatrix);
-		
 		// Clear the current routing tables
 		for(FogDevice fogDevice : fogDevices)
-			fogDevice.getRoutingTable().clear();
+			fogDevice.getTupleRoutingTable().clear();
+		
+		Map<Map<Integer, Map<String, String>>, Integer> routingMap = algorithm.extractRoutingMap(routingMatrix);
+		
 		
 		// Update routing tables afterwards
 		for(Map<Integer, Map<String, String>> hop : routingMap.keySet()) {
@@ -352,8 +353,43 @@ public class Controller extends SimEntity {
 				if(fogDevice == null)
 					continue;
 				
-				fogDevice.getRoutingTable().put(hop.get(node), algorithm.getfId()[routingMap.get(hop)]);
+				fogDevice.getTupleRoutingTable().put(hop.get(node), algorithm.getfId()[routingMap.get(hop)]);
 			}
+		}
+		
+		if(Config.PRINT_DETAILS) {
+			System.out.println("\nRouting Tuple tables:");
+			for(FogDevice f : fogDevices) {
+				System.out.println(f.getName() + " : " + f.getTupleRoutingTable());
+			}
+			System.out.println();
+		}
+	}
+	
+	private void createMigrationTables(Algorithm algorithm, int[][] migrationMatrix) {
+		for(FogDevice fogDevice : fogDevices)
+			fogDevice.getVmRoutingTable().clear();
+		
+		for(int i = 0; i < algorithm.getNumberOfModules(); i++) {
+			for(int j = 1; j <  algorithm.getNumberOfNodes(); j++) {
+				if(migrationMatrix[i][j-1] != migrationMatrix[i][j]) {
+					int fogId = algorithm.getfId()[migrationMatrix[i][j-1]];
+					int nextHopId = algorithm.getfId()[migrationMatrix[i][j]];
+					
+					FogDevice fogDevice = getFogDeviceById(fogId);
+					String vmName = algorithm.getmName()[i];
+					
+					fogDevice.getVmRoutingTable().put(vmName, nextHopId);
+				}
+			}
+		}
+		
+		if(Config.PRINT_DETAILS) {
+			System.out.println("\nRouting VM tables:");
+			for(FogDevice f : fogDevices) {
+				System.out.println(f.getName() + " : " + f.getVmRoutingTable());
+			}
+			System.out.println();
 		}
 	}
 	

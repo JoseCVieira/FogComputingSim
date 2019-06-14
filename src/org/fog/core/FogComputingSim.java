@@ -3,6 +3,7 @@ package org.fog.core;
 import java.io.File;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -49,7 +50,11 @@ public class FogComputingSim {
 	private static List<Actuator> actuators;
 	private static Map<String, LinkedHashSet<String>> appToFogMap;
 	
+	private static Util u;
+	
 	public static void main(String[] args) {
+		u = new Util();
+		
 		if(Config.DEBUG_MODE) {
 			Logger.setLogLevel(Logger.DEBUG);
 			Logger.setEnabled(true);
@@ -278,6 +283,12 @@ public class FogComputingSim {
 		System.err.println("err: [ " + err + " ]");
 		System.err.println("FogComputingSim will terminate abruptally.\n");
 		System.exit(-1);
+	}
+	
+	public static void print(String str) {
+		DecimalFormat df = new DecimalFormat("0.00");
+		String clock = u.centerString(13, df.format(CloudSim.clock()));
+		System.out.println("Clock=" + clock + "-> " + str);
 	}
 	
 }
