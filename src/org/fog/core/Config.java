@@ -62,6 +62,7 @@ public class Config {
 	public static final double MOBILE_COMMUNICATION_BW = 10*1024;		// 10MB
 	public static final double FIXED_COMMUNICATION_BW = 50*1024;		// 50MB
 	public final static double FIXED_COMMUNICATION_LATENCY = 204E-6;	//204us/m
+	public static final int MAX_SIMULATION_TIME = 100000; //10000;
 	
 	// For test purposes
 	public static final int SQUARE_SIDE = 1000;
@@ -72,7 +73,7 @@ public class Config {
 	public static final double PROB_MED_VELOCITY = 0.6667;
 	public static final double PROB_MIN_VELOCITY = 0.1667;
 	public static final double MAX_VELOCITY = 5;
-	public static final double MED_VELOCITY = 5;
-	public static final double MIN_VELOCITY = 0;
+	public static final double MED_VELOCITY = 2;
+	public static final double MIN_VELOCITY = 1;
 	
 }

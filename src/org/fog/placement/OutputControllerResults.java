@@ -5,7 +5,7 @@ import java.util.Calendar;
 
 import org.fog.application.AppLoop;
 import org.fog.application.Application;
-import org.fog.core.Constants;
+import org.fog.core.Config;
 import org.fog.entities.FogDevice;
 import org.fog.placement.algorithm.Algorithm;
 import org.fog.placement.algorithm.overall.util.MatlabChartUtils;
@@ -76,7 +76,7 @@ public class OutputControllerResults {
 		System.out.println("|" + u.centerString((MAX_COLUMN_SIZE*2+1), "TOTAL NETWORK USAGE") + "|");
 		newDetailsField(2, '-');
 		System.out.println("|" + u.centerString((MAX_COLUMN_SIZE*2+1), "" +
-				NetworkUsageMonitor.getNetworkUsage()/Constants.MAX_SIMULATION_TIME) + "|");
+				NetworkUsageMonitor.getNetworkUsage()/Config.MAX_SIMULATION_TIME) + "|");
 		newDetailsField(2, '=');
 	}
 	

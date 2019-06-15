@@ -136,9 +136,6 @@ public class FogDevice extends PowerDatacenter {
 		case FogEvents.FINISH_MIGRATION:
 			finishMigration(ev);
 			break;
-		case FogEvents.DEALLOCATE_MEMORY:
-			deallocateMemory(ev);
-			break;
 		default:
 			break;
 		}
@@ -351,6 +348,7 @@ public class FogDevice extends PowerDatacenter {
 		//lastBwUtilization = totalBwAllocated/getHost().getBw();
 		lastMemUtilization = totalMemAllocated/getHost().getStorage();
 		lastMipsUtilization = totalMipsAllocated/getHost().getTotalMips();
+		
 		lastUtilizationUpdateTime = timeNow;
 		
 		if(Config.PRINT_COST_DETAILS) printCost();
@@ -365,19 +363,25 @@ public class FogDevice extends PowerDatacenter {
 		Tuple tuple = (Tuple)ev.getData();
 		
 		if(tuple instanceof TupleVM) {
+			Map<AppModule, Integer> vmPosition = new HashMap<AppModule, Integer>();
+			
 			TupleVM tmp = (TupleVM) tuple;
-			if(tmp.getDestId() == getId()) {
+			Integer nextHopId = vmRoutingTable.get(tmp.getVm().getName());
+			
+			// Final node
+			if(nextHopId == null) {
 				Map<Application, AppModule> map = new HashMap<Application, AppModule>();
 				map.put(tmp.getApplication(), tmp.getVm());
 				
-				sendNow(getId(), FogEvents.APP_SUBMIT, tmp.getApplication());
-				sendNow(getId(), FogEvents.LAUNCH_MODULE, tmp.getVm());
-				sendNow(getId(), FogEvents.FINISH_MIGRATION, tmp.getVm());
-				sendNow(tmp.getSrcId(), FogEvents.DEALLOCATE_MEMORY, tmp.getVm());
+				send(getId(), 0, FogEvents.FINISH_MIGRATION, tmp.getVm());
 				
-				FogComputingSim.print("Received and deploying vm: " + tmp.getVm().getName());
+				FogComputingSim.print(getName() + " received and deploying vm: " + tmp.getVm().getName());
 			}else {
-				FogComputingSim.print("Received vm: " + tmp.getVm().getName() + ", forwarding it to: " + vmRoutingTable.get(tmp.getVm().getName()));
+				FogComputingSim.print(getName() + " received vm: " + tmp.getVm().getName() + ", forwarding it to: " + vmRoutingTable.get(tmp.getVm().getName()));
+				
+				vmPosition.put(tmp.getVm(), vmRoutingTable.get(tmp.getVm().getName()));
+				sendNow(controller.getId(), FogEvents.UPDATE_VM_POSITION, vmPosition);
+				
 				sendTo(tmp, vmRoutingTable.get(tmp.getVm().getName()));
 			}
 			return;
@@ -388,7 +392,7 @@ public class FogDevice extends PowerDatacenter {
 		
 		// It can be null after some handover is completed. This can happen because, some connections were removed and routing
 		// tables were updated. Thus, once there still can exist some old tuples, they will be lost because we already don't
-		// know where to forward it.
+		// know where to forward it.		
 		if((!tupleRoutingTable.containsKey(communication) && !deployedModules.contains(tuple.getDestModuleName())) || moduleInMigration(tuple.getDestModuleName())) {
 			Analysis.incrementPacketDrop();
 			return;
@@ -482,10 +486,11 @@ public class FogDevice extends PowerDatacenter {
 	
 	protected void processModuleArrival(SimEvent ev){
 		AppModule module = (AppModule)ev.getData();
+		
 		deployedModules.add(module.getName());
 
 		processVmCreate(ev, false);
-		System.out.println("Creating " + module.getName() + " on device " + getName());
+		FogComputingSim.print("Creating " + module.getName() + " on device " + getName());
 		
 		if (module.isBeingInstantiated())
 			module.setBeingInstantiated(false);
@@ -681,9 +686,18 @@ public class FogDevice extends PowerDatacenter {
 		vm.setInMigration(true);
 		
 		TupleVM tuple = new TupleVM(application.getAppId(), FogUtils.generateTupleId(), 0, 1, (long) totalSize, 0,
-				new UtilizationModelFull(), new UtilizationModelFull(), new UtilizationModelFull(), vm, application, getId(), to.getId());
+				new UtilizationModelFull(), new UtilizationModelFull(), new UtilizationModelFull(), vm, application, getId());
+		
+		Map<AppModule, Integer> vmPosition = new HashMap<AppModule, Integer>();
+		vmPosition.put(vm, vmRoutingTable.get(vm.getName()));
+		sendNow(controller.getId(), FogEvents.UPDATE_VM_POSITION, vmPosition);
 		
 		sendTo(tuple, vmRoutingTable.get(vm.getName()));
+		
+		getVmAllocationPolicy().deallocateHostForVm(vm);
+		getVmList().remove(vm);
+		getHost().getVmList().remove(vm);
+		deployedModules.remove(vm.getName());		
 	}
 	
 	private void finishMigration(SimEvent ev) {
@@ -693,15 +707,9 @@ public class FogDevice extends PowerDatacenter {
 		
 		if (!getVmAllocationPolicy().allocateHostForVm(vm, getHost()))
 			FogComputingSim.err("VM allocation to the destination host failed");
-	}
-	
-	private void deallocateMemory(SimEvent ev) {
-		AppModule vm = (AppModule)ev.getData();
 		
-		getVmAllocationPolicy().deallocateHostForVm(vm);
-		getVmList().remove(vm);
-		getHost().getVmList().remove(vm);
-		deployedModules.remove(vm.getName());
+		deployedModules.add(vm.getName());
+		vm.setInMigration(false);
 	}
 	
 	private boolean moduleInMigration(String name) {

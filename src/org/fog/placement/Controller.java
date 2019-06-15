@@ -38,6 +38,7 @@ public class Controller extends SimEntity {
 	private Map<String, LinkedHashSet<String>> appToFogMap;
 	
 	private ControllerAlgorithm controllerAlgorithm;
+	protected int[][] currentPlacement;
 	
 	public Controller(String name, List<Application> applications, List<FogDevice> fogDevices, List<Sensor> sensors,
 			List<Actuator> actuators, Map<String, LinkedHashSet<String>> appToFogMap, int algorithmOp) {
@@ -65,7 +66,7 @@ public class Controller extends SimEntity {
 				send(getId(), appLaunchDelays.get(appId), FogEvents.APP_SUBMIT, getApplications().get(appId));
 		}
 		
-		send(getId(), Constants.MAX_SIMULATION_TIME, FogEvents.STOP_SIMULATION);
+		send(getId(), Config.MAX_SIMULATION_TIME, FogEvents.STOP_SIMULATION);
 		sendNow(getId(), FogEvents.UPDATE_TOPOLOGY);
 		
 		for(FogDevice dev : getFogDevices()) {
@@ -85,6 +86,9 @@ public class Controller extends SimEntity {
 			break;
 		case FogEvents.UPDATE_TOPOLOGY:
 			updateTopology(false);
+			break;
+		case FogEvents.UPDATE_VM_POSITION:
+			updateVmPosition(ev);
 			break;
 		case FogEvents.STOP_SIMULATION:
 			CloudSim.stopSimulation();
@@ -127,7 +131,7 @@ public class Controller extends SimEntity {
 	}
 	
 	private void processAppSubmit(Application application) {
-		System.out.println("Submitted application " + application.getAppId() + " at time= " + CloudSim.clock());
+		FogComputingSim.print("Submitted application " + application.getAppId());
 		getApplications().put(application.getAppId(), application);
 		
 		ModulePlacement modulePlacement = appModulePlacementPolicy.get(application.getAppId());
@@ -137,6 +141,10 @@ public class Controller extends SimEntity {
 			for(AppModule module : deviceToModuleMap.get(deviceId)){
 				sendNow(deviceId, FogEvents.APP_SUBMIT, application);
 				sendNow(deviceId, FogEvents.LAUNCH_MODULE, module);
+				
+				Map<AppModule, Integer> vmPosition = new HashMap<AppModule, Integer>();
+				vmPosition.put(module, deviceId);
+				sendNow(getId(), FogEvents.UPDATE_VM_POSITION, vmPosition);
 			}
 		}
 	}
@@ -215,6 +223,7 @@ public class Controller extends SimEntity {
 			}
 			
 			controllerAlgorithm.computeAlgorithm();
+			currentPlacement = new int[controllerAlgorithm.getAlgorithm().getNumberOfNodes()][controllerAlgorithm.getAlgorithm().getNumberOfModules()];
 			
 			deployApplications(controllerAlgorithm.getAlgorithm().extractPlacementMap(controllerAlgorithm.getSolution().getModulePlacementMap()));
 			createRoutingTables(controllerAlgorithm.getAlgorithm(), controllerAlgorithm.getSolution().getTupleRoutingMap());
@@ -223,7 +232,7 @@ public class Controller extends SimEntity {
 			int[][] previousModulePlacement = controllerAlgorithm.getSolution().getModulePlacementMap();
 			
 			if(!Config.ALLOW_MIGRATION) {
-				controllerAlgorithm.getAlgorithm().setPossibleDeployment(AlgorithmMathUtils.toDouble(controllerAlgorithm.getSolution().getModulePlacementMap()));
+				controllerAlgorithm.getAlgorithm().setPossibleDeployment(AlgorithmMathUtils.toDouble(currentPlacement/*controllerAlgorithm.getSolution().getModulePlacementMap()*/));
 			}
 			
 			controllerAlgorithm.recomputeAlgorithm();
@@ -246,6 +255,29 @@ public class Controller extends SimEntity {
 		}
 		
 		send(getId(), 1, FogEvents.UPDATE_TOPOLOGY);
+	}
+	
+	@SuppressWarnings("unchecked")
+	private void updateVmPosition(SimEvent ev) {
+		Map<AppModule, Integer> vmPosition = (Map<AppModule, Integer>)ev.getData();
+		int fogId = 0;
+		AppModule vm = null;
+		
+		for(AppModule appModule : vmPosition.keySet()) {
+			vm = appModule;
+			fogId = vmPosition.get(appModule);
+		}
+		
+		int fogIndex = controllerAlgorithm.getAlgorithm().getNodeIndexByNodeId(fogId);
+		int vmIndex = controllerAlgorithm.getAlgorithm().getModuleIndexByModuleName(vm.getName());
+		
+		for(int i  = 0; i < controllerAlgorithm.getAlgorithm().getNumberOfNodes(); i++) {
+			if(i != fogIndex) {
+				currentPlacement[i][vmIndex] = 0;
+			}else {
+				currentPlacement[i][vmIndex] = 1;
+			}
+		}
 	}
 
 	private void createConnection(FogDevice mobile, FogDevice from, FogDevice to) {
@@ -315,6 +347,10 @@ public class Controller extends SimEntity {
 			
 			if(currentPlacement != previousPlacement) {
 				AppModule module = getModuleByName(controllerAlgorithm.getAlgorithm().getmName()[j]);
+				
+				if(module.isInMigration())
+					continue;
+				
 				FogDevice from = getFogDeviceByName(controllerAlgorithm.getAlgorithm().getfName()[previousPlacement]);
 				FogDevice to = getFogDeviceByName(controllerAlgorithm.getAlgorithm().getfName()[currentPlacement]);
 				
@@ -371,7 +407,7 @@ public class Controller extends SimEntity {
 			fogDevice.getVmRoutingTable().clear();
 		
 		for(int i = 0; i < algorithm.getNumberOfModules(); i++) {
-			for(int j = 1; j <  algorithm.getNumberOfNodes(); j++) {
+			for(int j = 1; j <  algorithm.getNumberOfNodes(); j++) {				
 				if(migrationMatrix[i][j-1] != migrationMatrix[i][j]) {
 					int fogId = algorithm.getfId()[migrationMatrix[i][j-1]];
 					int nextHopId = algorithm.getfId()[migrationMatrix[i][j]];

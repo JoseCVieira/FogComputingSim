@@ -85,7 +85,7 @@ public class Job implements Comparable<Job> {
 		}
 		
 		// Migration routing map
-		if(oldPlacement != null) {
+		if(oldPlacement != null) {			
 			for(int i = 0; i < nrModules; i++) {
 				iter = 1;
 				
@@ -97,16 +97,26 @@ public class Job implements Comparable<Job> {
 				
 				int from = migrationRoutingMap[i][0];
 				
-				boolean found = true;
-				while(found) {
-					found = false;
-					
-					for(int j = 0; j < nrNodes; j++) {
-						if(migrationRoutingVectorMap[i][from][j] == 1) {
-							migrationRoutingMap[i][iter++] = j;
-							from = j;
-							j = nrNodes;
-							found = true;
+				int tmp = 0;
+				for(int j = 0; j < algorithm.getNumberOfNodes(); j++) {
+					if(algorithm.getPossibleDeployment()[j][i] != 0) {
+						tmp++;
+					}
+				}
+				
+				// If they have fixed positions its not necessary to verify its routing VM map, once it will not be migrated
+				if(tmp != 1) {
+					boolean found = true;
+					while(found) {
+						found = false;
+						
+						for(int j = 0; j < nrNodes; j++) {
+							if(migrationRoutingVectorMap[i][from][j] == 1) {
+								migrationRoutingMap[i][iter++] = j;
+								from = j;
+								j = nrNodes;
+								found = true;
+							}
 						}
 					}
 				}

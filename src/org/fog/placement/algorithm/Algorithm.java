@@ -113,7 +113,7 @@ public abstract class Algorithm {
 		mBandwidthMap = new double[NR_MODULES][NR_MODULES];
 		
 		extractDevicesCharacteristics(fogDevices, sensors, actuators);
-		extractAppCharacteristics(/*fogBrokers, */fogDevices, applications, hashSet);
+		extractAppCharacteristics(fogDevices, applications, hashSet);
 		computeApplicationCharacteristics(applications, fogDevices, sensors);
 		computeConnectionMap(fogDevices, sensors, actuators);
 		
@@ -489,14 +489,14 @@ public abstract class Algorithm {
 		return result;
 	}
 	
-	private int getModuleIndexByModuleName(String name) {
+	public int getModuleIndexByModuleName(String name) {
 		for(int i = 0; i < NR_MODULES; i++)
 			if(mName[i] != null && mName[i].equals(name))
 				return i;
 		return -1;
 	}
 	
-	private int getNodeIndexByNodeId(int id) {
+	public int getNodeIndexByNodeId(int id) {
 		for(int i = 0; i < NR_NODES; i++)
 			if(fId[i] == id)
 				return i;

@@ -28,5 +28,6 @@ public class FogEvents {
 	public static final int UPDATE_TOPOLOGY = BASE + 21;
 	public static final int MIGRATION = BASE + 22;
 	public static final int FINISH_MIGRATION = BASE + 23;
-	public static final int DEALLOCATE_MEMORY = BASE + 24;
+	public static final int UPDATE_VM_POSITION = BASE + 25;
+	
 }

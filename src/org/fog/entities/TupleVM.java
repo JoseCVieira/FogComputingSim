@@ -7,19 +7,17 @@ import org.fog.application.Application;
 public class TupleVM extends Tuple {
 	private AppModule vm;
 	private Application application;
-	private int destId;
 	private int srcId;
 
 	public TupleVM(String appId, int cloudletId, long cloudletLength, int pesNumber, long cloudletFileSize,
 			long cloudletOutputSize, UtilizationModel utilizationModelCpu, UtilizationModel utilizationModelRam,
-			UtilizationModel utilizationModelBw, AppModule vm, Application application, int srcId, int destId) {
+			UtilizationModel utilizationModelBw, AppModule vm, Application application, int srcId) {
 		super(appId, cloudletId, cloudletLength, pesNumber, cloudletFileSize, cloudletOutputSize, utilizationModelCpu,
 				utilizationModelRam, utilizationModelBw);
 		
 		setVm(vm);
 		setApplication(application);
 		setSrcId(srcId);
-		setDestId(destId);
 	}
 
 	public AppModule getVm() {
@@ -36,14 +34,6 @@ public class TupleVM extends Tuple {
 
 	public void setApplication(Application application) {
 		this.application = application;
-	}
-
-	public int getDestId() {
-		return destId;
-	}
-
-	public void setDestId(int destId) {
-		this.destId = destId;
 	}
 
 	public int getSrcId() {

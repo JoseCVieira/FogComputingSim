@@ -18,7 +18,7 @@ import org.fog.utils.distribution.Distribution;
 
 public class VRGameFog extends FogTest {
 	private static final int numOfDepts = 1;//4
-	private static final int numOfMobilesPerDept = 1;//6
+	private static final int numOfMobilesPerDept = 2;//6
 	private static final double EEG_TRANSMISSION_TIME = 5.1;
 	
 	public VRGameFog() {
