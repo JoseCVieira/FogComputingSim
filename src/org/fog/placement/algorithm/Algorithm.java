@@ -65,6 +65,7 @@ public abstract class Algorithm {
 	
 	// Node to Module
 	protected double[][] possibleDeployment;
+	protected double[][] currentPlacement;
 	
 	public Algorithm(final List<FogDevice> fogDevices, final List<Application> applications,
 			final List<Sensor> sensors, final List<Actuator> actuators) throws IllegalArgumentException {
@@ -108,6 +109,7 @@ public abstract class Algorithm {
 		fBandwidthMap = new double[NR_NODES][NR_NODES];
 		
 		possibleDeployment = new double[NR_NODES][NR_MODULES];
+		currentPlacement = new double[NR_NODES][NR_MODULES];
 		
 		mDependencyMap = new double[NR_MODULES][NR_MODULES];
 		mBandwidthMap = new double[NR_MODULES][NR_MODULES];
@@ -197,10 +199,11 @@ public abstract class Algorithm {
 				int nodeId = Integer.parseInt(parts[parts.length-1]);
 				int nodeIndex = getNodeIndexByNodeId(nodeId);
 				
-				for(int j  = 0; j < NR_NODES; j++) {
-					if(j != nodeIndex) {
+				for(int j = 0; j < NR_NODES; j++) {
+					if(j != nodeIndex)
 						possibleDeployment[j][i] = 0;
-					}
+					else
+						currentPlacement[j][i] = 1;
 				}
 				
 				i++;
@@ -317,7 +320,7 @@ public abstract class Algorithm {
 			int dId = fogDevice.getId();
 			
 			for(int neighborId : fogDevice.getLatencyMap().keySet()) {
-				int lat = fogDevice.getLatencyMap().get(neighborId).intValue();
+				double lat = fogDevice.getLatencyMap().get(neighborId);
 				double bw = fogDevice.getBandwidthMap().get(neighborId);
 				
 				fLatencyMap[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(neighborId)] = lat;
@@ -444,7 +447,7 @@ public abstract class Algorithm {
 		return matix;
 	}
 	
-	public abstract Job execute(int[][] oldPlacement);
+	public abstract Job execute();
 	
 	public Map<String, List<String>> extractPlacementMap(final int[][] placementMap) {
 		Map<String, List<String>> result = new HashMap<>();
@@ -619,6 +622,33 @@ public abstract class Algorithm {
 	
 	public long getElapsedTime() {
 		return elapsedTime;
+	}
+	
+	public double[][] getCurrentPlacement() {
+		return currentPlacement;
+	}
+
+	public void setCurrentPlacement(int module, int node) {
+		for(int i  = 0; i < NR_NODES; i++) {
+			if(i != node)
+				currentPlacement[i][module] = 0;
+			else
+				currentPlacement[i][module] = 1;
+		}
+	}
+	
+	// If is the first optimization there is no migration of modules
+	protected boolean isFirstOptimization() {
+		int cnt = 0;
+		for(int i  = 0; i < NR_NODES; i++) {
+			for(int j  = 0; j < NR_MODULES; j++) {
+				if(currentPlacement[i][j] == 1) {
+					cnt++;
+				}
+			}
+		}
+		
+		return !(cnt == NR_MODULES);
 	}
 	
 }

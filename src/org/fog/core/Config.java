@@ -22,11 +22,11 @@ public class Config {
 	 */
 	public static final int[] priorities = new int[] {
 			2,	// Operational cost
-			2,	// Power cost
-			2,	// Processing cost
-			2,	// Latency cost
-			2,	// Bandwidth cost
-			1	// Migration cost
+			1,	// Power cost
+			3,	// Processing cost
+			6,	// Latency cost
+			5,	// Bandwidth cost
+			4	// Migration cost
 	};
 	
 	public static final double CONVERGENCE_ERROR = 0.01;
@@ -46,7 +46,7 @@ public class Config {
 	// Algorithms
 	public static final boolean PRINT_DETAILS = true;
 	public static final boolean PRINT_BEST_ITER = true;
-	public static final boolean PLOT_RESULTS= false;
+	public static final boolean PLOT_RESULTS = false;
 	
 	// Simulation
 	public static final boolean DEBUG_MODE = false;
@@ -61,8 +61,9 @@ public class Config {
 	public static final int HANDOVER_THRESHOLD = 25;
 	public static final double MOBILE_COMMUNICATION_BW = 10*1024;		// 10MB
 	public static final double FIXED_COMMUNICATION_BW = 50*1024;		// 50MB
-	public final static double FIXED_COMMUNICATION_LATENCY = 204E-6;	//204us/m
-	public static final int MAX_SIMULATION_TIME = 100000; //10000;
+	public final static double FIXED_COMMUNICATION_LATENCY = 204E-3; 	// Latency/m
+	public final static double MIN_LATENCY = 150E-4;
+	public static final int MAX_SIMULATION_TIME = 10000;
 	
 	// For test purposes
 	public static final int SQUARE_SIDE = 1000;

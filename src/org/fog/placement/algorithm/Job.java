@@ -42,7 +42,7 @@ public class Job implements Comparable<Job> {
 	}
 	
 	public Job(Algorithm algorithm, int[][] modulePlacementMap, int[][][] tupleRoutingVectorMap,
-			int[][][] migrationRoutingVectorMap,int[][] oldPlacement) {
+			int[][][] migrationRoutingVectorMap, double[][] oldPlacement) {
 		int nrDependencies = tupleRoutingVectorMap.length;
 		int nrNodes = algorithm.getNumberOfNodes();
 		int nrModules = algorithm.getNumberOfModules();
@@ -51,12 +51,18 @@ public class Job implements Comparable<Job> {
 		
 		// Tuple routing map
 		int iter = 0;
+		
 		for(int i = 0; i < nrModules; i++) {
 			for (int j = 0; j < nrModules; j++) {
-				if(algorithm.getmDependencyMap()[i][j] != 0) {
-					for(int z = 0; z < nrNodes; z++)
-						if(modulePlacementMap[z][i] == 1)
-							tupleRoutingMap[iter++][0] = z;
+				if(algorithm.getmDependencyMap()[i][j] == 0)
+					continue;
+				
+				for(int z = 0; z < nrNodes; z++) {
+					if(modulePlacementMap[z][i] != 1)
+						continue;
+					
+					tupleRoutingMap[iter++][0] = z;
+					break;
 				}
 			}
 		}
@@ -85,8 +91,8 @@ public class Job implements Comparable<Job> {
 		}
 		
 		// Migration routing map
-		if(oldPlacement != null) {			
-			for(int i = 0; i < nrModules; i++) {
+		if(!algorithm.isFirstOptimization()) {
+			for(int i = 0; i < nrModules; i++) {				
 				iter = 1;
 				
 				for(int j = 0; j < nrNodes; j++) {
@@ -96,27 +102,16 @@ public class Job implements Comparable<Job> {
 				}
 				
 				int from = migrationRoutingMap[i][0];
-				
-				int tmp = 0;
-				for(int j = 0; j < algorithm.getNumberOfNodes(); j++) {
-					if(algorithm.getPossibleDeployment()[j][i] != 0) {
-						tmp++;
-					}
-				}
-				
-				// If they have fixed positions its not necessary to verify its routing VM map, once it will not be migrated
-				if(tmp != 1) {
-					boolean found = true;
-					while(found) {
-						found = false;
-						
-						for(int j = 0; j < nrNodes; j++) {
-							if(migrationRoutingVectorMap[i][from][j] == 1) {
-								migrationRoutingMap[i][iter++] = j;
-								from = j;
-								j = nrNodes;
-								found = true;
-							}
+				boolean found = true;
+				while(found) {
+					found = false;
+					
+					for(int j = 0; j < nrNodes; j++) {
+						if(migrationRoutingVectorMap[i][from][j] == 1) {
+							migrationRoutingMap[i][iter++] = j;
+							from = j;
+							j = nrNodes;
+							found = true;
 						}
 					}
 				}

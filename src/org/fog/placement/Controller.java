@@ -20,7 +20,6 @@ import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.entities.Tuple;
 import org.fog.placement.algorithm.Algorithm;
-import org.fog.placement.algorithm.overall.util.AlgorithmMathUtils;
 import org.fog.utils.FogEvents;
 import org.fog.utils.Latency;
 import org.fog.utils.Location;
@@ -38,7 +37,6 @@ public class Controller extends SimEntity {
 	private Map<String, LinkedHashSet<String>> appToFogMap;
 	
 	private ControllerAlgorithm controllerAlgorithm;
-	protected int[][] currentPlacement;
 	
 	public Controller(String name, List<Application> applications, List<FogDevice> fogDevices, List<Sensor> sensors,
 			List<Actuator> actuators, Map<String, LinkedHashSet<String>> appToFogMap, int algorithmOp) {
@@ -168,7 +166,7 @@ public class Controller extends SimEntity {
 			for(int neighborId : f1.getLatencyMap().keySet()) {
 				FogDevice neighbor = getFogDeviceById(neighborId);
 				
-				if(bestDistance > Latency.computeConnectionLatency(f1, neighbor)) {
+				if(bestDistance > Location.computeDistance(f1, neighbor)) {
 					best = neighbor;
 					bestNeighbor = neighbor;
 					bestDistance = Location.computeDistance(f1, best);
@@ -223,7 +221,6 @@ public class Controller extends SimEntity {
 			}
 			
 			controllerAlgorithm.computeAlgorithm();
-			currentPlacement = new int[controllerAlgorithm.getAlgorithm().getNumberOfNodes()][controllerAlgorithm.getAlgorithm().getNumberOfModules()];
 			
 			deployApplications(controllerAlgorithm.getAlgorithm().extractPlacementMap(controllerAlgorithm.getSolution().getModulePlacementMap()));
 			createRoutingTables(controllerAlgorithm.getAlgorithm(), controllerAlgorithm.getSolution().getTupleRoutingMap());
@@ -231,9 +228,8 @@ public class Controller extends SimEntity {
 		}else if(!handovers.isEmpty() && Config.DYNAMIC_SIMULATION){
 			int[][] previousModulePlacement = controllerAlgorithm.getSolution().getModulePlacementMap();
 			
-			if(!Config.ALLOW_MIGRATION) {
-				controllerAlgorithm.getAlgorithm().setPossibleDeployment(AlgorithmMathUtils.toDouble(currentPlacement/*controllerAlgorithm.getSolution().getModulePlacementMap()*/));
-			}
+			if(!Config.ALLOW_MIGRATION)
+				controllerAlgorithm.getAlgorithm().setPossibleDeployment(controllerAlgorithm.getAlgorithm().getCurrentPlacement());
 			
 			controllerAlgorithm.recomputeAlgorithm();
 			
@@ -271,20 +267,14 @@ public class Controller extends SimEntity {
 		int fogIndex = controllerAlgorithm.getAlgorithm().getNodeIndexByNodeId(fogId);
 		int vmIndex = controllerAlgorithm.getAlgorithm().getModuleIndexByModuleName(vm.getName());
 		
-		for(int i  = 0; i < controllerAlgorithm.getAlgorithm().getNumberOfNodes(); i++) {
-			if(i != fogIndex) {
-				currentPlacement[i][vmIndex] = 0;
-			}else {
-				currentPlacement[i][vmIndex] = 1;
-			}
-		}
+		controllerAlgorithm.getAlgorithm().setCurrentPlacement(vmIndex, fogIndex);
 	}
 
 	private void createConnection(FogDevice mobile, FogDevice from, FogDevice to) {
 		if(Config.PRINT_DETAILS)
 			FogComputingSim.print("Creating connection between: " + mobile.getName() + " <-> " + to.getName());
 		
-		double latency = Latency.computeConnectionLatency(mobile, to);
+		double latency = Latency.computeConnectionLatency(mobile, to);		
 		mobile.getLatencyMap().put(to.getId(), latency);
 		to.getLatencyMap().put(mobile.getId(), latency);
 		

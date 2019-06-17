@@ -66,7 +66,7 @@ public class ControllerAlgorithm {
 		}
 		
 		System.out.println("Running the optimization algorithm: " + algorithmName + ".");
-		solution = algorithm.execute(null);
+		solution = algorithm.execute();
 		
 		if(Config.PLOT_RESULTS)
 			OutputControllerResults.plotResult(algorithm, algorithmName);
@@ -77,7 +77,7 @@ public class ControllerAlgorithm {
 	}
 	
 	public void recomputeAlgorithm() {
-		solution = algorithm.execute(solution.getModulePlacementMap());
+		solution = algorithm.execute();
 		
 		if(solution == null || solution.getModulePlacementMap() == null || solution.getTupleRoutingMap() == null || !solution.isValid()) {
 			FogComputingSim.err("There is no possible combination to deploy all applications");
