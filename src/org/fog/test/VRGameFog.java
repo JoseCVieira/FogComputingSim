@@ -17,8 +17,8 @@ import org.fog.utils.distribution.DeterministicDistribution;
 import org.fog.utils.distribution.Distribution;
 
 public class VRGameFog extends FogTest {
-	private static final int numOfDepts = 2;
-	private static final int numOfMobilesPerDept = 3;
+	private static final int numOfDepts = 1;
+	private static final int numOfMobilesPerDept = 1;
 	private static final double EEG_TRANSMISSION_TIME = 5.1;
 	
 	public VRGameFog() {
@@ -34,7 +34,7 @@ public class VRGameFog extends FogTest {
 		
 		movement = new Movement(0.0, Movement.EAST, new Location(0, 250));
 		coverage = new Coverage(1500);
-		FogDevice proxy = createFogDevice("proxy-server", 2800, 4000, 1000000, 10000, 107.339, 83.4333, 0.0, 0.05, 0.001, 0.0, movement, coverage, false);
+		FogDevice proxy = createFogDevice("proxy-server", 2800, 4000, 1000000, 10000, 107.339, 83.4333, 0.0, 1E-5, 1E-5, 0.0, movement, coverage, false);
 		
 		fogDevices.add(cloud);
 		fogDevices.add(proxy);

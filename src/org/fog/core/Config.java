@@ -21,12 +21,12 @@ public class Config {
 	 * 		 same importance).
 	 */
 	public static final int[] priorities = new int[] {
-			2,	// Operational cost
+			1,	// Operational cost
 			1,	// Power cost
-			3,	// Processing cost
-			6,	// Latency cost
-			5,	// Bandwidth cost
-			4	// Migration cost
+			1,	// Processing cost
+			2,	// Latency cost
+			1,	// Bandwidth cost
+			1	// Migration cost
 	};
 	
 	public static final double CONVERGENCE_ERROR = 0.01;
@@ -73,8 +73,8 @@ public class Config {
 	public static final double PROB_MAX_VELOCITY = 0.1667;
 	public static final double PROB_MED_VELOCITY = 0.6667;
 	public static final double PROB_MIN_VELOCITY = 0.1667;
-	public static final double MAX_VELOCITY = 5;
-	public static final double MED_VELOCITY = 2;
+	public static final double MAX_VELOCITY = 100;
+	public static final double MED_VELOCITY = 50;
 	public static final double MIN_VELOCITY = 1;
 	
 }

@@ -394,7 +394,7 @@ public class FogDevice extends PowerDatacenter {
 		// tables were updated. Thus, once there still can exist some old tuples, they will be lost because we already don't
 		// know where to forward it.		
 		if((!tupleRoutingTable.containsKey(communication) && !deployedModules.contains(tuple.getDestModuleName())) || moduleInMigration(tuple.getDestModuleName())) {
-			FogComputingSim.print(getName() + " rejected tuple with destiny: " + tuple.getDestModuleName());
+			FogComputingSim.print("[" + getName() + "] Is rejected tuple with destiny: " + tuple.getDestModuleName());
 			
 			Analysis.incrementPacketDrop();
 			return;
@@ -419,7 +419,7 @@ public class FogDevice extends PowerDatacenter {
 					vmId = vm.getId();
 					
 					if(Config.PRINT_DETAILS)
-						FogComputingSim.print("Executing: " + ((AppModule)vm).getName() + " on: " + getName());
+						FogComputingSim.print("[" + getName() + "] Is executing tuple on module: " + ((AppModule)vm).getName());
 				}
 			}
 				
