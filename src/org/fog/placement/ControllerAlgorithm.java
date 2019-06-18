@@ -17,6 +17,13 @@ import org.fog.placement.algorithm.overall.lp.MultiObjectiveLinearProgramming;
 import org.fog.placement.algorithm.overall.random.RandomAlgorithm;
 
 public class ControllerAlgorithm {
+	public static final int MOLP = 1;
+	public static final int LP = 2;
+	public static final int GA = 3;
+	public static final int RAND = 4;
+	public static final int BF = 5;
+	public static final int NR_ALGORITHMS = 5;
+	
 	private Algorithm algorithm;
 	private Job solution;
 	
@@ -40,25 +47,25 @@ public class ControllerAlgorithm {
 		Config.SINGLE_OBJECTIVE = true;
 		
 		switch (algorithmOp) {
-			case FogComputingSim.MOLP:
+			case MOLP:
 				Config.SINGLE_OBJECTIVE = false;
 				algorithmName = "Multiobjective Linear Programming";
 				algorithm = new MultiObjectiveLinearProgramming(fogDevices, appList, sensors, actuators);
 				break;
-			case FogComputingSim.LP:
+			case LP:
 				algorithmName = "Linear Programming";
 				algorithm = new LinearProgramming(fogDevices, appList, sensors, actuators);
 				break;
-			case FogComputingSim.GA:
+			case GA:
 				algorithmName = "Genetic Algorithm";
 				algorithm = new GeneticAlgorithm(fogDevices, appList, sensors, actuators);
 				break;
-			case FogComputingSim.RAND:
+			case RAND:
 				algorithmName = "Random Algorithm";
 				algorithm = new RandomAlgorithm(fogDevices, appList, sensors, actuators);
 				break;
-			case FogComputingSim.BF:
-				algorithmName = " Brute Force Algorithm";
+			case BF:
+				algorithmName = "Brute Force Algorithm";
 				algorithm = new BruteForce(fogDevices, appList, sensors, actuators);
 				break;
 			default:

@@ -21,6 +21,7 @@ import org.fog.gui.core.Bridge;
 import org.fog.gui.core.Graph;
 import org.fog.gui.core.RunGUI;
 import org.fog.placement.Controller;
+import org.fog.placement.ControllerAlgorithm;
 import org.fog.test.DCNSFog;
 import org.fog.test.RandomTopology;
 import org.fog.test.TEMPFog;
@@ -30,12 +31,6 @@ import org.fog.utils.TimeKeeper;
 import org.fog.utils.Util;
 
 public class FogComputingSim {
-	public static final int MOLP = 1;
-	public static final int LP = 2;
-	public static final int GA = 3;
-	public static final int RAND = 4;
-	public static final int BF = 5;
-
 	private static final int EXIT = 0;
 	private static final int GUI = 1;
 	private static final int RANDOM = 2;
@@ -120,7 +115,7 @@ public class FogComputingSim {
 					break;
 		    	}
 		    	
-		    	if(option < 0 || option > BF) {
+		    	if(option < 0 || option > ControllerAlgorithm.NR_ALGORITHMS) {
 		    		option = -1;
 		    	}
 		    	
@@ -231,8 +226,6 @@ public class FogComputingSim {
 			return null;
 		}
 		
-		
-		
 		System.out.println("————————————————————————————————————————————————————————");
 		System.out.println("|          FOG COMPUTING SIMULATOR MENU - FILE         |");
 		System.out.println("|                                                      |");
@@ -250,11 +243,8 @@ public class FogComputingSim {
 	    System.out.println("|                                                      |");
 	    System.out.println("————————————————————————————————————————————————————————");
 	    System.out.print("\n File: ");
-	    
-
 		
 		int fileIndex = -1;
-	    
 		while(fileIndex == -1) {
 		    try {
 		    	fileIndex = new Scanner(System.in).nextInt();

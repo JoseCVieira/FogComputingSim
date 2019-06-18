@@ -3,7 +3,7 @@ package org.fog.core;
 public class Config {
 	// --------------------------------------- Configuration parameters for the optimization problem ---------------------------------------
 	
-	// Type
+	// Type (Do not change this variable)
 	public static boolean SINGLE_OBJECTIVE = true;
 	
 	// weights for single objective
@@ -64,17 +64,17 @@ public class Config {
 	public final static double FIXED_COMMUNICATION_LATENCY = 204E-3; 	// Latency/m
 	public final static double MIN_LATENCY = 150E-4;
 	public static final int MAX_SIMULATION_TIME = 10000;
+	public static final int RECONFIG_PERIOD = 1;
 	
-	// For test purposes
+	// For test purposes -------------------------------------------------------------------
 	public static final int SQUARE_SIDE = 1000;
-	
 	public static final double PROB_CHANGE_DIRECTION = 0.25;
 	public static final double PROB_CHANGE_VELOCITY = 0.35;
 	public static final double PROB_MAX_VELOCITY = 0.1667;
 	public static final double PROB_MED_VELOCITY = 0.6667;
 	public static final double PROB_MIN_VELOCITY = 0.1667;
-	public static final double MAX_VELOCITY = 100;
-	public static final double MED_VELOCITY = 50;
+	public static final double MAX_VELOCITY = 10;
+	public static final double MED_VELOCITY = 5;
 	public static final double MIN_VELOCITY = 1;
 	
 }

@@ -107,7 +107,7 @@ public class Controller extends SimEntity {
 		
 	}
 	
-	public void submitApplication(Application application, int delay, ModulePlacement modulePlacement) {
+	private void submitApplication(Application application, int delay, ModulePlacement modulePlacement) {
 		getApplications().put(application.getAppId(), application);
 		appLaunchDelays.put(application.getAppId(), delay);
 		appModulePlacementPolicy.put(application.getAppId(), modulePlacement);
@@ -119,7 +119,7 @@ public class Controller extends SimEntity {
 			ac.setApp(getApplications().get(ac.getAppId()));
 	}
 	
-	public void submitApplication(Application application, ModulePlacement modulePlacement) {
+	private void submitApplication(Application application, ModulePlacement modulePlacement) {
 		submitApplication(application, 0, modulePlacement);
 	}
 	
@@ -223,7 +223,7 @@ public class Controller extends SimEntity {
 			controllerAlgorithm.computeAlgorithm();
 			
 			deployApplications(controllerAlgorithm.getAlgorithm().extractPlacementMap(controllerAlgorithm.getSolution().getModulePlacementMap()));
-			createRoutingTables(controllerAlgorithm.getAlgorithm(), controllerAlgorithm.getSolution().getTupleRoutingMap());
+			createTupleRoutingTables(controllerAlgorithm.getAlgorithm(), controllerAlgorithm.getSolution().getTupleRoutingMap());
 			
 		}else if(!handovers.isEmpty() && Config.DYNAMIC_SIMULATION){
 			int[][] previousModulePlacement = controllerAlgorithm.getSolution().getModulePlacementMap();
@@ -233,7 +233,7 @@ public class Controller extends SimEntity {
 			
 			controllerAlgorithm.recomputeAlgorithm();
 			
-			createRoutingTables(controllerAlgorithm.getAlgorithm(), controllerAlgorithm.getSolution().getTupleRoutingMap());
+			createTupleRoutingTables(controllerAlgorithm.getAlgorithm(), controllerAlgorithm.getSolution().getTupleRoutingMap());
 			createMigrationTables(controllerAlgorithm.getAlgorithm(), controllerAlgorithm.getSolution().getMigrationRoutingMap());
 		
 			// Update connections
@@ -250,7 +250,7 @@ public class Controller extends SimEntity {
 			migrateModules(controllerAlgorithm.getSolution().getModulePlacementMap(), previousModulePlacement);
 		}
 		
-		send(getId(), 1, FogEvents.UPDATE_TOPOLOGY);
+		send(getId(), Config.RECONFIG_PERIOD, FogEvents.UPDATE_TOPOLOGY);
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -361,7 +361,7 @@ public class Controller extends SimEntity {
 		}
 	}
 	
-	private void createRoutingTables(Algorithm algorithm, int[][] routingMatrix) {
+	private void createTupleRoutingTables(Algorithm algorithm, int[][] routingMatrix) {
 		// Clear the current routing tables
 		for(FogDevice fogDevice : fogDevices)
 			fogDevice.getTupleRoutingTable().clear();
