@@ -1,6 +1,6 @@
 package org.fog.core;
 
-public class Config {	
+public class Config {
 	// --------------------------------------- Configuration parameters for the optimization problem ---------------------------------------
 	
 	// Type

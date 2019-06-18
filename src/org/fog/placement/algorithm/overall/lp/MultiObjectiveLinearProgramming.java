@@ -46,7 +46,7 @@ public class MultiObjectiveLinearProgramming extends Algorithm {
 			
 			// Variables
 			IloNumVar[][] placementVar = new IloNumVar[NR_NODES][NR_MODULES];
-			IloNumVar[][][] routingVar = new IloNumVar[getNumberOfDependencies()][NR_NODES][NR_NODES];
+			IloNumVar[][][] tupleRoutingVar = new IloNumVar[getNumberOfDependencies()][NR_NODES][NR_NODES];
 			IloNumVar[][][] migrationRoutingVar = new IloNumVar[NR_MODULES][NR_NODES][NR_NODES];
 			
 			for(int i = 0; i < NR_NODES; i++) {
@@ -58,7 +58,7 @@ public class MultiObjectiveLinearProgramming extends Algorithm {
 			for(int i = 0; i < getNumberOfDependencies(); i++) {
 				for(int j = 0; j < NR_NODES; j++) {
 					for(int z = 0; z < NR_NODES; z++) {
-						routingVar[i][j][z] = cplex.intVar(0, 1);
+						tupleRoutingVar[i][j][z] = cplex.intVar(0, 1);
 					}
 				}
 			}
@@ -101,9 +101,9 @@ public class MultiObjectiveLinearProgramming extends Algorithm {
 						double bw = bwNeeded/(getfBandwidthMap()[j][z] + Constants.EPSILON);
 						double op = getfBwPrice()[j]*bwNeeded;
 						
-						ltObjective = cplex.sum(ltObjective, cplex.prod(routingVar[i][j][z], lt));	// Latency cost
-						bwObjective = cplex.sum(bwObjective, cplex.prod(routingVar[i][j][z], bw));	// Bandwidth cost
-						opObjective = cplex.sum(opObjective, cplex.prod(routingVar[i][j][z], op));	// Operational cost
+					ltObjective = cplex.sum(ltObjective, cplex.prod(tupleRoutingVar[i][j][z], lt));		// Latency cost
+						bwObjective = cplex.sum(bwObjective, cplex.prod(tupleRoutingVar[i][j][z], bw));	// Bandwidth cost
+						opObjective = cplex.sum(opObjective, cplex.prod(tupleRoutingVar[i][j][z], op));	// Operational cost
 					}
 				}
 			}
@@ -120,7 +120,7 @@ public class MultiObjectiveLinearProgramming extends Algorithm {
 			}
 			
 			//cplex.addMinimize(objective);
-			constraints(cplex, placementVar, routingVar, migrationRoutingVar);
+			constraints(cplex, placementVar, tupleRoutingVar, migrationRoutingVar);
 			
 			IloObjective opCost = cplex.minimize(opObjective);
 			IloObjective pwCost = cplex.minimize(pwObjective);
@@ -141,11 +141,10 @@ public class MultiObjectiveLinearProgramming extends Algorithm {
 			cplex.add(cplex.minimize(cplex.staticLex(objArray, null, Config.priorities, null, null, null)));
 			
 			// Display option
-			/*if(Config.PRINT_DETAILS)
+			if(Config.PRINT_DETAILS)
 				cplex.setParam(IloCplex.Param.Simplex.Display, 0);
 			else
-				cplex.setOut(null);*/
-			cplex.setParam(IloCplex.Param.Simplex.Display, 0);
+				cplex.setOut(null);
 
 			long start = System.currentTimeMillis();
 			
@@ -167,7 +166,7 @@ public class MultiObjectiveLinearProgramming extends Algorithm {
 				for(int i = 0; i < getNumberOfDependencies(); i++) {
 					for(int j = 0; j < NR_NODES; j++) {
 						for(int z = 0; z < NR_NODES; z++) {
-							routingMap[i][j][z] = (int) Math.round(cplex.getValue(routingVar[i][j][z]));
+							routingMap[i][j][z] = (int) Math.round(cplex.getValue(tupleRoutingVar[i][j][z]));
 						}
 					}
 				}

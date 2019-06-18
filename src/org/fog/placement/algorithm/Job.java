@@ -42,7 +42,7 @@ public class Job implements Comparable<Job> {
 	}
 	
 	public Job(Algorithm algorithm, int[][] modulePlacementMap, int[][][] tupleRoutingVectorMap,
-			int[][][] migrationRoutingVectorMap, double[][] oldPlacement) {
+			int[][][] migrationRoutingVectorMap, double[][] currentPlacement) {
 		int nrDependencies = tupleRoutingVectorMap.length;
 		int nrNodes = algorithm.getNumberOfNodes();
 		int nrModules = algorithm.getNumberOfModules();
@@ -96,7 +96,7 @@ public class Job implements Comparable<Job> {
 				iter = 1;
 				
 				for(int j = 0; j < nrNodes; j++) {
-					if(oldPlacement[j][i] == 1) {
+					if(currentPlacement[j][i] == 1) {
 						migrationRoutingMap[i][0] = j;
 					}
 				}
