@@ -16,9 +16,7 @@ import org.fog.placement.algorithm.overall.util.AlgorithmUtils;
 import ilog.concert.*;
 import ilog.cplex.*;
 
-public class LinearProgramming extends Algorithm {
-	private static final boolean NORMALIZE = false;
-	
+public class LinearProgramming extends Algorithm {	
 	List<Integer> initialModules = new ArrayList<Integer>();
 	List<Integer> finalModules = new ArrayList<Integer>();
 	
@@ -38,32 +36,6 @@ public class LinearProgramming extends Algorithm {
 			}
 		}
 		
-		double opBest = 1, pwBest = 1, prBest = 1, ltBest = 1, bwBest = 1;
-		if(NORMALIZE) {
-			opBest = computeOpBest();
-			pwBest = computePwBest();
-			prBest = computePrBest();
-			ltBest = computeLtBest();
-			bwBest = computeBwBest();
-			
-			if(opBest < 0 || pwBest < 0 || prBest < 0 || ltBest < 0 || bwBest < 0) {
-				System.out.println("Model not solved");
-				return null;
-			}
-			
-			opBest = opBest == 0 ? 1 : opBest;
-			pwBest = pwBest == 0 ? 1 : pwBest;
-			prBest = prBest == 0 ? 1 : prBest;
-			ltBest = ltBest == 0 ? 1 : ltBest;
-			bwBest = bwBest == 0 ? 1 : bwBest;
-			
-			System.out.println("\nopBest: " + opBest);
-			System.out.println("pwBest: " + pwBest);
-			System.out.println("prBest: " + prBest);
-			System.out.println("ltBest: " + ltBest);
-			System.out.println("bwBest: " + bwBest+"\n");
-		}
-		
 		try {
 			// Define new model
 			IloCplex cplex = new IloCplex();
@@ -72,16 +44,30 @@ public class LinearProgramming extends Algorithm {
 			
 			// Variables
 			IloNumVar[][] placementVar = new IloNumVar[NR_NODES][NR_MODULES];
-			IloNumVar[][][] routingVar = new IloNumVar[getNumberOfDependencies()][NR_NODES][NR_NODES];
+			IloNumVar[][][] tupleRoutingVar = new IloNumVar[getNumberOfDependencies()][NR_NODES][NR_NODES];
+			IloNumVar[][][] migrationRoutingVar = new IloNumVar[NR_MODULES][NR_NODES][NR_NODES];
 			
-			for(int i = 0; i < NR_NODES; i++)
-				for(int j = 0; j < NR_MODULES; j++)
+			for(int i = 0; i < NR_NODES; i++) {
+				for(int j = 0; j < NR_MODULES; j++) {
 					placementVar[i][j] = cplex.intVar(0, 1);
+				}
+			}
 			
-			for(int i = 0; i < getNumberOfDependencies(); i++)
-				for(int j = 0; j < NR_NODES; j++)
-					for(int z = 0; z < NR_NODES; z++)
-						routingVar[i][j][z] = cplex.intVar(0, 1);
+			for(int i = 0; i < getNumberOfDependencies(); i++) {
+				for(int j = 0; j < NR_NODES; j++) {
+					for(int z = 0; z < NR_NODES; z++) {
+						tupleRoutingVar[i][j][z] = cplex.intVar(0, 1);
+					}
+				}
+			}
+			
+			for(int i = 0; i < NR_MODULES; i++) {
+				for(int j = 0; j < NR_NODES; j++) {
+					for(int z = 0; z < NR_NODES; z++) {
+						migrationRoutingVar[i][j][z] = cplex.intVar(0, 1);
+					}
+				}
+			}
 			
 			// Define objective
 			IloLinearNumExpr objective = cplex.linearNumExpr();
@@ -93,9 +79,9 @@ public class LinearProgramming extends Algorithm {
 					double pwCost = Config.PW_W*(getfBusyPw()[i]-getfIdlePw()[i])*(getmMips()[j]/getfMips()[i]);
 					double prCost = Config.PR_W*(getmMips()[j]/getfMips()[i]);
 					
-					objective.addTerm(placementVar[i][j], opCost/opBest);				// Operational cost
-					objective.addTerm(placementVar[i][j], pwCost/pwBest);				// Power cost
-					objective.addTerm(placementVar[i][j], prCost/prBest);				// Processing cost
+					objective.addTerm(placementVar[i][j], opCost);	// Operational cost
+					objective.addTerm(placementVar[i][j], pwCost);	// Power cost
+					objective.addTerm(placementVar[i][j], prCost);	// Processing cost
 				}
 			}
 			
@@ -110,15 +96,26 @@ public class LinearProgramming extends Algorithm {
 						double txOpCost = Config.OP_W*(getfBwPrice()[j]*bwNeeded);
 						
 						// Transmission cost + transmission operational cost + transition cost
-						objective.addTerm(routingVar[i][j][z], latencyCost/ltBest);		// Latency cost
-						objective.addTerm(routingVar[i][j][z], bandwidthCost/bwBest);	// Bandwidth cost
-						objective.addTerm(routingVar[i][j][z], txOpCost/opBest);		// Operational cost
+						objective.addTerm(tupleRoutingVar[i][j][z], latencyCost);	// Latency cost
+						objective.addTerm(tupleRoutingVar[i][j][z], bandwidthCost);	// Bandwidth cost
+						objective.addTerm(tupleRoutingVar[i][j][z], txOpCost);		// Operational cost
+					}
+				}
+			}
+			
+			for(int i = 0; i < NR_MODULES; i++) {
+				double size = getmMem()[i] + getmRam()[i];
+				
+				for(int j = 0; j < NR_NODES; j++) {
+					for(int z = 0; z < NR_NODES; z++) {
+						double mg = getfLatencyMap()[j][z] + size/(getfBandwidthMap()[j][z] + Constants.EPSILON);
+						objective.addTerm(migrationRoutingVar[i][j][z], mg);
 					}
 				}
 			}
 			
 			cplex.addMinimize(objective);
-			constraints(cplex, placementVar, routingVar);
+			constraints(cplex, placementVar, tupleRoutingVar, migrationRoutingVar);
 			
 			// Display option
 			if(Config.PRINT_DETAILS)
@@ -130,48 +127,47 @@ public class LinearProgramming extends Algorithm {
 			
 			// Solve
 			if (cplex.solve()) {
+				
+				
 				long finish = System.currentTimeMillis();
 				elapsedTime = finish - start;
 				
 				int[][] modulePlacementMap = new int[NR_NODES][NR_MODULES];
-				int[][][] routingMap = new int[getNumberOfDependencies()][NR_NODES][NR_NODES];
+				int[][][] tupleRoutingMap = new int[getNumberOfDependencies()][NR_NODES][NR_NODES];
+				int[][][] migrationRoutingMap = new int[NR_MODULES][NR_NODES][NR_NODES];
 				
 				for(int i = 0; i < NR_NODES; i++) {
 					for(int j = 0; j < NR_MODULES; j++) {
-						if(cplex.getValue(placementVar[i][j]) == 0)
-							modulePlacementMap[i][j] = 0;
-						else
-							modulePlacementMap[i][j] = 1;
+						modulePlacementMap[i][j] = (int) Math.round(cplex.getValue(placementVar[i][j]));
 					}
 				}
 				
-				for(int i = 0; i < getNumberOfDependencies(); i++)
-					for(int j = 0; j < NR_NODES; j++)
-						for(int z = 0; z < NR_NODES; z++)
-							routingMap[i][j][z] = (int) cplex.getValue(routingVar[i][j][z]);
+				for(int i = 0; i < getNumberOfDependencies(); i++) {
+					for(int j = 0; j < NR_NODES; j++) {
+						for(int z = 0; z < NR_NODES; z++) {
+							tupleRoutingMap[i][j][z] = (int) Math.round(cplex.getValue(tupleRoutingVar[i][j][z]));
+						}
+					}
+				}
 				
+				for(int i = 0; i < NR_MODULES; i++) {
+					for(int j = 0; j < NR_NODES; j++) {
+						for(int z = 0; z < NR_NODES; z++) {
+							migrationRoutingMap[i][j][z] = (int) Math.round(cplex.getValue(migrationRoutingVar[i][j][z]));
+						}
+					}
+				}				
 				
-				Job solution = new Job(this, modulePlacementMap, routingMap);
-				
+				Job solution = new Job(this, modulePlacementMap, tupleRoutingMap, migrationRoutingMap, currentPlacement);
 				
 				valueIterMap.put(0, solution.getCost());
-			    
-			    if(Config.PRINT_DETAILS) {
+				
+				if(Config.PRINT_DETAILS) {
 			    	System.out.println("\n\nLP RESULTS:\n");
-					System.out.println("opBest: " + opBest);
-					System.out.println("pwBest: " + pwBest);
-					System.out.println("prBest: " + prBest);
-					System.out.println("ltBest: " + ltBest);
-					System.out.println("bwBest: " + bwBest);
 					
-					double totalOp = 0;
-					double totalPw = 0;
-					double totalPr = 0;
-					double totalLt = 0;
-					double totalBw = 0;
+					double totalOp = 0, totalPw = 0, totalPr = 0, totalLt = 0, totalBw = 0;
 					for(int i = 0; i < NR_NODES; i++) {
 						for(int j = 0; j < NR_MODULES; j++) {
-							
 							totalOp += Config.OP_W*(getfMipsPrice()[i]*getmMips()[j] + getfRamPrice()[i]*getmRam()[j] + getfMemPrice()[i]*getmMem()[j])*cplex.getValue(placementVar[i][j]);
 							totalPw += Config.PW_W*(getfBusyPw()[i]-getfIdlePw()[i])*(getmMips()[j]/getfMips()[i])*cplex.getValue(placementVar[i][j]);
 							totalPr += Config.PR_W*(getmMips()[j]/getfMips()[i])*cplex.getValue(placementVar[i][j]);
@@ -184,9 +180,9 @@ public class LinearProgramming extends Algorithm {
 						
 						for(int j = 0; j < NR_NODES; j++) {
 							for(int z = 0; z < NR_NODES; z++) {
-								totalLt += Config.LT_W*(getfLatencyMap()[j][z]*dependencies)*cplex.getValue(routingVar[i][j][z]);
-								totalBw +=  Config.BW_W*(bwNeeded/(getfBandwidthMap()[j][z] + Constants.EPSILON))*cplex.getValue(routingVar[i][j][z]);
-								totalOp += Config.OP_W*(getfBwPrice()[j]*bwNeeded)*cplex.getValue(routingVar[i][j][z]);
+								totalLt += Config.LT_W*(getfLatencyMap()[j][z]*dependencies)*cplex.getValue(tupleRoutingVar[i][j][z]);
+								totalBw +=  Config.BW_W*(bwNeeded/(getfBandwidthMap()[j][z] + Constants.EPSILON))*cplex.getValue(tupleRoutingVar[i][j][z]);
+								totalOp += Config.OP_W*(getfBwPrice()[j]*bwNeeded)*cplex.getValue(tupleRoutingVar[i][j][z]);
 							}
 						}
 					}
@@ -202,7 +198,6 @@ public class LinearProgramming extends Algorithm {
 			    	System.out.println("LP result = " + solution.getCost() + "\n\n");
 			    	AlgorithmUtils.printResults(this, solution);
 			    }
-				
 				cplex.end();
 				return solution;
 			}
@@ -217,9 +212,8 @@ public class LinearProgramming extends Algorithm {
 		}
 	}
 	
-	private void constraints(IloCplex cplex, IloNumVar[][] placementVar, IloNumVar[][][] routingVar) {
+	private void constraints(IloCplex cplex, IloNumVar[][] placementVar, IloNumVar[][][] routingVar, IloNumVar[][][] migrationRoutingVar) {
 		try {
-			
 			if(placementVar != null) {
 				// Define constraints
 				IloLinearNumExpr[] usedMipsCapacity = new IloLinearNumExpr[NR_NODES];
@@ -291,208 +285,27 @@ public class LinearProgramming extends Algorithm {
 					}
 				}
 			}
+			
+			// If its the first time, its not necessary to compute migration routing tables
+			if(!isFirstOptimization()) {
+				IloNumVar[][][] transposeMigrationR = new IloNumVar[getNumberOfModules()][NR_NODES][NR_NODES];
+				for(int i = 0; i < NR_MODULES; i++) {
+					for(int j = 0; j < NR_NODES; j++) {
+						for(int z = 0; z < NR_NODES; z++) {
+							transposeMigrationR[i][z][j] = migrationRoutingVar[i][j][z];
+						}
+					}
+				}
+				
+				for(int i = 0; i < NR_MODULES; i++) {
+					for(int j = 0; j < NR_NODES; j++) {
+						cplex.addEq(cplex.diff(cplex.sum(migrationRoutingVar[i][j]), cplex.sum(transposeMigrationR[i][j])), 
+								cplex.diff(currentPlacement[j][i], placementVar[j][i]));
+					}
+				}
+			}
 		} catch (IloException e) {
 			e.printStackTrace();
-		}
-	}
-	
-	
-	private double computeOpBest() {
-		try {
-			IloCplex cplex = new IloCplex();
-			IloLinearNumExpr objective = cplex.linearNumExpr();
-			IloNumVar[][] placementVar = new IloNumVar[NR_NODES][NR_MODULES];
-			IloNumVar[][][] routingVar = new IloNumVar[getNumberOfDependencies()][NR_NODES][NR_NODES];
-			
-			for(int i = 0; i < NR_NODES; i++)
-				for(int j = 0; j < NR_MODULES; j++)
-					placementVar[i][j] = cplex.intVar(0, 1);
-			
-			for(int i = 0; i < getNumberOfDependencies(); i++)
-				for(int j = 0; j < NR_NODES; j++)
-					for(int z = 0; z < NR_NODES; z++)
-						routingVar[i][j][z] = cplex.intVar(0, 1);
-			
-			
-			
-			for(int i = 0; i < NR_NODES; i++) {
-				for(int j = 0; j < NR_MODULES; j++) {
-					double opCost = Config.OP_W*(getfMipsPrice()[i]*getmMips()[j] +
-							getfRamPrice()[i]*getmRam()[j] + getfMemPrice()[i]*getmMem()[j]);
-					objective.addTerm(placementVar[i][j], opCost);
-				}
-			}
-			
-			for(int i = 0; i < getNumberOfDependencies(); i++) {
-				double bwNeeded = getmBandwidthMap()[initialModules.get(i)][finalModules.get(i)];
-				
-				for(int j = 0; j < NR_NODES; j++) {
-					for(int z = 0; z < NR_NODES; z++) {
-						double txOpCost = Config.OP_W*(getfBwPrice()[j]*bwNeeded);
-						objective.addTerm(routingVar[i][j][z], txOpCost);
-					}
-				}
-			}
-			
-			cplex.addMaximize(objective);
-			constraints(cplex, placementVar, routingVar);
-
-			if (cplex.solve()) {
-				double value = cplex.getObjValue();
-				cplex.end();
-				return value;
-			}
-			cplex.end();
-			return -1;
-		}
-		catch (IloException exc) {
-			exc.printStackTrace();
-			return -1;
-		}
-	}
-	
-	private double computePwBest() {
-		try {
-			IloCplex cplex = new IloCplex();
-			IloLinearNumExpr objective = cplex.linearNumExpr();
-			IloNumVar[][] placementVar = new IloNumVar[NR_NODES][NR_MODULES];
-			
-			for(int i = 0; i < NR_NODES; i++)
-				for(int j = 0; j < NR_MODULES; j++)
-					placementVar[i][j] = cplex.intVar(0, 1);
-			
-			for(int i = 0; i < NR_NODES; i++) {
-				for(int j = 0; j < NR_MODULES; j++) {
-					double pwCost = Config.PW_W*(getfBusyPw()[i]-getfIdlePw()[i])*(getmMips()[j]/getfMips()[i]);
-					objective.addTerm(placementVar[i][j], pwCost);
-				}
-			}
-			
-			cplex.addMaximize(objective);
-			constraints(cplex, placementVar, null);
-
-			if (cplex.solve()) {
-				double value = cplex.getObjValue();
-				cplex.end();
-				return value;
-			}
-			cplex.end();
-			return -1;
-		}
-		catch (IloException exc) {
-			exc.printStackTrace();
-			return -1;
-		}
-	}
-	
-	private double computePrBest() {
-		try {
-			IloCplex cplex = new IloCplex();
-			IloLinearNumExpr objective = cplex.linearNumExpr();
-			IloNumVar[][] placementVar = new IloNumVar[NR_NODES][NR_MODULES];
-			
-			for(int i = 0; i < NR_NODES; i++)
-				for(int j = 0; j < NR_MODULES; j++)
-					placementVar[i][j] = cplex.intVar(0, 1);
-			
-			for(int i = 0; i < NR_NODES; i++) {
-				for(int j = 0; j < NR_MODULES; j++) {
-					objective.addTerm(placementVar[i][j], Config.PR_W*(getmMips()[j]/getfMips()[i]));
-				}
-			}
-			
-			cplex.addMaximize(objective);
-			constraints(cplex, placementVar, null);
-
-			if (cplex.solve()) {
-				double value = cplex.getObjValue();
-				cplex.end();
-				return value;
-			}
-			cplex.end();
-			return -1;
-		}
-		catch (IloException exc) {
-			exc.printStackTrace();
-			return -1;
-		}
-	}
-	
-	private double computeLtBest() {
-		try {
-			IloCplex cplex = new IloCplex();
-			IloLinearNumExpr objective = cplex.linearNumExpr();
-			IloNumVar[][][] routingVar = new IloNumVar[getNumberOfDependencies()][NR_NODES][NR_NODES];
-			
-			for(int i = 0; i < getNumberOfDependencies(); i++)
-				for(int j = 0; j < NR_NODES; j++)
-					for(int z = 0; z < NR_NODES; z++)
-						routingVar[i][j][z] = cplex.intVar(0, 1);
-			
-			for(int i = 0; i < getNumberOfDependencies(); i++) {
-				double dependencies = getmDependencyMap()[initialModules.get(i)][finalModules.get(i)];
-				
-				for(int j = 0; j < NR_NODES; j++) {
-					for(int z = 0; z < NR_NODES; z++) {
-						double latencyCost = Config.LT_W*(getfLatencyMap()[j][z]*dependencies);
-						objective.addTerm(routingVar[i][j][z], latencyCost);
-					}
-				}
-			}
-			
-			cplex.addMaximize(objective);
-			constraints(cplex, null, routingVar);
-
-			if (cplex.solve()) {
-				double value = cplex.getObjValue();
-				cplex.end();
-				return value;
-			}
-			cplex.end();
-			return -1;
-		}
-		catch (IloException exc) {
-			exc.printStackTrace();
-			return -1;
-		}
-	}
-	
-	private double computeBwBest() {
-		try {
-			IloCplex cplex = new IloCplex();
-			IloLinearNumExpr objective = cplex.linearNumExpr();
-			IloNumVar[][][] routingVar = new IloNumVar[getNumberOfDependencies()][NR_NODES][NR_NODES];
-			
-			for(int i = 0; i < getNumberOfDependencies(); i++)
-				for(int j = 0; j < NR_NODES; j++)
-					for(int z = 0; z < NR_NODES; z++)
-						routingVar[i][j][z] = cplex.intVar(0, 1);
-			
-			for(int i = 0; i < getNumberOfDependencies(); i++) {
-				double bwNeeded = getmBandwidthMap()[initialModules.get(i)][finalModules.get(i)];
-				
-				for(int j = 0; j < NR_NODES; j++) {
-					for(int z = 0; z < NR_NODES; z++) {
-						double bandwidthCost =  Config.BW_W*(bwNeeded/(getfBandwidthMap()[j][z] + Constants.EPSILON));
-						objective.addTerm(routingVar[i][j][z], bandwidthCost);
-					}
-				}
-			}
-			
-			cplex.addMaximize(objective);
-			constraints(cplex, null, routingVar);
-
-			if (cplex.solve()) {
-				double value = cplex.getObjValue();
-				cplex.end();
-				return value;
-			}
-			cplex.end();
-			return -1;
-		}
-		catch (IloException exc) {
-			exc.printStackTrace();
-			return -1;
 		}
 	}
 	

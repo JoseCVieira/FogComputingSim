@@ -119,7 +119,6 @@ public class MultiObjectiveLinearProgramming extends Algorithm {
 				}
 			}
 			
-			//cplex.addMinimize(objective);
 			constraints(cplex, placementVar, tupleRoutingVar, migrationRoutingVar);
 			
 			IloObjective opCost = cplex.minimize(opObjective);
@@ -154,7 +153,7 @@ public class MultiObjectiveLinearProgramming extends Algorithm {
 				elapsedTime = finish - start;
 				
 				int[][] modulePlacementMap = new int[NR_NODES][NR_MODULES];
-				int[][][] routingMap = new int[getNumberOfDependencies()][NR_NODES][NR_NODES];
+				int[][][] tupleRoutingMap = new int[getNumberOfDependencies()][NR_NODES][NR_NODES];
 				int[][][] migrationRoutingMap = new int[NR_MODULES][NR_NODES][NR_NODES];
 				
 				for(int i = 0; i < NR_NODES; i++) {
@@ -166,7 +165,7 @@ public class MultiObjectiveLinearProgramming extends Algorithm {
 				for(int i = 0; i < getNumberOfDependencies(); i++) {
 					for(int j = 0; j < NR_NODES; j++) {
 						for(int z = 0; z < NR_NODES; z++) {
-							routingMap[i][j][z] = (int) Math.round(cplex.getValue(tupleRoutingVar[i][j][z]));
+							tupleRoutingMap[i][j][z] = (int) Math.round(cplex.getValue(tupleRoutingVar[i][j][z]));
 						}
 					}
 				}
@@ -179,7 +178,7 @@ public class MultiObjectiveLinearProgramming extends Algorithm {
 					}
 				}				
 				
-				Job solution = new Job(this, modulePlacementMap, routingMap, migrationRoutingMap, currentPlacement);
+				Job solution = new Job(this, modulePlacementMap, tupleRoutingMap, migrationRoutingMap, currentPlacement);
 				
 				valueIterMap.put(0, solution.getCost());
 			    
@@ -288,10 +287,8 @@ public class MultiObjectiveLinearProgramming extends Algorithm {
 								cplex.diff(currentPlacement[j][i], placementVar[j][i]));
 					}
 				}
-			}
-			
-			
-		} catch (IloException e) {
+			}			
+		}catch (IloException e) {
 			e.printStackTrace();
 		}
 	}

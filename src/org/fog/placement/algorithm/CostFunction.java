@@ -28,11 +28,26 @@ public class CostFunction {
 		if(cost == 0)
 			job.setValid(true);
 		
-		cost += calculateOperationalCost(algorithm, modulePlacementMap, routingMap, initialModules, finalModules);
-		cost += calculatePowerCost(algorithm, modulePlacementMap);
-		cost += calculateProcessingCost(algorithm, modulePlacementMap);
-		cost += calculateLatencyCost(algorithm, routingMap, initialModules, finalModules);
-		cost += calculateBandwidthCost(algorithm, routingMap, initialModules, finalModules);
+		double tmp = 0;
+		tmp = calculateOperationalCost(algorithm, modulePlacementMap, routingMap, initialModules, finalModules);
+		cost += tmp;
+		System.out.println("OP cost: " + tmp);
+		
+		tmp = calculatePowerCost(algorithm, modulePlacementMap);
+		cost += tmp;
+		System.out.println("PW cost: " + tmp);
+		
+		tmp = calculateProcessingCost(algorithm, modulePlacementMap);
+		cost += tmp;
+		System.out.println("PR cost: " + tmp);
+		
+		tmp = calculateLatencyCost(algorithm, routingMap, initialModules, finalModules);
+		cost += tmp;
+		System.out.println("LT cost: " + tmp);
+		
+		tmp = calculateBandwidthCost(algorithm, routingMap, initialModules, finalModules);
+		cost += tmp;
+		System.out.println("BW cost: " + tmp);
 		
 		job.setCost(cost);
 	}
