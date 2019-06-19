@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Random;
 
 import org.fog.core.Constants;
-import org.fog.placement.algorithm.overall.util.AlgorithmUtils;
 import org.fog.placement.algorithm.routing.DijkstraAlgorithm;
 import org.fog.placement.algorithm.routing.Edge;
 import org.fog.placement.algorithm.routing.Graph;
@@ -128,10 +127,14 @@ public class Job implements Comparable<Job> {
 		CostFunction.computeCost(this, algorithm);
 	}
 	
-	public static Job generateRandomJob(Algorithm algorithm, int nrFogNodes, int nrModules) {
+	public static Job generateRandomJob(Algorithm algorithm, double[][] currentPosition) {
+		int nrFogNodes = algorithm.getNumberOfNodes();
+		int nrModules = algorithm.getNumberOfModules();
+		
 		int[][] modulePlacementMap = generateRandomPlacement(algorithm, nrFogNodes, nrModules);
-		int[][] tupleRoutingMap = generateRandomRouting(algorithm, modulePlacementMap, nrFogNodes);
-		return new Job(algorithm, modulePlacementMap, tupleRoutingMap);
+		int[][] tupleRoutingMap = generateRandomTupleRouting(algorithm, modulePlacementMap, nrFogNodes);
+		int[][] migrationRoutingMap = generateRandomMigrationRouting(algorithm, modulePlacementMap, currentPosition, nrFogNodes, nrModules);
+		return new Job(algorithm, modulePlacementMap, tupleRoutingMap, migrationRoutingMap);
 	}
 	
 	public static int[][] generateRandomPlacement(Algorithm algorithm, int nrFogNodes, int nrModules) {
@@ -151,7 +154,7 @@ public class Job implements Comparable<Job> {
 		return modulePlacementMap;
 	}
 	
-	public static int[][] generateRandomRouting(Algorithm algorithm, int[][] modulePlacementMap, int nrFogNodes) {
+	public static int[][] generateRandomTupleRouting(Algorithm algorithm, int[][] modulePlacementMap, int nrFogNodes) {
 		List<Integer> initialNodes = new ArrayList<Integer>();
 		List<Integer> finalNodes = new ArrayList<Integer>();
 		List<Vertex> nodes = new ArrayList<Vertex>();
@@ -207,6 +210,73 @@ public class Job implements Comparable<Job> {
 				routingMap[i][j] = validValues.get(new Random().nextInt(validValues.size()));
 			}
 		}
+		
+		return routingMap;
+	}
+	
+	public static int[][] generateRandomMigrationRouting(Algorithm algorithm, int[][] modulePlacementMap, double[][] currentPosition,
+			int nrFogNodes, int nrModules) {
+		
+		int[][] routingMap = new int[nrModules][nrFogNodes];
+		if(algorithm.isFirstOptimization()) return routingMap;
+		
+		List<Integer> initialNodes = new ArrayList<Integer>();
+		List<Integer> finalNodes = new ArrayList<Integer>();
+		List<Vertex> nodes = new ArrayList<Vertex>();
+		List<Edge> edges = new ArrayList<Edge>();
+		
+		int[][] currentPositionInt = new int[nrFogNodes][nrModules];
+		for(int i = 0; i < nrFogNodes; i++) {
+			for (int j = 0; j < nrModules; j++) {
+				currentPositionInt[i][j] = (int) currentPosition[i][j];
+			}
+		}
+		
+		for(int i = 0; i < algorithm.getmDependencyMap().length; i++) {
+			initialNodes.add(findModulePlacement(currentPositionInt, i));
+			finalNodes.add(findModulePlacement(modulePlacementMap, i));
+		}
+		
+		for(int i  = 0; i < nrFogNodes; i++) {
+			nodes.add(new Vertex("Node=" + i));
+		}
+		
+		for(int i  = 0; i < nrFogNodes; i++) {
+			for(int j  = 0; j < nrFogNodes; j++) {
+				if(algorithm.getfLatencyMap()[i][j] < Constants.INF) {
+					 edges.add(new Edge(nodes.get(i), nodes.get(j), 1.0));
+				}
+			}
+        }
+		
+		for(int i  = 0; i < initialNodes.size(); i++) {
+			routingMap[i][0] = initialNodes.get(i);
+			routingMap[i][nrFogNodes - 1] = finalNodes.get(i);
+			
+			Graph graph = new Graph(nodes, edges);
+	        DijkstraAlgorithm dijkstra = new DijkstraAlgorithm(graph);
+	        
+			for(int j = 1; j < nrFogNodes - 1; j++) {
+				List<Integer> validValues = new ArrayList<Integer>();
+				
+				for(int z = 0; z < nrFogNodes; z++) {
+					if(algorithm.getfLatencyMap()[routingMap[i][j-1]][z] < Constants.INF) {
+						
+						dijkstra.execute(nodes.get(z));
+						LinkedList<Vertex> path = dijkstra.getPath(nodes.get(finalNodes.get(i)));
+						
+						
+						// If path is null, means that both start and finish refer to the same node, thus it can be added
+				        if((path != null && path.size() <= nrFogNodes - j) || path == null) {
+				        	validValues.add(z);
+				        }
+					}
+				}
+						
+				routingMap[i][j] = validValues.get(new Random().nextInt(validValues.size()));
+			}
+		}
+		
 		return routingMap;
 	}
 	

@@ -13,9 +13,9 @@ import org.fog.placement.algorithm.Job;
 import org.fog.placement.algorithm.overall.util.AlgorithmUtils;
 
 public class RandomAlgorithm extends Algorithm {
-	private Job bestSolution = null;
-	private double bestCost = Constants.REFERENCE_COST;
-	private int iteration = 0;
+	private Job bestSolution;
+	private double bestCost;
+	private int iteration;
 
 	public RandomAlgorithm(List<FogDevice> fogDevices, List<Application> applications,
 			List<Sensor> sensors, List<Actuator> actuators) throws IllegalArgumentException {
@@ -23,11 +23,14 @@ public class RandomAlgorithm extends Algorithm {
 	}
 
 	@Override
-	public Job execute() {		
-		long start = System.currentTimeMillis();
+	public Job execute() {
+		iteration = 0;
+		bestCost = Constants.REFERENCE_COST;
+		bestSolution = null;
 		
+		long start = System.currentTimeMillis();		
 		while (iteration <= Config.MAX_ITER_RANDOM) {
-			Job job = Job.generateRandomJob(this, getNumberOfNodes(), getNumberOfModules());
+			Job job = Job.generateRandomJob(this, currentPlacement);
 			
 			if(bestCost > job.getCost()) {
 				bestCost = job.getCost();
@@ -40,6 +43,11 @@ public class RandomAlgorithm extends Algorithm {
 			
 			iteration++;
 		}
+		
+		AlgorithmUtils.print("\nCurrent Placement", currentPlacement);
+		AlgorithmUtils.print("Module Placement", bestSolution.getModulePlacementMap());
+		AlgorithmUtils.print("Tuple Routing Map", bestSolution.getTupleRoutingMap());
+		AlgorithmUtils.print("VM Routing Map", bestSolution.getMigrationRoutingMap());
 		
 		long finish = System.currentTimeMillis();
 		elapsedTime = finish - start;

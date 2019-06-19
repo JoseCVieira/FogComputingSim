@@ -6,7 +6,9 @@ import java.util.List;
 import org.fog.core.Config;
 import org.fog.core.Constants;
 
-public class CostFunction {	
+public class CostFunction {
+	private static final boolean PRINT_DETAILS = false;
+	
 	public static void computeCost(Job job, Algorithm algorithm) {
 		List<Integer> initialModules = new ArrayList<Integer>();
 		List<Integer> finalModules = new ArrayList<Integer>();
@@ -31,23 +33,28 @@ public class CostFunction {
 		double tmp = 0;
 		tmp = calculateOperationalCost(algorithm, modulePlacementMap, routingMap, initialModules, finalModules);
 		cost += tmp;
-		System.out.println("OP cost: " + tmp);
+		if(PRINT_DETAILS)
+			System.out.println("OP cost: " + tmp);
 		
 		tmp = calculatePowerCost(algorithm, modulePlacementMap);
 		cost += tmp;
-		System.out.println("PW cost: " + tmp);
+		if(PRINT_DETAILS)
+			System.out.println("PW cost: " + tmp);
 		
 		tmp = calculateProcessingCost(algorithm, modulePlacementMap);
 		cost += tmp;
-		System.out.println("PR cost: " + tmp);
+		if(PRINT_DETAILS)
+			System.out.println("PR cost: " + tmp);
 		
 		tmp = calculateLatencyCost(algorithm, routingMap, initialModules, finalModules);
 		cost += tmp;
-		System.out.println("LT cost: " + tmp);
+		if(PRINT_DETAILS)
+			System.out.println("LT cost: " + tmp);
 		
 		tmp = calculateBandwidthCost(algorithm, routingMap, initialModules, finalModules);
 		cost += tmp;
-		System.out.println("BW cost: " + tmp);
+		if(PRINT_DETAILS)
+			System.out.println("BW cost: " + tmp);
 		
 		job.setCost(cost);
 	}
@@ -62,7 +69,8 @@ public class CostFunction {
 			for(int j = 0; j < algorithm.getNumberOfModules(); j++) {
 				if(modulePlacementMap[i][j] > algorithm.getPossibleDeployment()[i][j]) {
 					cost += Constants.REFERENCE_COST;
-					System.out.println("does not respects possible deployment");
+					if(PRINT_DETAILS)
+						System.out.println("does not respects possible deployment");
 				}
 			}
 		}		
@@ -76,7 +84,8 @@ public class CostFunction {
 			
 			if(sum != 1) {
 				cost += Constants.REFERENCE_COST;
-				System.out.println("module is not placed or placed in more than one fog node");
+				if(PRINT_DETAILS)
+					System.out.println("module is not placed or placed in more than one fog node");
 			}
 		}
 		
@@ -88,8 +97,8 @@ public class CostFunction {
 					if(routingMap[iter][0] != Job.findModulePlacement(modulePlacementMap, i) ||
 							routingMap[iter][algorithm.getNumberOfNodes() - 1] != Job.findModulePlacement(modulePlacementMap, j)) {
 						cost += Constants.REFERENCE_COST;
-						
-						System.out.println("dependencies are not accomplished");
+						if(PRINT_DETAILS)
+							System.out.println("dependencies are not accomplished");
 					}
 					iter++;
 				}
@@ -110,8 +119,8 @@ public class CostFunction {
 			
 			if(totalMips > algorithm.getfMips()[i] || totalRam > algorithm.getfRam()[i] || totalMem > algorithm.getfMem()[i]) {
 				cost += Constants.REFERENCE_COST;
-				
-				System.out.println("fog node's resources are exceeded");
+				if(PRINT_DETAILS)
+					System.out.println("fog node's resources are exceeded");
 			}
 		}
 		
@@ -131,7 +140,8 @@ public class CostFunction {
 			for(int j = 0; j < algorithm.getNumberOfNodes(); j++) {
 				if(bwUsage[i][j] > algorithm.getfBandwidthMap()[i][j]) {
 					cost += Constants.REFERENCE_COST;
-					System.out.println("bandwidth links usage are exceeded");
+					if(PRINT_DETAILS)
+						System.out.println("bandwidth links usage are exceeded");
 				}
 			}
 		}
@@ -141,7 +151,8 @@ public class CostFunction {
 				if(routingMap[i][j-1] != routingMap[i][j]) {					
 					if(algorithm.getfLatencyMap()[routingMap[i][j-1]][routingMap[i][j]] == Constants.INF) {
 						cost += Constants.REFERENCE_COST;
-						System.out.println("bandwidth links usage are exceeded");
+						if(PRINT_DETAILS)
+							System.out.println("bandwidth links usage are exceeded");
 					}
 				}
 			}

@@ -99,7 +99,7 @@ public class GeneticAlgorithm extends Algorithm {
 			Individual[] populationR = new Individual[Config.POPULATION_SIZE_GA];
 			
 			for (int j = 0; j < Config.POPULATION_SIZE_GA; j++) {
-				int[][] routingMap = Job.generateRandomRouting(this, modulePlacementMap, NR_NODES);
+				int[][] routingMap = Job.generateRandomTupleRouting(this, modulePlacementMap, NR_NODES);
 				populationR[j] = new Individual(this, new Job(this, modulePlacementMap, routingMap));
 			}
 			

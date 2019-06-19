@@ -225,7 +225,7 @@ public class Controller extends SimEntity {
 			deployApplications(controllerAlgorithm.getAlgorithm().extractPlacementMap(controllerAlgorithm.getSolution().getModulePlacementMap()));
 			createTupleRoutingTables(controllerAlgorithm.getAlgorithm(), controllerAlgorithm.getSolution().getTupleRoutingMap());
 			
-		}else if(!handovers.isEmpty() && Config.DYNAMIC_SIMULATION){
+		}else if(!handovers.isEmpty() && Config.DYNAMIC_SIMULATION) {
 			int[][] previousModulePlacement = controllerAlgorithm.getSolution().getModulePlacementMap();
 			
 			if(!Config.ALLOW_MIGRATION)

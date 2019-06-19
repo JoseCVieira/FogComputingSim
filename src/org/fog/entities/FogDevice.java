@@ -544,7 +544,7 @@ public class FogDevice extends PowerDatacenter {
 		updateEnergyConsumption();
 	}
 	
-	protected void sendTo(Tuple tuple, int id){
+	protected void sendTo(Tuple tuple, int id) {		
 		if(!getTupleLinkBusy().get(id))
 			sendFreeLink(tuple, id);
 		else
