@@ -33,8 +33,8 @@ public class Config {
 	
 	// Genetic algorithm
 	public static final int POPULATION_SIZE_GA = 30;
-	public static final int MAX_ITER_PLACEMENT_GA = 500;
-	public static final int MAX_ITER_ROUTING_GA = 10;
+	public static final int MAX_ITER_PLACEMENT_GA = 5000;
+	public static final int MAX_ITER_ROUTING_GA = 500;
 	public static final int MAX_ITER_PLACEMENT_CONVERGENCE_GA = 10;
 	public static final int MAX_ITER_ROUTING_CONVERGENCE_GA = 3;
 	

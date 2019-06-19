@@ -41,13 +41,7 @@ public class BruteForce extends Algorithm {
 	}
 	
 	private void solveDeployment(int[][] modulePlacementMap, int index) {
-		int[][] currentPositionInt = new int[NR_NODES][NR_MODULES];
-        
-		for(int j = 0; j < NR_NODES; j++) {
-			for (int z = 0; z < NR_MODULES; z++) {
-				currentPositionInt[j][z] = (int) currentPlacement[j][z];
-			}
-		}
+		int[][] currentPositionInt = getCurrentPositionInt();
 		
 		for(int i = 0; i < NR_NODES; i++) {
 			if(possibleDeployment[i][index] == 1) {
@@ -60,7 +54,7 @@ public class BruteForce extends Algorithm {
 				
 				if(index != NR_MODULES - 1)
 					solveDeployment(modulePlacementMap, index + 1);
-				else {					
+				else {
 					//Trying the following placement map
 			        List<Integer> initialNodes = new ArrayList<Integer>();
 			        List<Integer> finalNodes = new ArrayList<Integer>();

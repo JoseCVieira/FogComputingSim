@@ -57,6 +57,15 @@ public class CostFunction {
 		if(PRINT_DETAILS)
 			System.out.println("BW cost: " + tmp);
 		
+		//TODO
+		for(int i = 0; i < algorithm.getNumberOfModules(); i++) {
+			for(int j = 1; j < algorithm.getNumberOfNodes(); j++) {
+				if(migrationRoutingMap[i][j-1] != migrationRoutingMap[i][j]) {
+					cost += 1;
+				}
+			}
+		}
+		
 		job.setCost(cost);
 	}
 	
@@ -162,7 +171,7 @@ public class CostFunction {
 		//TODO : VM routing table analysis
 		for(int i = 0; i < algorithm.getNumberOfModules(); i++) {
 			for(int j = 1; j < algorithm.getNumberOfNodes(); j++) {
-				if(migrationRoutingMap[i][j-1] != migrationRoutingMap[i][j]) {					
+				if(migrationRoutingMap[i][j-1] != migrationRoutingMap[i][j]) {
 					if(algorithm.getfLatencyMap()[migrationRoutingMap[i][j-1]][migrationRoutingMap[i][j]] == Constants.INF) {
 						cost += Constants.REFERENCE_COST;
 						if(PRINT_DETAILS)

@@ -60,24 +60,41 @@ public class Individual implements Comparable<Individual> {
 	
 	public Individual mateRouting(Individual par) {
 		int[][] modulePlacementMap = getChromosome().getModulePlacementMap();
-		int[][] routingMap = chromosome.getRoutingMap();
-		int[][] parRoutingMap = par.getChromosome().getRoutingMap();		
-		int[][] childRoutingMap = new int[routingMap.length][routingMap[0].length];
+		int[][] currentPositionInt = ga.getCurrentPositionInt();
 		
-		int nrFogNodes = ga.getNumberOfNodes();
+		int[][] tupleRoutingMap = chromosome.getTupleRoutingMap();
+		int[][] parTupleRoutingMap = par.getChromosome().getTupleRoutingMap();
+		int[][] migrationRoutingMap = chromosome.getMigrationRoutingMap();
+		int[][] parMigrationRoutingMap = par.getChromosome().getMigrationRoutingMap();
 		
-		List<Integer> initialNodes = new ArrayList<Integer>();
-		List<Integer> finalNodes = new ArrayList<Integer>();
+		int[][] childTupleRoutingMap = new int[tupleRoutingMap.length][tupleRoutingMap[0].length];
+		int[][] childMigrationRoutingMap = new int[migrationRoutingMap.length][migrationRoutingMap[0].length];
+		
+		List<Integer> tupleInitialNodes = new ArrayList<Integer>();
+		List<Integer> tupleFinalNodes = new ArrayList<Integer>();
+		List<Integer> migrationInitialNodes = new ArrayList<Integer>();
+		List<Integer> migrationFinalNodes = new ArrayList<Integer>();
 		List<Vertex> nodes = new ArrayList<Vertex>();
 		List<Edge> edges = new ArrayList<Edge>();
+		
+		int nrFogNodes = ga.getNumberOfNodes();
+		int nrModule = ga.getNumberOfModules();
 		
 		for(int i = 0; i < ga.getmDependencyMap().length; i++) {
 			for(int j = 0; j < ga.getmDependencyMap()[0].length; j++) {
 				if(ga.getmDependencyMap()[i][j] != 0) {
-					initialNodes.add(Job.findModulePlacement(modulePlacementMap, i));
-					finalNodes.add(Job.findModulePlacement(modulePlacementMap, j));
+					tupleInitialNodes.add(Job.findModulePlacement(modulePlacementMap, i));
+					tupleFinalNodes.add(Job.findModulePlacement(modulePlacementMap, j));
 				}
 			}
+		}
+		
+		for(int i = 0; i < nrModule; i++) {
+			if(ga.isFirstOptimization())
+				migrationInitialNodes.add(Job.findModulePlacement(modulePlacementMap, i));
+			else
+				migrationInitialNodes.add(Job.findModulePlacement(currentPositionInt, i));
+			migrationFinalNodes.add(Job.findModulePlacement(modulePlacementMap, i));
 		}
 		
 		for(int i  = 0; i < nrFogNodes; i++) {
@@ -92,24 +109,24 @@ public class Individual implements Comparable<Individual> {
 			}
         }
 		
-		for (int i = 0; i < routingMap.length; i++) {
+		for(int i = 0; i < tupleRoutingMap.length; i++) {
 			float prob = new Random().nextFloat();
 			
 			 if (prob < 0.45) {
 				 for (int j = 0; j < ga.getNumberOfNodes(); j++) {
-					 childRoutingMap[i][j] = routingMap[i][j];
+					 childTupleRoutingMap[i][j] = tupleRoutingMap[i][j];
 				 }
 			 }else if (prob < 0.9) {
 				 for (int j = 0; j < ga.getNumberOfNodes(); j++) {
-					 childRoutingMap[i][j] = parRoutingMap[i][j];
+					 childTupleRoutingMap[i][j] = parTupleRoutingMap[i][j];
 				 }
 			 }else {
-				 childRoutingMap[i][0] = initialNodes.get(i);
-				 childRoutingMap[i][ga.getNumberOfNodes()-1] = finalNodes.get(i);
+				 childTupleRoutingMap[i][0] = tupleInitialNodes.get(i);
+				 childTupleRoutingMap[i][ga.getNumberOfNodes()-1] = tupleFinalNodes.get(i);
 				 
 				 Graph graph = new Graph(nodes, edges);
 				 DijkstraAlgorithm dijkstra = new DijkstraAlgorithm(graph);
-				 dijkstra.execute(nodes.get(finalNodes.get(i)));
+				 dijkstra.execute(nodes.get(tupleFinalNodes.get(i)));
 				
 				 for(int j = 1; j < nrFogNodes - 1; j++) {
 					 List<Integer> validValues = new ArrayList<Integer>();
@@ -117,7 +134,7 @@ public class Individual implements Comparable<Individual> {
 					 for(int z = 0; z < nrFogNodes; z++) {
 						 
 						 // If there is a connection with the previous vertex
-						 if(ga.getfLatencyMap()[childRoutingMap[i][j-1]][z] < Constants.INF) {
+						 if(ga.getfLatencyMap()[childTupleRoutingMap[i][j-1]][z] < Constants.INF) {
 							 
 							 LinkedList<Vertex> path = dijkstra.getPath(nodes.get(z));
 							 
@@ -126,16 +143,61 @@ public class Individual implements Comparable<Individual> {
 								 validValues.add(z);
 							 }
 							 
-							 validValues.add(childRoutingMap[i][j-1]);
+							 validValues.add(childTupleRoutingMap[i][j-1]);
 						 }
 					 }
 					 
-					 childRoutingMap[i][j] = validValues.get(new Random().nextInt(validValues.size()));
+					 childTupleRoutingMap[i][j] = validValues.get(new Random().nextInt(validValues.size()));
 				 }
 			 }
 		}
 		
-		Job childChromosome = new Job(ga, modulePlacementMap, childRoutingMap);
+		
+		
+		for (int i = 0; i < migrationRoutingMap.length; i++) {
+			float prob = new Random().nextFloat();
+			
+			 if (prob < 0.45) {
+				 for (int j = 0; j < ga.getNumberOfNodes(); j++) {
+					 childMigrationRoutingMap[i][j] = migrationRoutingMap[i][j];
+				 }
+			 }else if (prob < 0.9) {
+				 for (int j = 0; j < ga.getNumberOfNodes(); j++) {
+					 childMigrationRoutingMap[i][j] = parMigrationRoutingMap[i][j];
+				 }
+			 }else {
+				 childMigrationRoutingMap[i][0] = migrationInitialNodes.get(i);
+				 childMigrationRoutingMap[i][ga.getNumberOfNodes()-1] = migrationFinalNodes.get(i);
+				 
+				 Graph graph = new Graph(nodes, edges);
+				 DijkstraAlgorithm dijkstra = new DijkstraAlgorithm(graph);
+				 dijkstra.execute(nodes.get(migrationFinalNodes.get(i)));
+				
+				 for(int j = 1; j < nrFogNodes - 1; j++) {
+					 List<Integer> validValues = new ArrayList<Integer>();
+					
+					 for(int z = 0; z < nrFogNodes; z++) {
+						 
+						 // If there is a connection with the previous vertex
+						 if(ga.getfLatencyMap()[childMigrationRoutingMap[i][j-1]][z] < Constants.INF) {
+							 
+							 LinkedList<Vertex> path = dijkstra.getPath(nodes.get(z));
+							 
+							 // If is possible to connect with the final node
+							 if(path != null && path.size() <= nrFogNodes - j) {
+								 validValues.add(z);
+							 }
+							 
+							 validValues.add(childMigrationRoutingMap[i][j-1]);
+						 }
+					 }
+					 
+					 childMigrationRoutingMap[i][j] = validValues.get(new Random().nextInt(validValues.size()));
+				 }
+			 }
+		}
+		
+		Job childChromosome = new Job(ga, modulePlacementMap, childTupleRoutingMap, childMigrationRoutingMap);
 		
         return new Individual(ga, childChromosome);
 	}
@@ -156,7 +218,7 @@ public class Individual implements Comparable<Individual> {
 	@Override
 	public String toString() {
 		int[][] modulePlacementMap = chromosome.getModulePlacementMap();
-		int[][] routingMap = chromosome.getRoutingMap();
+		int[][] routingMap = chromosome.getTupleRoutingMap();
 		
 		String toReturn = "\nChromosome: \n";
 		

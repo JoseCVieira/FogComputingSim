@@ -17,9 +17,9 @@ import org.fog.placement.algorithm.overall.util.AlgorithmUtils;
 public class GeneticAlgorithm extends Algorithm {
 	private static final int FITTEST = (int)((10*Config.POPULATION_SIZE_GA)/100);  // 10% of fittest population
 	
-	private Job bestSolution = null;
-	private double bestCost = Constants.REFERENCE_COST;
-	private int iteration = 0;
+	private Job bestSolution;
+	private double bestCost;
+	private int iteration;
 	
 	public GeneticAlgorithm(final List<FogDevice> fogDevices, final List<Application> applications,
 			final List<Sensor> sensors, final List<Actuator> actuators) {
@@ -28,6 +28,10 @@ public class GeneticAlgorithm extends Algorithm {
 	
 	@Override
 	public Job execute() {
+		bestSolution = null;
+		bestCost = Constants.REFERENCE_COST;
+		iteration = 0;
+		
 		Individual[] population = new Individual[Config.POPULATION_SIZE_GA];
 		
 		int convergenceIter = 0;
@@ -99,8 +103,9 @@ public class GeneticAlgorithm extends Algorithm {
 			Individual[] populationR = new Individual[Config.POPULATION_SIZE_GA];
 			
 			for (int j = 0; j < Config.POPULATION_SIZE_GA; j++) {
-				int[][] routingMap = Job.generateRandomTupleRouting(this, modulePlacementMap, NR_NODES);
-				populationR[j] = new Individual(this, new Job(this, modulePlacementMap, routingMap));
+				int[][] tupleRoutingMap = Job.generateRandomTupleRouting(this, modulePlacementMap, NR_NODES);
+				int[][] migrationRoutingMap = Job.generateRandomMigrationRouting(this, modulePlacementMap, currentPlacement, NR_NODES, NR_MODULES);
+				populationR[j] = new Individual(this, new Job(this, modulePlacementMap, tupleRoutingMap, migrationRoutingMap));
 			}
 			
 			int generation = 1;
@@ -147,6 +152,12 @@ public class GeneticAlgorithm extends Algorithm {
 		}
 		
 		return population;
+	}
+	
+	public Individual[] GAMigrationRouting(Individual[] population) {
+		
+		
+		return null;
 	}
 	
 }

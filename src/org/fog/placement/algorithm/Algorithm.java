@@ -638,7 +638,7 @@ public abstract class Algorithm {
 	}
 	
 	// If is the first optimization there is no migration of modules
-	protected boolean isFirstOptimization() {
+	public boolean isFirstOptimization() {
 		int cnt = 0;
 		for(int i  = 0; i < NR_NODES; i++) {
 			for(int j  = 0; j < NR_MODULES; j++) {
@@ -649,6 +649,18 @@ public abstract class Algorithm {
 		}
 		
 		return !(cnt == NR_MODULES);
+	}
+	
+	public int[][] getCurrentPositionInt() {
+		int[][] currentPositionInt = new int[NR_NODES][NR_MODULES];
+	    
+		for(int j = 0; j < NR_NODES; j++) {
+			for (int z = 0; z < NR_MODULES; z++) {
+				currentPositionInt[j][z] = (int) currentPlacement[j][z];
+			}
+		}
+		
+		return currentPositionInt;
 	}
 	
 }

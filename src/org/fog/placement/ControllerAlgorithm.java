@@ -84,9 +84,7 @@ public class ControllerAlgorithm {
 	}
 	
 	public void recomputeAlgorithm() {
-		System.out.println("Execute start");
 		solution = algorithm.execute();
-		System.out.println("Execute finish");
 		
 		if(solution == null || solution.getModulePlacementMap() == null || solution.getTupleRoutingMap() == null || !solution.isValid()) {
 			FogComputingSim.err("There is no possible combination to deploy all applications");

@@ -218,19 +218,22 @@ public class Job implements Comparable<Job> {
 			int nrFogNodes, int nrModules) {
 		
 		int[][] routingMap = new int[nrModules][nrFogNodes];
-		if(algorithm.isFirstOptimization()) return routingMap;
+		if(algorithm.isFirstOptimization()) {
+			for(int i = 0; i < nrModules; i++) {
+				int pos = findModulePlacement(modulePlacementMap, i);
+				for (int j = 0; j < nrFogNodes; j++) {
+					routingMap[i][j] = pos;
+				}
+			}
+			return routingMap;
+		}
 		
 		List<Integer> initialNodes = new ArrayList<Integer>();
 		List<Integer> finalNodes = new ArrayList<Integer>();
 		List<Vertex> nodes = new ArrayList<Vertex>();
 		List<Edge> edges = new ArrayList<Edge>();
 		
-		int[][] currentPositionInt = new int[nrFogNodes][nrModules];
-		for(int i = 0; i < nrFogNodes; i++) {
-			for (int j = 0; j < nrModules; j++) {
-				currentPositionInt[i][j] = (int) currentPosition[i][j];
-			}
-		}
+		int[][] currentPositionInt = algorithm.getCurrentPositionInt();
 		
 		for(int i = 0; i < algorithm.getmDependencyMap().length; i++) {
 			initialNodes.add(findModulePlacement(currentPositionInt, i));
