@@ -14,7 +14,8 @@ public class CostFunction {
 		List<Integer> finalModules = new ArrayList<Integer>();
 		
 		int[][] modulePlacementMap = job.getModulePlacementMap();
-		int[][] routingMap = job.getTupleRoutingMap();
+		int[][] tupleRoutingMap = job.getTupleRoutingMap();
+		int[][] migrationRoutingMap = job.getMigrationRoutingMap();
 		
 		for(int i = 0; i < algorithm.getNumberOfModules(); i++) {
 			for (int j = 0; j < algorithm.getNumberOfModules(); j++) {
@@ -25,13 +26,13 @@ public class CostFunction {
 			}
 		}
 		
-		double cost = isPossibleCombination(algorithm, modulePlacementMap, routingMap, initialModules, finalModules);
+		double cost = isPossibleCombination(algorithm, modulePlacementMap, tupleRoutingMap, migrationRoutingMap, initialModules, finalModules);
 		
 		if(cost == 0)
 			job.setValid(true);
 		
 		double tmp = 0;
-		tmp = calculateOperationalCost(algorithm, modulePlacementMap, routingMap, initialModules, finalModules);
+		tmp = calculateOperationalCost(algorithm, modulePlacementMap, tupleRoutingMap, initialModules, finalModules);
 		cost += tmp;
 		if(PRINT_DETAILS)
 			System.out.println("OP cost: " + tmp);
@@ -46,12 +47,12 @@ public class CostFunction {
 		if(PRINT_DETAILS)
 			System.out.println("PR cost: " + tmp);
 		
-		tmp = calculateLatencyCost(algorithm, routingMap, initialModules, finalModules);
+		tmp = calculateLatencyCost(algorithm, tupleRoutingMap, initialModules, finalModules);
 		cost += tmp;
 		if(PRINT_DETAILS)
 			System.out.println("LT cost: " + tmp);
 		
-		tmp = calculateBandwidthCost(algorithm, routingMap, initialModules, finalModules);
+		tmp = calculateBandwidthCost(algorithm, tupleRoutingMap, initialModules, finalModules);
 		cost += tmp;
 		if(PRINT_DETAILS)
 			System.out.println("BW cost: " + tmp);
@@ -60,7 +61,7 @@ public class CostFunction {
 	}
 	
 	// Sums minimum possible value when it is not possible to allow GA to converge easier than return infinity
-	private static double isPossibleCombination(Algorithm algorithm, int[][] modulePlacementMap, int[][] routingMap,
+	private static double isPossibleCombination(Algorithm algorithm, int[][] modulePlacementMap, int[][] tupleRoutingMap, int[][] migrationRoutingMap,
 			List<Integer> initialModules, List<Integer> finalModules) {
 		double cost = 0;
 		
@@ -94,8 +95,8 @@ public class CostFunction {
 		for(int i = 0; i < algorithm.getmDependencyMap().length; i++) {
 			for(int j = 0; j < algorithm.getmDependencyMap()[0].length; j++) {
 				if(algorithm.getmDependencyMap()[i][j] != 0) {
-					if(routingMap[iter][0] != Job.findModulePlacement(modulePlacementMap, i) ||
-							routingMap[iter][algorithm.getNumberOfNodes() - 1] != Job.findModulePlacement(modulePlacementMap, j)) {
+					if(tupleRoutingMap[iter][0] != Job.findModulePlacement(modulePlacementMap, i) ||
+							tupleRoutingMap[iter][algorithm.getNumberOfNodes() - 1] != Job.findModulePlacement(modulePlacementMap, j)) {
 						cost += Constants.REFERENCE_COST;
 						if(PRINT_DETAILS)
 							System.out.println("dependencies are not accomplished");
@@ -130,8 +131,8 @@ public class CostFunction {
 			double bwNeeded = algorithm.getmBandwidthMap()[initialModules.get(i)][finalModules.get(i)];
 			
 			for(int j = 1; j < algorithm.getNumberOfNodes(); j++) {
-				if(routingMap[i][j-1] != routingMap[i][j]) {
-					bwUsage[routingMap[i][j-1]][routingMap[i][j]] += bwNeeded;
+				if(tupleRoutingMap[i][j-1] != tupleRoutingMap[i][j]) {
+					bwUsage[tupleRoutingMap[i][j-1]][tupleRoutingMap[i][j]] += bwNeeded;
 				}
 			}
 		}
@@ -148,8 +149,21 @@ public class CostFunction {
 		
 		for(int i = 0; i < algorithm.getNumberOfDependencies(); i++) {
 			for(int j = 1; j < algorithm.getNumberOfNodes(); j++) {
-				if(routingMap[i][j-1] != routingMap[i][j]) {					
-					if(algorithm.getfLatencyMap()[routingMap[i][j-1]][routingMap[i][j]] == Constants.INF) {
+				if(tupleRoutingMap[i][j-1] != tupleRoutingMap[i][j]) {					
+					if(algorithm.getfLatencyMap()[tupleRoutingMap[i][j-1]][tupleRoutingMap[i][j]] == Constants.INF) {
+						cost += Constants.REFERENCE_COST;
+						if(PRINT_DETAILS)
+							System.out.println("bandwidth links usage are exceeded");
+					}
+				}
+			}
+		}
+		
+		//TODO : VM routing table analysis
+		for(int i = 0; i < algorithm.getNumberOfModules(); i++) {
+			for(int j = 1; j < algorithm.getNumberOfNodes(); j++) {
+				if(migrationRoutingMap[i][j-1] != migrationRoutingMap[i][j]) {					
+					if(algorithm.getfLatencyMap()[migrationRoutingMap[i][j-1]][migrationRoutingMap[i][j]] == Constants.INF) {
 						cost += Constants.REFERENCE_COST;
 						if(PRINT_DETAILS)
 							System.out.println("bandwidth links usage are exceeded");

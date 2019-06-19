@@ -44,11 +44,6 @@ public class RandomAlgorithm extends Algorithm {
 			iteration++;
 		}
 		
-		AlgorithmUtils.print("\nCurrent Placement", currentPlacement);
-		AlgorithmUtils.print("Module Placement", bestSolution.getModulePlacementMap());
-		AlgorithmUtils.print("Tuple Routing Map", bestSolution.getTupleRoutingMap());
-		AlgorithmUtils.print("VM Routing Map", bestSolution.getMigrationRoutingMap());
-		
 		long finish = System.currentTimeMillis();
 		elapsedTime = finish - start;
 			

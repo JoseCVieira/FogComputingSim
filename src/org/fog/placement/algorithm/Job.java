@@ -15,8 +15,8 @@ import org.fog.utils.Util;
 
 public class Job implements Comparable<Job> {
 	private int[][] modulePlacementMap;
-	private int[][] tupleRoutingMap;		// Tuple routing map
-	private int[][] migrationRoutingMap;	// Migration routing map
+	private int[][] tupleRoutingMap;
+	private int[][] migrationRoutingMap;
 	private double cost;
 	private boolean isValid;
 	
