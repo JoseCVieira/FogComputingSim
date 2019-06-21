@@ -31,7 +31,6 @@ import org.fog.core.FogComputingSim;
 import org.fog.utils.Analysis;
 import org.fog.utils.FogEvents;
 import org.fog.utils.FogUtils;
-import org.fog.utils.Latency;
 import org.fog.utils.Location;
 import org.fog.utils.Logger;
 import org.fog.utils.Movement;
@@ -571,20 +570,6 @@ public class FogDevice extends PowerDatacenter {
 	// which are characterized by 0 velocity
 	private void updatePeriodicMovement() {
 		movement.updateLocation();
-		
-		List<Integer> toRemove = new ArrayList<Integer>();
-		
-		// Update connections latency with all neighborhoods
-		for(int neighborhoodId : latencyMap.keySet()) {
-			if(!getFixedNeighborsIds().contains(neighborhoodId)) {
-				double connectionLatency = Latency.computeConnectionLatency(this, controller.getFogDeviceById(neighborhoodId));
-				latencyMap.put(neighborhoodId, connectionLatency);
-			}
-		}
-		
-		for(int neighborhoodId : toRemove) {
-			removeLink(neighborhoodId);
-		}
 		
 		// Define next direction and velocity
 		// Only updates for mobile nodes. Having fixed connections means that this node is a fixed one

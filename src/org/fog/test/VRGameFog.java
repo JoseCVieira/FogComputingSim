@@ -36,8 +36,7 @@ public class VRGameFog extends FogTest {
 		fogDevices.add(cloud);
 		fogDevices.add(proxy);
 		
-		double latency = Location.computeDistance(cloud, proxy)*Config.FIXED_COMMUNICATION_LATENCY;
-		connectFogDevices(cloud, proxy, latency, latency, Config.FIXED_COMMUNICATION_BW, Config.FIXED_COMMUNICATION_BW);
+		connectFogDevices(cloud, proxy, 100, 100, Config.FIXED_COMMUNICATION_BW, Config.FIXED_COMMUNICATION_BW);
 		
 		for(int i = 0; i < numOfDepts; i++) {
 			double posx = Util.rand(0, Config.SQUARE_SIDE);
@@ -48,8 +47,7 @@ public class VRGameFog extends FogTest {
 			
 			fogDevices.add(dept);
 			
-			latency = Location.computeDistance(dept, proxy)*Config.FIXED_COMMUNICATION_LATENCY;
-			connectFogDevices(proxy, dept, latency, latency, Config.FIXED_COMMUNICATION_BW, Config.FIXED_COMMUNICATION_BW);
+			connectFogDevices(proxy, dept, 50, 50, Config.FIXED_COMMUNICATION_BW, Config.FIXED_COMMUNICATION_BW);
 			
 			
 			// Connection between should be only between fixed nodes once, mobile connections are computed/executed during simulation

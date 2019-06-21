@@ -21,7 +21,6 @@ import org.fog.entities.Sensor;
 import org.fog.entities.Tuple;
 import org.fog.placement.algorithm.Algorithm;
 import org.fog.utils.FogEvents;
-import org.fog.utils.Latency;
 import org.fog.utils.Location;
 import org.fog.utils.Util;
 
@@ -271,10 +270,9 @@ public class Controller extends SimEntity {
 	private void createConnection(FogDevice mobile, FogDevice from, FogDevice to) {
 		if(Config.PRINT_DETAILS)
 			FogComputingSim.print("Creating connection between: " + mobile.getName() + " <-> " + to.getName());
-		
-		double latency = Latency.computeConnectionLatency(mobile, to);		
-		mobile.getLatencyMap().put(to.getId(), latency);
-		to.getLatencyMap().put(mobile.getId(), latency);
+			
+		mobile.getLatencyMap().put(to.getId(), 0.0);
+		to.getLatencyMap().put(mobile.getId(), 0.0);
 		
 		mobile.getBandwidthMap().put(to.getId(), Config.MOBILE_COMMUNICATION_BW);
 		to.getBandwidthMap().put(mobile.getId(), Config.MOBILE_COMMUNICATION_BW);

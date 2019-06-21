@@ -22,7 +22,6 @@ import org.fog.entities.FogDeviceCharacteristics;
 import org.fog.entities.Sensor;
 import org.fog.placement.algorithm.overall.util.AlgorithmUtils;
 import org.fog.utils.FogLinearPowerModel;
-import org.fog.utils.Latency;
 import org.fog.utils.distribution.DeterministicDistribution;
 import org.fog.utils.distribution.Distribution;
 import org.fog.utils.distribution.NormalDistribution;
@@ -332,13 +331,12 @@ public abstract class Algorithm {
 		}
 	}
 	
-	public void changeConnectionMap(FogDevice mobile, FogDevice from, FogDevice to) {
-		double latency = Latency.computeConnectionLatency(mobile, to);
-		
-		fLatencyMap[getNodeIndexByNodeId(mobile.getId())][getNodeIndexByNodeId(to.getId())] = latency;
+	// Mobile communications are characterize by zero latency and a fixed bandwidth
+	public void changeConnectionMap(FogDevice mobile, FogDevice from, FogDevice to) {		
+		fLatencyMap[getNodeIndexByNodeId(mobile.getId())][getNodeIndexByNodeId(to.getId())] = 0;
 		fBandwidthMap[getNodeIndexByNodeId(mobile.getId())][getNodeIndexByNodeId(to.getId())] = Config.MOBILE_COMMUNICATION_BW;
 		
-		fLatencyMap[getNodeIndexByNodeId(to.getId())][getNodeIndexByNodeId(mobile.getId())] = latency;
+		fLatencyMap[getNodeIndexByNodeId(to.getId())][getNodeIndexByNodeId(mobile.getId())] = 0;
 		fBandwidthMap[getNodeIndexByNodeId(to.getId())][getNodeIndexByNodeId(mobile.getId())] = Config.MOBILE_COMMUNICATION_BW;
 		
 		fLatencyMap[getNodeIndexByNodeId(mobile.getId())][getNodeIndexByNodeId(from.getId())] = Constants.INF;

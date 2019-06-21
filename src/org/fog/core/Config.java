@@ -61,8 +61,6 @@ public class Config {
 	public static final int HANDOVER_THRESHOLD = 25;
 	public static final double MOBILE_COMMUNICATION_BW = 10*1024;		// 10MB
 	public static final double FIXED_COMMUNICATION_BW = 50*1024;		// 50MB
-	public final static double FIXED_COMMUNICATION_LATENCY = 204E-3; 	// Latency/m
-	public final static double MIN_LATENCY = 150E-4;
 	public static final int MAX_SIMULATION_TIME = 10000;
 	public static final int RECONFIG_PERIOD = 1;
 	
