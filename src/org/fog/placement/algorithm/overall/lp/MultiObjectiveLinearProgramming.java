@@ -101,7 +101,7 @@ public class MultiObjectiveLinearProgramming extends Algorithm {
 						double bw = bwNeeded/(getfBandwidthMap()[j][z] + Constants.EPSILON);
 						double op = getfBwPrice()[j]*bwNeeded;
 						
-					ltObjective = cplex.sum(ltObjective, cplex.prod(tupleRoutingVar[i][j][z], lt));		// Latency cost
+						ltObjective = cplex.sum(ltObjective, cplex.prod(tupleRoutingVar[i][j][z], lt));	// Latency cost
 						bwObjective = cplex.sum(bwObjective, cplex.prod(tupleRoutingVar[i][j][z], bw));	// Bandwidth cost
 						opObjective = cplex.sum(opObjective, cplex.prod(tupleRoutingVar[i][j][z], op));	// Operational cost
 					}
