@@ -113,10 +113,10 @@ public abstract class Algorithm {
 		mDependencyMap = new double[NR_MODULES][NR_MODULES];
 		mBandwidthMap = new double[NR_MODULES][NR_MODULES];
 		
-		extractDevicesCharacteristics(fogDevices, sensors, actuators);
-		extractAppCharacteristics(fogDevices, applications, hashSet);
-		computeApplicationCharacteristics(applications, fogDevices, sensors);
-		computeConnectionMap(fogDevices, sensors, actuators);
+		extractDevicesCharacteristics(fogDevices);
+		extractAppCharacteristics(applications, hashSet);
+		computeApplicationCharacteristics(applications, sensors);
+		computeConnectionMap(fogDevices);
 		
 		if(Config.SINGLE_OBJECTIVE) {
 			normalizeValues();
@@ -126,12 +126,10 @@ public abstract class Algorithm {
 			AlgorithmUtils.printDetails(this, fogDevices, applications, sensors, actuators);
 	}
 	
-	private void extractDevicesCharacteristics (final List<FogDevice> fogDevices,
-			final List<Sensor> sensors, final List<Actuator> actuators) {
+	private void extractDevicesCharacteristics (final List<FogDevice> fogDevices) {
 		int i = 0;
 		for(FogDevice fogDevice : fogDevices) {
-			FogDeviceCharacteristics characteristics =
-					(FogDeviceCharacteristics) fogDevice.getCharacteristics();
+			FogDeviceCharacteristics characteristics = (FogDeviceCharacteristics) fogDevice.getCharacteristics();
 			
 			double totalMips = 0;
 			for(Pe pe : fogDevice.getHost().getPeList()) {
@@ -153,9 +151,7 @@ public abstract class Algorithm {
 		}
 	}
 	
-	private void extractAppCharacteristics(final List<FogDevice> fogDevices, final List<Application> applications,
-			final LinkedHashSet<String> hashSet) {
-		
+	private void extractAppCharacteristics(final List<Application> applications, final LinkedHashSet<String> hashSet) {
 		for(int i  = 0; i < NR_NODES; i++) {
 			for(int j  = 0; j < NR_MODULES; j++) {
 				possibleDeployment[i][j] = 1;
@@ -210,8 +206,7 @@ public abstract class Algorithm {
 		}
 	}
 	
-	private void computeApplicationCharacteristics(final List<Application> applications, final List<FogDevice> fogDevices,
-			final List<Sensor> sensors) {
+	private void computeApplicationCharacteristics(final List<Application> applications, final List<Sensor> sensors) {
 		final int INTERVAL = 0;
 		final int PROBABILITY = 1;
 		
@@ -307,7 +302,7 @@ public abstract class Algorithm {
 		}
 	}
 	
-	private void computeConnectionMap(final List<FogDevice> fogDevices, final List<Sensor> sensors, final List<Actuator> actuators) {
+	private void computeConnectionMap(final List<FogDevice> fogDevices) {
 		for (int i = 0; i < NR_NODES; i++) {
 			for (int j = 0; j < NR_NODES; j++) {
 				fLatencyMap[i][j] = Constants.INF;
@@ -331,12 +326,12 @@ public abstract class Algorithm {
 		}
 	}
 	
-	// Mobile communications are characterize by zero latency and a fixed bandwidth
+	// Mobile communications are characterize by a fixed latency and bandwidth
 	public void changeConnectionMap(FogDevice mobile, FogDevice from, FogDevice to) {		
-		fLatencyMap[getNodeIndexByNodeId(mobile.getId())][getNodeIndexByNodeId(to.getId())] = 0;
+		fLatencyMap[getNodeIndexByNodeId(mobile.getId())][getNodeIndexByNodeId(to.getId())] = Config.MOBILE_LATENCY;
 		fBandwidthMap[getNodeIndexByNodeId(mobile.getId())][getNodeIndexByNodeId(to.getId())] = Config.MOBILE_COMMUNICATION_BW;
 		
-		fLatencyMap[getNodeIndexByNodeId(to.getId())][getNodeIndexByNodeId(mobile.getId())] = 0;
+		fLatencyMap[getNodeIndexByNodeId(to.getId())][getNodeIndexByNodeId(mobile.getId())] = Config.MOBILE_LATENCY;
 		fBandwidthMap[getNodeIndexByNodeId(to.getId())][getNodeIndexByNodeId(mobile.getId())] = Config.MOBILE_COMMUNICATION_BW;
 		
 		fLatencyMap[getNodeIndexByNodeId(mobile.getId())][getNodeIndexByNodeId(from.getId())] = Constants.INF;

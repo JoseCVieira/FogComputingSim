@@ -59,8 +59,10 @@ public class Config {
 	public static final boolean ALLOW_MIGRATION = true;
 	
 	public static final int HANDOVER_THRESHOLD = 25;
+	public static final double MOBILE_LATENCY = 50E-3;
 	public static final double MOBILE_COMMUNICATION_BW = 10*1024;		// 10MB
 	public static final double FIXED_COMMUNICATION_BW = 50*1024;		// 50MB
+	public static final double SETUP_VM_TIME = 20;
 	public static final int MAX_SIMULATION_TIME = 10000;
 	public static final int RECONFIG_PERIOD = 1;
 	

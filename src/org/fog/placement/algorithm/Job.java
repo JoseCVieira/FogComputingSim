@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Random;
 
 import org.fog.core.Constants;
+import org.fog.placement.algorithm.overall.util.AlgorithmUtils;
 import org.fog.placement.algorithm.routing.DijkstraAlgorithm;
 import org.fog.placement.algorithm.routing.Edge;
 import org.fog.placement.algorithm.routing.Graph;
@@ -91,7 +92,7 @@ public class Job implements Comparable<Job> {
 		
 		// Migration routing map
 		if(!algorithm.isFirstOptimization()) {
-			for(int i = 0; i < nrModules; i++) {				
+			for(int i = 0; i < nrModules; i++) {
 				iter = 1;
 				
 				for(int j = 0; j < nrNodes; j++) {

@@ -271,8 +271,8 @@ public class Controller extends SimEntity {
 		if(Config.PRINT_DETAILS)
 			FogComputingSim.print("Creating connection between: " + mobile.getName() + " <-> " + to.getName());
 			
-		mobile.getLatencyMap().put(to.getId(), 0.0);
-		to.getLatencyMap().put(mobile.getId(), 0.0);
+		mobile.getLatencyMap().put(to.getId(), Config.MOBILE_LATENCY);
+		to.getLatencyMap().put(mobile.getId(), Config.MOBILE_LATENCY);
 		
 		mobile.getBandwidthMap().put(to.getId(), Config.MOBILE_COMMUNICATION_BW);
 		to.getBandwidthMap().put(mobile.getId(), Config.MOBILE_COMMUNICATION_BW);
