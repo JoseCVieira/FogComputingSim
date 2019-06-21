@@ -29,7 +29,6 @@ import org.fog.core.Config;
 import org.fog.core.Constants;
 import org.fog.core.FogComputingSim;
 import org.fog.utils.Analysis;
-import org.fog.utils.Coverage;
 import org.fog.utils.FogEvents;
 import org.fog.utils.FogUtils;
 import org.fog.utils.Latency;
@@ -52,7 +51,6 @@ public class FogDevice extends PowerDatacenter {
 	private double lastBwUtilization;
 	
 	private List<Integer> fixedNeighborsIds;
-	private Map<Integer, Double> connectionStrength;
 	private Map<Integer, Double> latencyMap;
 	private Map<Integer, Double> bandwidthMap;
 	private Map<Map<String, String>, Integer> tupleRoutingTable;
@@ -64,15 +62,13 @@ public class FogDevice extends PowerDatacenter {
 	
 	private Controller controller;
 	private Movement movement;
-	private Coverage coverage;
 	
 	public FogDevice(String name, FogDeviceCharacteristics characteristics, VmAllocationPolicy vmAllocationPolicy, List<Storage> storageList,
-			double schedulingInterval, Movement movement, Coverage coverage) throws Exception {
+			double schedulingInterval, Movement movement) throws Exception {
 		super(name, characteristics, vmAllocationPolicy, storageList, schedulingInterval);
 		
 		deployedModules = new ArrayList<String>();
 		setFixedNeighborsIds(new ArrayList<Integer>());
-		setConnectionStrength(new HashMap<Integer, Double>());
 		setLatencyMap(new HashMap<Integer, Double>());
 		setBandwidthMap(new HashMap<Integer, Double>());
 		setTupleRoutingTable(new HashMap<Map<String,String>, Integer>());
@@ -87,7 +83,6 @@ public class FogDevice extends PowerDatacenter {
 		setStorageList(storageList);
 		
 		setMovement(movement);
-		setCoverage(coverage);
 		
 		for (Host host : getCharacteristics().getHostList())
 			host.setDatacenter(this);
@@ -584,10 +579,6 @@ public class FogDevice extends PowerDatacenter {
 			if(!getFixedNeighborsIds().contains(neighborhoodId)) {
 				double connectionLatency = Latency.computeConnectionLatency(this, controller.getFogDeviceById(neighborhoodId));
 				latencyMap.put(neighborhoodId, connectionLatency);
-				
-				double distance = Location.computeDistance(this, controller.getFogDeviceById(neighborhoodId));
-				double strength = 1 - (distance/coverage.getRadius());
-				getConnectionStrength().put(neighborhoodId, strength);
 			}
 		}
 		
@@ -642,7 +633,6 @@ public class FogDevice extends PowerDatacenter {
 		getBandwidthMap().remove(id);
 		getTupleQueue().remove(id);
 		getTupleLinkBusy().remove(id);
-		getConnectionStrength().remove(id);
 		
 		
 		if(Config.PRINT_DETAILS)
@@ -770,11 +760,8 @@ public class FogDevice extends PowerDatacenter {
 		// Strength signal of the fixed communications is 1 (maximum)
 		for(int neighborId : latencyMap.keySet()) {
 			getFixedNeighborsIds().add(neighborId);
-			getConnectionStrength().put(neighborId, 1.0);
 		}
 		
-		// Add a connection with it self just for the sake of the optimization algorithm
-		getConnectionStrength().put(getId(), 1.0);		
 		updatePeriodicMovement();
 	}
 	
@@ -814,28 +801,12 @@ public class FogDevice extends PowerDatacenter {
 		this.movement = movement;
 	}
 	
-	public Coverage getCoverage() {
-		return coverage;
-	}
-
-	public void setCoverage(Coverage coverage) {
-		this.coverage = coverage;
-	}
-	
 	public List<Integer> getFixedNeighborsIds() {
 		return fixedNeighborsIds;
 	}
 
 	public void setFixedNeighborsIds(List<Integer> fixedNeighborsIds) {
 		this.fixedNeighborsIds = fixedNeighborsIds;
-	}
-	
-	public Map<Integer, Double> getConnectionStrength() {
-		return connectionStrength;
-	}
-
-	public void setConnectionStrength(Map<Integer, Double> connectionStrength) {
-		this.connectionStrength = connectionStrength;
 	}
 	
 	public Map<String, Integer> getVmRoutingTable() {
@@ -852,7 +823,7 @@ public class FogDevice extends PowerDatacenter {
 				+ "\nlatencyMap=" + latencyMap + "\nbandwidthMap=" + bandwidthMap + "\nroutingTable=" + tupleRoutingTable
 				+ "\nmovement=" + movement + "\nMIPS=" + getHost().getTotalMips() + "\nRAM=" + getHost().getRam()
 				+ "\nMEM=" + getHost().getStorage() + "\nBW=" + getHost().getBw() + "\nVm List=" + getHost().getVmList()
-				+ "\ncoverage=" + coverage + "\nfixedNeighborsIds=" + fixedNeighborsIds + "]";
+				+ "\nfixedNeighborsIds=" + fixedNeighborsIds + "]";
 	}
 	
 }

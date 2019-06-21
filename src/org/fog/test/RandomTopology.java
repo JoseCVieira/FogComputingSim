@@ -17,7 +17,6 @@ import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.entities.Tuple;
 import org.fog.gui.GuiConfig;
-import org.fog.utils.Coverage;
 import org.fog.utils.Location;
 import org.fog.utils.Movement;
 import org.fog.utils.Util;
@@ -44,10 +43,9 @@ public class RandomTopology extends FogTest {
 	@Override
 	protected void createFogDevices() {
 		Movement movement = new Movement(0.0, Movement.EAST, new Location(0, 0));
-		Coverage coverage = new Coverage(500);
 		FogDevice cloud = createFogDevice("Cloud", Double.MAX_VALUE, (int) Constants.INF, (int) Constants.INF, (int) Constants.INF,
 				16*GuiConfig.BUSY_POWER, 16*GuiConfig.IDLE_POWER, GuiConfig.RATE_MIPS, GuiConfig.RATE_RAM,
-				GuiConfig.RATE_MEM, GuiConfig.RATE_BW, movement, coverage, false);
+				GuiConfig.RATE_MEM, GuiConfig.RATE_BW, movement, false);
 		
 		fogDevices.add(cloud);
 		
@@ -96,9 +94,8 @@ public class RandomTopology extends FogTest {
 						client = true;
 				}
 				
-				coverage = new Coverage(500);
 				FogDevice fogDevice = createFogDevice("L"+iter+":F"+i, mips, (int) ram, (long) strg, (long) bw, bPw, iPw,
-						rateMips, rateRam, rateStrg, rateBw, movement, coverage, client);
+						rateMips, rateRam, rateStrg, rateBw, movement, client);
 				
 				fogDevices.add(fogDevice);			
 			}

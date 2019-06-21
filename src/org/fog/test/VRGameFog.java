@@ -9,7 +9,6 @@ import org.fog.core.FogTest;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
-import org.fog.utils.Coverage;
 import org.fog.utils.Location;
 import org.fog.utils.Movement;
 import org.fog.utils.Util;
@@ -29,12 +28,10 @@ public class VRGameFog extends FogTest {
 	protected void createFogDevices() {
 		// Does not matter what direction because velocity is 0
 		Movement movement = new Movement(0.0, Movement.EAST, new Location(0, 0));
-		Coverage coverage = new Coverage(1500);
-		FogDevice cloud = createFogDevice("cloud", 44800, 40000, 1000000, 10000, 16*103, 16*83.25, 0.01, 0.05, 0.001, 0.0, movement, coverage, false);
+		FogDevice cloud = createFogDevice("cloud", 44800, 40000, 1000000, 10000, 16*103, 16*83.25, 0.01, 0.05, 0.001, 0.0, movement, false);
 		
 		movement = new Movement(0.0, Movement.EAST, new Location(0, 250));
-		coverage = new Coverage(1500);
-		FogDevice proxy = createFogDevice("proxy-server", 2800, 4000, 1000000, 10000, 107.339, 83.4333, 0.0, 1E-5, 1E-5, 0.0, movement, coverage, false);
+		FogDevice proxy = createFogDevice("proxy-server", 2800, 4000, 1000000, 10000, 107.339, 83.4333, 0.0, 1E-5, 1E-5, 0.0, movement, false);
 		
 		fogDevices.add(cloud);
 		fogDevices.add(proxy);
@@ -47,8 +44,7 @@ public class VRGameFog extends FogTest {
 			double posy = Util.rand(0, Config.SQUARE_SIDE);
 			
 			movement = new Movement(0.0, Movement.EAST, new Location(posx, posy));
-			coverage = new Coverage(1500);
-			FogDevice dept = createFogDevice("d-"+i, 2800, 4000, 1000000, 10000, 107.339, 83.4333, 0.0, 0.05, 0.001, 0.0, movement, coverage, false);
+			FogDevice dept = createFogDevice("d-"+i, 2800, 4000, 1000000, 10000, 107.339, 83.4333, 0.0, 0.05, 0.001, 0.0, movement, false);
 			
 			fogDevices.add(dept);
 			
@@ -61,8 +57,7 @@ public class VRGameFog extends FogTest {
 				int direction = Util.rand(Movement.EAST, Movement.SOUTHEAST);
 				
 				movement = new Movement(1.0, direction, new Location(posx, posy));
-				coverage = new Coverage(1500);
-				FogDevice mobile = createFogDevice("m-"+i+"-"+j, 1000, 1000, 1000000, 10000, 87.53, 82.44, 0.0, 0.05, 0.001, 0.0, movement, coverage, true);
+				FogDevice mobile = createFogDevice("m-"+i+"-"+j, 1000, 1000, 1000000, 10000, 87.53, 82.44, 0.0, 0.05, 0.001, 0.0, movement, true);
 				
 				fogDevices.add(mobile);
 			}

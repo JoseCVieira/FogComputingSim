@@ -25,7 +25,6 @@ import org.fog.entities.FogDeviceCharacteristics;
 import org.fog.entities.Sensor;
 import org.fog.entities.Tuple;
 import org.fog.policy.AppModuleAllocationPolicy;
-import org.fog.utils.Coverage;
 import org.fog.utils.FogLinearPowerModel;
 import org.fog.utils.FogUtils;
 import org.fog.utils.Location;
@@ -104,9 +103,8 @@ public class RunGUI extends FogTest {
 		
 		try {
 			Movement movement = new Movement(0.0, Movement.EAST, new Location(0, 0));
-			Coverage coverage = new Coverage(500);
 			return new FogDevice(fog.getName(), characteristics, new AppModuleAllocationPolicy(hostList),
-					new LinkedList<Storage>(), Constants.SCHEDULING_INTERVAL, movement, coverage);
+					new LinkedList<Storage>(), Constants.SCHEDULING_INTERVAL, movement);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;

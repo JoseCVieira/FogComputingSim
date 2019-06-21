@@ -11,7 +11,6 @@ import org.cloudbus.cloudsim.VmAllocationPolicy;
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.core.SimEvent;
 import org.fog.core.Config;
-import org.fog.utils.Coverage;
 import org.fog.utils.FogEvents;
 import org.fog.utils.Movement;
 
@@ -19,8 +18,8 @@ public class Client extends FogDevice {
 	private List<Pair<Integer, Double>> associatedActuatorIds;
 
 	public Client(String name, FogDeviceCharacteristics characteristics, VmAllocationPolicy vmAllocationPolicy,
-			List<Storage> storageList, double schedulingInterval, Movement movement, Coverage coverage) throws Exception {
-		super(name, characteristics, vmAllocationPolicy, storageList, schedulingInterval, movement, coverage);
+			List<Storage> storageList, double schedulingInterval, Movement movement) throws Exception {
+		super(name, characteristics, vmAllocationPolicy, storageList, schedulingInterval, movement);
 		
 		setAssociatedActuatorIds(new ArrayList<Pair<Integer, Double>>());
 	}

@@ -181,12 +181,10 @@ public class Controller extends SimEntity {
 				if(f2.getFixedNeighborsIds().isEmpty())
 					continue;
 				
-				if(f1.getCoverage().covers(f1, f2) && f2.getCoverage().covers(f2, f1)) {
-					double distance = Location.computeDistance(f1, f2);
-					if(distance  + Config.HANDOVER_THRESHOLD < bestDistance) {
-						bestDistance = distance;
-						best = f2;
-					}
+				double distance = Location.computeDistance(f1, f2);
+				if(distance  + Config.HANDOVER_THRESHOLD < bestDistance) {
+					bestDistance = distance;
+					best = f2;
 				}
 			}
 			

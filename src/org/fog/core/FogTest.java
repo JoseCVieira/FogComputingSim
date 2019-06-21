@@ -29,7 +29,6 @@ import org.fog.entities.Sensor;
 import org.fog.entities.Tuple;
 import org.fog.gui.GuiConfig;
 import org.fog.policy.AppModuleAllocationPolicy;
-import org.fog.utils.Coverage;
 import org.fog.utils.FogLinearPowerModel;
 import org.fog.utils.FogUtils;
 import org.fog.utils.Movement;
@@ -57,7 +56,7 @@ public abstract class FogTest {
 	}
 	
 	protected static FogDevice createFogDevice(String name, double mips, int ram, long strg, long bw, double bPw, double iPw, double costPerMips,
-			double costPerMem, double costPerStorage, double costPerBw, Movement movement, Coverage coverage, boolean client) {
+			double costPerMem, double costPerStorage, double costPerBw, Movement movement, boolean client) {
 		List<Pe> processingElementsList = new ArrayList<Pe>();
 		processingElementsList.add(new Pe(0, new PeProvisioner(mips)));
 
@@ -81,10 +80,10 @@ public abstract class FogTest {
 		try {
 			if(!client)
 				return new FogDevice(name, characteristics, new AppModuleAllocationPolicy(hostList), new LinkedList<Storage>(),
-						Constants.SCHEDULING_INTERVAL, movement, coverage);
+						Constants.SCHEDULING_INTERVAL, movement);
 			else 
 				return new Client(name, characteristics, new AppModuleAllocationPolicy(hostList), new LinkedList<Storage>(),
-						Constants.SCHEDULING_INTERVAL, movement, coverage);
+						Constants.SCHEDULING_INTERVAL, movement);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
