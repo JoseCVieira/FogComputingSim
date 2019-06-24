@@ -352,6 +352,7 @@ public class Controller extends SimEntity {
 				Map<Application, AppModule> appMap = new HashMap<Application, AppModule>();
 				appMap.put(application, module);
 				map.put(to, appMap);
+				
 				sendNow(from.getId(), FogEvents.MIGRATION, map);
 			}
 		}

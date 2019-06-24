@@ -50,7 +50,6 @@ public class Config {
 	
 	// Simulation
 	public static final boolean DEBUG_MODE = false;
-	public static final boolean PRINT_COMMUNICATION_DETAILS = false;
 	public static final boolean PRINT_COST_DETAILS = false;
 	public static final boolean PRINT_HANDOVER_DETAILS = true;
 

@@ -10,7 +10,6 @@ import org.cloudbus.cloudsim.Storage;
 import org.cloudbus.cloudsim.VmAllocationPolicy;
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.core.SimEvent;
-import org.fog.core.Config;
 import org.fog.utils.FogEvents;
 import org.fog.utils.Movement;
 
@@ -64,8 +63,6 @@ public class Client extends FogDevice {
 				return;
 			}
 		}
-		
-		if(Config.PRINT_COMMUNICATION_DETAILS) printCommunication(tuple);
 		
 		Map<String, String> communication = new HashMap<String, String>();
 		communication.put(tuple.getSrcModuleName(), tuple.getDestModuleName());
