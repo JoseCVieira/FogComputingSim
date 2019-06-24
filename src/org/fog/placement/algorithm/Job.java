@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Random;
 
 import org.fog.core.Constants;
-import org.fog.placement.algorithm.overall.util.AlgorithmUtils;
 import org.fog.placement.algorithm.routing.DijkstraAlgorithm;
 import org.fog.placement.algorithm.routing.Edge;
 import org.fog.placement.algorithm.routing.Graph;
