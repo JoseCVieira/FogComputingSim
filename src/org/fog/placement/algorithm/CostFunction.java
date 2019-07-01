@@ -7,7 +7,7 @@ import org.fog.core.Config;
 import org.fog.core.Constants;
 
 public class CostFunction {
-	private static final boolean PRINT_DETAILS = false;
+	private static final boolean PRINT_DETAILS = true;
 	
 	public static void computeCost(Job job, Algorithm algorithm) {
 		List<Integer> initialModules = new ArrayList<Integer>();
@@ -70,8 +70,8 @@ public class CostFunction {
 	}
 	
 	// Sums minimum possible value when it is not possible to allow GA to converge easier than return infinity
-	private static double isPossibleCombination(Algorithm algorithm, int[][] modulePlacementMap, int[][] tupleRoutingMap, int[][] migrationRoutingMap,
-			List<Integer> initialModules, List<Integer> finalModules) {
+	private static double isPossibleCombination(Algorithm algorithm, int[][] modulePlacementMap, int[][] tupleRoutingMap,
+			int[][] migrationRoutingMap, List<Integer> initialModules, List<Integer> finalModules) {
 		double cost = 0;
 		
 		// If placement does not respects possible deployment matrix
@@ -189,7 +189,7 @@ public class CostFunction {
 		double cost = 0;
 		
 		for(int i = 0; i < algorithm.getNumberOfNodes(); i++) {
-			for(int j = 0; j < algorithm.getNumberOfModules(); j++) {				
+			for(int j = 0; j < algorithm.getNumberOfModules(); j++) {
 				cost += Config.OP_W * modulePlacementMap[i][j] *
 						(algorithm.getfMipsPrice()[i] * algorithm.getmMips()[j] +
 						 algorithm.getfRamPrice()[i] * algorithm.getmRam()[j] +

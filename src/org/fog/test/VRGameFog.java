@@ -16,8 +16,8 @@ import org.fog.utils.distribution.DeterministicDistribution;
 import org.fog.utils.distribution.Distribution;
 
 public class VRGameFog extends FogTest {
-	private static final int numOfDepts = 2;
-	private static final int numOfMobilesPerDept = 2;
+	private static final int numOfDepts = 1;
+	private static final int numOfMobilesPerDept = 1;
 	private static final double EEG_TRANSMISSION_TIME = 5.1;
 	
 	public VRGameFog() {
@@ -71,7 +71,7 @@ public class VRGameFog extends FogTest {
 		String actuatorName = "DISPLAY:";
 		
 		for(FogDevice fogDevice : fogDevices) {
-			if(fogDevice.getName().startsWith("m")) {
+			if(fogDevice.getName().startsWith("m")) {				
 				Distribution distribution =  new DeterministicDistribution(EEG_TRANSMISSION_TIME);
 				
 				String clientName = fogDevice.getName();

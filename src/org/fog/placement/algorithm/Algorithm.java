@@ -341,9 +341,8 @@ public abstract class Algorithm {
 		fBandwidthMap[getNodeIndexByNodeId(from.getId())][getNodeIndexByNodeId(mobile.getId())] = 0;
 	}
 	
-	private void normalizeValues() {
-		double max;		
-		max = computeMax(fMipsPrice);
+	private void normalizeValues() {				
+		double max = computeMax(fMipsPrice, fRamPrice, fMemPrice, fBwPrice);
 		fMipsPrice = normalize(fMipsPrice, max);
 		fRamPrice = normalize(fRamPrice, max);
 		fMemPrice = normalize(fMemPrice, max);
