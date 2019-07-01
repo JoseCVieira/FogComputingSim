@@ -3,9 +3,6 @@ package org.fog.core;
 public class Config {
 	// --------------------------------------- Configuration parameters for the optimization problem ---------------------------------------
 	
-	// Type (Do not change this variable)
-	public static boolean SINGLE_OBJECTIVE = true;
-	
 	// weights for single objective
 	public static final double OP_W = 1; 	// Operational cost weight
 	public static final double PW_W = 1; 	// Power cost weight

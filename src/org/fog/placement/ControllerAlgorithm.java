@@ -45,17 +45,13 @@ public class ControllerAlgorithm {
 		this.algorithmOp = algorithmOp;
 	}
 	
-	public void computeAlgorithm() {
-		Config.SINGLE_OBJECTIVE = true;
-		
+	public void computeAlgorithm() {		
 		switch (algorithmOp) {
 			case MOLP:
-				Config.SINGLE_OBJECTIVE = false;
 				algorithmName = "Multiobjective Linear Programming";
 				algorithm = new MultiObjectiveLinearProgramming(fogDevices, appList, sensors, actuators);
 				break;
 			case MOGA:
-				Config.SINGLE_OBJECTIVE = false;
 				algorithmName = "Multiobjective Genetic Algorithm";
 				algorithm = new MultiObjectiveGeneticAlgorithm(fogDevices, appList, sensors, actuators);
 				break;
