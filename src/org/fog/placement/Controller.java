@@ -155,7 +155,7 @@ public class Controller extends SimEntity {
 		for(FogDevice f1 : fogDevices) {
 			
 			// If f1 is a fixed node do nothing
-			if(!f1.getFixedNeighborsIds().isEmpty())
+			if(f1.isStaticNode())
 				continue;
 			
 			FogDevice best = null;

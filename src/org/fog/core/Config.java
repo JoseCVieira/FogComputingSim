@@ -47,11 +47,9 @@ public class Config {
 	
 	// Simulation
 	public static final boolean DEBUG_MODE = false;
-	public static final boolean PRINT_COST_DETAILS = true;
+	public static final boolean PRINT_COST_DETAILS = false;
 	public static final boolean PRINT_HANDOVER_DETAILS = true;
-
-	
-	public static boolean DYNAMIC_SIMULATION = false;
+	public static boolean DYNAMIC_SIMULATION = true;
 	public static final boolean ALLOW_MIGRATION = true;
 	
 	public static final int HANDOVER_THRESHOLD = 25;
@@ -62,15 +60,18 @@ public class Config {
 	public static final int MAX_SIMULATION_TIME = 10000;
 	public static final int RECONFIG_PERIOD = 1;
 	
+	public static final double PATH_LOSS_GAMMA = 3.1;
+	public static final double RX_SENSITIVITY = 7.9432823472E-11;			// P(mW) = 1mW * 10^(P(dBm)/ 10), with P(dBm) = -71 dBm
+	
 	// For test purposes -------------------------------------------------------------------
-	public static final int SQUARE_SIDE = 1000;
+	public static final int SQUARE_SIDE = 10000;
 	public static final double PROB_CHANGE_DIRECTION = 0.25;
 	public static final double PROB_CHANGE_VELOCITY = 0.35;
 	public static final double PROB_MAX_VELOCITY = 0.1667;
 	public static final double PROB_MED_VELOCITY = 0.6667;
 	public static final double PROB_MIN_VELOCITY = 0.1667;
-	public static final double MAX_VELOCITY = 10;
-	public static final double MED_VELOCITY = 5;
-	public static final double MIN_VELOCITY = 1;
+	public static final double MAX_VELOCITY = 33.3333;			// 33.3333 m/s = 120 km/h 	-> high speed car
+	public static final double MED_VELOCITY = 13.8889;			// 13.8889 m/s = 50 km/h  	-> slow speed car
+	public static final double MIN_VELOCITY = 1.34000;			// 1.34 m/s					-> average walking speed
 	
 }

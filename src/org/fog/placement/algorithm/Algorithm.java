@@ -117,7 +117,7 @@ public abstract class Algorithm {
 		extractAppCharacteristics(applications, hashSet);
 		computeApplicationCharacteristics(applications, sensors);
 		computeConnectionMap(fogDevices);
-		normalizeValues();
+		//normalizeValues();
 		
 		if(Config.PRINT_DETAILS)
 			AlgorithmUtils.printDetails(this, fogDevices, applications, sensors, actuators);

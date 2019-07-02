@@ -333,7 +333,7 @@ public class FogDevice extends PowerDatacenter {
 				totalRamAllocated += ((AppModule)vm).getCurrentAllocatedRam();
 		}
 		
-		for(int neighborId : tupleLinkBusy.keySet()) {
+		for(int neighborId : tupleLinkBusy.keySet()) {			
 			totalBwAvailable += getBandwidthMap().get(neighborId);
 			
 			if(!tupleLinkBusy.get(neighborId)) continue;
@@ -343,7 +343,20 @@ public class FogDevice extends PowerDatacenter {
 		double timeNow = CloudSim.clock();
 		double timeDif = timeNow-lastUtilizationUpdateTime;
 		
-		setEnergyConsumption(getEnergyConsumption() + timeDif*getHost().getPowerModel().getPower(lastMipsUtilization));
+		double energyConsumption = timeDif*getHost().getPowerModel().getPower(lastMipsUtilization);
+		
+		// If its a mobile node, we apply the energy consumption model: Pr = Pt/(4 π d^(γ))
+		if(!isStaticNode()) {			
+			for(int neighborId : tupleLinkBusy.keySet()) {
+				if(!tupleLinkBusy.get(neighborId)) continue;
+				
+				double distance = Location.computeDistance(this, controller.getFogDeviceById(neighborId));
+				double txPower = Config.RX_SENSITIVITY * 4 * Math.PI *  Math.pow(distance, Config.PATH_LOSS_GAMMA);
+				energyConsumption += timeDif*txPower;
+			}
+		}
+		
+		setEnergyConsumption(getEnergyConsumption() + energyConsumption);
 		
 		FogDeviceCharacteristics characteristics = (FogDeviceCharacteristics) getCharacteristics();
 		
@@ -544,8 +557,10 @@ public class FogDevice extends PowerDatacenter {
 			Pair<Tuple, Integer> pair = getTupleQueue().get(destId).poll();
 			sendFreeLink(pair.getFirst(), pair.getSecond());
 		}else {
-			getTupleLinkBusy().put(destId, false);
-			updateEnergyConsumption();
+			if(getTupleLinkBusy().containsKey(destId)) {
+				getTupleLinkBusy().put(destId, false);
+				updateEnergyConsumption();
+			}
 		}
 	}
 	
@@ -574,11 +589,12 @@ public class FogDevice extends PowerDatacenter {
 	}
 	
 	private void printCost() {
-		System.out.println("\n\nName: " + getName());
-		System.out.println("lastMipsUtilization: " + lastMipsUtilization);
-		System.out.println("lastRamUtilization: " + lastRamUtilization);
-		System.out.println("lastStorageUtilization: " + lastStorageUtilization);
-		System.out.println("lastBwUtilization: " + lastBwUtilization);
+		System.out.println("\n\nName: " + getName() + "\t Resource usage report:\n");
+		System.out.println("Mips (percentage): " + lastMipsUtilization);
+		System.out.println("Ram (percentage): " + lastRamUtilization);
+		System.out.println("Storage (percentage): " + lastStorageUtilization);
+		System.out.println("Bw (percentage): " + lastBwUtilization);
+		System.out.println("Energy consumption (Total): " + getEnergyConsumption());
 	}
 	
 	// Update position and randomly change movement characteristics except for static nodes
@@ -588,7 +604,7 @@ public class FogDevice extends PowerDatacenter {
 		
 		// Define next direction and velocity
 		// Only updates for mobile nodes. Having fixed connections means that this node is a fixed one
-		if(getFixedNeighborsIds().isEmpty()) {
+		if(!isStaticNode()) {
 			Random random = new Random();
 			
 			double changeDirProb = Config.PROB_CHANGE_DIRECTION;
@@ -628,12 +644,11 @@ public class FogDevice extends PowerDatacenter {
 		//System.out.println(this + "\n\n");
 	}
 	
-	private void removeLink(int id) {		
+	private void removeLink(int id) {
 		getLatencyMap().remove(id);
 		getBandwidthMap().remove(id);
 		getTupleQueue().remove(id);
 		getTupleLinkBusy().remove(id);
-		
 		
 		if(Config.PRINT_DETAILS)
 			FogComputingSim.print("Removing connection between: " + getName() +  " -> " + controller.getFogDeviceById(id).getName());
@@ -832,6 +847,10 @@ public class FogDevice extends PowerDatacenter {
 
 	public void setVmRoutingTable(Map<String, Integer> vmRoutingTable) {
 		this.vmRoutingTable = vmRoutingTable;
+	}
+	
+	public boolean isStaticNode() {
+		return !getFixedNeighborsIds().isEmpty();
 	}
 
 	@Override
