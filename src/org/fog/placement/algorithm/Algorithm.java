@@ -57,10 +57,13 @@ public abstract class Algorithm {
 	// Node to Node
 	protected double[][] fLatencyMap;
 	private double[][] fBandwidthMap;
+	private double[][] fLatencyMapOriginalValues;
+	private double[][] fBandwidthMapOriginalValues;
 	
 	// Module to Module
 	protected double[][] mDependencyMap;
 	protected double[][] mBandwidthMap;
+	private double[][] mBandwidthMapOriginalValues;
 	
 	// Node to Module
 	protected double[][] possibleDeployment;
@@ -106,18 +109,21 @@ public abstract class Algorithm {
 		
 		fLatencyMap = new double[NR_NODES][NR_NODES];
 		fBandwidthMap = new double[NR_NODES][NR_NODES];
+		fLatencyMapOriginalValues = new double[NR_NODES][NR_NODES];
+		fBandwidthMapOriginalValues = new double[NR_NODES][NR_NODES];
 		
 		possibleDeployment = new double[NR_NODES][NR_MODULES];
 		currentPlacement = new double[NR_NODES][NR_MODULES];
 		
 		mDependencyMap = new double[NR_MODULES][NR_MODULES];
 		mBandwidthMap = new double[NR_MODULES][NR_MODULES];
+		mBandwidthMapOriginalValues = new double[NR_MODULES][NR_MODULES];
 		
 		extractDevicesCharacteristics(fogDevices);
 		extractAppCharacteristics(applications, hashSet);
 		computeApplicationCharacteristics(applications, sensors);
 		computeConnectionMap(fogDevices);
-		//normalizeValues();
+		normalizeValues();
 		
 		if(Config.PRINT_DETAILS)
 			AlgorithmUtils.printDetails(this, fogDevices, applications, sensors, actuators);
@@ -339,7 +345,7 @@ public abstract class Algorithm {
 	}
 	
 	private void normalizeValues() {
-		AlgorithmUtils.print("fMipsPrice", fMipsPrice);
+		AlgorithmUtils.print("\n\n\n\n\n\n\nfMipsPrice", fMipsPrice);
 		AlgorithmUtils.print("fRamPrice", fRamPrice);
 		AlgorithmUtils.print("fStrgPrice", fStrgPrice);
 		AlgorithmUtils.print("fBwPrice", fBwPrice);
@@ -362,6 +368,8 @@ public abstract class Algorithm {
 		AlgorithmUtils.print("fLatencyMap", fLatencyMap);
 		
 		AlgorithmUtils.print("mDependencyMap", mDependencyMap);
+		
+		saveOriginalValues();
 		
 		double max = computeMax(fMipsPrice, fRamPrice, fStrgPrice, fBwPrice);
 		fMipsPrice = normalize(fMipsPrice, max);
@@ -418,6 +426,31 @@ public abstract class Algorithm {
 		AlgorithmUtils.print("fLatencyMap", fLatencyMap);
 		
 		AlgorithmUtils.print("mDependencyMap", mDependencyMap);
+		
+		System.out.println("\n\n\n\n\n\n");
+	}
+	
+	public void recomputeNormalizationValues() {
+		AlgorithmUtils.print("\n\n\n\n\nfBandwidthMap", fBandwidthMap);
+		AlgorithmUtils.print("mBandwidthMap", mBandwidthMap);
+		
+		AlgorithmUtils.print("fLatencyMap", fLatencyMap);
+		
+		saveOriginalValues();
+		
+		double max = computeMax(fBandwidthMap, mBandwidthMap);
+		fBandwidthMap = normalize(fBandwidthMap, max);
+		mBandwidthMap = normalize(mBandwidthMap, max);
+		
+		max = computeMax(fLatencyMap);
+		fLatencyMap = normalize(fLatencyMap, max);
+		
+		AlgorithmUtils.print("fBandwidthMap", fBandwidthMap);
+		AlgorithmUtils.print("mBandwidthMap", mBandwidthMap);
+		
+		AlgorithmUtils.print("fLatencyMap", fLatencyMap);
+		
+		System.out.println("\n\n\n\n\n\n");
 	}
 	
 	private double computeMax(double[]... vectors) {
@@ -698,6 +731,36 @@ public abstract class Algorithm {
 		}
 		
 		return currentPositionInt;
+	}
+	
+	private void saveOriginalValues() {
+		for(int i = 0; i < NR_NODES; i++) {
+			for(int j = 0; j < NR_NODES; j++) {
+				fLatencyMapOriginalValues[i][j] = fLatencyMap[i][j];
+				fBandwidthMapOriginalValues[i][j] = fBandwidthMap[i][j];
+			}
+		}
+		
+		for(int i = 0; i < NR_MODULES; i++) {
+			for(int j = 0; j < NR_MODULES; j++) {
+				mBandwidthMapOriginalValues[i][j] = mBandwidthMap[i][j];
+			}
+		}
+	}
+	
+	public void loadOriginalValues() {
+		for(int i = 0; i < NR_NODES; i++) {
+			for(int j = 0; j < NR_NODES; j++) {
+				fLatencyMap[i][j] = fLatencyMapOriginalValues[i][j];
+				fBandwidthMap[i][j] = fBandwidthMapOriginalValues[i][j];
+			}
+		}
+		
+		for(int i = 0; i < NR_MODULES; i++) {
+			for(int j = 0; j < NR_MODULES; j++) {
+				mBandwidthMap[i][j] = mBandwidthMapOriginalValues[i][j];
+			}
+		}
 	}
 	
 }
