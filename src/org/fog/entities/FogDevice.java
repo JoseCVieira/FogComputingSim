@@ -589,12 +589,15 @@ public class FogDevice extends PowerDatacenter {
 	}
 	
 	private void printCost() {
-		System.out.println("\n\nName: " + getName() + "\t Resource usage report:\n");
-		System.out.println("Mips (percentage): " + lastMipsUtilization);
-		System.out.println("Ram (percentage): " + lastRamUtilization);
-		System.out.println("Storage (percentage): " + lastStorageUtilization);
-		System.out.println("Bw (percentage): " + lastBwUtilization);
-		System.out.println("Energy consumption (Total): " + getEnergyConsumption());
+		System.out.println("\n================================================================================");
+		System.out.println("Resource usage report of " + getName() + ":\n");
+		System.out.println("MIPS   	(P): " + String.format( "%.3f", lastMipsUtilization));
+		System.out.println("RAM    	(P): " + String.format( "%.3f", lastRamUtilization));
+		System.out.println("STRG   	(P): " + String.format( "%.3f", lastStorageUtilization));
+		System.out.println("BW     	(P): " + String.format( "%.3f", lastBwUtilization));
+		System.out.println("Cost    (T): " + String.format( "%.3f", getTotalCost()));
+		System.out.println("Energy 	(T): " + String.format( "%.3f", getEnergyConsumption()));
+		System.out.println("================================================================================\n");
 	}
 	
 	// Update position and randomly change movement characteristics except for static nodes

@@ -78,7 +78,7 @@ public class ControllerAlgorithm {
 		System.out.println("Running the optimization algorithm: " + algorithmName + ".");
 		solution = algorithm.execute();
 		
-		if(Config.PLOT_RESULTS)
+		if(Config.PLOT_ALGORITHM_RESULTS)
 			OutputControllerResults.plotResult(algorithm, algorithmName);
 		
 		if(solution == null || solution.getModulePlacementMap() == null || solution.getTupleRoutingMap() == null || !solution.isValid()) {

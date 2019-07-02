@@ -41,16 +41,16 @@ public class Config {
 	// -------------------------------------------------------------- General --------------------------------------------------------------
 	
 	// Algorithms
-	public static final boolean PRINT_DETAILS = true;
 	public static final boolean PRINT_BEST_ITER = true;
-	public static final boolean PLOT_RESULTS = false;
+	public static final boolean PLOT_ALGORITHM_RESULTS = false;
 	
 	// Simulation
 	public static final boolean DEBUG_MODE = false;
+	public static final boolean PRINT_DETAILS = true;
 	public static final boolean PRINT_COST_DETAILS = false;
-	public static final boolean PRINT_HANDOVER_DETAILS = true;
-	public static boolean DYNAMIC_SIMULATION = true;
-	public static final boolean ALLOW_MIGRATION = true;
+	
+	public static boolean DYNAMIC_SIMULATION = false;
+	public static final boolean ALLOW_MIGRATION = true;	
 	
 	public static final int HANDOVER_THRESHOLD = 25;
 	public static final double MOBILE_LATENCY = 50E-3;
