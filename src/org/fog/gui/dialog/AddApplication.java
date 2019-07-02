@@ -43,7 +43,7 @@ public class AddApplication extends JDialog {
 	private static final int WIDTH = 1500;
 	private static final int HEIGHT = 1000;
 	
-	private static final String[] COLUMN_MODULES = {"Name", "Ram", "Mem", "Client Module", "Global Module", "Edit"};
+	private static final String[] COLUMN_MODULES = {"Name", "Ram", "Strg", "Client Module", "Global Module", "Edit"};
 	private static final String[] COLUMN_EDGES = {"Source", "Destination", "Tuple CPU",
 			"Tuple NW", "Tuple Type", "Edge Type", "Periodicity", "Edit"};
 	private static final String[] COLUMN_TUPLES = {"Module Name", "Input Tuple Type",

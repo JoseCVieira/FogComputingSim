@@ -123,7 +123,7 @@ public class AddFogDevice extends JDialog {
 				if (!Util.validString(storage.getText())) error_msg += "Missing storage\n";
 				if (!Util.validString(rateMips.getText())) error_msg += "Missing rate/Mips\n";
 				if (!Util.validString(rateRam.getText())) error_msg += "Missing rate/Ram\n";
-				if (!Util.validString(rateStorage.getText())) error_msg += "Missing rate/Mem\n";
+				if (!Util.validString(rateStorage.getText())) error_msg += "Missing rate/Strg\n";
 				if (!Util.validString(rateBw.getText())) error_msg += "Missing rate/Bw\n";
 				if (!Util.validString(idlePower.getText())) error_msg += "Missing Idle Power\n";
 				if (!Util.validString(busyPower.getText())) error_msg += "Missing Busy Power\n";
@@ -133,10 +133,10 @@ public class AddFogDevice extends JDialog {
 				if((upBw_ = Util.stringToDouble(bw.getText())) < 0) error_msg += "\nBandwidth should be a positive number";
 				if((mips_ = Util.stringToDouble(mips.getText())) < 0) error_msg += "\nMips should be a positive number";
 				if((ram_ = Util.stringToInt(ram.getText())) < 0) error_msg += "\nRam should be a positive number";
-				if((storage_ = Util.stringToInt(storage.getText())) < 0) error_msg += "\nMem should be a positive number";
+				if((storage_ = Util.stringToInt(storage.getText())) < 0) error_msg += "\nStrg should be a positive number";
 				if((rateMips_ = Util.stringToDouble(rateMips.getText())) < 0) error_msg += "\nRate/Mips should be a positive number";
 				if((rateRam_ = Util.stringToDouble(rateRam.getText())) < 0) error_msg += "\nRate/Ram should be a positive number";
-				if((rateStorage_ = Util.stringToDouble(rateStorage.getText())) < 0) error_msg += "\nRate/Mem should be a positive number";
+				if((rateStorage_ = Util.stringToDouble(rateStorage.getText())) < 0) error_msg += "\nRate/Strg should be a positive number";
 				if((rateBw_ = Util.stringToDouble(rateBw.getText())) < 0) error_msg += "\nRate/Bw should be a positive number";
 				if((idlePower_ = Util.stringToDouble(idlePower.getText())) < 0) error_msg += "\nIdle Power should be a positive number";
 				if((busyPower_ = Util.stringToDouble(busyPower.getText())) < 0) error_msg += "\nBusy Power should be a positive number";
@@ -202,11 +202,11 @@ public class AddFogDevice extends JDialog {
 		
 		mips = Util.createInput(springPanel, mips, "MIPS: ", fog == null ? Double.toString(GuiConfig.MIPS) : Double.toString(fog.getMips()));
 		ram = Util.createInput(springPanel, ram, "RAM (MB): ", fog == null ? Long.toString(GuiConfig.RAM) : Long.toString(fog.getRam()));
-		storage = Util.createInput(springPanel, storage, "MEM (MB): ", fog == null ? Long.toString(GuiConfig.MEM) : Long.toString(fog.getStorage()));
+		storage = Util.createInput(springPanel, storage, "Storage (MB): ", fog == null ? Long.toString(GuiConfig.STRG) : Long.toString(fog.getStorage()));
 		bw = Util.createInput(springPanel, bw, "BW (MB/s): ", fog == null ? Double.toString(GuiConfig.BW) : Double.toString(fog.getBw()));
 		rateMips = Util.createInput(springPanel, rateMips, "Rate/MIPS (€): ", fog == null ? Double.toString(GuiConfig.RATE_MIPS) : Double.toString(fog.getRateMips()));
 		rateRam = Util.createInput(springPanel, rateRam, "Rate/RAM (€/sec for 1 MB): ", fog == null ? Double.toString(GuiConfig.RATE_RAM) : Double.toString(fog.getRateRam()));
-		rateStorage = Util.createInput(springPanel, rateStorage, "Rate/MEM (€/sec for 1 MB): ", fog == null ? Double.toString(GuiConfig.RATE_MEM) : Double.toString(fog.getRateStorage()));
+		rateStorage = Util.createInput(springPanel, rateStorage, "Rate/Storage (€/sec for 1 MB): ", fog == null ? Double.toString(GuiConfig.RATE_STRG) : Double.toString(fog.getRateStorage()));
 		rateBw = Util.createInput(springPanel, rateBw, "Rate/Bw (€/1 MB): ", fog == null ? Double.toString(GuiConfig.RATE_BW) : Double.toString(fog.getRateBw()));
 		idlePower = Util.createInput(springPanel, idlePower, "Idle Power (W): ", fog == null ? Double.toString(GuiConfig.IDLE_POWER) : Double.toString(fog.getIdlePower()));
 		busyPower = Util.createInput(springPanel, busyPower, "Busy Power (W): ", fog == null ? Double.toString(GuiConfig.BUSY_POWER) : Double.toString(fog.getBusyPower()));

@@ -45,7 +45,7 @@ public class RandomTopology extends FogTest {
 		Movement movement = new Movement(0.0, Movement.EAST, new Location(0, 0));
 		FogDevice cloud = createFogDevice("Cloud", Double.MAX_VALUE, (int) Constants.INF, (int) Constants.INF, (int) Constants.INF,
 				16*GuiConfig.BUSY_POWER, 16*GuiConfig.IDLE_POWER, GuiConfig.RATE_MIPS, GuiConfig.RATE_RAM,
-				GuiConfig.RATE_MEM, GuiConfig.RATE_BW, movement, false);
+				GuiConfig.RATE_STRG, GuiConfig.RATE_BW, movement, false);
 		
 		fogDevices.add(cloud);
 		
@@ -59,7 +59,7 @@ public class RandomTopology extends FogTest {
 			for(int i = 0; i < nr; i++) {
 				double mips = Util.normalRand(GuiConfig.MIPS/iter, RESOURCES_DEV/iter);
 				double ram = Util.normalRand(GuiConfig.RAM/iter, RESOURCES_DEV/iter);
-				double strg = Util.normalRand(GuiConfig.MEM/iter, RESOURCES_DEV/iter);
+				double strg = Util.normalRand(GuiConfig.STRG/iter, RESOURCES_DEV/iter);
 				double bw = Util.normalRand(GuiConfig.BW/iter, RESOURCES_DEV/iter);
 				
 				double bPw = Util.normalRand(GuiConfig.BUSY_POWER, ENERGY_DEV);
@@ -67,7 +67,7 @@ public class RandomTopology extends FogTest {
 				
 				double rateMips = Util.normalRand(GuiConfig.RATE_MIPS, COST_DEV);
 				double rateRam = Util.normalRand(GuiConfig.RATE_RAM, COST_DEV);
-				double rateStrg = Util.normalRand(GuiConfig.RATE_MEM, COST_DEV);
+				double rateStrg = Util.normalRand(GuiConfig.RATE_STRG, COST_DEV);
 				double rateBw = Util.normalRand(GuiConfig.RATE_BW, COST_DEV);
 				
 				double posx = Util.rand(-500, 500);

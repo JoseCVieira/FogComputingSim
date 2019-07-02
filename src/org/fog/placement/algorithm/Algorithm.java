@@ -37,14 +37,14 @@ public abstract class Algorithm {
 	// Node
 	protected double fMipsPrice[];
 	protected double fRamPrice[];
-	protected double fMemPrice[];
+	protected double fStrgPrice[];
 	protected double fBwPrice[];
 	
 	protected int fId[];
 	protected String fName[];
 	protected double fMips[];
 	protected double fRam[];
-	protected double fMem[];
+	protected double fStrg[];
 	protected double fBusyPw[];
 	protected double fIdlePw[];
 	
@@ -52,7 +52,7 @@ public abstract class Algorithm {
 	protected String mName[];
 	protected double mMips[];
 	protected double mRam[];
-	protected double mMem[];
+	protected double mStrg[];
 	
 	// Node to Node
 	protected double[][] fLatencyMap;
@@ -78,12 +78,12 @@ public abstract class Algorithm {
 		fName = new String[NR_NODES];
 		fMips = new double[NR_NODES];
 		fRam = new double[NR_NODES];
-		fMem = new double[NR_NODES];
+		fStrg = new double[NR_NODES];
 		fBusyPw = new double[NR_NODES];
 		fIdlePw = new double[NR_NODES];
 		fMipsPrice = new double[NR_NODES];
 		fRamPrice = new double[NR_NODES];
-		fMemPrice = new double[NR_NODES];
+		fStrgPrice = new double[NR_NODES];
 		fBwPrice = new double[NR_NODES];
 		
 		LinkedHashSet<String> hashSet = new LinkedHashSet<String>();
@@ -102,7 +102,7 @@ public abstract class Algorithm {
 		mName = new String[NR_MODULES];
 		mMips = new double[NR_MODULES];
 		mRam = new double[NR_MODULES];
-		mMem = new double[NR_MODULES];
+		mStrg = new double[NR_MODULES];
 		
 		fLatencyMap = new double[NR_NODES][NR_NODES];
 		fBandwidthMap = new double[NR_NODES][NR_NODES];
@@ -137,13 +137,13 @@ public abstract class Algorithm {
 			fName[i] = fogDevice.getName();
 			fMips[i] = totalMips;
 			fRam[i] = fogDevice.getHost().getRam();
-			fMem[i] = fogDevice.getHost().getStorage();
+			fStrg[i] = fogDevice.getHost().getStorage();
 			fBusyPw[i] = ((FogLinearPowerModel) fogDevice.getHost().getPowerModel()).getBusyPower();
 			fIdlePw[i] = ((FogLinearPowerModel) fogDevice.getHost().getPowerModel()).getStaticPower();
 			
 			fMipsPrice[i] = characteristics.getCostPerMips();
 			fRamPrice[i] = characteristics.getCostPerMem();
-			fMemPrice[i] = characteristics.getCostPerStorage();
+			fStrgPrice[i] = characteristics.getCostPerStorage();
 			fBwPrice[i++] = characteristics.getCostPerBw();
 		}
 	}
@@ -163,7 +163,7 @@ public abstract class Algorithm {
 				if(getModuleIndexByModuleName(module.getName()) == -1) {
 					mName[i] = module.getName();
 					mRam[i] = module.getRam();
-					mMem[i] = module.getSize();
+					mStrg[i] = module.getSize();
 					
 					if(module.isClientModule()) {
 						String[] parts = module.getName().split("_");
@@ -338,11 +338,35 @@ public abstract class Algorithm {
 		fBandwidthMap[getNodeIndexByNodeId(from.getId())][getNodeIndexByNodeId(mobile.getId())] = 0;
 	}
 	
-	private void normalizeValues() {				
-		double max = computeMax(fMipsPrice, fRamPrice, fMemPrice, fBwPrice);
+	private void normalizeValues() {
+		AlgorithmUtils.print("fMipsPrice", fMipsPrice);
+		AlgorithmUtils.print("fRamPrice", fRamPrice);
+		AlgorithmUtils.print("fStrgPrice", fStrgPrice);
+		AlgorithmUtils.print("fBwPrice", fBwPrice);
+		
+		AlgorithmUtils.print("fMips", fMips);
+		AlgorithmUtils.print("mMips", mMips);
+		
+		AlgorithmUtils.print("fRam", fRam);
+		AlgorithmUtils.print("mRam", mRam);
+		
+		AlgorithmUtils.print("fStrg", fStrg);
+		AlgorithmUtils.print("mStrg", mStrg);
+		
+		AlgorithmUtils.print("fBusyPw", fBusyPw);
+		AlgorithmUtils.print("fIdlePw", fIdlePw);
+		
+		AlgorithmUtils.print("fBandwidthMap", fBandwidthMap);
+		AlgorithmUtils.print("mBandwidthMap", mBandwidthMap);
+		
+		AlgorithmUtils.print("fLatencyMap", fLatencyMap);
+		
+		AlgorithmUtils.print("mDependencyMap", mDependencyMap);
+		
+		double max = computeMax(fMipsPrice, fRamPrice, fStrgPrice, fBwPrice);
 		fMipsPrice = normalize(fMipsPrice, max);
 		fRamPrice = normalize(fRamPrice, max);
-		fMemPrice = normalize(fMemPrice, max);
+		fStrgPrice = normalize(fStrgPrice, max);
 		fBwPrice = normalize(fBwPrice, max);
 		
 		max = computeMax(fMips, mMips);
@@ -353,9 +377,9 @@ public abstract class Algorithm {
 		fRam = normalize(fRam, max);
 		mRam = normalize(mRam, max);
 		
-		max = computeMax(fMem, mMem);
-		fMem = normalize(fMem, max);
-		mMem = normalize(mMem, max);
+		max = computeMax(fStrg, mStrg);
+		fStrg = normalize(fStrg, max);
+		mStrg = normalize(mStrg, max);
 		
 		max = computeMax(fBusyPw, fIdlePw);
 		fBusyPw = normalize(fBusyPw, max);
@@ -370,6 +394,30 @@ public abstract class Algorithm {
 		
 		max = computeMax(mDependencyMap);
 		mDependencyMap = normalize(mDependencyMap, max);
+		
+		AlgorithmUtils.print("fMipsPrice", fMipsPrice);
+		AlgorithmUtils.print("fRamPrice", fRamPrice);
+		AlgorithmUtils.print("fStrgPrice", fStrgPrice);
+		AlgorithmUtils.print("fBwPrice", fBwPrice);
+		
+		AlgorithmUtils.print("fMips", fMips);
+		AlgorithmUtils.print("mMips", mMips);
+		
+		AlgorithmUtils.print("fRam", fRam);
+		AlgorithmUtils.print("mRam", mRam);
+		
+		AlgorithmUtils.print("fStrg", fStrg);
+		AlgorithmUtils.print("mStrg", mStrg);
+		
+		AlgorithmUtils.print("fBusyPw", fBusyPw);
+		AlgorithmUtils.print("fIdlePw", fIdlePw);
+		
+		AlgorithmUtils.print("fBandwidthMap", fBandwidthMap);
+		AlgorithmUtils.print("mBandwidthMap", mBandwidthMap);
+		
+		AlgorithmUtils.print("fLatencyMap", fLatencyMap);
+		
+		AlgorithmUtils.print("mDependencyMap", mDependencyMap);
 	}
 	
 	private double computeMax(double[]... vectors) {
@@ -510,8 +558,8 @@ public abstract class Algorithm {
 		return fRamPrice;
 	}
 
-	public double[] getfMemPrice() {
-		return fMemPrice;
+	public double[] getfStrgPrice() {
+		return fStrgPrice;
 	}
 
 	public double[] getfBwPrice() {
@@ -534,8 +582,8 @@ public abstract class Algorithm {
 		return fRam;
 	}
 
-	public double[] getfMem() {
-		return fMem;
+	public double[] getfStrg() {
+		return fStrg;
 	}
 	
 	public String[] getmName() {
@@ -550,8 +598,8 @@ public abstract class Algorithm {
 		return mRam;
 	}
 
-	public double[] getmMem() {
-		return mMem;
+	public double[] getmStrg() {
+		return mStrg;
 	}
 
 	public double[] getfBusyPw() {

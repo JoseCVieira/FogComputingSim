@@ -47,11 +47,11 @@ public class Config {
 	
 	// Simulation
 	public static final boolean DEBUG_MODE = false;
-	public static final boolean PRINT_COST_DETAILS = false;
+	public static final boolean PRINT_COST_DETAILS = true;
 	public static final boolean PRINT_HANDOVER_DETAILS = true;
 
 	
-	public static boolean DYNAMIC_SIMULATION = true;
+	public static boolean DYNAMIC_SIMULATION = false;
 	public static final boolean ALLOW_MIGRATION = true;
 	
 	public static final int HANDOVER_THRESHOLD = 25;

@@ -98,10 +98,10 @@ public class AlgorithmUtils {
 			System.out.println("Id: " + fDevice.getId() + " fName: " + al.getfName()[i]);
 			System.out.println("fMips: " + al.getfMips()[i]);
 			System.out.println("fRam: " + al.getfRam()[i]);
-			System.out.println("fMem: " + al.getfMem()[i]);
+			System.out.println("fStrg: " + al.getfStrg()[i]);
 			System.out.println("fMipsPrice: " + al.getfMipsPrice()[i]);
 			System.out.println("fRamPrice: " + al.getfRamPrice()[i]);
-			System.out.println("fMemPrice: " + al.getfMemPrice()[i]);
+			System.out.println("fStrgPrice: " + al.getfStrgPrice()[i]);
 			System.out.println("fBwPrice: " + al.getfBwPrice()[i]);
 			System.out.println("fBusyPw: " + al.getfBusyPw()[i]);
 			System.out.println("fIdlePw: " + al.getfIdlePw()[i]);
@@ -121,7 +121,7 @@ public class AlgorithmUtils {
 			System.out.println("mName: " + al.getmName()[i]);
 			System.out.println("mMips: " + al.getmMips()[i]);
 			System.out.println("mRam: " + al.getmRam()[i]);
-			System.out.println("mMem: " + al.getmMem()[i]);
+			System.out.println("mStrg: " + al.getmStrg()[i]);
 			
 			if(i < al.getNumberOfModules() -1)
 				System.out.println();

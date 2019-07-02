@@ -117,13 +117,13 @@ public class AddAppModule extends JDialog {
 					error_msg += "Name cannot contain spaces\n";
 				
 				if (!Util.validString(moduleRam.getText())) error_msg += "Missing Ram\n";
-				if (!Util.validString(moduleSize.getText())) error_msg += "Missing Mem\n";
+				if (!Util.validString(moduleSize.getText())) error_msg += "Missing Storage\n";
 				if (!Util.validString((String) clientModule.getSelectedItem())) error_msg += "Missing Client Module\n";
 				if (!Util.validString((String) globalModule.getSelectedItem())) error_msg += "Missing Global Module\n";
 
 				name_ = moduleName.getText();
 				if((ram_ = Util.stringToInt(moduleRam.getText())) < 0) error_msg += "\nRam should be a positive number";
-				if((size_ = Util.stringToLong(moduleSize.getText())) < 0) error_msg += "\nMem should be a positive number";
+				if((size_ = Util.stringToLong(moduleSize.getText())) < 0) error_msg += "\nStorage should be a positive number";
 				
 				if(error_msg == ""){
 					clientModule_ = ((String) clientModule.getSelectedItem()).equals("YES") ? true : false;
@@ -158,7 +158,7 @@ public class AddAppModule extends JDialog {
 		
         moduleName = Util.createInput(springPanel, moduleName, "Name: ", module == null ? "" : module.getName());
         moduleRam = Util.createInput(springPanel, moduleRam, "Ram: ", module == null ? Integer.toString(GuiConfig.MODULE_RAM) : Integer.toString(module.getRam()));
-        moduleSize = Util.createInput(springPanel, moduleSize, "Mem: ", module == null ? Long.toString(GuiConfig.MODULE_SIZE) : Long.toString(module.getSize()));
+        moduleSize = Util.createInput(springPanel, moduleSize, "Storage: ", module == null ? Long.toString(GuiConfig.MODULE_SIZE) : Long.toString(module.getSize()));
         
         @SuppressWarnings({ "rawtypes", "unchecked" })
 		ComboBoxModel<String> clientModuleModel = new DefaultComboBoxModel(Arrays.asList("YES", "NO").toArray());

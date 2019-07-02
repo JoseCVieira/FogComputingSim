@@ -119,15 +119,15 @@ public class CostFunction {
 		for(int i = 0; i < algorithm.getNumberOfNodes(); i++) {
 			double totalMips = 0;
 			double totalRam = 0;
-			double totalMem = 0;
+			double totalStrg = 0;
 			
 			for(int j = 0; j < algorithm.getNumberOfModules(); j++) {
 				totalMips += modulePlacementMap[i][j] * algorithm.getmMips()[j];
 				totalRam += modulePlacementMap[i][j] * algorithm.getmRam()[j];
-				totalMem += modulePlacementMap[i][j] * algorithm.getmMem()[j];
+				totalStrg += modulePlacementMap[i][j] * algorithm.getmStrg()[j];
 			}
 			
-			if(totalMips > algorithm.getfMips()[i] || totalRam > algorithm.getfRam()[i] || totalMem > algorithm.getfMem()[i]) {
+			if(totalMips > algorithm.getfMips()[i] || totalRam > algorithm.getfRam()[i] || totalStrg > algorithm.getfStrg()[i]) {
 				cost += Constants.REFERENCE_COST;
 				if(PRINT_DETAILS)
 					System.out.println("fog node's resources are exceeded");
@@ -193,7 +193,7 @@ public class CostFunction {
 				cost += Config.OP_W * modulePlacementMap[i][j] *
 						(algorithm.getfMipsPrice()[i] * algorithm.getmMips()[j] +
 						 algorithm.getfRamPrice()[i] * algorithm.getmRam()[j] +
-						 algorithm.getfMemPrice()[i] * algorithm.getmMem()[j]);
+						 algorithm.getfStrgPrice()[i] * algorithm.getmStrg()[j]);
 			}
 		}
 		

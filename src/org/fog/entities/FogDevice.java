@@ -46,7 +46,7 @@ public class FogDevice extends PowerDatacenter {
 	
 	private double lastMipsUtilization;
 	private double lastRamUtilization;
-	private double lastMemUtilization;
+	private double lastStorageUtilization;
 	private double lastBwUtilization;
 	
 	private List<Integer> fixedNeighborsIds;
@@ -317,25 +317,28 @@ public class FogDevice extends PowerDatacenter {
 	private void updateEnergyConsumption() {
 		double totalMipsAllocated = 0;
 		double totalRamAllocated = 0;
-		double totalMemAllocated = 0;
+		double totalStorageAllocated = 0;
+		double totalBwAllocated = 0;
+		double totalBwAvailable = 0;
 		
 		for(final Vm vm : getHost().getVmList()){
 			AppModule operator = (AppModule)vm;
-			operator.updateVmProcessing(CloudSim.clock(), getVmAllocationPolicy().getHost(operator).getVmScheduler()
-					.getAllocatedMipsForVm(operator));
+			operator.updateVmProcessing(CloudSim.clock(), getVmAllocationPolicy().getHost(operator).getVmScheduler().getAllocatedMipsForVm(operator));
 			
 			double allocatedMipsForVm = getHost().getTotalAllocatedMipsForVm(vm);
 			totalMipsAllocated += allocatedMipsForVm;
-			totalMemAllocated += ((AppModule)vm).getSize();
+			totalStorageAllocated += ((AppModule)vm).getSize();
 			
 			if(allocatedMipsForVm != 0)
 				totalRamAllocated += ((AppModule)vm).getCurrentAllocatedRam();
 		}
 		
-		/*double totalBwAllocated = 0;
-		for(int destId : getTupleLinkBusy().keySet())
-			if(getTupleLinkBusy().get(destId))
-				totalBwAllocated += getBandwidthMap().get(destId);*/
+		for(int neighborId : tupleLinkBusy.keySet()) {
+			totalBwAvailable += getBandwidthMap().get(neighborId);
+			
+			if(!tupleLinkBusy.get(neighborId)) continue;
+			totalBwAllocated += getBandwidthMap().get(neighborId);
+		}
 		
 		double timeNow = CloudSim.clock();
 		double timeDif = timeNow-lastUtilizationUpdateTime;
@@ -347,14 +350,16 @@ public class FogDevice extends PowerDatacenter {
 		double newcost = getTotalCost();
 		newcost += timeDif*lastMipsUtilization*getHost().getTotalMips()*characteristics.getCostPerMips();
 		newcost += timeDif*lastRamUtilization*getHost().getRam()*characteristics.getCostPerMem();
-		newcost += timeDif*lastMemUtilization*getHost().getStorage()*characteristics.getCostPerStorage();
-		//newcost += timeDif*lastBwUtilization*getHost().getBw()*characteristics.getCostPerBw();
+		newcost += timeDif*lastStorageUtilization*getHost().getStorage()*characteristics.getCostPerStorage();
+		newcost += timeDif*lastBwUtilization*totalBwAvailable*characteristics.getCostPerBw();
+		
+		
 		newcost += timeDif*characteristics.getCostPerSecond();
 		setTotalCost(newcost);
 		
 		lastRamUtilization = totalRamAllocated/getHost().getRam();
-		//lastBwUtilization = totalBwAllocated/getHost().getBw();
-		lastMemUtilization = totalMemAllocated/getHost().getStorage();
+		lastBwUtilization = totalBwAllocated/totalBwAvailable;
+		lastStorageUtilization = totalStorageAllocated/getHost().getStorage();
 		lastMipsUtilization = totalMipsAllocated/getHost().getTotalMips();
 		
 		lastUtilizationUpdateTime = timeNow;
@@ -572,7 +577,7 @@ public class FogDevice extends PowerDatacenter {
 		System.out.println("\n\nName: " + getName());
 		System.out.println("lastMipsUtilization: " + lastMipsUtilization);
 		System.out.println("lastRamUtilization: " + lastRamUtilization);
-		System.out.println("lastMemUtilization: " + lastMemUtilization);
+		System.out.println("lastStorageUtilization: " + lastStorageUtilization);
 		System.out.println("lastBwUtilization: " + lastBwUtilization);
 	}
 	
@@ -834,7 +839,7 @@ public class FogDevice extends PowerDatacenter {
 		return "FogDevice [\nName=" + getName() + "\nId=" + getId() + "\ndeployedModules=" + deployedModules
 				+ "\nlatencyMap=" + latencyMap + "\nbandwidthMap=" + bandwidthMap + "\nroutingTable=" + tupleRoutingTable
 				+ "\nmovement=" + movement + "\nMIPS=" + getHost().getTotalMips() + "\nRAM=" + getHost().getRam()
-				+ "\nMEM=" + getHost().getStorage() + "\nBW=" + getHost().getBw() + "\nVm List=" + getHost().getVmList()
+				+ "\nStorage=" + getHost().getStorage() + "\nBW=" + getHost().getBw() + "\nVm List=" + getHost().getVmList()
 				+ "\nfixedNeighborsIds=" + fixedNeighborsIds + "]";
 	}
 	

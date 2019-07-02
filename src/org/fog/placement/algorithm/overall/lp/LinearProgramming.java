@@ -75,7 +75,7 @@ public class LinearProgramming extends Algorithm {
 			for(int i = 0; i < NR_NODES; i++) {
 				for(int j = 0; j < NR_MODULES; j++) {
 					
-					double opCost = Config.OP_W*(getfMipsPrice()[i]*getmMips()[j] + getfRamPrice()[i]*getmRam()[j] + getfMemPrice()[i]*getmMem()[j]);
+					double opCost = Config.OP_W*(getfMipsPrice()[i]*getmMips()[j] + getfRamPrice()[i]*getmRam()[j] + getfStrgPrice()[i]*getmStrg()[j]);
 					double pwCost = Config.PW_W*(getfBusyPw()[i]-getfIdlePw()[i])*(getmMips()[j]/getfMips()[i]);
 					double prCost = Config.PR_W*(getmMips()[j]/getfMips()[i]);
 					
@@ -104,7 +104,7 @@ public class LinearProgramming extends Algorithm {
 			}
 			
 			for(int i = 0; i < NR_MODULES; i++) {
-				double size = getmMem()[i] + getmRam()[i];
+				double size = getmStrg()[i] + getmRam()[i];
 				
 				for(int j = 0; j < NR_NODES; j++) {
 					for(int z = 0; z < NR_NODES; z++) {
@@ -168,7 +168,7 @@ public class LinearProgramming extends Algorithm {
 					double totalOp = 0, totalPw = 0, totalPr = 0, totalLt = 0, totalBw = 0;
 					for(int i = 0; i < NR_NODES; i++) {
 						for(int j = 0; j < NR_MODULES; j++) {
-							totalOp += Config.OP_W*(getfMipsPrice()[i]*getmMips()[j] + getfRamPrice()[i]*getmRam()[j] + getfMemPrice()[i]*getmMem()[j])*cplex.getValue(placementVar[i][j]);
+							totalOp += Config.OP_W*(getfMipsPrice()[i]*getmMips()[j] + getfRamPrice()[i]*getmRam()[j] + getfStrgPrice()[i]*getmStrg()[j])*cplex.getValue(placementVar[i][j]);
 							totalPw += Config.PW_W*(getfBusyPw()[i]-getfIdlePw()[i])*(getmMips()[j]/getfMips()[i])*cplex.getValue(placementVar[i][j]);
 							totalPr += Config.PR_W*(getmMips()[j]/getfMips()[i])*cplex.getValue(placementVar[i][j]);
 						}
@@ -218,17 +218,17 @@ public class LinearProgramming extends Algorithm {
 				// Define constraints
 				IloLinearNumExpr[] usedMipsCapacity = new IloLinearNumExpr[NR_NODES];
 				IloLinearNumExpr[] usedRamCapacity = new IloLinearNumExpr[NR_NODES];
-				IloLinearNumExpr[] usedMemCapacity = new IloLinearNumExpr[NR_NODES];
+				IloLinearNumExpr[] usedStrgCapacity = new IloLinearNumExpr[NR_NODES];
 				
 				for (int i = 0; i < NR_NODES; i++) {
 					usedMipsCapacity[i] = cplex.linearNumExpr();
 					usedRamCapacity[i] = cplex.linearNumExpr();
-					usedMemCapacity[i] = cplex.linearNumExpr();
+					usedStrgCapacity[i] = cplex.linearNumExpr();
 					
 		    		for (int j = 0; j < NR_MODULES; j++) {
 		    			usedMipsCapacity[i].addTerm(placementVar[i][j], getmMips()[j]);
 		    			usedRamCapacity[i].addTerm(placementVar[i][j], getmRam()[j]);
-						usedMemCapacity[i].addTerm(placementVar[i][j], getmMem()[j]);
+		    			usedStrgCapacity[i].addTerm(placementVar[i][j], getmStrg()[j]);
 		    		}
 				}
 				
@@ -236,7 +236,7 @@ public class LinearProgramming extends Algorithm {
 				for (int i = 0; i < NR_NODES; i++) {
 		    		cplex.addLe(usedMipsCapacity[i], getfMips()[i]);
 		    		cplex.addLe(usedRamCapacity[i], getfRam()[i]);
-		    		cplex.addLe(usedMemCapacity[i], getfMem()[i]);
+		    		cplex.addLe(usedStrgCapacity[i], getfStrg()[i]);
 				}
 				
 				IloNumVar[][] transposeP = new IloNumVar[NR_MODULES][NR_NODES];

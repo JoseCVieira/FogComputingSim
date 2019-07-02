@@ -53,17 +53,17 @@ public class Bridge {
 					int level = new BigDecimal((Long)node.get("level")).intValue();
 					double mips = (Double) node.get("mips");
 					int ram = new BigDecimal((Long)node.get("ram")).intValue();
-					long mem = (Long) node.get("mem");
+					long strg = (Long) node.get("strg");
 					double bw = (Double) node.get("bw");
 					double rateMips = (Double) node.get("ratePerMips");
 					double rateRam = (Double) node.get("ratePerRam");
-					double rateStorage = (Double) node.get("ratePerMem");
+					double rateStorage = (Double) node.get("ratePerStrg");
 					double rateBw = (Double) node.get("ratePerBw");
 					double idlePower = (Double) node.get("idlePower");
 					double busyPower = (Double) node.get("busyPower");
 					double cost = (Double) node.get("cost");
 
-					Node fogDevice = new FogDeviceGui(nodeName, level, mips, ram, mem, bw, rateMips, rateRam,
+					Node fogDevice = new FogDeviceGui(nodeName, level, mips, ram, strg, bw, rateMips, rateRam,
 							rateStorage, rateBw, idlePower, busyPower, cost, application);
 					graph.addNode(fogDevice);
 				} else if(nodeType.equals(Constants.SENSOR_TYPE)){
@@ -124,13 +124,13 @@ public class Bridge {
 				String appId = (String) model.get("appId");
 				String name = (String) model.get("name");
 				int ram = ((Long) model.get("ram")).intValue();
-				long mem = (Long) model.get("mem");
+				long strg = (Long) model.get("strg");
 				boolean clientModule = (Boolean) model.get("clientModule");
 				boolean globalModule = (Boolean) model.get("globalModule");
 				
 				for(ApplicationGui app : graph.getAppList()) {
 					if(app.getAppId().equals(appId)) {
-						app.addAppModule(name, ram, mem, clientModule, globalModule);
+						app.addAppModule(name, ram, strg, clientModule, globalModule);
 						break;
 					}
 				}
@@ -237,12 +237,12 @@ public class Bridge {
 					jobj.put("type", fogDevice.getType());
 					jobj.put("mips", fogDevice.getMips());
 					jobj.put("ram", fogDevice.getRam());
-					jobj.put("mem", fogDevice.getStorage());
+					jobj.put("strg", fogDevice.getStorage());
 					jobj.put("bw", fogDevice.getBw());
 					jobj.put("level", fogDevice.getLevel());
 					jobj.put("ratePerMips", fogDevice.getRateMips());
 					jobj.put("ratePerRam", fogDevice.getRateRam());
-					jobj.put("ratePerMem", fogDevice.getRateStorage());
+					jobj.put("ratePerStrg", fogDevice.getRateStorage());
 					jobj.put("ratePerBw", fogDevice.getRateBw());
 					jobj.put("idlePower", fogDevice.getIdlePower());
 					jobj.put("busyPower", fogDevice.getBusyPower());
@@ -298,7 +298,7 @@ public class Bridge {
 				jobj.put("appId", appModule.getAppId());
 				jobj.put("name", appModule.getName());
 				jobj.put("ram", appModule.getRam());
-				jobj.put("mem", appModule.getSize());
+				jobj.put("strg", appModule.getSize());
 				jobj.put("clientModule", appModule.isClientModule());
 				jobj.put("globalModule", appModule.isGlobalModule());
 				modules.add(jobj);

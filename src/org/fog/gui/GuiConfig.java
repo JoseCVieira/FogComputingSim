@@ -12,10 +12,10 @@ public class GuiConfig {
 	public static final double BW = 10240;
 	public static final double MIPS = 22733.5;
 	public static final int RAM = 131072;
-	public static final int MEM = 1048576;
+	public static final int STRG = 1048576;
 	public static final double RATE_MIPS = 1.5855E-04;
 	public static final double RATE_RAM = 1.14E-07;
-	public static final double RATE_MEM = 5E-11;
+	public static final double RATE_STRG = 5E-11;
 	public static final double RATE_BW = 3.9E-05;
 	public static final double IDLE_POWER = 83.4333;
 	public static final double BUSY_POWER = 127.339;

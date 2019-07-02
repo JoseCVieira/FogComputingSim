@@ -34,21 +34,21 @@ public class ApplicationGui {
 		this.setEdgeMap(new HashMap<String, AppEdge>());
 	}
 	
-	public void addAppModule(String moduleName, int ram, long mem, boolean clientModule, boolean globalModule){
+	public void addAppModule(String moduleName, int ram, long strg, boolean clientModule, boolean globalModule){
 		String vmm = "Xen";
 		int userId = -1;
 		
-		AppModule module = new AppModule(FogUtils.generateEntityId(), moduleName, appId, userId, 0, ram, 0, mem, vmm,
+		AppModule module = new AppModule(FogUtils.generateEntityId(), moduleName, appId, userId, 0, ram, 0, strg, vmm,
 				new CloudletSchedulerTimeShared(), new HashMap<Pair<String, String>, SelectivityModel>(), clientModule, globalModule);
 		
 		getModules().add(module);
 	}
 	
-	public void addAppModule(String moduleName, double mips, int ram, long mem, long bw, boolean clientModule, boolean globalModule){
+	public void addAppModule(String moduleName, double mips, int ram, long strg, long bw, boolean clientModule, boolean globalModule){
 		String vmm = "Xen";
 		int userId = -1;
 		
-		AppModule module = new AppModule(FogUtils.generateEntityId(), moduleName, appId, userId, mips, ram, bw, mem, vmm,
+		AppModule module = new AppModule(FogUtils.generateEntityId(), moduleName, appId, userId, mips, ram, bw, strg, vmm,
 				new CloudletSchedulerTimeShared(), new HashMap<Pair<String, String>, SelectivityModel>(), clientModule, globalModule);
 		
 		getModules().add(module);

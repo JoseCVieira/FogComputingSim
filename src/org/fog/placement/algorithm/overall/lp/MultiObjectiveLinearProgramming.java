@@ -81,7 +81,7 @@ public class MultiObjectiveLinearProgramming extends Algorithm {
 			
 			for(int i = 0; i < NR_NODES; i++) {
 				for(int j = 0; j < NR_MODULES; j++) {
-					double op = getfMipsPrice()[i]*getmMips()[j] + getfRamPrice()[i]*getmRam()[j] + getfMemPrice()[i]*getmMem()[j];
+					double op = getfMipsPrice()[i]*getmMips()[j] + getfRamPrice()[i]*getmRam()[j] + getfStrgPrice()[i]*getmStrg()[j];
 					double pw = (getfBusyPw()[i]-getfIdlePw()[i])*(getmMips()[j]/getfMips()[i]);
 					double pr = getmMips()[j]/getfMips()[i];
 					
@@ -109,7 +109,7 @@ public class MultiObjectiveLinearProgramming extends Algorithm {
 			}
 			
 			for(int i = 0; i < NR_MODULES; i++) {
-				double size = getmMem()[i] + getmRam()[i];
+				double size = getmStrg()[i] + getmRam()[i];
 				
 				for(int j = 0; j < NR_NODES; j++) {
 					for(int z = 0; z < NR_NODES; z++) {
@@ -204,17 +204,17 @@ public class MultiObjectiveLinearProgramming extends Algorithm {
 			// Define constraints
 			IloLinearNumExpr[] usedMipsCapacity = new IloLinearNumExpr[NR_NODES];
 			IloLinearNumExpr[] usedRamCapacity = new IloLinearNumExpr[NR_NODES];
-			IloLinearNumExpr[] usedMemCapacity = new IloLinearNumExpr[NR_NODES];
+			IloLinearNumExpr[] usedStrgCapacity = new IloLinearNumExpr[NR_NODES];
 			
 			for (int i = 0; i < NR_NODES; i++) {
 				usedMipsCapacity[i] = cplex.linearNumExpr();
 				usedRamCapacity[i] = cplex.linearNumExpr();
-				usedMemCapacity[i] = cplex.linearNumExpr();
+				usedStrgCapacity[i] = cplex.linearNumExpr();
 				
 	    		for (int j = 0; j < NR_MODULES; j++) {
 	    			usedMipsCapacity[i].addTerm(placementVar[i][j], getmMips()[j]);
 	    			usedRamCapacity[i].addTerm(placementVar[i][j], getmRam()[j]);
-					usedMemCapacity[i].addTerm(placementVar[i][j], getmMem()[j]);
+	    			usedStrgCapacity[i].addTerm(placementVar[i][j], getmStrg()[j]);
 	    		}
 			}
 			
@@ -222,7 +222,7 @@ public class MultiObjectiveLinearProgramming extends Algorithm {
 			for (int i = 0; i < NR_NODES; i++) {
 	    		cplex.addLe(usedMipsCapacity[i], getfMips()[i]);
 	    		cplex.addLe(usedRamCapacity[i], getfRam()[i]);
-	    		cplex.addLe(usedMemCapacity[i], getfMem()[i]);
+	    		cplex.addLe(usedStrgCapacity[i], getfStrg()[i]);
 			}
 			
 			IloNumVar[][] transposeP = new IloNumVar[NR_MODULES][NR_NODES];
