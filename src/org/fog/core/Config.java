@@ -18,11 +18,11 @@ public class Config {
 	 * 		 same importance).
 	 */
 	public static final int[] priorities = new int[] {
-			6,	// Operational cost
-			4,	// Power cost
-			3,	// Processing cost
-			5,	// Latency cost
-			2,	// Bandwidth cost
+			1,	// Operational cost
+			1,	// Power cost
+			1,	// Processing cost
+			2,	// Latency cost
+			1,	// Bandwidth cost
 			1	// Migration cost
 	};
 	
@@ -49,8 +49,8 @@ public class Config {
 	public static final boolean PRINT_DETAILS = true;
 	public static final boolean PRINT_COST_DETAILS = false;
 	
-	public static boolean DYNAMIC_SIMULATION = true;
-	public static final boolean ALLOW_MIGRATION = true;	
+	public static boolean DYNAMIC_SIMULATION = false;
+	public static final boolean ALLOW_MIGRATION = true;
 	
 	public static final int HANDOVER_THRESHOLD = 25;
 	public static final double MOBILE_LATENCY = 50E-3;

@@ -37,7 +37,7 @@ public class CostFunction {
 		if(PRINT_DETAILS)
 			System.out.println("OP cost: " + tmp);
 		
-		tmp = calculatePowerCost(algorithm, modulePlacementMap);
+		tmp = calculatePowerCost(algorithm, modulePlacementMap, tupleRoutingMap, initialModules, finalModules);
 		cost += tmp;
 		if(PRINT_DETAILS)
 			System.out.println("PW cost: " + tmp);
@@ -209,13 +209,28 @@ public class CostFunction {
 		return cost;
 	}
 	
-	private static double calculatePowerCost(Algorithm algorithm, int[][] modulePlacementMap) {
+	private static double calculatePowerCost(Algorithm algorithm, int[][] modulePlacementMap, int[][] routingMap,
+			List<Integer> initialModules, List<Integer> finalModules) {
 		double cost = 0;
 		
 		for(int i = 0; i < algorithm.getNumberOfNodes(); i++) {
 			for(int j = 0; j < algorithm.getNumberOfModules(); j++){
 				cost += Config.PW_W * modulePlacementMap[i][j] * (algorithm.getfBusyPw()[i]-algorithm.getfIdlePw()[i]) *
 						(algorithm.getmMips()[j]/algorithm.getfMips()[i]);
+			}
+		}
+		
+		for(int i = 0; i < algorithm.getNumberOfDependencies(); i++) {
+			double dependencies = algorithm.getmDependencyMap()[initialModules.get(i)][finalModules.get(i)];
+			double bwNeeded = algorithm.getmBandwidthMap()[initialModules.get(i)][finalModules.get(i)];
+			
+			for(int j = 1; j < algorithm.getNumberOfNodes(); j++) {
+				if(routingMap[i][j] != routingMap[i][j-1]) {
+					double txCost = algorithm.getfTxPwMap()[routingMap[i][j-1]][routingMap[i][j]];
+					
+					cost += Config.LT_W*(algorithm.getfLatencyMap()[routingMap[i][j-1]][routingMap[i][j]] * dependencies * txCost);
+					cost += Config.BW_W*(bwNeeded/(algorithm.getfBandwidthMap()[routingMap[i][j-1]][routingMap[i][j]] + Constants.EPSILON) * txCost);
+				}
 			}
 		}
 		

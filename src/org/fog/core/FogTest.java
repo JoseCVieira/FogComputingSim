@@ -90,7 +90,7 @@ public abstract class FogTest {
 		}
 	}
 	
-	protected static void connectFogDevices(FogDevice fog1, FogDevice fog2, double latUp, double latDown, double bwUp, double bwDown) {		
+	protected static void connectFogDevices(FogDevice fog1, FogDevice fog2, double latUp, double latDown, double bwUp, double bwDown) {
 		fog1.getLatencyMap().put(fog2.getId(), latUp);
 		fog2.getLatencyMap().put(fog1.getId(), latDown);
 		

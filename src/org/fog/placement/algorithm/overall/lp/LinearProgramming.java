@@ -76,7 +76,7 @@ public class LinearProgramming extends Algorithm {
 				for(int j = 0; j < NR_MODULES; j++) {
 					
 					double opCost = Config.OP_W*(getfMipsPrice()[i]*getmMips()[j] + getfRamPrice()[i]*getmRam()[j] + getfStrgPrice()[i]*getmStrg()[j]);
-					double pwCost = Config.PW_W*(getfBusyPw()[i]-getfIdlePw()[i])*(getmMips()[j]/getfMips()[i]);
+					double pwCost = Config.PW_W*(getfBusyPw()[i]-getfIdlePw()[i])*(getmMips()[j]/getfMips()[i]);					
 					double prCost = Config.PR_W*(getmMips()[j]/getfMips()[i]);
 					
 					objective.addTerm(placementVar[i][j], opCost);	// Operational cost
@@ -96,9 +96,11 @@ public class LinearProgramming extends Algorithm {
 						double txOpCost = Config.OP_W*(getfBwPrice()[j]*bwNeeded);
 						
 						// Transmission cost + transmission operational cost + transition cost
-						objective.addTerm(tupleRoutingVar[i][j][z], latencyCost);	// Latency cost
-						objective.addTerm(tupleRoutingVar[i][j][z], bandwidthCost);	// Bandwidth cost
-						objective.addTerm(tupleRoutingVar[i][j][z], txOpCost);		// Operational cost
+						objective.addTerm(tupleRoutingVar[i][j][z], latencyCost);						// Latency cost
+						objective.addTerm(tupleRoutingVar[i][j][z], bandwidthCost);						// Bandwidth cost
+						objective.addTerm(tupleRoutingVar[i][j][z], txOpCost);							// Operational cost
+						objective.addTerm(tupleRoutingVar[i][j][z], latencyCost*getfTxPwMap()[j][z]);	// Power cost
+						objective.addTerm(tupleRoutingVar[i][j][z], bandwidthCost*getfTxPwMap()[j][z]);	// Power cost
 					}
 				}
 			}

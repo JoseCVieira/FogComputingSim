@@ -22,6 +22,7 @@ import org.fog.entities.FogDeviceCharacteristics;
 import org.fog.entities.Sensor;
 import org.fog.placement.algorithm.overall.util.AlgorithmUtils;
 import org.fog.utils.FogLinearPowerModel;
+import org.fog.utils.Location;
 import org.fog.utils.distribution.DeterministicDistribution;
 import org.fog.utils.distribution.Distribution;
 import org.fog.utils.distribution.NormalDistribution;
@@ -47,6 +48,8 @@ public abstract class Algorithm {
 	protected double fStrg[];
 	protected double fBusyPw[];
 	protected double fIdlePw[];
+	protected double fBusyPwOriginalValues[];
+	protected double fIdlePwOriginalValues[];
 	
 	// Module
 	protected String mName[];
@@ -55,10 +58,12 @@ public abstract class Algorithm {
 	protected double mStrg[];
 	
 	// Node to Node
-	protected double[][] fLatencyMap;
+	private double[][] fLatencyMap;
 	private double[][] fBandwidthMap;
+	private double[][] fTxPwMap;
 	private double[][] fLatencyMapOriginalValues;
 	private double[][] fBandwidthMapOriginalValues;
+	private double[][] fTxPwMapOriginalValues;
 	
 	// Module to Module
 	protected double[][] mDependencyMap;
@@ -84,6 +89,9 @@ public abstract class Algorithm {
 		fStrg = new double[NR_NODES];
 		fBusyPw = new double[NR_NODES];
 		fIdlePw = new double[NR_NODES];
+		fBusyPwOriginalValues = new double[NR_NODES];
+		fIdlePwOriginalValues = new double[NR_NODES];
+		
 		fMipsPrice = new double[NR_NODES];
 		fRamPrice = new double[NR_NODES];
 		fStrgPrice = new double[NR_NODES];
@@ -109,8 +117,10 @@ public abstract class Algorithm {
 		
 		fLatencyMap = new double[NR_NODES][NR_NODES];
 		fBandwidthMap = new double[NR_NODES][NR_NODES];
+		fTxPwMap = new double[NR_NODES][NR_NODES];
 		fLatencyMapOriginalValues = new double[NR_NODES][NR_NODES];
 		fBandwidthMapOriginalValues = new double[NR_NODES][NR_NODES];
+		fTxPwMapOriginalValues = new double[NR_NODES][NR_NODES];
 		
 		possibleDeployment = new double[NR_NODES][NR_MODULES];
 		currentPlacement = new double[NR_NODES][NR_MODULES];
@@ -320,6 +330,20 @@ public abstract class Algorithm {
 				double lat = fogDevice.getLatencyMap().get(neighborId);
 				double bw = fogDevice.getBandwidthMap().get(neighborId);
 				
+				if(!fogDevice.isStaticNode()) {
+					for(FogDevice tmp : fogDevices) {
+						if(tmp.getId() == neighborId) {
+							double distance = Location.computeDistance(fogDevice, tmp);
+							double txPower = Config.RX_SENSITIVITY * 4 * Math.PI *  Math.pow(distance, Config.PATH_LOSS_GAMMA);
+							
+							fTxPwMap[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(neighborId)] = txPower;
+							fTxPwMap[getNodeIndexByNodeId(neighborId)][getNodeIndexByNodeId(dId)] = txPower;
+							
+							break;
+						}
+					}
+				}
+				
 				fLatencyMap[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(neighborId)] = lat;
 				fBandwidthMap[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(neighborId)] = bw;
 			}
@@ -330,7 +354,7 @@ public abstract class Algorithm {
 	}
 	
 	// Mobile communications are characterize by a fixed latency and bandwidth
-	public void changeConnectionMap(FogDevice mobile, FogDevice from, FogDevice to) {		
+	public void changeConnectionMap(FogDevice mobile, FogDevice from, FogDevice to) {
 		fLatencyMap[getNodeIndexByNodeId(mobile.getId())][getNodeIndexByNodeId(to.getId())] = Config.MOBILE_LATENCY;
 		fBandwidthMap[getNodeIndexByNodeId(mobile.getId())][getNodeIndexByNodeId(to.getId())] = Config.MOBILE_COMMUNICATION_BW;
 		
@@ -342,6 +366,15 @@ public abstract class Algorithm {
 		
 		fLatencyMap[getNodeIndexByNodeId(from.getId())][getNodeIndexByNodeId(mobile.getId())] = Constants.INF;
 		fBandwidthMap[getNodeIndexByNodeId(from.getId())][getNodeIndexByNodeId(mobile.getId())] = 0;
+		
+		double distance = Location.computeDistance(mobile, to);
+		double txPower = Config.RX_SENSITIVITY * 4 * Math.PI *  Math.pow(distance, Config.PATH_LOSS_GAMMA);
+		
+		fTxPwMap[getNodeIndexByNodeId(mobile.getId())][getNodeIndexByNodeId(from.getId())] = 0;
+		fTxPwMap[getNodeIndexByNodeId(from.getId())][getNodeIndexByNodeId(mobile.getId())] = 0;
+		
+		fTxPwMap[getNodeIndexByNodeId(mobile.getId())][getNodeIndexByNodeId(to.getId())] = txPower;
+		fTxPwMap[getNodeIndexByNodeId(to.getId())][getNodeIndexByNodeId(mobile.getId())] = txPower;
 	}
 	
 	private void normalizeValues() {
@@ -359,6 +392,7 @@ public abstract class Algorithm {
 		AlgorithmUtils.print("fStrg", fStrg);
 		AlgorithmUtils.print("mStrg", mStrg);
 		
+		AlgorithmUtils.print("fTxPwMap", fTxPwMap);
 		AlgorithmUtils.print("fBusyPw", fBusyPw);
 		AlgorithmUtils.print("fIdlePw", fIdlePw);
 		
@@ -389,7 +423,10 @@ public abstract class Algorithm {
 		fStrg = normalize(fStrg, max);
 		mStrg = normalize(mStrg, max);
 		
-		max = computeMax(fBusyPw, fIdlePw);
+		max = computeMax(fTxPwMap);
+		double tmp = computeMax(fBusyPw, fIdlePw);
+		max = max >= tmp ? max : tmp;
+		fTxPwMap = normalize(fTxPwMap, max);
 		fBusyPw = normalize(fBusyPw, max);
 		fIdlePw = normalize(fIdlePw, max);
 		
@@ -417,6 +454,7 @@ public abstract class Algorithm {
 		AlgorithmUtils.print("fStrg", fStrg);
 		AlgorithmUtils.print("mStrg", mStrg);
 		
+		AlgorithmUtils.print("fTxPwMap", fTxPwMap);
 		AlgorithmUtils.print("fBusyPw", fBusyPw);
 		AlgorithmUtils.print("fIdlePw", fIdlePw);
 		
@@ -436,6 +474,10 @@ public abstract class Algorithm {
 		
 		AlgorithmUtils.print("fLatencyMap", fLatencyMap);
 		
+		AlgorithmUtils.print("fTxPwMap", fTxPwMap);
+		AlgorithmUtils.print("fBusyPw", fBusyPw);
+		AlgorithmUtils.print("fIdlePw", fIdlePw);
+		
 		saveOriginalValues();
 		
 		double max = computeMax(fBandwidthMap, mBandwidthMap);
@@ -445,10 +487,21 @@ public abstract class Algorithm {
 		max = computeMax(fLatencyMap);
 		fLatencyMap = normalize(fLatencyMap, max);
 		
+		max = computeMax(fTxPwMap);
+		double tmp = computeMax(fBusyPw, fIdlePw);
+		max = max >= tmp ? max : tmp;
+		fTxPwMap = normalize(fTxPwMap, max);
+		fBusyPw = normalize(fBusyPw, max);
+		fIdlePw = normalize(fIdlePw, max);
+		
 		AlgorithmUtils.print("fBandwidthMap", fBandwidthMap);
 		AlgorithmUtils.print("mBandwidthMap", mBandwidthMap);
 		
 		AlgorithmUtils.print("fLatencyMap", fLatencyMap);
+		
+		AlgorithmUtils.print("fTxPwMap", fTxPwMap);
+		AlgorithmUtils.print("fBusyPw", fBusyPw);
+		AlgorithmUtils.print("fIdlePw", fIdlePw);
 		
 		System.out.println("\n\n\n\n\n\n");
 	}
@@ -667,6 +720,10 @@ public abstract class Algorithm {
 		return fBandwidthMap;
 	}
 	
+	public double[][] getfTxPwMap() {
+		return fTxPwMap;
+	}
+	
 	public int getNumberOfNodes() {
 		return NR_NODES;
 	}
@@ -738,7 +795,11 @@ public abstract class Algorithm {
 			for(int j = 0; j < NR_NODES; j++) {
 				fLatencyMapOriginalValues[i][j] = fLatencyMap[i][j];
 				fBandwidthMapOriginalValues[i][j] = fBandwidthMap[i][j];
+				fTxPwMapOriginalValues[i][j] = fTxPwMap[i][j];
 			}
+			
+			fBusyPwOriginalValues[i] = fBusyPw[i];
+			fIdlePwOriginalValues[i] = fIdlePw[i];
 		}
 		
 		for(int i = 0; i < NR_MODULES; i++) {
@@ -753,7 +814,11 @@ public abstract class Algorithm {
 			for(int j = 0; j < NR_NODES; j++) {
 				fLatencyMap[i][j] = fLatencyMapOriginalValues[i][j];
 				fBandwidthMap[i][j] = fBandwidthMapOriginalValues[i][j];
+				fTxPwMap[i][j] = fTxPwMapOriginalValues[i][j];
 			}
+			
+			fBusyPw[i] = fBusyPwOriginalValues[i];
+			fIdlePw[i] = fIdlePwOriginalValues[i];
 		}
 		
 		for(int i = 0; i < NR_MODULES; i++) {
