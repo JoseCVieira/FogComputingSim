@@ -36,12 +36,12 @@ public class Config {
 	public static final int MAX_ITER_ROUTING_CONVERGENCE_GA = 3;
 	
 	// Random algorithm
-	public static final int MAX_ITER_RANDOM = 5000;
+	public static final int MAX_ITER_RANDOM = 10000;
 	
 	// -------------------------------------------------------------- General --------------------------------------------------------------
 	
 	// Algorithms
-	public static final boolean PRINT_BEST_ITER = true;
+	public static final boolean PRINT_BEST_ITER = false;
 	public static final boolean PLOT_ALGORITHM_RESULTS = false;
 	
 	// Simulation

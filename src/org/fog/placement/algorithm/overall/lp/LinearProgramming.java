@@ -129,8 +129,6 @@ public class LinearProgramming extends Algorithm {
 			
 			// Solve
 			if (cplex.solve()) {
-				
-				
 				long finish = System.currentTimeMillis();
 				elapsedTime = finish - start;
 				
@@ -183,11 +181,17 @@ public class LinearProgramming extends Algorithm {
 						for(int j = 0; j < NR_NODES; j++) {
 							for(int z = 0; z < NR_NODES; z++) {
 								totalLt += Config.LT_W*(getfLatencyMap()[j][z]*dependencies)*cplex.getValue(tupleRoutingVar[i][j][z]);
-								totalBw +=  Config.BW_W*(bwNeeded/(getfBandwidthMap()[j][z] + Constants.EPSILON))*cplex.getValue(tupleRoutingVar[i][j][z]);
+								totalBw += Config.BW_W*(bwNeeded/(getfBandwidthMap()[j][z] + Constants.EPSILON))*cplex.getValue(tupleRoutingVar[i][j][z]);
 								totalOp += Config.OP_W*(getfBwPrice()[j]*bwNeeded)*cplex.getValue(tupleRoutingVar[i][j][z]);
+								
+								
+								totalPw += Config.LT_W*(getfLatencyMap()[j][z]*dependencies)*cplex.getValue(tupleRoutingVar[i][j][z])*getfTxPwMap()[j][z];
+								totalPw += Config.BW_W*(bwNeeded/(getfBandwidthMap()[j][z] + Constants.EPSILON))*cplex.getValue(tupleRoutingVar[i][j][z])*getfTxPwMap()[j][z];
 							}
 						}
 					}
+					
+					AlgorithmUtils.print("asdsadaaddasasddsa", getfTxPwMap());
 					
 					System.out.println("\ntotalOp: " + totalOp);
 					System.out.println("totalPw: " + totalPw);

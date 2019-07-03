@@ -338,7 +338,6 @@ public abstract class Algorithm {
 							
 							fTxPwMap[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(neighborId)] = txPower;
 							fTxPwMap[getNodeIndexByNodeId(neighborId)][getNodeIndexByNodeId(dId)] = txPower;
-							
 							break;
 						}
 					}

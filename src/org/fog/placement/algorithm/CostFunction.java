@@ -228,8 +228,8 @@ public class CostFunction {
 				if(routingMap[i][j] != routingMap[i][j-1]) {
 					double txCost = algorithm.getfTxPwMap()[routingMap[i][j-1]][routingMap[i][j]];
 					
-					cost += Config.LT_W*(algorithm.getfLatencyMap()[routingMap[i][j-1]][routingMap[i][j]] * dependencies * txCost);
-					cost += Config.BW_W*(bwNeeded/(algorithm.getfBandwidthMap()[routingMap[i][j-1]][routingMap[i][j]] + Constants.EPSILON) * txCost);
+					cost += Config.LT_W*(algorithm.getfLatencyMap()[routingMap[i][j-1]][routingMap[i][j]]*dependencies)*txCost;
+					cost += Config.BW_W*(bwNeeded/(algorithm.getfBandwidthMap()[routingMap[i][j-1]][routingMap[i][j]] + Constants.EPSILON))*txCost;
 				}
 			}
 		}

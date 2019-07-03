@@ -796,7 +796,8 @@ public class FogDevice extends PowerDatacenter {
 			getFixedNeighborsIds().add(neighborId);
 		}
 		
-		updatePeriodicMovement();
+		if(Config.DYNAMIC_SIMULATION)
+			updatePeriodicMovement();
 	}
 	
 	public Controller getController() {

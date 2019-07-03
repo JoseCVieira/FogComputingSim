@@ -51,7 +51,7 @@ public class VRGameFog extends FogTest {
 			for(int j = 0; j < numOfMobilesPerDept; j++){
 				int direction = Util.rand(Movement.EAST, Movement.SOUTHEAST);
 				
-				movement = new Movement(1.0, direction, new Location(500, 500));
+				movement = new Movement(1.0, direction, new Location(750, 750));
 				FogDevice mobile = createFogDevice("m-"+i+"-"+j, 1000, 1000, 1000000, 10000, 87.53, 82.44, 0.01, 0.05, 0.001, 0.05, movement, true);
 				
 				fogDevices.add(mobile);
