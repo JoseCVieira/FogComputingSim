@@ -105,11 +105,7 @@ public class MultiObjectiveLinearProgramming extends Algorithm {
 						bwObjective = cplex.sum(bwObjective, cplex.prod(tupleRoutingVar[i][j][z], bw));						// Bandwidth cost
 						opObjective = cplex.sum(opObjective, cplex.prod(tupleRoutingVar[i][j][z], op));						// Operational cost
 						pwObjective = cplex.sum(pwObjective, cplex.prod(tupleRoutingVar[i][j][z], lt*getfTxPwMap()[j][z]));	// Power cost
-						pwObjective = cplex.sum(pwObjective, cplex.prod(tupleRoutingVar[i][j][z], bw*getfTxPwMap()[j][z]));	// Power cost
-						
-						
-						System.out.println("getfTxPwMap()[j][z]: " + getfTxPwMap()[j][z]);
-						
+						pwObjective = cplex.sum(pwObjective, cplex.prod(tupleRoutingVar[i][j][z], bw*getfTxPwMap()[j][z]));	// Power cost						
 					}
 				}
 			}
