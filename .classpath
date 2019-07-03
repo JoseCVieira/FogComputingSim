@@ -15,5 +15,7 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="/home/jcrv/Desktop/FogComputingSim/jars/jfreechart-1.0.19/jfreechart-1.0.19-demo.jar"/>
+	<classpathentry kind="lib" path="/home/jcrv/Desktop/FogComputingSim/jars/MOEAFramework-2.12.jar"/>
+	<classpathentry kind="lib" path="/home/jcrv/Desktop/FogComputingSim/jars/commons-lang3-3.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

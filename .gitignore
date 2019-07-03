@@ -1,5 +1,3 @@
 *.class
 /output/*
 /bin/*
-/jars/*
-/bin/
