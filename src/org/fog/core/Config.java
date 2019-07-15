@@ -19,9 +19,9 @@ public class Config {
 	 */
 	public static final int[] priorities = new int[] {
 			1,	// Operational cost
-			1,	// Power cost
+			2,	// Power cost
 			1,	// Processing cost
-			2,	// Latency cost
+			1,	// Latency cost
 			1,	// Bandwidth cost
 			1	// Migration cost
 	};
@@ -49,19 +49,14 @@ public class Config {
 	public static final boolean PRINT_DETAILS = true;
 	public static final boolean PRINT_COST_DETAILS = false;
 	
-	public static boolean DYNAMIC_SIMULATION = false;
-	public static final boolean ALLOW_MIGRATION = true;
+	public static boolean DYNAMIC_SIMULATION = true;
+	public static final boolean ALLOW_MIGRATION = false;
 	
 	public static final int HANDOVER_THRESHOLD = 25;
-	public static final double MOBILE_LATENCY = 50E-3;
-	public static final double MOBILE_COMMUNICATION_BW = 10*1024;		// 10MB
 	public static final double FIXED_COMMUNICATION_BW = 50*1024;		// 50MB
 	public static final double SETUP_VM_TIME = 20;
 	public static final int MAX_SIMULATION_TIME = 10000;
 	public static final int RECONFIG_PERIOD = 1;
-	
-	public static final double PATH_LOSS_GAMMA = 3.1;
-	public static final double RX_SENSITIVITY = 7.9432823472E-11;			// P(mW) = 1mW * 10^(P(dBm)/ 10), with P(dBm) = -71 dBm
 	
 	// For test purposes -------------------------------------------------------------------
 	public static final int SQUARE_SIDE = 10000;

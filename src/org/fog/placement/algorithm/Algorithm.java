@@ -16,6 +16,7 @@ import org.fog.application.Application;
 import org.fog.application.selectivity.FractionalSelectivity;
 import org.fog.core.Config;
 import org.fog.core.Constants;
+import org.fog.core.FogComputingSim;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
 import org.fog.entities.FogDeviceCharacteristics;
@@ -23,6 +24,8 @@ import org.fog.entities.Sensor;
 import org.fog.placement.algorithm.overall.util.AlgorithmUtils;
 import org.fog.utils.FogLinearPowerModel;
 import org.fog.utils.Location;
+import org.fog.utils.MobileBandwidthModel;
+import org.fog.utils.MobilePathLossModel;
 import org.fog.utils.distribution.DeterministicDistribution;
 import org.fog.utils.distribution.Distribution;
 import org.fog.utils.distribution.NormalDistribution;
@@ -133,7 +136,7 @@ public abstract class Algorithm {
 		extractAppCharacteristics(applications, hashSet);
 		computeApplicationCharacteristics(applications, sensors);
 		computeConnectionMap(fogDevices);
-		normalizeValues();
+		//normalizeValues();
 		
 		if(Config.PRINT_DETAILS)
 			AlgorithmUtils.printDetails(this, fogDevices, applications, sensors, actuators);
@@ -325,55 +328,68 @@ public abstract class Algorithm {
 		
 		for(FogDevice fogDevice : fogDevices) {
 			int dId = fogDevice.getId();
+			int dIndex = getNodeIndexByNodeId(dId);
 			
 			for(int neighborId : fogDevice.getLatencyMap().keySet()) {
 				double lat = fogDevice.getLatencyMap().get(neighborId);
 				double bw = fogDevice.getBandwidthMap().get(neighborId);
+				int neighborIndex = getNodeIndexByNodeId(neighborId);
 				
 				if(!fogDevice.isStaticNode()) {
 					for(FogDevice tmp : fogDevices) {
 						if(tmp.getId() == neighborId) {
-							double distance = Location.computeDistance(fogDevice, tmp);
-							double txPower = Config.RX_SENSITIVITY * 4 * Math.PI *  Math.pow(distance, Config.PATH_LOSS_GAMMA);
-							
-							fTxPwMap[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(neighborId)] = txPower;
-							fTxPwMap[getNodeIndexByNodeId(neighborId)][getNodeIndexByNodeId(dId)] = txPower;
+							fTxPwMap[dIndex][getNodeIndexByNodeId(neighborId)] = MobilePathLossModel.TX_POWER;
+							fTxPwMap[getNodeIndexByNodeId(neighborId)][dIndex] = MobilePathLossModel.TX_POWER;
 							break;
 						}
 					}
 				}
 				
-				fLatencyMap[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(neighborId)] = lat;
-				fBandwidthMap[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(neighborId)] = bw;
+				fLatencyMap[dIndex][neighborIndex] = lat;
+				fBandwidthMap[dIndex][neighborIndex] = bw;
 			}
 			
-			fLatencyMap[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(dId)] = 0;
-			fBandwidthMap[getNodeIndexByNodeId(dId)][getNodeIndexByNodeId(dId)] = Constants.INF;
+			fLatencyMap[dIndex][dIndex] = 0;
+			fBandwidthMap[dIndex][dIndex] = Constants.INF;
 		}
 	}
 	
 	// Mobile communications are characterize by a fixed latency and bandwidth
 	public void changeConnectionMap(FogDevice mobile, FogDevice from, FogDevice to) {
-		fLatencyMap[getNodeIndexByNodeId(mobile.getId())][getNodeIndexByNodeId(to.getId())] = Config.MOBILE_LATENCY;
-		fBandwidthMap[getNodeIndexByNodeId(mobile.getId())][getNodeIndexByNodeId(to.getId())] = Config.MOBILE_COMMUNICATION_BW;
+		int mobileIndex = getNodeIndexByNodeId(mobile.getId());
+		int fromIndex = getNodeIndexByNodeId(from.getId());
+		int toIndex = getNodeIndexByNodeId(to.getId());
 		
-		fLatencyMap[getNodeIndexByNodeId(to.getId())][getNodeIndexByNodeId(mobile.getId())] = Config.MOBILE_LATENCY;
-		fBandwidthMap[getNodeIndexByNodeId(to.getId())][getNodeIndexByNodeId(mobile.getId())] = Config.MOBILE_COMMUNICATION_BW;
+		fLatencyMap[mobileIndex][fromIndex] = Constants.INF;
+		fBandwidthMap[mobileIndex][fromIndex] = 0;
+		fTxPwMap[mobileIndex][fromIndex] = 0;
 		
-		fLatencyMap[getNodeIndexByNodeId(mobile.getId())][getNodeIndexByNodeId(from.getId())] = Constants.INF;
-		fBandwidthMap[getNodeIndexByNodeId(mobile.getId())][getNodeIndexByNodeId(from.getId())] = 0;
-		
-		fLatencyMap[getNodeIndexByNodeId(from.getId())][getNodeIndexByNodeId(mobile.getId())] = Constants.INF;
-		fBandwidthMap[getNodeIndexByNodeId(from.getId())][getNodeIndexByNodeId(mobile.getId())] = 0;
+		fLatencyMap[fromIndex][mobileIndex] = Constants.INF;
+		fBandwidthMap[fromIndex][mobileIndex] = 0;
+		fTxPwMap[fromIndex][mobileIndex] = 0;
 		
 		double distance = Location.computeDistance(mobile, to);
-		double txPower = Config.RX_SENSITIVITY * 4 * Math.PI *  Math.pow(distance, Config.PATH_LOSS_GAMMA);
+		double rxPower = MobilePathLossModel.computeReceivedPower(distance);
+		Map<String, Double> map = MobileBandwidthModel.computeCommunicationBandwidth(1, rxPower);
 		
-		fTxPwMap[getNodeIndexByNodeId(mobile.getId())][getNodeIndexByNodeId(from.getId())] = 0;
-		fTxPwMap[getNodeIndexByNodeId(from.getId())][getNodeIndexByNodeId(mobile.getId())] = 0;
+		String modulation = "";
+		double bandwidth = 0.0;
+		for(String m : map.keySet()) {
+			modulation = m;
+			bandwidth = map.get(m);
+		}
 		
-		fTxPwMap[getNodeIndexByNodeId(mobile.getId())][getNodeIndexByNodeId(to.getId())] = txPower;
-		fTxPwMap[getNodeIndexByNodeId(to.getId())][getNodeIndexByNodeId(mobile.getId())] = txPower;
+		if(Config.PRINT_DETAILS) {
+			FogComputingSim.print("Communication between " + fName[mobileIndex] + " and " + fName[toIndex] + " is using " + modulation + " modulation" + " w/ bandwidth = "  + String.format("%.2f", bandwidth/1024/1024) + " MHz" );
+		}
+		
+		fLatencyMap[mobileIndex][toIndex] = MobilePathLossModel.LATENCY;
+		fBandwidthMap[mobileIndex][toIndex] = bandwidth;
+		fTxPwMap[mobileIndex][toIndex] = MobilePathLossModel.TX_POWER;
+		
+		fLatencyMap[toIndex][mobileIndex] = MobilePathLossModel.LATENCY;
+		fBandwidthMap[toIndex][mobileIndex] = bandwidth;
+		fTxPwMap[toIndex][mobileIndex] = MobilePathLossModel.TX_POWER;
 	}
 	
 	private void normalizeValues() {
@@ -465,6 +481,32 @@ public abstract class Algorithm {
 		AlgorithmUtils.print("mDependencyMap", mDependencyMap);
 		
 		System.out.println("\n\n\n\n\n\n");
+	}
+	
+	public void updateMobileConnectionsVelocity(final List<FogDevice> fogDevices) {
+		for(int i = 0; i < NR_NODES; i++) {
+			for(int j = 0; j < NR_NODES; j++) {
+				if(fTxPwMap[i][j] == 0) continue;
+				
+				// If it is a mobile communication, then compute current communication velocity
+				FogDevice f1 = null, f2 = null;
+				for(FogDevice f : fogDevices) {
+					if(f.getId() == fId[i]) f1 = f;
+					else if(f.getId() == fId[j]) f2 = f;
+				}
+				
+				if(f1 == null || f2 == null) FogComputingSim.err("Should not happen");
+				
+				double distance = Location.computeDistance(f1, f2);
+				double rxPower = MobilePathLossModel.computeReceivedPower(distance);
+				Map<String, Double> map = MobileBandwidthModel.computeCommunicationBandwidth(1, rxPower);
+				
+				double bandwidth = 0.0;
+				for(String m : map.keySet()) {
+					bandwidth = map.get(m);
+				}
+			}
+		}
 	}
 	
 	public void recomputeNormalizationValues() {

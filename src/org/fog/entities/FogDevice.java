@@ -32,7 +32,8 @@ import org.fog.utils.Analysis;
 import org.fog.utils.FogEvents;
 import org.fog.utils.FogUtils;
 import org.fog.utils.Location;
-import org.fog.utils.Logger;
+import org.fog.utils.MobileBandwidthModel;
+import org.fog.utils.MobilePathLossModel;
 import org.fog.utils.Movement;
 import org.fog.utils.NetworkUsageMonitor;
 import org.fog.utils.TimeKeeper;
@@ -261,7 +262,9 @@ public class FogDevice extends PowerDatacenter {
 						TimeKeeper.getInstance().tupleEndedExecution(tuple);
 						
 						Application application = controller.getApplications().get(tuple.getAppId());
-						Logger.debug(getName(), "Completed execution of tuple "+tuple.getCloudletId() + "on " + tuple.getDestModuleName());
+						
+						FogComputingSim.print("[" + getName() + "] Completed execution of tuple: " + tuple.getCloudletId() + " on " + tuple.getDestModuleName());
+						
 						List<Tuple> resultantTuples = application.getResultantTuples(tuple.getDestModuleName(), tuple, vm.getId());
 						
 						for(Tuple resTuple : resultantTuples){
@@ -276,6 +279,7 @@ public class FogDevice extends PowerDatacenter {
 				}
 			}
 		}
+		
 		if(cloudletCompleted)
 			updateAllocatedMips(null);
 	}
@@ -298,7 +302,7 @@ public class FogDevice extends PowerDatacenter {
 		}
 	}
 	
-	protected void updateAllocatedMips(String incomingOperator){
+	protected void updateAllocatedMips(String incomingOperator) {
 		getHost().getVmScheduler().deallocatePesForAllVms();
 		for(final Vm vm : getHost().getVmList()){
 			if(vm.getCloudletScheduler().runningCloudlets() > 0 || ((AppModule)vm).getName().equals(incomingOperator)){
@@ -311,6 +315,7 @@ public class FogDevice extends PowerDatacenter {
 				{add(0.0);}});
 			}
 		}
+		
 		updateEnergyConsumption();
 	}
 	
@@ -326,6 +331,10 @@ public class FogDevice extends PowerDatacenter {
 			operator.updateVmProcessing(CloudSim.clock(), getVmAllocationPolicy().getHost(operator).getVmScheduler().getAllocatedMipsForVm(operator));
 			
 			double allocatedMipsForVm = getHost().getTotalAllocatedMipsForVm(vm);
+			
+			if(Config.PRINT_DETAILS)
+				FogComputingSim.print("[" + getName() + "] number of allocated mips for vm: " + operator.getName() + " is " + allocatedMipsForVm);
+			
 			totalMipsAllocated += allocatedMipsForVm;
 			totalStorageAllocated += ((AppModule)vm).getSize();
 			
@@ -349,10 +358,7 @@ public class FogDevice extends PowerDatacenter {
 		for(int neighborId : tupleLinkBusy.keySet()) {
 			if(!tupleLinkBusy.get(neighborId)) continue;
 			if(isStaticNode() && controller.getFogDeviceById(neighborId).isStaticNode()) continue;
-			
-			double distance = Location.computeDistance(this, controller.getFogDeviceById(neighborId));
-			double txPower = Config.RX_SENSITIVITY * 4 * Math.PI *  Math.pow(distance, Config.PATH_LOSS_GAMMA);
-			energyConsumption += timeDif*txPower;
+			energyConsumption += timeDif*MobilePathLossModel.TX_POWER;
 		}
 		
 		setEnergyConsumption(getEnergyConsumption() + energyConsumption);
@@ -426,18 +432,34 @@ public class FogDevice extends PowerDatacenter {
 		}else
 			Analysis.incrementPacketSuccess();
 		
-		if(getHost().getVmList().size() > 0){
-			final AppModule operator = (AppModule)getHost().getVmList().get(0);
-			
-			if(CloudSim.clock() > 0){
-				getHost().getVmScheduler().deallocatePesForVm(operator);
-				getHost().getVmScheduler().allocatePesForVm(operator, new ArrayList<Double>(){
-					protected static final long serialVersionUID = 1L;
-				{add((double) getHost().getTotalMips());}});
-			}
-		}
+		
+		
+		
+		
+		
 
-		if(deployedModules.contains(tuple.getDestModuleName())){
+		if(deployedModules.contains(tuple.getDestModuleName())) {
+			/*for(final Vm vm : getHost().getVmList()) {
+				double allocatedMipsForVm = getHost().getTotalAllocatedMipsForVm(vm);
+				System.out.println("1 Name: " + getName() + " number of allocated mips for vm: " + allocatedMipsForVm + " is " + ((AppModule)vm).getName() + ".");
+			}
+			
+			if(getHost().getVmList().size() > 0) {
+				final AppModule operator = (AppModule)getHost().getVmList().get(0);
+				
+				if(CloudSim.clock() > 0){
+					getHost().getVmScheduler().deallocatePesForVm(operator);
+					getHost().getVmScheduler().allocatePesForVm(operator, new ArrayList<Double>(){
+						protected static final long serialVersionUID = 1L;
+					{add((double) getHost().getTotalMips());}});
+				}
+			}
+			
+			for(final Vm vm : getHost().getVmList()){
+				double allocatedMipsForVm = getHost().getTotalAllocatedMipsForVm(vm);
+				System.out.println("2 Name: " + getName() + " number of allocated mips for vm: " + allocatedMipsForVm + " is " + ((AppModule)vm).getName() + ".");
+			}*/
+			
 			int vmId = -1;			
 			for(Vm vm : getHost().getVmList()) {
 				if(((AppModule)vm).getName().equals(tuple.getDestModuleName())) {
@@ -497,18 +519,17 @@ public class FogDevice extends PowerDatacenter {
 		}
 	}
 	
-	protected void executeTuple(SimEvent ev, String moduleName){
+	protected void executeTuple(SimEvent ev, String moduleName) {
 		Tuple tuple = (Tuple)ev.getData();
 		
 		if(Config.PRINT_DETAILS)
-			FogComputingSim.print("[" + getName() + "] Is executing tuple on module: " + moduleName + " w/ tuple type: " + tuple.getTupleType());
-		
-		TimeKeeper.getInstance().tupleStartedExecution(tuple);
-		updateAllocatedMips(moduleName);
+			FogComputingSim.print("[" + getName() + "] Started execution of tuple: " + tuple.getCloudletId() + " on " + tuple.getDestModuleName());
 		
 		AppModule dstModule = getModuleByName(tuple.getDestModuleName());
 		tuple.setUserId(dstModule.getUserId());
 		
+		TimeKeeper.getInstance().tupleStartedExecution(tuple);
+		updateAllocatedMips(moduleName);
 		processCloudletSubmit(ev, false);
 		updateAllocatedMips(moduleName);
 	}
@@ -523,13 +544,14 @@ public class FogDevice extends PowerDatacenter {
 		if(Config.PRINT_DETAILS)
 			FogComputingSim.print("Creating " + module.getName() + " on device " + getName());
 		
-		if (module.isBeingInstantiated())
-			module.setBeingInstantiated(false);
-		
+		module.setBeingInstantiated(false);
 		initializePeriodicTuples(module);
 		
-		module.updateVmProcessing(CloudSim.clock(),
-				getVmAllocationPolicy().getHost(module).getVmScheduler().getAllocatedMipsForVm(module));
+		getHost().getVmScheduler().allocatePesForVm(module, new ArrayList<Double>(){
+			protected static final long serialVersionUID = 1L;
+		{add(0.0);}});
+		
+		//module.updateVmProcessing(CloudSim.clock(), getVmAllocationPolicy().getHost(module).getVmScheduler().getAllocatedMipsForVm(module));
 	}
 	
 	private void initializePeriodicTuples(AppModule module) {
@@ -640,10 +662,31 @@ public class FogDevice extends PowerDatacenter {
 				}
 					
 			}
-		}			
+			
+			// Update connections bandwidth for mobile connections based on their distance
+			for(int neighborId : bandwidthMap.keySet()) {
+				FogDevice neighbor = controller.getFogDeviceById(neighborId);
+				
+				double distance = Location.computeDistance(this, neighbor);
+				double rxPower = MobilePathLossModel.computeReceivedPower(distance);
+				Map<String, Double> map = MobileBandwidthModel.computeCommunicationBandwidth(1, rxPower);
+				
+				String modulation = "";
+				double bandwidth = 0.0;
+				for(String m : map.keySet()) {
+					modulation = m;
+					bandwidth = map.get(m);
+				}
+				
+				if(Config.PRINT_DETAILS) {
+					FogComputingSim.print("Communication between " + getName() + " and " + neighbor.getName() + " is using " + modulation + " modulation" + " w/ bandwidth = "  + String.format("%.2f", bandwidth/1024/1024) + " MHz" );
+				}
+				
+				bandwidthMap.put(neighborId, bandwidth);
+			}
+		}
 		
 		send(getId(), 1, FogEvents.UPDATE_PERIODIC_MOVEMENT);
-		//System.out.println(this + "\n\n");
 	}
 	
 	private void removeLink(int id) {

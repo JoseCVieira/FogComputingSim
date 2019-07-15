@@ -22,6 +22,8 @@ import org.fog.entities.Tuple;
 import org.fog.placement.algorithm.Algorithm;
 import org.fog.utils.FogEvents;
 import org.fog.utils.Location;
+import org.fog.utils.MobileBandwidthModel;
+import org.fog.utils.MobilePathLossModel;
 import org.fog.utils.Util;
 
 public class Controller extends SimEntity {
@@ -153,7 +155,7 @@ public class Controller extends SimEntity {
 		Map<FogDevice, Map<FogDevice, FogDevice>> handovers = new HashMap<FogDevice, Map<FogDevice,FogDevice>>();
 		
 		if(!first) {
-			controllerAlgorithm.getAlgorithm().loadOriginalValues();
+			//controllerAlgorithm.getAlgorithm().loadOriginalValues();
 		}
 		
 		for(FogDevice f1 : fogDevices) {
@@ -181,8 +183,7 @@ public class Controller extends SimEntity {
 					continue;
 				
 				// If f2 is a mobile node do nothing
-				if(f2.getFixedNeighborsIds().isEmpty())
-					continue;
+				if(!f2.isStaticNode()) continue;
 				
 				double distance = Location.computeDistance(f1, f2);
 				if(distance  + Config.HANDOVER_THRESHOLD < bestDistance) {
@@ -227,7 +228,8 @@ public class Controller extends SimEntity {
 			createTupleRoutingTables(controllerAlgorithm.getAlgorithm(), controllerAlgorithm.getSolution().getTupleRoutingMap());
 			
 		}else if(!handovers.isEmpty() && Config.DYNAMIC_SIMULATION) {
-			controllerAlgorithm.getAlgorithm().recomputeNormalizationValues();
+			controllerAlgorithm.getAlgorithm().updateMobileConnectionsVelocity(fogDevices);
+			//controllerAlgorithm.getAlgorithm().recomputeNormalizationValues();
 			
 			int[][] previousModulePlacement = controllerAlgorithm.getSolution().getModulePlacementMap();
 			
@@ -277,11 +279,26 @@ public class Controller extends SimEntity {
 		if(Config.PRINT_DETAILS)
 			FogComputingSim.print("Creating connection between: " + mobile.getName() + " <-> " + to.getName());
 			
-		mobile.getLatencyMap().put(to.getId(), Config.MOBILE_LATENCY);
-		to.getLatencyMap().put(mobile.getId(), Config.MOBILE_LATENCY);
+		mobile.getLatencyMap().put(to.getId(), MobilePathLossModel.LATENCY);
+		to.getLatencyMap().put(mobile.getId(), MobilePathLossModel.LATENCY);
 		
-		mobile.getBandwidthMap().put(to.getId(), Config.MOBILE_COMMUNICATION_BW);
-		to.getBandwidthMap().put(mobile.getId(), Config.MOBILE_COMMUNICATION_BW);
+		double distance = Location.computeDistance(mobile, to);
+		double rxPower = MobilePathLossModel.computeReceivedPower(distance);
+		Map<String, Double> map = MobileBandwidthModel.computeCommunicationBandwidth(1, rxPower);
+		
+		String modulation = "";
+		double bandwidth = 0.0;
+		for(String m : map.keySet()) {
+			modulation = m;
+			bandwidth = map.get(m);
+		}
+		
+		if(Config.PRINT_DETAILS) {
+			FogComputingSim.print("Communication between " + mobile.getName() + " and " + to.getName() + " is using " + modulation + " modulation" + " w/ bandwidth = "  + String.format("%.2f", bandwidth/1024/1024) + " MHz");
+		}
+		
+		mobile.getBandwidthMap().put(to.getId(), bandwidth);
+		to.getBandwidthMap().put(mobile.getId(), bandwidth);
 		
 		mobile.getTupleQueue().put(to.getId(), new LinkedList<Pair<Tuple, Integer>>());
 		to.getTupleQueue().put(mobile.getId(), new LinkedList<Pair<Tuple, Integer>>());

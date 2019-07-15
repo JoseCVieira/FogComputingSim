@@ -3,6 +3,7 @@ package org.fog.placement.algorithm.overall.lp;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.cloudbus.cloudsim.core.CloudSim;
 import org.fog.application.Application;
 import org.fog.core.Config;
 import org.fog.core.Constants;
@@ -82,7 +83,7 @@ public class MultiObjectiveLinearProgramming extends Algorithm {
 			for(int i = 0; i < NR_NODES; i++) {
 				for(int j = 0; j < NR_MODULES; j++) {
 					double op = getfMipsPrice()[i]*getmMips()[j] + getfRamPrice()[i]*getmRam()[j] + getfStrgPrice()[i]*getmStrg()[j];
-					double pw = (getfBusyPw()[i]-getfIdlePw()[i])*(getmMips()[j]/getfMips()[i]);
+					double pw = (getfBusyPw()[i]-getfIdlePw()[i])*(getmMips()[j]/getfMips()[i] + CloudSim.getMinTimeBetweenEvents());
 					double pr = getmMips()[j]/getfMips()[i];
 					
 					opObjective = cplex.sum(opObjective, cplex.prod(placementVar[i][j], op));		// Operational cost
@@ -104,8 +105,8 @@ public class MultiObjectiveLinearProgramming extends Algorithm {
 						ltObjective = cplex.sum(ltObjective, cplex.prod(tupleRoutingVar[i][j][z], lt));						// Latency cost
 						bwObjective = cplex.sum(bwObjective, cplex.prod(tupleRoutingVar[i][j][z], bw));						// Bandwidth cost
 						opObjective = cplex.sum(opObjective, cplex.prod(tupleRoutingVar[i][j][z], op));						// Operational cost
-						pwObjective = cplex.sum(pwObjective, cplex.prod(tupleRoutingVar[i][j][z], lt*getfTxPwMap()[j][z]));	// Power cost
-						pwObjective = cplex.sum(pwObjective, cplex.prod(tupleRoutingVar[i][j][z], bw*getfTxPwMap()[j][z]));	// Power cost						
+						//pwObjective = cplex.sum(pwObjective, cplex.prod(tupleRoutingVar[i][j][z], lt*getfTxPwMap()[j][z]));	// Power cost
+						//pwObjective = cplex.sum(pwObjective, cplex.prod(tupleRoutingVar[i][j][z], bw*getfTxPwMap()[j][z]));	// Power cost						
 					}
 				}
 			}
@@ -172,13 +173,14 @@ public class MultiObjectiveLinearProgramming extends Algorithm {
 					}
 				}
 				
+				
 				for(int i = 0; i < NR_MODULES; i++) {
 					for(int j = 0; j < NR_NODES; j++) {
 						for(int z = 0; z < NR_NODES; z++) {
 							migrationRoutingMap[i][j][z] = (int) Math.round(cplex.getValue(migrationRoutingVar[i][j][z]));
 						}
 					}
-				}				
+				}
 				
 				Job solution = new Job(this, modulePlacementMap, tupleRoutingMap, migrationRoutingMap, currentPlacement);
 				

@@ -44,7 +44,7 @@ public class ControllerAlgorithm {
 		this.algorithmOp = algorithmOp;
 	}
 	
-	public void computeAlgorithm() {		
+	public void computeAlgorithm() {
 		switch (algorithmOp) {
 			case MOLP:
 				algorithmName = "Multiobjective Linear Programming";
