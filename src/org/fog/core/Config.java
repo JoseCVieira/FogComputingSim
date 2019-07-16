@@ -14,17 +14,51 @@ public class Config {
 	 * Order of importance for multiple objective optimization
 	 * Note: The CPLEX multiobjective optimization algorithm sorts the objectives by decreasing priority value.
 	 * 		 If several objectives have the same priority, they are blended in a single objective using the
-	 * 	 	 weight attributes provided (as we provide null, all costs have the same weight; thus, having the
-	 * 		 same importance).
+	 * 	 	 weight attributes provided.
 	 */
 	public static final int[] priorities = new int[] {
-			1,	// Operational cost
-			2,	// Power cost
-			1,	// Processing cost
-			1,	// Latency cost
-			1,	// Bandwidth cost
-			1	// Migration cost
+			1,		// Operational cost
+			1,		// Power cost
+			1,		// Processing cost
+			2,		// Latency cost
+			1,		// Bandwidth cost
+			1		// Migration cost
 	};
+	
+	public static final double[] weights = new double[] {
+			1.0,	// Operational cost
+			1.0,	// Power cost
+			1.0,	// Processing cost
+			1.0,	// Latency cost
+			1.0,	// Bandwidth cost
+			1.0		// Migration cost
+	};
+	
+	/**
+	 * Allow a small degradation in the first objective. AbsTols represents a list of absolute tolerances.
+	 */
+	public static final double[] absTols = new double[] {
+			0.0,	// Operational cost
+			0.0,	// Power cost
+			0.0,	// Processing cost
+			0.0,	// Latency cost
+			0.0,	// Bandwidth cost
+			0.0		// Migration cost
+	};
+	
+	/**
+	 * Allow a small degradation in the first objective. RelTols represents a list of relative tolerances.
+	 */
+	public static final double[] relTols = new double[] {
+			0.0,	// Operational cost
+			0.0,	// Power cost
+			0.0,	// Processing cost
+			0.0,	// Latency cost
+			0.0,	// Bandwidth cost
+			0.0		// Migration cost
+	};
+	
+	public static boolean NORMALIZE_VALUES = false;
 	
 	public static final double CONVERGENCE_ERROR = 0.01;
 	

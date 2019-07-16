@@ -136,7 +136,8 @@ public abstract class Algorithm {
 		extractAppCharacteristics(applications, hashSet);
 		computeApplicationCharacteristics(applications, sensors);
 		computeConnectionMap(fogDevices);
-		//normalizeValues();
+		if(Config.NORMALIZE_VALUES)
+			normalizeValues();
 		
 		if(Config.PRINT_DETAILS)
 			AlgorithmUtils.printDetails(this, fogDevices, applications, sensors, actuators);
@@ -483,7 +484,7 @@ public abstract class Algorithm {
 		System.out.println("\n\n\n\n\n\n");
 	}
 	
-	public void updateMobileConnectionsVelocity(final List<FogDevice> fogDevices) {
+	public void updateMobileConnectionsVelocity(final List<FogDevice> fogDevices) {		
 		for(int i = 0; i < NR_NODES; i++) {
 			for(int j = 0; j < NR_NODES; j++) {
 				if(fTxPwMap[i][j] == 0) continue;
@@ -505,6 +506,14 @@ public abstract class Algorithm {
 				for(String m : map.keySet()) {
 					bandwidth = map.get(m);
 				}
+				
+				int f1Index = getNodeIndexByNodeId(f1.getId());
+				int f2Index = getNodeIndexByNodeId(f2.getId());
+				
+				if(f1Index == -1 || f2Index == -1) FogComputingSim.err("Should not happen");
+				
+				fBandwidthMap[f1Index][f2Index] = bandwidth;
+				fBandwidthMap[f2Index][f1Index] = bandwidth;
 			}
 		}
 	}

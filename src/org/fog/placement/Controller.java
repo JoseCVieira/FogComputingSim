@@ -154,8 +154,8 @@ public class Controller extends SimEntity {
 	public void updateTopology(boolean first) {
 		Map<FogDevice, Map<FogDevice, FogDevice>> handovers = new HashMap<FogDevice, Map<FogDevice,FogDevice>>();
 		
-		if(!first) {
-			//controllerAlgorithm.getAlgorithm().loadOriginalValues();
+		if(!first && Config.NORMALIZE_VALUES) {
+			controllerAlgorithm.getAlgorithm().loadOriginalValues();
 		}
 		
 		for(FogDevice f1 : fogDevices) {
