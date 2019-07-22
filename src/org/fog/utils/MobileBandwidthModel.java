@@ -15,7 +15,7 @@ public class MobileBandwidthModel {
 	private final static double[] c = {0.1808, 0.1939, 0.2029, 0.2528, 0.2032, 0.2521};
 	private final static double[] RREF = {6.0204, 7.8873, 6.9442, 10.0372, 4.2814, 5.5495};
 	
-	private final static double BANDWIDTH_SIGNAL = 20.0;		// 5-20 MHz
+	private final static double BANDWIDTH_SIGNAL = 20E3;		// 5-20 MHz
 	private final static double NOISE_FACTOR = 7;				// 6,11 dB
 	private final static double EFFECTIVE_NOISE_POWER = 174;	// dBm/MHz
 	
@@ -23,7 +23,8 @@ public class MobileBandwidthModel {
 	
 	public static Map<String, Double> computeCommunicationBandwidth(int nSub, double signalPower) {
 		double noisePower = -EFFECTIVE_NOISE_POWER + 10*Math.log10(nSub*BANDWIDTH_SIGNAL) + NOISE_FACTOR;
-		double snr = signalPower - noisePower - INTERFERENCE_MARGIN;
+		double signalPowerDB = 10*Math.log10(1000*signalPower);
+		double snr = signalPowerDB - noisePower - INTERFERENCE_MARGIN;
 		
 		int modulationIndex = -1;
 		double communicationSpeed = -1;		

@@ -83,7 +83,7 @@ public class Config {
 	public static final boolean PRINT_DETAILS = true;
 	public static final boolean PRINT_COST_DETAILS = false;
 	
-	public static boolean DYNAMIC_SIMULATION = true;
+	public static boolean DYNAMIC_SIMULATION = false;
 	public static final boolean ALLOW_MIGRATION = false;
 	
 	public static final int HANDOVER_THRESHOLD = 25;

@@ -7,7 +7,7 @@ package org.fog.utils;
  *	Model for 4G-LTE communications path loss based on isotropic antennas
  */
 public class MobilePathLossModel {
-	public final static double TX_POWER = 199.5262315;	// 200 mW ~= 23 dBm
+	public final static double TX_POWER = 199.5262315E-3;	// 200 mW ~= 23 dBm
 	public final static double LATENCY = 50E-3;			// 50 ms
 	private final static double GAMMA = 3.1;
 	
@@ -31,6 +31,8 @@ public class MobilePathLossModel {
 	 * @return power at the receiver
 	 */
 	public static double computeReceivedPower(double distance) {
+		
+		
 		return TX_POWER / (4*Math.PI*Math.pow(distance, GAMMA));
 	}
 }
