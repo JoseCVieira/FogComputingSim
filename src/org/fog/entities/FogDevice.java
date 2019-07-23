@@ -355,10 +355,11 @@ public class FogDevice extends PowerDatacenter {
 		double energyConsumption = timeDif*getHost().getPowerModel().getPower(lastMipsUtilization);
 		
 		// If its a mobile node, we apply the energy consumption model: Pr = Pt/(4 π d^(γ))
-		for(int neighborId : tupleLinkBusy.keySet()) {
-			if(!tupleLinkBusy.get(neighborId)) continue;
-			if(isStaticNode() && controller.getFogDeviceById(neighborId).isStaticNode()) continue;
-			energyConsumption += timeDif*MobilePathLossModel.TX_POWER;
+		if(!isStaticNode()) {
+			for(int neighborId : tupleLinkBusy.keySet()) {
+				if(!tupleLinkBusy.get(neighborId)) continue;
+				energyConsumption += timeDif*MobilePathLossModel.TX_POWER;
+			}
 		}
 		
 		setEnergyConsumption(getEnergyConsumption() + energyConsumption);

@@ -58,8 +58,6 @@ public class Config {
 			0.0		// Migration cost
 	};
 	
-	public static boolean NORMALIZE_VALUES = false;
-	
 	public static final double CONVERGENCE_ERROR = 0.01;
 	
 	// Genetic algorithm

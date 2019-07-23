@@ -56,7 +56,7 @@ public abstract class FogTest {
 	}
 	
 	protected static FogDevice createFogDevice(String name, double mips, int ram, long strg, long bw, double bPw, double iPw, double costPerMips,
-			double costPerMem, double costPerStorage, double costPerBw, Movement movement, boolean client) {
+			double costPerMem, double costPerStorage, double costPerBw, double costPerEnergy, Movement movement, boolean client) {
 		List<Pe> processingElementsList = new ArrayList<Pe>();
 		processingElementsList.add(new Pe(0, new PeProvisioner(mips)));
 
@@ -75,7 +75,7 @@ public abstract class FogTest {
 
 		FogDeviceCharacteristics characteristics = new FogDeviceCharacteristics(Constants.FOG_DEVICE_ARCH,
 				Constants.FOG_DEVICE_OS, Constants.FOG_DEVICE_VMM, host, Constants.FOG_DEVICE_TIMEZONE,
-				GuiConfig.COST_PER_SEC, costPerMips, costPerMem, costPerStorage, costPerBw);
+				GuiConfig.COST_PER_SEC, costPerMips, costPerMem, costPerStorage, costPerBw, costPerEnergy);
 		
 		try {
 			if(!client)

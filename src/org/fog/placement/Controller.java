@@ -154,10 +154,6 @@ public class Controller extends SimEntity {
 	public void updateTopology(boolean first) {
 		Map<FogDevice, Map<FogDevice, FogDevice>> handovers = new HashMap<FogDevice, Map<FogDevice,FogDevice>>();
 		
-		if(!first && Config.NORMALIZE_VALUES) {
-			controllerAlgorithm.getAlgorithm().loadOriginalValues();
-		}
-		
 		for(FogDevice f1 : fogDevices) {
 			
 			// If f1 is a fixed node do nothing
@@ -229,7 +225,6 @@ public class Controller extends SimEntity {
 			
 		}else if(!handovers.isEmpty() && Config.DYNAMIC_SIMULATION) {
 			controllerAlgorithm.getAlgorithm().updateMobileConnectionsVelocity(fogDevices);
-			//controllerAlgorithm.getAlgorithm().recomputeNormalizationValues();
 			
 			int[][] previousModulePlacement = controllerAlgorithm.getSolution().getModulePlacementMap();
 			

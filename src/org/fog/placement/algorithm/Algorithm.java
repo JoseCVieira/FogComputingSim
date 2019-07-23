@@ -43,6 +43,7 @@ public abstract class Algorithm {
 	protected double fRamPrice[];
 	protected double fStrgPrice[];
 	protected double fBwPrice[];
+	protected double fEnPrice[];
 	
 	protected int fId[];
 	protected String fName[];
@@ -64,14 +65,10 @@ public abstract class Algorithm {
 	private double[][] fLatencyMap;
 	private double[][] fBandwidthMap;
 	private double[][] fTxPwMap;
-	private double[][] fLatencyMapOriginalValues;
-	private double[][] fBandwidthMapOriginalValues;
-	private double[][] fTxPwMapOriginalValues;
 	
 	// Module to Module
 	protected double[][] mDependencyMap;
 	protected double[][] mBandwidthMap;
-	private double[][] mBandwidthMapOriginalValues;
 	
 	// Node to Module
 	protected double[][] possibleDeployment;
@@ -99,6 +96,7 @@ public abstract class Algorithm {
 		fRamPrice = new double[NR_NODES];
 		fStrgPrice = new double[NR_NODES];
 		fBwPrice = new double[NR_NODES];
+		fEnPrice = new double[NR_NODES];
 		
 		LinkedHashSet<String> hashSet = new LinkedHashSet<String>();
 		for(Application application : applications) {
@@ -121,23 +119,17 @@ public abstract class Algorithm {
 		fLatencyMap = new double[NR_NODES][NR_NODES];
 		fBandwidthMap = new double[NR_NODES][NR_NODES];
 		fTxPwMap = new double[NR_NODES][NR_NODES];
-		fLatencyMapOriginalValues = new double[NR_NODES][NR_NODES];
-		fBandwidthMapOriginalValues = new double[NR_NODES][NR_NODES];
-		fTxPwMapOriginalValues = new double[NR_NODES][NR_NODES];
 		
 		possibleDeployment = new double[NR_NODES][NR_MODULES];
 		currentPlacement = new double[NR_NODES][NR_MODULES];
 		
 		mDependencyMap = new double[NR_MODULES][NR_MODULES];
 		mBandwidthMap = new double[NR_MODULES][NR_MODULES];
-		mBandwidthMapOriginalValues = new double[NR_MODULES][NR_MODULES];
 		
 		extractDevicesCharacteristics(fogDevices);
 		extractAppCharacteristics(applications, hashSet);
 		computeApplicationCharacteristics(applications, sensors);
 		computeConnectionMap(fogDevices);
-		if(Config.NORMALIZE_VALUES)
-			normalizeValues();
 		
 		if(Config.PRINT_DETAILS)
 			AlgorithmUtils.printDetails(this, fogDevices, applications, sensors, actuators);
@@ -164,7 +156,8 @@ public abstract class Algorithm {
 			fMipsPrice[i] = characteristics.getCostPerMips();
 			fRamPrice[i] = characteristics.getCostPerMem();
 			fStrgPrice[i] = characteristics.getCostPerStorage();
-			fBwPrice[i++] = characteristics.getCostPerBw();
+			fBwPrice[i] = characteristics.getCostPerBw();
+			fEnPrice[i++] = characteristics.getCostPerEnergy();
 		}
 	}
 	
@@ -393,97 +386,6 @@ public abstract class Algorithm {
 		fTxPwMap[toIndex][mobileIndex] = MobilePathLossModel.TX_POWER;
 	}
 	
-	private void normalizeValues() {
-		AlgorithmUtils.print("\n\n\n\n\n\n\nfMipsPrice", fMipsPrice);
-		AlgorithmUtils.print("fRamPrice", fRamPrice);
-		AlgorithmUtils.print("fStrgPrice", fStrgPrice);
-		AlgorithmUtils.print("fBwPrice", fBwPrice);
-		
-		AlgorithmUtils.print("fMips", fMips);
-		AlgorithmUtils.print("mMips", mMips);
-		
-		AlgorithmUtils.print("fRam", fRam);
-		AlgorithmUtils.print("mRam", mRam);
-		
-		AlgorithmUtils.print("fStrg", fStrg);
-		AlgorithmUtils.print("mStrg", mStrg);
-		
-		AlgorithmUtils.print("fTxPwMap", fTxPwMap);
-		AlgorithmUtils.print("fBusyPw", fBusyPw);
-		AlgorithmUtils.print("fIdlePw", fIdlePw);
-		
-		AlgorithmUtils.print("fBandwidthMap", fBandwidthMap);
-		AlgorithmUtils.print("mBandwidthMap", mBandwidthMap);
-		
-		AlgorithmUtils.print("fLatencyMap", fLatencyMap);
-		
-		AlgorithmUtils.print("mDependencyMap", mDependencyMap);
-		
-		saveOriginalValues();
-		
-		double max = computeMax(fMipsPrice, fRamPrice, fStrgPrice, fBwPrice);
-		fMipsPrice = normalize(fMipsPrice, max);
-		fRamPrice = normalize(fRamPrice, max);
-		fStrgPrice = normalize(fStrgPrice, max);
-		fBwPrice = normalize(fBwPrice, max);
-		
-		max = computeMax(fMips, mMips);
-		fMips = normalize(fMips, max);
-		mMips = normalize(mMips, max);
-		
-		max = computeMax(fRam, mRam);
-		fRam = normalize(fRam, max);
-		mRam = normalize(mRam, max);
-		
-		max = computeMax(fStrg, mStrg);
-		fStrg = normalize(fStrg, max);
-		mStrg = normalize(mStrg, max);
-		
-		max = computeMax(fTxPwMap);
-		double tmp = computeMax(fBusyPw, fIdlePw);
-		max = max >= tmp ? max : tmp;
-		fTxPwMap = normalize(fTxPwMap, max);
-		fBusyPw = normalize(fBusyPw, max);
-		fIdlePw = normalize(fIdlePw, max);
-		
-		max = computeMax(fBandwidthMap, mBandwidthMap);
-		fBandwidthMap = normalize(fBandwidthMap, max);
-		mBandwidthMap = normalize(mBandwidthMap, max);
-		
-		max = computeMax(fLatencyMap);
-		fLatencyMap = normalize(fLatencyMap, max);
-		
-		max = computeMax(mDependencyMap);
-		mDependencyMap = normalize(mDependencyMap, max);
-		
-		AlgorithmUtils.print("fMipsPrice", fMipsPrice);
-		AlgorithmUtils.print("fRamPrice", fRamPrice);
-		AlgorithmUtils.print("fStrgPrice", fStrgPrice);
-		AlgorithmUtils.print("fBwPrice", fBwPrice);
-		
-		AlgorithmUtils.print("fMips", fMips);
-		AlgorithmUtils.print("mMips", mMips);
-		
-		AlgorithmUtils.print("fRam", fRam);
-		AlgorithmUtils.print("mRam", mRam);
-		
-		AlgorithmUtils.print("fStrg", fStrg);
-		AlgorithmUtils.print("mStrg", mStrg);
-		
-		AlgorithmUtils.print("fTxPwMap", fTxPwMap);
-		AlgorithmUtils.print("fBusyPw", fBusyPw);
-		AlgorithmUtils.print("fIdlePw", fIdlePw);
-		
-		AlgorithmUtils.print("fBandwidthMap", fBandwidthMap);
-		AlgorithmUtils.print("mBandwidthMap", mBandwidthMap);
-		
-		AlgorithmUtils.print("fLatencyMap", fLatencyMap);
-		
-		AlgorithmUtils.print("mDependencyMap", mDependencyMap);
-		
-		System.out.println("\n\n\n\n\n\n");
-	}
-	
 	public void updateMobileConnectionsVelocity(final List<FogDevice> fogDevices) {		
 		for(int i = 0; i < NR_NODES; i++) {
 			for(int j = 0; j < NR_NODES; j++) {
@@ -516,108 +418,6 @@ public abstract class Algorithm {
 				fBandwidthMap[f2Index][f1Index] = bandwidth;
 			}
 		}
-	}
-	
-	public void recomputeNormalizationValues() {
-		AlgorithmUtils.print("\n\n\n\n\nfBandwidthMap", fBandwidthMap);
-		AlgorithmUtils.print("mBandwidthMap", mBandwidthMap);
-		
-		AlgorithmUtils.print("fLatencyMap", fLatencyMap);
-		
-		AlgorithmUtils.print("fTxPwMap", fTxPwMap);
-		AlgorithmUtils.print("fBusyPw", fBusyPw);
-		AlgorithmUtils.print("fIdlePw", fIdlePw);
-		
-		saveOriginalValues();
-		
-		double max = computeMax(fBandwidthMap, mBandwidthMap);
-		fBandwidthMap = normalize(fBandwidthMap, max);
-		mBandwidthMap = normalize(mBandwidthMap, max);
-		
-		max = computeMax(fLatencyMap);
-		fLatencyMap = normalize(fLatencyMap, max);
-		
-		max = computeMax(fTxPwMap);
-		double tmp = computeMax(fBusyPw, fIdlePw);
-		max = max >= tmp ? max : tmp;
-		fTxPwMap = normalize(fTxPwMap, max);
-		fBusyPw = normalize(fBusyPw, max);
-		fIdlePw = normalize(fIdlePw, max);
-		
-		AlgorithmUtils.print("fBandwidthMap", fBandwidthMap);
-		AlgorithmUtils.print("mBandwidthMap", mBandwidthMap);
-		
-		AlgorithmUtils.print("fLatencyMap", fLatencyMap);
-		
-		AlgorithmUtils.print("fTxPwMap", fTxPwMap);
-		AlgorithmUtils.print("fBusyPw", fBusyPw);
-		AlgorithmUtils.print("fIdlePw", fIdlePw);
-		
-		System.out.println("\n\n\n\n\n\n");
-	}
-	
-	private double computeMax(double[]... vectors) {
-		double max = 0;
-		
-		for (int i = 0; i < vectors.length; i++) {
-			for (int j = 0; j < vectors[i].length; j++) {
-				if(vectors[i][j] == Constants.INF) {
-					continue;
-				}
-				
-				if (max < vectors[i][j]) {
-					max = vectors[i][j];
-				}
-			}
-		}
-		
-		return max;
-	}
-	
-	private double computeMax(double[][]... matrices) {
-		double max = 0;
-		
-		for (int i = 0; i < matrices.length; i++) {
-			for (int j = 0; j < matrices[i].length; j++) {
-				for (int z = 0; z < matrices[i][0].length; z++) {
-					if(matrices[i][j][z] == Constants.INF) {
-						continue;
-					}
-					
-					if (max < matrices[i][j][z]) {
-						max = matrices[i][j][z];
-					}
-				}
-			}
-		}
-		
-		return max;
-	}
-	
-	private double[] normalize(double[] vector, double max) {
-		for (int i = 0; i < vector.length; i++) {
-			if(vector[i] == Constants.INF) {
-				continue;
-			}
-			
-			vector[i] = vector[i]/max;
-		}
-		
-		return vector;
-	}
-	
-	private double[][] normalize(double[][] matix, double max) {
-		for (int i = 0; i < matix.length; i++) {
-			for (int j = 0; j < matix[0].length; j++) {
-				if(matix[i][j] == Constants.INF) {
-					continue;
-				}
-				
-				matix[i][j] = matix[i][j]/max;
-			}
-		}
-		
-		return matix;
 	}
 	
 	public abstract Job execute();
@@ -700,6 +500,10 @@ public abstract class Algorithm {
 
 	public double[] getfBwPrice() {
 		return fBwPrice;
+	}
+	
+	public double[] getfEnPrice() {
+		return fEnPrice;
 	}
 	
 	public int[] getfId() {
@@ -838,44 +642,6 @@ public abstract class Algorithm {
 		}
 		
 		return currentPositionInt;
-	}
-	
-	private void saveOriginalValues() {
-		for(int i = 0; i < NR_NODES; i++) {
-			for(int j = 0; j < NR_NODES; j++) {
-				fLatencyMapOriginalValues[i][j] = fLatencyMap[i][j];
-				fBandwidthMapOriginalValues[i][j] = fBandwidthMap[i][j];
-				fTxPwMapOriginalValues[i][j] = fTxPwMap[i][j];
-			}
-			
-			fBusyPwOriginalValues[i] = fBusyPw[i];
-			fIdlePwOriginalValues[i] = fIdlePw[i];
-		}
-		
-		for(int i = 0; i < NR_MODULES; i++) {
-			for(int j = 0; j < NR_MODULES; j++) {
-				mBandwidthMapOriginalValues[i][j] = mBandwidthMap[i][j];
-			}
-		}
-	}
-	
-	public void loadOriginalValues() {
-		for(int i = 0; i < NR_NODES; i++) {
-			for(int j = 0; j < NR_NODES; j++) {
-				fLatencyMap[i][j] = fLatencyMapOriginalValues[i][j];
-				fBandwidthMap[i][j] = fBandwidthMapOriginalValues[i][j];
-				fTxPwMap[i][j] = fTxPwMapOriginalValues[i][j];
-			}
-			
-			fBusyPw[i] = fBusyPwOriginalValues[i];
-			fIdlePw[i] = fIdlePwOriginalValues[i];
-		}
-		
-		for(int i = 0; i < NR_MODULES; i++) {
-			for(int j = 0; j < NR_MODULES; j++) {
-				mBandwidthMap[i][j] = mBandwidthMapOriginalValues[i][j];
-			}
-		}
 	}
 	
 }
