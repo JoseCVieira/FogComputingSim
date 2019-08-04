@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Model for 4G-LTE bandwidth communications based on several modulations
+ * Class which defines the model used to compute the bandwidth available in the mobile 4G-LTE communications based on several modulations.
  * 
  * @author  José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST)
  * @see     tecnico.ulisboa.pt

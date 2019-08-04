@@ -2,7 +2,7 @@ package org.fog.utils;
 
 
 /**
- * Model for 4G-LTE communication path loss based on isotropic antennas
+ * Class which defines the path loss model used to compute the received signal power in the mobile 4G-LTE communications based on isotropic antennas.
  * 
  * @author  José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST)
  * @see     tecnico.ulisboa.pt
