@@ -1,14 +1,16 @@
 package org.fog.utils;
 
+
 /**
+ * Model for 4G-LTE communication path loss based on isotropic antennas
  * 
- * @author jcrv
- *
- *	Model for 4G-LTE communications path loss based on isotropic antennas
+ * @author  José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST)
+ * @see     tecnico.ulisboa.pt
+ * @since   July, 2019
  */
 public class MobilePathLossModel {
 	public final static double TX_POWER = 199.5262315E-3;	// 200 mW ~= 23 dBm
-	public final static double LATENCY = 50E-3;			// 50 ms
+	public final static double LATENCY = 50E-3;				// 50 ms
 	private final static double GAMMA = 3.1;
 	
 	/**
@@ -24,15 +26,16 @@ public class MobilePathLossModel {
 	 */
 		
 	/**
-	 * 4*Math.PI*R^2 => sphere area, thus (4*Math.PI*Math.pow(distance, GAMMA)) means that at a given point the received
-	 * power is given by transmitted power divided by the its sphere area
+	 * Computes the received signal power at the receiver based on the distance.
+	 * Note: 4*Math.PI*R^2 is the sphere area, thus at a given point the received  power is given by transmitted power divided by the its area.
+	 * Because power of 2 is an optimistic value, power of 3.1 is used instead.
 	 * 
 	 * @param distance
-	 * @return power at the receiver
+	 * @return the power at the receiver
 	 */
 	public static double computeReceivedPower(double distance) {
-		
-		
+		// 4*Math.PI*R^2 => sphere area, thus (4*Math.PI*Math.pow(distance, GAMMA)) means that at a given point the received
+		// power is given by transmitted power divided by the its sphere area
 		return TX_POWER / (4*Math.PI*Math.pow(distance, GAMMA));
 	}
 }

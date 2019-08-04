@@ -4,10 +4,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * Model for 4G-LTE bandwidth communications based on several modulations
  * 
- * @author jcrv
- * 
- *	Model for 4G-LTE bandwidth communications based on several modulations
+ * @author  José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST)
+ * @see     tecnico.ulisboa.pt
+ * @since   July, 2019
  */
 public class MobileBandwidthModel {
 	private final static String[] NAMES = {"64 QAM w/ MIMO 2x2", "16 QAM w/ MIMO 2x2", "64 QAM w/ SIMO 1x2", "16 QAM w/ SIMO 1x2", "64 QAM w/ SISO 1x1", "16 QAM w/ SISO 1x1"};
@@ -21,6 +22,14 @@ public class MobileBandwidthModel {
 	
 	private final static double INTERFERENCE_MARGIN = 1;		// 1-3 dB
 	
+	
+	/**
+	 * Computes the bandwidth available in the communication based on the signal power at the receiver and the number of subcarriers.
+	 * 
+	 * @param nSub number of subcarriers
+	 * @param signalPower signal power at the receiver
+	 * @return the bandwidth available in the communication
+	 */
 	public static Map<String, Double> computeCommunicationBandwidth(int nSub, double signalPower) {
 		double noisePower = -EFFECTIVE_NOISE_POWER + 10*Math.log10(nSub*BANDWIDTH_SIGNAL) + NOISE_FACTOR;
 		double signalPowerDB = 10*Math.log10(1000*signalPower);
@@ -38,7 +47,7 @@ public class MobileBandwidthModel {
 		}
 		
 		Map<String, Double> retVal = new HashMap<String, Double>();
-		retVal.put(NAMES[modulationIndex], communicationSpeed*1024*1024);
+		retVal.put(NAMES[modulationIndex], communicationSpeed*1024);
 		
 		return retVal;
 	}
