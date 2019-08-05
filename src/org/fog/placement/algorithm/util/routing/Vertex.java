@@ -1,5 +1,12 @@
-package org.fog.placement.algorithm.routing;
+package org.fog.placement.algorithm.util.routing;
 
+/**
+ * Class which defines vertexes for the Dijkstra Algorithm.
+ * 
+ * @author  José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @see https://www.vogella.com/tutorials/JavaAlgorithmsDijkstra/article.html
+ * @since   July, 2019
+ */
 public class Vertex {
     final private String name;
 

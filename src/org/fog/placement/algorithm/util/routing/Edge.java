@@ -1,5 +1,12 @@
-package org.fog.placement.algorithm.routing;
+package org.fog.placement.algorithm.util.routing;
 
+/**
+ * Class which defines edges for the Dijkstra Algorithm.
+ * 
+ * @author  José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @see https://www.vogella.com/tutorials/JavaAlgorithmsDijkstra/article.html
+ * @since   July, 2019
+ */
 public class Edge {
     private final Vertex source;
     private final Vertex destination;
