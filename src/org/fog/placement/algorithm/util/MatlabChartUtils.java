@@ -1,4 +1,4 @@
-package org.fog.placement.algorithm.overall.util;
+package org.fog.placement.algorithm.util;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -31,6 +31,12 @@ import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
+/**
+ * Class which is responsible for plotting the map iteration-value of the evolutionary algorithms.
+ * 
+ * @author  José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since   July, 2019
+ */
 public class MatlabChartUtils extends JFrame implements ChartMouseListener {
 	private static final long serialVersionUID = 3349088359078668808L;
 	
@@ -39,7 +45,7 @@ public class MatlabChartUtils extends JFrame implements ChartMouseListener {
 	Map<Integer, Double> valueIterMap;
 	ChartPanel chartPanel;
 	
-	public MatlabChartUtils(Algorithm al, String title) {
+	public MatlabChartUtils(final Algorithm al, final String title) {
 		valueIterMap = al.getValueIterMap();
 		
     	XYDataset dataset = createDataset();
@@ -156,7 +162,7 @@ public class MatlabChartUtils extends JFrame implements ChartMouseListener {
 		return null;
 	}
 	
-	class PopUpToolTip  {		
+	class PopUpToolTip {
 		PopUpToolTip(Point point, JComponent comp, String text) {
 			comp.setToolTipText(text);
 			
