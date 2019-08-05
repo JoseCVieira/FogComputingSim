@@ -6,8 +6,7 @@ import java.util.Map;
 /**
  * Class which defines the model used to compute the bandwidth available in the mobile 4G-LTE communications based on several modulations.
  * 
- * @author  José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST)
- * @see     tecnico.ulisboa.pt
+ * @author  José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
  * @since   July, 2019
  */
 public class MobileBandwidthModel {

@@ -8,9 +8,7 @@ import org.cloudbus.cloudsim.core.CloudSim;
 import org.fog.entities.Tuple;
 
 public class TimeKeeper {
-
 	private static TimeKeeper instance;
-	
 	private long simulationStartTime;
 	private int count; 
 	private Map<Integer, Double> emitTimes;

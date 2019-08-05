@@ -4,8 +4,7 @@ package org.fog.utils;
  * Class which defines the model used to compute the network usage (given in seconds) to use transmit both by tuples
  * and virtual machines between nodes.
  * 
- * @author  José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST)
- * @see     tecnico.ulisboa.pt
+ * @author  José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
  * @since   July, 2019
  */
 public class NetworkUsageMonitor {
