@@ -25,12 +25,25 @@ import org.fog.placement.algorithm.util.routing.Vertex;
  * @since  July, 2019
  */
 public class BruteForce extends Algorithm {
+	/** Best solution found by the algorithm */
 	private Job bestSolution;
-	private double bestCost;
-	private int iteration;
-	private long start, finish;
 	
+	/** Best cost found by the algorithm */
+	private double bestCost;
+	
+	/** Current iteration of the algorithm */
+	private int iteration;
+	
+	/** Time at the beginning of the execution of the algorithm */
+	private long start;
+	
+	/** Time at the end of the execution of the algorithm */
+	private long finish;
+	
+	/** List with the nodes for the execution of the Dijkstra Algorithm */
 	private List<Vertex> nodes;
+	
+	/** Object responsible for running the Dijkstra Algorithm */
 	private DijkstraAlgorithm dijkstra;
 	
 	public BruteForce(final List<FogDevice> fogDevices, final List<Application> applications,
