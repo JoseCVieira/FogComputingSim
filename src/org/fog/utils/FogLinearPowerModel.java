@@ -9,28 +9,52 @@ import org.cloudbus.cloudsim.power.models.PowerModel;
  * @since   July, 2019
  */
 public class FogLinearPowerModel implements PowerModel {
-
-	private double maxPower;
-	private double staticPower;
-
-	public FogLinearPowerModel(double maxPower, double staticPower) {
-		this.maxPower = maxPower;
-		this.staticPower = staticPower;
+	/** The busy power value */
+	private double busyPower;
+	
+	/** The idle power value */
+	private double idlePower;
+	
+	/**
+	 * Creates a new fog linear power model.
+	 * 
+	 * @param busyPower the busy power value
+	 * @param idlePower the idle power value
+	 */
+	public FogLinearPowerModel(final double busyPower, final double idlePower) {
+		this.busyPower = busyPower;
+		this.idlePower = idlePower;
 	}
 	
+	/**
+	 * Gets the power needed to support a percentage of processing units (MIPS) utilization.
+	 * 
+	 * @param utilization the percentage of processing units in use
+	 * @return the power needed to support a percentage of processing units (MIPS) utilization
+	 */
 	@Override
-	public double getPower(double utilization) throws IllegalArgumentException {
+	public double getPower(final double utilization) throws IllegalArgumentException {
 		if (utilization < 0 || utilization > 1) {
 			throw new IllegalArgumentException("Utilization value must be between 0 and 1");
 		}
-		return staticPower + (maxPower - staticPower) * utilization;
+		return idlePower + (busyPower - idlePower) * utilization;
 	}
 
-	public double getStaticPower() {
-		return staticPower;
+	/**
+	 * Gets the idle/static power value.
+	 * 
+	 * @return the static power value
+	 */
+	public double getIdlePower() {
+		return idlePower;
 	}
 	
+	/**
+	 * Gets the busy power value.
+	 * 
+	 * @return the busy power value
+	 */
 	public double getBusyPower() {
-		return maxPower;
+		return busyPower;
 	}
 }

@@ -18,8 +18,13 @@ public class Movement {
 	public static final int SOUTH = 6;
 	public static final int SOUTHEAST = 7;
 	
+	/** The velocity of the node */
 	private double velocity;
+	
+	/** The direction of the node */
 	private int direction;
+	
+	/** The location of the node */
 	private Location location;
 	
 	/**
@@ -29,7 +34,7 @@ public class Movement {
 	 * @param direction the direction of the node
 	 * @param location the location of the node
 	 */
-	public Movement(double velocity, int direction, Location location) {
+	public Movement(final double velocity, final int direction, final Location location) {
 		setVelocity(velocity);
 		setDirection(direction);
 		setLocation(location);

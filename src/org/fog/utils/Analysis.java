@@ -7,7 +7,10 @@ package org.fog.utils;
  * @since   July, 2019
  */
 public class Analysis {
+	/** The number of tuples dropped */
 	private static int packetDrop;
+	
+	/** The number of tuples successfully delivered */
 	private static int packetSuccess;
 	
 	/**

@@ -27,7 +27,7 @@ import org.fog.gui.core.Node;
  * @since   July, 2019
  */
 public class Util {	
-	public static boolean validString(String value) {
+	public static boolean validString(final String value) {
 		if(value == null || value.length() < 1)
 			return false;
 		return true;
@@ -39,7 +39,7 @@ public class Util {
 	 * @param value the string to be transformed
 	 * @return the integer value
 	 */
-	public static int stringToInt(String value) {
+	public static int stringToInt(final String value) {
 		int v;
 		
 		try {
@@ -57,7 +57,7 @@ public class Util {
 	 * @param value the string to be transformed
 	 * @return the double value
 	 */
-	public static double stringToDouble(String value) {
+	public static double stringToDouble(final String value) {
 		double v;
 		
 		try {
@@ -75,7 +75,7 @@ public class Util {
 	 * @param value the string to be transformed
 	 * @return the long value
 	 */
-	public static long stringToLong(String value) {
+	public static long stringToLong(final String value) {
 		long v;
 		
 		try {
@@ -93,7 +93,7 @@ public class Util {
 	 * @param value the string to be transformed
 	 * @return the probability value
 	 */
-	public static double stringToProbability(String value) {
+	public static double stringToProbability(final String value) {
 		double v;
 		
 		try {
@@ -115,7 +115,7 @@ public class Util {
 	 * @param max the maximum random number
 	 * @return the random number
 	 */
-	public static int rand(int min, int max) {
+	public static int rand(final int min, final int max) {
         Random r = new Random();
         return min + r.nextInt(max - min + 1);
     }
@@ -127,7 +127,7 @@ public class Util {
 	 * @param dev the normal deviation
 	 * @return the random number
 	 */
-	public static double normalRand(double mean, double dev) {
+	public static double normalRand(final double mean, final double dev) {
 		Random r = new Random();
 		double randomNumber = -1;
 		while(randomNumber < 0) randomNumber = r.nextGaussian()*dev + mean;
@@ -140,7 +140,7 @@ public class Util {
 	 * @param input the matrix to be copied
 	 * @return the copy of the matrix
 	 */
-	public static int[][] copy(int[][] input) {
+	public static int[][] copy(final int[][] input) {
 		int r = input.length;
 		int c = input[0].length;
 		
@@ -159,7 +159,7 @@ public class Util {
 	 * @param input the vector to be copied
 	 * @return the copy of the vector
 	 */
-	public static int[] copy(int[] input) {
+	public static int[] copy(final int[] input) {
 		int[] output = new int[input.length];
 		
 		for(int i = 0; i < input.length ;i++)
@@ -175,8 +175,19 @@ public class Util {
 	 * @param s the content of the string
 	 * @return the string center aligned with a given width
 	 */
-	public String centerString(int width, String s) {
+	public static String centerString(final int width, final String s) {
 	    return String.format("%-" + width  + "s", String.format("%" + (s.length() + (width - s.length()) / 2) + "s", s));
+	}
+	
+	/**
+	 * Creates a string left aligned with a given width.
+	 * 
+	 * @param width the width of the string
+	 * @param s the content of the string
+	 * @return the string center aligned with a given width
+	 */
+	public static String leftString(final int width, final String s) {
+		return String.format("%-" + width + "s", s);
 	}
 	
 	/**
@@ -186,7 +197,7 @@ public class Util {
 	 * @param msg the message to be displayed
 	 * @param title the title to be displayed
 	 */
-	public static void prompt(Component component, String msg, String title){
+	public static void prompt(final Component component, final String msg, final String title){
 		JOptionPane.showMessageDialog(component, msg, title, JOptionPane.ERROR_MESSAGE);
 	}
 	
@@ -197,7 +208,7 @@ public class Util {
 	 * @param msg the message to be displayed
 	 * @return the integer indicating the option selected by the user
 	 */
-	public static int confirm(Component component, String msg){
+	public static int confirm(final Component component, final String msg){
 		return JOptionPane.showConfirmDialog(component, msg);
 	}
 	
@@ -207,7 +218,7 @@ public class Util {
 	 * @param string the message to be displayed
 	 */
 	@SuppressWarnings("resource")
-	public static void promptEnterKey(String string){
+	public static void promptEnterKey(final String string){
 	   System.out.println(string);
 	   Scanner scanner = new Scanner(System.in);
 	   scanner.nextLine();
@@ -222,7 +233,7 @@ public class Util {
 	 * @param value the text to be displayed
 	 * @return the input field
 	 */
-	public static JTextField createInput(JPanel jPanel, JTextField jTextField, String label, String value) {
+	public static JTextField createInput(final JPanel jPanel, JTextField jTextField, final String label, final String value) {
 		JLabel jLabel = new JLabel(label);
 		jPanel.add(jLabel);
 		jTextField = new JTextField();
@@ -243,8 +254,8 @@ public class Util {
 	 * @param option the name of the item to be selected
 	 * @return the drop-down list
 	 */
-	public static JComboBox<String> createDropDown(JPanel jPanel, JComboBox<String> jComboBox, String label,
-			ComboBoxModel<String> model, String option) {
+	public static JComboBox<String> createDropDown(final JPanel jPanel, JComboBox<String> jComboBox, final String label,
+			final ComboBoxModel<String> model, final String option) {
 		JLabel jLabel = new JLabel(label);
 		jPanel.add(jLabel);
 		jLabel.setLabelFor(jComboBox);

@@ -9,10 +9,19 @@ import org.fog.entities.FogDevice;
  * @since   July, 2019
  */
 public class Location {
+	/** The X coordinate of the node */
 	private double x;
+	
+	/** The Y coordinate of the node */
 	private double y;
 	
-	public Location(double x, double y){
+	/**
+	 * Creates a new location.
+	 * 
+	 * @param x the X coordinate of the node
+	 * @param y the Y coordinate of the node
+	 */
+	public Location(final double x, double y){
 		this.setX(x);
 		this.setY(y);
 	}
@@ -24,7 +33,7 @@ public class Location {
 	 * @param f2 the second node
 	 * @return the distance between two nodes
 	 */
-	public static double computeDistance(FogDevice f1, FogDevice f2) {
+	public static double computeDistance(final FogDevice f1, final FogDevice f2) {
 		Location l1 = f1.getMovement().getLocation();
 		Location l2 = f2.getMovement().getLocation();
 		

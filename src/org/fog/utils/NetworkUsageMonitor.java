@@ -17,7 +17,7 @@ public class NetworkUsageMonitor {
 	 * @param bandwidth the bandwidth available in the link
 	 * @param tupleNwSize the size of the tuple to be transmitted
 	 */
-	public static void sendingTuple(double latency, double bandwidth, double tupleNwSize){
+	public static void sendingTuple(final double latency, final double bandwidth, final double tupleNwSize){
 		networkUsage += latency + (tupleNwSize/bandwidth);
 	}
 	
