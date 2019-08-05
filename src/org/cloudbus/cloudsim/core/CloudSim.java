@@ -958,7 +958,6 @@ public class CloudSim {
 	 * Abruptally terminate.
 	 */
 	public static void abruptallyTerminate() {
-		System.err.println("Unfortunately FogComputingSim will terminate abruptally.\n");
 		abruptTerminate = true;
 	}
 
