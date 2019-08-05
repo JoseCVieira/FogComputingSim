@@ -15,8 +15,8 @@ import org.fog.utils.Util;
 /**
  * Class which defines some utility methods used along the optimization algorithms and to debug.
  * 
- * @author  José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
- * @since   July, 2019
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
  */
 public class AlgorithmUtils {
 	

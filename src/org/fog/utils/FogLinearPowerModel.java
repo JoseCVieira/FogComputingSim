@@ -6,8 +6,8 @@ import org.cloudbus.cloudsim.power.models.PowerModel;
  * Class which defines the model used to compute the power spent to use processing resources.
  * Original version by Anton Beloglazov
  * 
- * @author  José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
- * @since   July, 2019
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
  */
 public class FogLinearPowerModel implements PowerModel {
 	/** The busy power value */

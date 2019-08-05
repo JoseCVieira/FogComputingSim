@@ -3,8 +3,8 @@ package org.fog.utils;
 /**
  * Class which defines the events used in the whole simulation.
  * 
- * @author  José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
- * @since   July, 2019
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
  */
 public class FogEvents {
 	private static final int BASE = 50;

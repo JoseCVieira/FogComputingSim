@@ -23,8 +23,8 @@ import org.fog.gui.core.Node;
 /**
  * Class which defines some utility methods used along the program.
  * 
- * @author  José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
- * @since   July, 2019
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
  */
 public class Util {	
 	public static boolean validString(final String value) {

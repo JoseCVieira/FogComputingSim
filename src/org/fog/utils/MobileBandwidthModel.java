@@ -6,8 +6,8 @@ import java.util.Map;
 /**
  * Class which defines the model used to compute the bandwidth available in the mobile 4G-LTE communications based on several modulations.
  * 
- * @author  José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
- * @since   July, 2019
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
  */
 public class MobileBandwidthModel {
 	private final static String[] NAMES = {"64 QAM w/ MIMO 2x2", "16 QAM w/ MIMO 2x2", "64 QAM w/ SIMO 1x2", "16 QAM w/ SIMO 1x2", "64 QAM w/ SISO 1x1", "16 QAM w/ SISO 1x1"};

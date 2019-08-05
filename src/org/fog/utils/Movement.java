@@ -5,8 +5,8 @@ import org.fog.core.FogComputingSim;
 /**
  * Class which defines the movement of a node, being composed by its location, direction and velocity.
  * 
- * @author  José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
- * @since   July, 2019
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
  */
 public class Movement {
 	public static final int EAST = 0;

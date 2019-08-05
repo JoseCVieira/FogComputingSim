@@ -21,8 +21,8 @@ import org.fog.placement.algorithm.util.routing.Vertex;
 /**
  * Class in which defines and executes the brute force algorithm.
  * 
- * @author  José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST)
- * @since   July, 2019
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST)
+ * @since  July, 2019
  */
 public class BruteForce extends Algorithm {
 	private Job bestSolution;

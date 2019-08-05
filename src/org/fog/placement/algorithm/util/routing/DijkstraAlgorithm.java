@@ -12,9 +12,9 @@ import java.util.Set;
 /**
  * Class which defines and executes the Dijkstra Algorithm.
  * 
- * @author  José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
- * @see https://www.vogella.com/tutorials/JavaAlgorithmsDijkstra/article.html
- * @since   July, 2019
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @see    https://www.vogella.com/tutorials/JavaAlgorithmsDijkstra/article.html
+ * @since  July, 2019
  */
 public class DijkstraAlgorithm {
     private final List<Edge> edges;

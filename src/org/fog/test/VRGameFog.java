@@ -19,8 +19,8 @@ import org.fog.utils.distribution.Distribution;
  * Class which defines an example topology to test the simulator.
  * Original version by Harshit Gupta => Simulation setup for case study 1 - EEG Beam Tractor Game
  * 
- * @author  José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
- * @since   July, 2019
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
  */
 public class VRGameFog extends Topology {
 	/** Number of fog node gateways which are responsible to connect the clients to the fog network */

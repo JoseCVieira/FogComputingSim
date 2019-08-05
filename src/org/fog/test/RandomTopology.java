@@ -23,8 +23,8 @@ import org.fog.utils.distribution.Distribution;
 /**
  * Class which defines a random example topology to test the simulator.
  * 
- * @author  José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
- * @since   July, 2019
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
  */
 public class RandomTopology extends Topology {
 	/** Number of fog devices generated in this topology */

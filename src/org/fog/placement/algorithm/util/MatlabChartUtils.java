@@ -34,8 +34,8 @@ import org.jfree.data.xy.XYSeriesCollection;
 /**
  * Class which is responsible for plotting the map iteration-value of the evolutionary algorithms.
  * 
- * @author  José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
- * @since   July, 2019
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
  */
 public class MatlabChartUtils extends JFrame implements ChartMouseListener {
 	private static final long serialVersionUID = 3349088359078668808L;

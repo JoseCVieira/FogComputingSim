@@ -3,8 +3,8 @@ package org.fog.utils;
 /**
  * Class which is responsible for counting both the number of packages dropped and successfully delivered during the whole simulation.
  * 
- * @author  José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
- * @since   July, 2019
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
  */
 public class Analysis {
 	/** The number of tuples dropped */

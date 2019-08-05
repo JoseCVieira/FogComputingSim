@@ -11,8 +11,8 @@ import org.fog.application.selectivity.FractionalSelectivity;
 /**
  * Class which defines several example applications to test the simulator.
  * 
- * @author  José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
- * @since   July, 2019
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
  */
 public class ApplicationsExample {
 	private static List<Application> exampleApplications = new ArrayList<Application>();

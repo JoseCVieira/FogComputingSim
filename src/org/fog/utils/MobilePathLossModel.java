@@ -4,8 +4,8 @@ package org.fog.utils;
 /**
  * Class which defines the path loss model used to compute the received signal power in the mobile 4G-LTE communications based on isotropic antennas.
  * 
- * @author  José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
- * @since   July, 2019
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
  */
 public class MobilePathLossModel {
 	public final static double TX_POWER = 199.5262315E-3;	// 200 mW ~= 23 dBm

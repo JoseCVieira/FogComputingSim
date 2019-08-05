@@ -17,8 +17,8 @@ import org.fog.utils.distribution.NormalDistribution;
 /**
  * Class which defines an example topology to test the simulator.
  * 
- * @author  José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
- * @since   July, 2019
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
  */
 public class TEMPFog extends Topology {
 	/** Number of router gateways which are responsible to connect the clients to the fog network */

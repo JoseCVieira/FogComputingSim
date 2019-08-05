@@ -5,8 +5,8 @@ import org.fog.entities.FogDevice;
 /**
  * Class which defines the location of both mobile and static machines.
  * 
- * @author  José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
- * @since   July, 2019
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
  */
 public class Location {
 	/** The X coordinate of the node */

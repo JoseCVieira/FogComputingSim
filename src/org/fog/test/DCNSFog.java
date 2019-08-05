@@ -18,8 +18,8 @@ import org.fog.utils.distribution.Distribution;
  * Class which defines an example topology to test the simulator.
  * Original version by Harshit Gupta => Simulation setup for case study 2 - Intelligent Surveillance
  * 
- * @author  José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
- * @since   July, 2019
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
  */
 public class DCNSFog extends Topology {
 	/** Number of areas gateways which are responsible to connect the clients to the fog network */
