@@ -3,7 +3,6 @@ package org.fog.application;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.math3.util.Pair;
 import org.cloudbus.cloudsim.CloudletSchedulerTimeShared;
@@ -16,27 +15,47 @@ import org.fog.gui.core.ApplicationGui;
 import org.fog.utils.FogUtils;
 import org.fog.utils.Logger;
 
-// Class represents an application in the Distributed Dataflow Model.
+/**
+ * Class which represents an application in the Distributed Dataflow Model.
+ * 
+ * @author Harshit Gupta
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
+ */
 public class Application {
-	private Map<String, AppEdge> edgeMap;
-	private List<AppModule> modules; 	//List of application modules in the application
-	private List<AppEdge> edges; 		//List of application edges in the application
-	private List<AppLoop> loops; 		// List of application loops to monitor for delay
+	/** List of application modules in the application */
+	private List<AppModule> modules;
+	
+	/** List of application edges in the application */
+	private List<AppEdge> edges;
+	
+	/** List of application loops to monitor for delay */
+	private List<AppLoop> loops;
+	
+	/** Id of the application */
 	private String appId;
 	
+	/**
+	 * Creates a plain vanilla application with no modules, edges nor loops.
+	 * 
+	 * @param appId the application id
+	 */
 	public Application(String appId) {
 		setAppId(appId);
 		setModules(new ArrayList<AppModule>());
 		setEdges(new ArrayList<AppEdge>());
 		setLoops(new ArrayList<AppLoop>());
-		setEdgeMap(new HashMap<String, AppEdge>());
 	}
 	
+	/**
+	 * Creates a new application based on the application created in the GUI.
+	 * 
+	 * @param applicationGui the GUI application
+	 */
 	public Application(ApplicationGui applicationGui) {
 		setAppId(applicationGui.getAppId());
 		setModules(applicationGui.getModules());
 		setEdges(applicationGui.getEdges());
-		setEdgeMap(applicationGui.getEdgeMap());
 		
 		List<AppLoop> loops = new ArrayList<AppLoop>();
 		for(List<String> loop : applicationGui.getLoops()) {
@@ -51,8 +70,9 @@ public class Application {
 	
 	/**
 	 * Adds an application module to the application.
-	 * @param moduleName
-	 * @param ram
+	 * 
+	 * @param moduleName the module name
+	 * @param ram the ram size (kB) needed to run this module
 	 */
 	public void addAppModule(String moduleName, int ram, boolean clientModule, boolean glogbalModule) {
 		int mips = 0;
@@ -70,18 +90,24 @@ public class Application {
 		getModules().add(module);
 	}
 	
-	public void addAppModule(AppModule m, int fogId) {
+	/**
+	 * Adds an application module to the application.
+	 * 
+	 * @param m the application module
+	 * @param nodeId the node id which needs to deploy the module
+	 */
+	public void addAppModule(AppModule m, int nodeId) {
 		AppModule module = null;
 		
 		if(m.isClientModule() && m.isGlobalModule())
 			FogComputingSim.err("Modules cannot be simultaneously client module and global module");
 		
 		if(m.isGlobalModule()) {
-			module = new AppModule(FogUtils.generateEntityId(), m.getName(), appId, fogId, 
+			module = new AppModule(FogUtils.generateEntityId(), m.getName(), appId, nodeId, 
 					m.getMips(), m.getRam(), m.getBw(), m.getSize(), m.getVmm(), new CloudletSchedulerTimeShared(),
 					new HashMap<Pair<String, String>, SelectivityModel>(), m.isClientModule(), m.isGlobalModule());
 		}else {
-			module = new AppModule(FogUtils.generateEntityId(), m.getName() + "_" + fogId, appId, fogId, 
+			module = new AppModule(FogUtils.generateEntityId(), m.getName() + "_" + nodeId, appId, nodeId, 
 				m.getMips(), m.getRam(), m.getBw(), m.getSize(), m.getVmm(), new CloudletSchedulerTimeShared(),
 				new HashMap<Pair<String, String>, SelectivityModel>(), m.isClientModule(), m.isGlobalModule());
 		}
@@ -92,24 +118,29 @@ public class Application {
 
 	/**
 	 * Adds a non-periodic edge to the application model.
-	 * @param source
-	 * @param destination
-	 * @param tupleCpuLength
-	 * @param tupleNwLength
-	 * @param tupleType
-	 * @param direction
-	 * @param edgeType
+	 * 
+	 * @param source the name of source application module
+	 * @param destination the name of destination application module
+	 * @param tupleCpuLength the CPU length (in MIPS) of tuples carried by the application edge
+	 * @param tupleNwLength the network length (in kilobytes) of tuples carried by the application edge
+	 * @param tupleType the type of tuples carried by the application edge
+	 * @param edgeType the origin or the destination of the edge
 	 */
 	public void addAppEdge(String source, String destination, double tupleCpuLength, double tupleNwLength, String tupleType, int edgeType) {
-		AppEdge edge = new AppEdge(source, destination, tupleCpuLength, tupleNwLength,
-				tupleType, edgeType);
+		AppEdge edge = new AppEdge(source, destination, tupleCpuLength, tupleNwLength, tupleType, edgeType);
 		getEdges().add(edge);
-		getEdgeMap().put(edge.getTupleType(), edge);
 	}
 	
-	public void addAppEdge(AppEdge e, List<AppModule> globalModules, int fogId) {
-		String source = e.getSource() + "_" + fogId;
-		String destination = e.getDestination() + "_" + fogId;
+	/**
+	 * Adds an edge to the application model.
+	 * 
+	 * @param e the application edge
+	 * @param globalModules the list containing all global modules
+	 * @param nodeId the node id which needs to deploy the module
+	 */
+	public void addAppEdge(AppEdge e, List<AppModule> globalModules, int nodeId) {
+		String source = e.getSource() + "_" + nodeId;
+		String destination = e.getDestination() + "_" + nodeId;
 		
 		if(globalModules != null) {
 			for (AppModule gmod : globalModules) {
@@ -124,77 +155,70 @@ public class Application {
 		}
 		
 		if(!e.isPeriodic()) {
-			addAppEdge(
-					source,
-					destination,
-					e.getTupleCpuLength(),
-					e.getTupleNwLength(),
-					e.getTupleType() + "_" + fogId,
-					e.getEdgeType());
+			addAppEdge(source, destination, e.getTupleCpuLength(), e.getTupleNwLength(), e.getTupleType() + "_" + nodeId, e.getEdgeType());
 		}else {
-			addAppEdge(
-					source,
-					destination,
-					e.getPeriodicity(),
-					e.getTupleCpuLength(),
-					e.getTupleNwLength(),
-					e.getTupleType() + "_" + fogId,
-					e.getEdgeType());
+			addAppEdge(source, destination, e.getPeriodicity(), e.getTupleCpuLength(), e.getTupleNwLength(), e.getTupleType() + "_" + nodeId, e.getEdgeType());
 		}
-		
-		Logger.debug(getAppId(), "Added edge from: " + source + " to: " + destination);
 	}
-	
+
 	/**
 	 * Adds a periodic edge to the application model.
-	 * @param source
-	 * @param destination
-	 * @param tupleCpuLength
-	 * @param tupleNwLength
-	 * @param tupleType
-	 * @param direction
-	 * @param edgeType
+	 * 
+	 * @param source the name of source application module
+	 * @param destination the name of destination application module
+	 * @param periodicity the periodicity of the application edge
+	 * @param tupleCpuLength the CPU length (in MIPS) of tuples carried by the application edge
+	 * @param tupleNwLength the network length (in kilobytes) of tuples carried by the application edge
+	 * @param tupleType the type of tuples carried by the application edge
+	 * @param edgeType the origin or the destination of the edge
+	 * 
 	 */
-	public void addAppEdge(String source, String destination, double periodicity, double tupleCpuLength, 
-			double tupleNwLength, String tupleType, int edgeType){
-		AppEdge edge = new AppEdge(source, destination, periodicity, tupleCpuLength, tupleNwLength,
-			tupleType, edgeType);
+	public void addAppEdge(String source, String destination, double periodicity, double tupleCpuLength, double tupleNwLength, String tupleType, int edgeType){
+		AppEdge edge = new AppEdge(source, destination, periodicity, tupleCpuLength, tupleNwLength, tupleType, edgeType);
 		getEdges().add(edge);
-		getEdgeMap().put(edge.getTupleType(), edge);
 	}
 	
 	/**
-	 * Define the input-output relationship of an application module for a given input tuple type.
-	 * @param moduleName Name of the module
-	 * @param inputTupleType Type of tuples carried by the incoming edge
-	 * @param outputTupleType Type of tuples carried by the output edge
-	 * @param selectivityModel Selectivity model governing the relation between the incoming and outgoing edge
+	 * Defines the input-output relationship of an application module for a given input tuple type.
+	 * 
+	 * @param moduleName the name of the module
+	 * @param inputTupleType the type of tuples carried by the incoming edge
+	 * @param outputTupleType the type of tuples carried by the output edge
+	 * @param selectivityModel the selectivity model governing the relation between the incoming and outgoing edge
 	 */
 	public void addTupleMapping(String moduleName, String inputTupleType, String outputTupleType, SelectivityModel selectivityModel) {
 		AppModule module = getModuleByName(moduleName);
-		module.getSelectivityMap().put(new Pair<String, String>(inputTupleType, outputTupleType),
-				selectivityModel);
+		module.getSelectivityMap().put(new Pair<String, String>(inputTupleType, outputTupleType), selectivityModel);
 	}
 	
-	public void addTupleMapping(String moduleName, Pair<String, String> pair, double value, int fogId) {
+	/**
+	 * Defines the input-output relationship of an application module for a given input tuple type.
+	 * 
+	 * @param moduleName the name of the module
+	 * @param pair the pair which contains both the input and output tuple type
+	 * @param value the selectivity value governing the relation between the incoming and outgoing edge
+	 * @param nodeId the node id which needs to deploy the module
+	 */
+	public void addTupleMapping(String moduleName, Pair<String, String> pair, double value, int nodeId) {
 		AppModule module = getModuleByName(moduleName);
 		
 		// If it is not a global module
 		if(module == null) {
-			module = getModuleByName(moduleName + "_" + fogId);
+			module = getModuleByName(moduleName + "_" + nodeId);
 		}
 		
-		Pair<String, String> newPair = new Pair<String, String>(pair.getFirst() + "_" + fogId, pair.getSecond() + "_" + fogId);
+		Pair<String, String> newPair = new Pair<String, String>(pair.getFirst() + "_" + nodeId, pair.getSecond() + "_" + nodeId);
 		module.getSelectivityMap().put(newPair, new FractionalSelectivity(value));
 		
-		Logger.debug(getAppId(), "Added tuple mapping on module: " + module.getName() + " from: " + pair.getFirst() + "_" + fogId +
-				" to: " + pair.getSecond() + "_" + fogId);
+		Logger.debug(getAppId(), "Added tuple mapping on module: " + module.getName() + " from: " + pair.getFirst() + "_" + nodeId +
+				" to: " + pair.getSecond() + "_" + nodeId);
 	}
 	
 	/**
-	 * Get a list of all periodic edges in the application.
-	 * @param srcModule
-	 * @return
+	 * Gets the list of all periodic edges in the application with a given source module.
+	 * 
+	 * @param srcModule the source module
+	 * @return the list of all periodic edges in the application
 	 */
 	public List<AppEdge> getPeriodicEdges(String srcModule) {
 		List<AppEdge> result = new ArrayList<AppEdge>();
@@ -206,9 +230,10 @@ public class Application {
 	}
 
 	/**
-	 * Search and return an application module by its module name
+	 * Searches and returns the application module by its module name.
+	 * 
 	 * @param name the module name to be returned
-	 * @return
+	 * @return the application module
 	 */
 	public AppModule getModuleByName(String name) {
 		for(AppModule module : modules) {
@@ -219,10 +244,11 @@ public class Application {
 	}
 	
 	/**
-	 * Get the tuples generated upon execution of incoming tuple <i>inputTuple</i> by module named <i>moduleName</i>
+	 * Gets the tuples generated upon execution of incoming tuple by module named.
+	 * 
 	 * @param moduleName name of the module performing execution of incoming tuple and emitting resultant tuples
 	 * @param inputTuple incoming tuple, whose execution creates resultant tuples
-	 * @return
+	 * @return the tuples generated upon execution of incoming tuple by module named
 	 */
 	public List<Tuple> getResultantTuples(String moduleName, Tuple inputTuple, int sourceModuleId) {
 		List<Tuple> tuples = new ArrayList<Tuple>();
@@ -246,7 +272,6 @@ public class Application {
 					tuple.setDestModuleName(edge.getDestination());
 					tuple.setSrcModuleName(edge.getSource());
 					tuple.setTupleType(edge.getTupleType());
-					tuple.setSourceModuleId(sourceModuleId);
 					
 					if(edge.getEdgeType() == AppEdge.ACTUATOR)
 						tuple.setDirection(Tuple.ACTUATOR);
@@ -259,22 +284,21 @@ public class Application {
 	}
 	
 	/**
-	 * Create a tuple for a given application edge
-	 * @param edge
-	 * @param sourceDeviceId
-	 * @return
+	 * Creates a tuple for a given application edge.
+	 * 
+	 * @param edge the application edge
+	 * @param nodeId the ID of the owner of the destiny application module
+	 * @return the tuple for a given application edge
 	 */
-	public Tuple createTuple(AppEdge edge, int sourceModuleId, int fogId) {
-		Tuple tuple = new Tuple(appId, FogUtils.generateTupleId(), (long) (edge.getTupleCpuLength()),
-				1, (long) (edge.getTupleNwLength()), 100, new UtilizationModelFull(), new UtilizationModelFull(), 
-				new UtilizationModelFull());
+	public Tuple createTuple(AppEdge edge, int nodeId) {
+		Tuple tuple = new Tuple(appId, FogUtils.generateTupleId(), (long) (edge.getTupleCpuLength()), 1, (long) (edge.getTupleNwLength()),
+				100, new UtilizationModelFull(), new UtilizationModelFull(), new UtilizationModelFull());
 		
-		tuple.setUserId(fogId);
+		tuple.setUserId(nodeId);
 		tuple.setAppId(getAppId());
 		tuple.setDestModuleName(edge.getDestination());
 		tuple.setSrcModuleName(edge.getSource());
 		tuple.setTupleType(edge.getTupleType());
-		tuple.setSourceModuleId(sourceModuleId);
 		
 		if(edge.getEdgeType() == AppEdge.ACTUATOR)
 			tuple.setDirection(Tuple.ACTUATOR);
@@ -282,44 +306,76 @@ public class Application {
 		return tuple;
 	}
 	
+	/**
+	 * Gets the application id.
+	 * 
+	 * @return the application id
+	 */
 	public String getAppId() {
 		return appId;
 	}
 	
+	/**
+	 * Sets the application id.
+	 * 
+	 * @param appId the application id
+	 */
 	public void setAppId(String appId) {
 		this.appId = appId;
 	}
 	
+	/**
+	 * Gets the list of application modules in the application.
+	 * 
+	 * @return the list of application modules in the application
+	 */
 	public List<AppModule> getModules() {
 		return modules;
 	}
 	
+	/**
+	 * Sets the list of application modules in the application.
+	 * 
+	 * @param modules the list of application modules in the application
+	 */
 	public void setModules(List<AppModule> modules) {
 		this.modules = modules;
 	}
 	
+	/**
+	 * Gets the list of application edges in the application.
+	 * 
+	 * @return the list of application edges in the application
+	 */
 	public List<AppEdge> getEdges() {
 		return edges;
 	}
 	
+	/**
+	 * Sets the list of application edges in the application.
+	 * 
+	 * @param edges the list of application edges in the application
+	 */
 	public void setEdges(List<AppEdge> edges) {
 		this.edges = edges;
 	}
 
+	/**
+	 * Gets the list of application loops to monitor for delay.
+	 * 
+	 * @return the list of application loops to monitor for delay
+	 */
 	public List<AppLoop> getLoops() {
 		return loops;
 	}
 
+	/**
+	 * Sets the list of application loops to monitor for delay.
+	 * 
+	 * @param loops the list of application loops to monitor for delay
+	 */
 	public void setLoops(List<AppLoop> loops) {
 		this.loops = loops;
-	}
-
-	public Map<String, AppEdge> getEdgeMap() {
-		return edgeMap;
-	}
-
-	public void setEdgeMap(Map<String, AppEdge> edgeMap) {
-		this.edgeMap = edgeMap;
 	}
 	
 	@Override
