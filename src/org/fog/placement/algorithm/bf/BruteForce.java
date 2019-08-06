@@ -12,7 +12,6 @@ import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.placement.algorithm.Algorithm;
 import org.fog.placement.algorithm.Job;
-import org.fog.placement.algorithm.util.AlgorithmUtils;
 import org.fog.placement.algorithm.util.routing.DijkstraAlgorithm;
 import org.fog.placement.algorithm.util.routing.Edge;
 import org.fog.placement.algorithm.util.routing.Graph;
@@ -91,10 +90,6 @@ public class BruteForce extends Algorithm {
 		finish = System.currentTimeMillis();
 		
 		elapsedTime = finish - start;
-		
-		if(bestSolution != null && Config.PRINT_DETAILS) {
-	    	AlgorithmUtils.printAlgorithmResults(this, bestSolution);
-		}
 		
 		return bestSolution;
 	}
@@ -225,7 +220,7 @@ public class BruteForce extends Algorithm {
 				bestSolution = new Job(job);
     			valueIterMap.put(iteration, bestCost);
     			
-    			if(Config.PRINT_ALGORITHM_BEST_ITER)
+    			if(Config.PRINT_ALGORITHM_ITER)
     				System.out.println("iteration: " + iteration + " value: " + bestCost);
 			}
 			

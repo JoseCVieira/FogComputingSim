@@ -10,7 +10,7 @@ import org.fog.application.selectivity.SelectivityModel;
 import org.fog.utils.FogUtils;
 
 /**
- * Class representing an application module (Virtual Machine), the processing elements of the application model.
+ * Class representing application modules (Virtual Machines), the processing elements of the application model.
  * 
  * @author Harshit Gupta
  * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal

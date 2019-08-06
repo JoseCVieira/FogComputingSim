@@ -1,7 +1,7 @@
 package org.fog.application;
 
 /**
- * Class which represents application edges which connect modules together and represent data dependency between them.
+ * Class representing application edges which connect modules together and represent data dependency between them.
  * 
  * @author Harshit Gupta
  * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal

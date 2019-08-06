@@ -1,8 +1,8 @@
 package org.fog.core;
 
 /**
- * Class which represents the configuration parameters used within the FogComputingSim
- * (e. g., used by the optimization algorithms and the simulation).
+ * Class representing the configuration parameters used within the FogComputingSim
+ * (e.g., used by the optimization algorithms and the simulation).
  * 
  * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
  * @since  July, 2019
@@ -15,7 +15,7 @@ public class Config {
 	/** Defines whether the details (e.g., cost of the best solution and if it's valid) between iterations are printed */
 	public static boolean PRINT_ALGORITHM_ITER = false;
 	
-	/** Defines whether the final result of the algorithm (i. e., the best solution) is printed */
+	/** Defines whether the final result of the algorithm (i.e., the best solution) is printed */
 	public static boolean PRINT_ALGORITHM_RESULTS = true;
 	
 	/** Defines whether the iteration-value map is plotted */
@@ -96,16 +96,16 @@ public class Config {
 	// ------------------------------------------------------------ Simulation -------------------------------------------------------------
 	
 	// Simulation
-	/** Defines whether the simulation runs in debug mode (i. e., prints the debug logs defined in the original version of iFogSim) */
+	/** Defines whether the simulation runs in debug mode (i.e., prints the debug logs defined in the original version of iFogSim) */
 	public static boolean DEBUG_MODE = false;
 	
-	/** Defines whether the simulation should print logs about the simulation (e. g., tuple transmission, migrations, processing, etc.) */
+	/** Defines whether the simulation should print logs about the simulation (e.g., tuple transmission, migrations, processing, etc.) */
 	public static boolean PRINT_DETAILS = true;
 	
 	/** Defines whether the simulation should print logs about the costs and resource usage */
 	public static boolean PRINT_COST_DETAILS = false;
 	
-	/** Defines whether the simulation is dynamic (i. e., mobile nodes actualy move around) */
+	/** Defines whether the simulation is dynamic (i.e., mobile nodes actualy move around) */
 	public static boolean DYNAMIC_SIMULATION = true;
 	
 	/** Defines whether the simulation is allowed to perform migrations of VMs */

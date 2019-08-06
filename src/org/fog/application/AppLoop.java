@@ -5,7 +5,7 @@ import java.util.List;
 import org.fog.utils.TimeKeeper;
 
 /**
- * Class which represents an application loop to monitor for delay.
+ * Class representing application loops to monitor for delay.
  * 
  * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
  * @since  July, 2019

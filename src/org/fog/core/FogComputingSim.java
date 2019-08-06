@@ -31,7 +31,7 @@ import org.fog.utils.TimeKeeper;
 import org.fog.utils.Util;
 
 /**
- * Class which is responsible to run the FogComputingSim.
+ * Class which is responsible for running the FogComputingSim.
  * 
  * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
  * @since  July, 2019

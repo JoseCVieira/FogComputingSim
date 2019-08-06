@@ -15,32 +15,54 @@ import org.fog.utils.Logger;
 import org.fog.utils.TimeKeeper;
 import org.fog.utils.distribution.Distribution;
 
+/**
+ * Class representing sensors (there needs to be one sensor per user's application).
+ * 
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
+ */
 public class Sensor extends SimEntity{
-	
+	/** File size (in byte) of this cloudlet AFTER finish executing by a PowerDatacenter */
 	private static final long OUTPUT_SIZE = 3;
 	
+	/** Application id in which it is sensing */
 	private String appId;
+	
+	/** Tuple type */
 	private String tupleType;
+	
+	/** Sensor name */
 	private String sensorName;
+	
+	/** Destiny application module name */
 	private String destModuleName;
+	
+	/** User id */
 	private int userId;
+	
+	/** Gateway device id (client node) */
 	private int gatewayDeviceId;
+	
+	/** Link latency between him and the gateway (it's always 0) */
 	private double latency;
+	
+	/** Application where it is sensing */
 	private Application app;
+	
+	/** Tuple generation distribution of the sensor */
 	private Distribution transmitDistribution;
 	
 	/**
-	 * This constructor is called from the code that generates PhysicalTopology from JSON
-	 * @param name
-	 * @param tupleType
-	 * @param string 
-	 * @param userId
-	 * @param appId
-	 * @param transmitDistribution
+	 * Creates a new sensor.
+	 * 
+	 * @param name the name of the sensor
+	 * @param tupleType the tuple type of the sensor
+	 * @param userId the user id of the sensor
+	 * @param appId the application id of the sensor
+	 * @param transmitDistribution the tuple generation distribution of the sensor
+	 * @param gatewayDeviceId
 	 */
-	public Sensor(String name, String tupleType, int userId, String appId,
-			Distribution transmitDistribution, int gatewayDeviceId, double latency) {
-		
+	public Sensor(String name, String tupleType, int userId, String appId, Distribution transmitDistribution, int gatewayDeviceId) {
 		super(name);
 		this.setAppId(appId);
 		this.setTransmitDistribution(transmitDistribution);
@@ -51,6 +73,31 @@ public class Sensor extends SimEntity{
 		setLatency(latency);
 	}
 	
+	/**
+	 * Starts the tuple generation and transmission after its creation.
+	 */
+	@Override
+	public void startEntity() {
+		send(getId(), getTransmitDistribution().getNextValue(), FogEvents.EMIT_TUPLE);
+	}
+	
+	/**
+	 * Processes the events that can occur in an sensor.
+	 */
+	@Override
+	public void processEvent(SimEvent ev) {
+		switch(ev.getTag()){
+		case FogEvents.EMIT_TUPLE:
+			transmit();
+			send(getId(), getTransmitDistribution().getNextValue(), FogEvents.EMIT_TUPLE);
+			break;
+		}
+			
+	}
+	
+	/**
+	 * Transmit a new tuple to the client node (gateway device).
+	 */
 	public void transmit(){
 		AppEdge _edge = null;
 		for(AppEdge edge : getApp().getEdges())
@@ -74,6 +121,13 @@ public class Sensor extends SimEntity{
 		send(gatewayDeviceId, getLatency(), FogEvents.TUPLE_ARRIVAL, tuple);
 	}
 	
+	/**
+	 * Update timings on that application edge.
+	 * 
+	 * @param src source module of the application edge
+	 * @param dest destination module of the application edge
+	 * @return >= 0 if it has found the edge, otherwise -1
+	 */
 	private int updateTimings(String src, String dest){
 		Application application = getApp();
 		for(AppLoop loop : application.getLoops()){
@@ -87,98 +141,173 @@ public class Sensor extends SimEntity{
 				return tupleId;
 			}
 		}
+		
 		return -1;
-	}
-	
-	@Override
-	public void startEntity() {
-		send(getId(), getTransmitDistribution().getNextValue(), FogEvents.EMIT_TUPLE);
-	}
-
-	@Override
-	public void processEvent(SimEvent ev) {
-		switch(ev.getTag()){
-		case FogEvents.EMIT_TUPLE:
-			transmit();
-			send(getId(), getTransmitDistribution().getNextValue(), FogEvents.EMIT_TUPLE);
-			break;
-		}
-			
 	}
 
 	@Override
 	public void shutdownEntity() {
 	}
-
+	
+	/**
+	 * Gets the gateway device id.
+	 * 
+	 * @return the gateway device id
+	 */
 	public int getGatewayDeviceId() {
 		return gatewayDeviceId;
 	}
-
+	
+	/**
+	 * Sets the gateway device id.
+	 * 
+	 * @param gatewayDeviceId the gateway device id
+	 */
 	public void setGatewayDeviceId(int gatewayDeviceId) {
 		this.gatewayDeviceId = gatewayDeviceId;
 	}
 
+	/**
+	 * Gets the user id.
+	 * 
+	 * @return the user id
+	 */
 	public int getUserId() {
 		return userId;
 	}
-
+	
+	/**
+	 * Sets the user id.
+	 * 
+	 * @param userId the user id
+	 */
 	public void setUserId(int userId) {
 		this.userId = userId;
 	}
-
+	
+	/**
+	 * Gets the tuple type.
+	 * 
+	 * @return the tuple type
+	 */
 	public String getTupleType() {
 		return tupleType;
 	}
-
+	
+	/**
+	 * Sets the tuple type.
+	 * 
+	 * @param tupleType the tuple type
+	 */
 	public void setTupleType(String tupleType) {
 		this.tupleType = tupleType;
 	}
-
+	
+	/**
+	 * Gets the sensor name.
+	 * 
+	 * @return the sensor name
+	 */
 	public String getSensorName() {
 		return sensorName;
 	}
-
+	
+	/**
+	 * Sets the sensor name.
+	 * 
+	 * @param sensorName the sensor name
+	 */
 	public void setSensorName(String sensorName) {
 		this.sensorName = sensorName;
 	}
-
+	
+	/**
+	 * Gets the application id.
+	 * 
+	 * @return the application id
+	 */
 	public String getAppId() {
 		return appId;
 	}
-
+	
+	/**
+	 * Sets the application id.
+	 *  
+	 * @param appId the application id
+	 */
 	public void setAppId(String appId) {
 		this.appId = appId;
 	}
-
+	
+	/**
+	 * Gets the destination application module name.
+	 * 
+	 * @return the destination application module name
+	 */
 	public String getDestModuleName() {
 		return destModuleName;
 	}
-
+	
+	/**
+	 * Sets the destination application module name.
+	 * 
+	 * @param destModuleName the destination application module name
+	 */
 	public void setDestModuleName(String destModuleName) {
 		this.destModuleName = destModuleName;
 	}
-
+	
+	/**
+	 * Gets the transmit distribution.
+	 * 
+	 * @return the transmit distribution
+	 */
 	public Distribution getTransmitDistribution() {
 		return transmitDistribution;
 	}
-
+	
+	/**
+	 * Sets the transmit distribution.
+	 * 
+	 * @param transmitDistribution the transmit distribution
+	 */
 	public void setTransmitDistribution(Distribution transmitDistribution) {
 		this.transmitDistribution = transmitDistribution;
 	}
-
+	
+	/**
+	 * Gets the application.
+	 * 
+	 * @return the application
+	 */
 	public Application getApp() {
 		return app;
 	}
-
+	
+	/**
+	 * Sets the application.
+	 * 
+	 * @param app the application
+	 */
 	public void setApp(Application app) {
 		this.app = app;
 	}
 
-	public Double getLatency() {
+	/**
+	 * Gets the latency.
+	 * 
+	 * @return the latency
+	 */
+	public double getLatency() {
 		return latency;
 	}
-
-	public void setLatency(Double latency) {
+	
+	/**
+	 * Sets the latency.
+	 * 
+	 * @param latency the latency
+	 */
+	public void setLatency(double latency) {
 		this.latency = latency;
 	}
 

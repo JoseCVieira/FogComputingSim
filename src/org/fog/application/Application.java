@@ -16,7 +16,7 @@ import org.fog.utils.FogUtils;
 import org.fog.utils.Logger;
 
 /**
- * Class which represents an application in the Distributed Dataflow Model.
+ * Class representing applications in the Distributed Dataflow Model.
  * 
  * @author Harshit Gupta
  * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
