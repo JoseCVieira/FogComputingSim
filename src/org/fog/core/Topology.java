@@ -27,34 +27,75 @@ import org.fog.entities.FogDevice;
 import org.fog.entities.FogDeviceCharacteristics;
 import org.fog.entities.Sensor;
 import org.fog.entities.Tuple;
-import org.fog.gui.GuiConfig;
 import org.fog.policy.AppModuleAllocationPolicy;
+import org.fog.test.ApplicationsExample;
 import org.fog.utils.FogLinearPowerModel;
 import org.fog.utils.FogUtils;
 import org.fog.utils.Movement;
 
-public abstract class FogTest {
-	protected static List<Application> exampleApplications = new ArrayList<Application>();
+/**
+ * Class which defines the inputs needed to run the FogComputingSim.
+ * 
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
+ */
+public abstract class Topology {
+	/** List of all applications needed to be deployed */
 	protected static List<Application> applications = new ArrayList<Application>();
+	
+	/** List of all fog nodes within the physical topology */
 	protected static List<FogDevice> fogDevices = new ArrayList<FogDevice>();
+	
+	/** List of all actuators within the physical topology */
 	protected static List<Actuator> actuators = new ArrayList<Actuator>();
+	
+	/** List of all sensors within the physical topology */
 	protected static List<Sensor> sensors = new ArrayList<Sensor>();
+	
+	/** Map containing the key equal to the name of the client device and a value with the list of names of the applications which he want to deploy */
 	protected static Map<String, LinkedHashSet<String>> appToFogMap = new HashMap<String, LinkedHashSet<String>>();
 	
 	protected abstract void createFogDevices();
 	protected abstract void createClients();
 	
-	public FogTest() { }
+	/**
+	 * Create a new empty topology.
+	 */
+	public Topology() { }
 	
-	public FogTest(String toPrint) {
+	/**
+	 * Create a topology and print it's name.
+	 * 
+	 * @param toPrint
+	 */
+	public Topology(String toPrint) {
 		System.out.println(toPrint);
 		
-		createExampleApplications();
+		ApplicationsExample.createExampleApplications();
 		createFogDevices();
 		createClients();
 		deployApplications();
 	}
 	
+	/**
+	 * Create a new fog device.
+	 * 
+	 * @param name the name of the node
+	 * @param mips the processing resource units available at the node
+	 * @param ram the memory resource units available at the node
+	 * @param strg the storage resource units available at the node
+	 * @param bw the network resource units available at the node
+	 * @param bPw the busy power value
+	 * @param iPw the idle power value
+	 * @param costPerMips the monetary cost (€/MIPS) of processing resources usage
+	 * @param costPerMem the monetary cost (€/kB) of memory usage
+	 * @param costPerStorage the monetary cost (€/kB) of storage usage
+	 * @param costPerBw the monetary cost (€/kB) of bandwidth usage in at any link which the node is the source
+	 * @param costPerEnergy the monetary cost (€/W) of energy spent at the node
+	 * @param movement the movement of the node
+	 * @param client if the node is a client
+	 * @return the fog device
+	 */
 	protected static FogDevice createFogDevice(String name, double mips, int ram, long strg, long bw, double bPw, double iPw, double costPerMips,
 			double costPerMem, double costPerStorage, double costPerBw, double costPerEnergy, Movement movement, boolean client) {
 		List<Pe> processingElementsList = new ArrayList<Pe>();
@@ -75,7 +116,7 @@ public abstract class FogTest {
 
 		FogDeviceCharacteristics characteristics = new FogDeviceCharacteristics(Constants.FOG_DEVICE_ARCH,
 				Constants.FOG_DEVICE_OS, Constants.FOG_DEVICE_VMM, host, Constants.FOG_DEVICE_TIMEZONE,
-				GuiConfig.COST_PER_SEC, costPerMips, costPerMem, costPerStorage, costPerBw, costPerEnergy);
+				costPerMips, costPerMem, costPerStorage, costPerBw, costPerEnergy);
 		
 		try {
 			if(!client)
@@ -90,6 +131,16 @@ public abstract class FogTest {
 		}
 	}
 	
+	/**
+	 * Creats a connection (link) between two nodes.
+	 * 
+	 * @param fog1 the first node
+	 * @param fog2 the second node
+	 * @param latUp the latency from the first to the second node
+	 * @param latDown the latency from the second to the first node
+	 * @param bwUp the bandwidth from the first to the second node
+	 * @param bwDown the bandwidth from the second to the first node
+	 */
 	protected static void connectFogDevices(FogDevice fog1, FogDevice fog2, double latUp, double latDown, double bwUp, double bwDown) {
 		fog1.getLatencyMap().put(fog2.getId(), latUp);
 		fog2.getLatencyMap().put(fog1.getId(), latDown);
@@ -104,6 +155,9 @@ public abstract class FogTest {
 		fog2.getTupleLinkBusy().put(fog1.getId(), false);
 	}
 	
+	/**
+	 * Adds the applications to the list of applications and assert them to the respective nodes.
+	 */
 	protected void deployApplications() {
 		List<AppModule> globalModules = new ArrayList<AppModule>();
 		
@@ -111,7 +165,7 @@ public abstract class FogTest {
 			FogDevice fogDevice = getFogDeviceByName(fogName);
 			
 			for(String appName : appToFogMap.get(fogDevice.getName())) {
-				Application appToDeploy = getAppExampleByName(appName);
+				Application appToDeploy = ApplicationsExample.getAppExampleByName(appName);
 				Application application = getApplicationByName(appName);
 				
 				if(application == null) {
@@ -135,10 +189,12 @@ public abstract class FogTest {
 					}
 				}
 				
+				// Add the applications edges
 				for(AppEdge appEdge : appToDeploy.getEdges()) {
 					application.addAppEdge(appEdge, globalModules, fogDevice.getId());
 				}
 				
+				// Add the application modules
 				for(AppModule appModule : appToDeploy.getModules()) {
 					for(Pair<String, String> pair : appModule.getSelectivityMap().keySet()) {
 						FractionalSelectivity fractionalSelectivity = ((FractionalSelectivity)appModule.getSelectivityMap().get(pair));
@@ -146,6 +202,7 @@ public abstract class FogTest {
 					}
 				}
 				
+				// Add the application loops
 				List<AppLoop> loops = new ArrayList<AppLoop>();
 				for(AppLoop loop : appToDeploy.getLoops()) {
 					ArrayList<String> l = new ArrayList<String>();
@@ -166,7 +223,7 @@ public abstract class FogTest {
 						}
 						
 					}
-					loops.add(new AppLoop(l));
+					loops.add(new AppLoop(l, loop.getDeadline()));
 				}
 				
 				if(application.getLoops() == null)
@@ -177,8 +234,13 @@ public abstract class FogTest {
 		}
 	}
 	
-	// Check if module has a repeated name. Inside the same client, modules need to have unique name as well as edges.
-	// Thus check for repeated names.
+	/**
+	 * Checks if any module or edge has a repeated name.  Inside the same client, modules need to have unique name as well as edges.
+	 * 
+	 * @param appToDeploy the application to be deployed
+	 * @param fogDevice the fog device
+	 * @return true if there are no repeated names related to modules or edges, otherwise false
+	 */
 	private boolean isValid(Application appToDeploy, FogDevice fogDevice) {
 		for(Application app : applications) {
 			for(AppModule appModule : appToDeploy.getModules()) {
@@ -205,100 +267,13 @@ public abstract class FogTest {
 		return true;
 	}
 	
-	@SuppressWarnings("serial")
-	protected void createExampleApplications() {		
-		Application application = new Application("VRGame");
-		application.addAppModule("client", 100, true, false);
-		application.addAppModule("calculator", 100, false, false);
-		application.addAppModule("connector", 100, false, false);
-		
-		application.addAppEdge("EEG", "client", 3000, 500, "EEG", AppEdge.SENSOR);
-		application.addAppEdge("client", "calculator", 3500, 500, "_SENSOR", AppEdge.MODULE);
-		application.addAppEdge("calculator", "connector", 100, 1000, 1000, "PLAYER_GAME_STATE", AppEdge.MODULE);
-		application.addAppEdge("calculator", "client", 14, 500, "CONCENTRATION", AppEdge.MODULE);
-		application.addAppEdge("connector", "client", 100, 28, 1000, "GLOBAL_GAME_STATE", AppEdge.MODULE);
-		application.addAppEdge("client", "DISPLAY", 1000, 500, "SELF_STATE_UPDATE", AppEdge.ACTUATOR);
-		application.addAppEdge("client", "DISPLAY", 1000, 500, "GLOBAL_STATE_UPDATE", AppEdge.ACTUATOR);
-		
-		application.addTupleMapping("client", "EEG", "_SENSOR", new FractionalSelectivity(0.9));
-		application.addTupleMapping("client", "CONCENTRATION", "SELF_STATE_UPDATE", new FractionalSelectivity(1.0));
-		application.addTupleMapping("calculator", "_SENSOR", "CONCENTRATION", new FractionalSelectivity(1.0));
-		application.addTupleMapping("client", "GLOBAL_GAME_STATE", "GLOBAL_STATE_UPDATE", new FractionalSelectivity(1.0));
-		
-		final AppLoop loop1 = new AppLoop(new ArrayList<String>(){{add("EEG");add("client");add("calculator");add("client");add("DISPLAY");}});
-		List<AppLoop> loops = new ArrayList<AppLoop>(){{add(loop1);}};
-		application.setLoops(loops);
-		exampleApplications.add(application);
-		
-		application = new Application("VRGame_MP");
-		application.addAppModule("client_MP", 100, true, false);
-		application.addAppModule("calculator_MP", 100, false, false);
-		application.addAppModule("connector_MP", 100, false, true);
-		
-		application.addAppEdge("EEG_MP", "client_MP", 3000, 500, "EEG_MP", AppEdge.SENSOR);
-		application.addAppEdge("client_MP", "calculator_MP", 3500, 500, "_SENSOR_MP", AppEdge.MODULE);
-		application.addAppEdge("calculator_MP", "connector_MP", 100, 1000, 1000, "PLAYER_GAME_STATE_MP", AppEdge.MODULE);
-		application.addAppEdge("calculator_MP", "client_MP", 14, 500, "CONCENTRATION_MP", AppEdge.MODULE);
-		application.addAppEdge("connector_MP", "client_MP", 100, 28, 1000, "GLOBAL_GAME_STATE_MP", AppEdge.MODULE);
-		application.addAppEdge("client_MP", "DISPLAY_MP", 1000, 500, "SELF_STATE_UPDATE_MP", AppEdge.ACTUATOR);
-		application.addAppEdge("client_MP", "DISPLAY_MP", 1000, 500, "GLOBAL_STATE_UPDATE_MP", AppEdge.ACTUATOR);
-		
-		application.addTupleMapping("client_MP", "EEG_MP", "_SENSOR_MP", new FractionalSelectivity(0.9));
-		application.addTupleMapping("client_MP", "CONCENTRATION_MP", "SELF_STATE_UPDATE_MP", new FractionalSelectivity(1.0));
-		application.addTupleMapping("calculator_MP", "_SENSOR_MP", "CONCENTRATION_MP", new FractionalSelectivity(1.0));
-		application.addTupleMapping("client_MP", "GLOBAL_GAME_STATE_MP", "GLOBAL_STATE_UPDATE_MP", new FractionalSelectivity(1.0));
-		
-		final AppLoop loop2 = new AppLoop(new ArrayList<String>(){{add("EEG_MP");add("client_MP");add("calculator_MP");add("client_MP");add("DISPLAY_MP");}});
-		loops = new ArrayList<AppLoop>(){{add(loop2);}};
-		application.setLoops(loops);
-		exampleApplications.add(application);
-		
-		application = new Application("DCNS");
-		application.addAppModule("object_detector", 100, false, false);
-		application.addAppModule("motion_detector", 100, true, false);
-		application.addAppModule("object_tracker", 100, false, false);
-		application.addAppModule("user_interface", 100, false, false);
-		
-		application.addAppEdge("CAMERA", "motion_detector", 1000, 20000, "CAMERA", AppEdge.SENSOR);
-		application.addAppEdge("motion_detector", "object_detector", 2000, 2000, "MOTION_VIDEO_STREAM", AppEdge.MODULE);
-		application.addAppEdge("object_detector", "user_interface", 500, 2000, "DETECTED_OBJECT", AppEdge.MODULE);
-		application.addAppEdge("object_detector", "object_tracker", 1000, 100, "OBJECT_LOCATION", AppEdge.MODULE);
-		application.addAppEdge("object_tracker", "PTZ_CONTROL", 100, 28, 100, "PTZ_PARAMS", AppEdge.ACTUATOR);
-		
-		application.addTupleMapping("motion_detector", "CAMERA", "MOTION_VIDEO_STREAM", new FractionalSelectivity(1.0));
-		application.addTupleMapping("object_detector", "MOTION_VIDEO_STREAM", "OBJECT_LOCATION", new FractionalSelectivity(1.0));
-		application.addTupleMapping("object_detector", "MOTION_VIDEO_STREAM", "DETECTED_OBJECT", new FractionalSelectivity(0.05));
-		
-		final AppLoop loop3 = new AppLoop(new ArrayList<String>(){{add("motion_detector");add("object_detector");add("object_tracker");}});
-		final AppLoop loop4 = new AppLoop(new ArrayList<String>(){{add("object_tracker");add("PTZ_CONTROL");}});
-		loops = new ArrayList<AppLoop>(){{add(loop3);add(loop4);}};
-		exampleApplications.add(application);
-		
-		application = new Application("TEMP");
-		application.addAppModule("client", 100, false, false);
-		application.addAppModule("classifier", 100, false, false);
-		application.addAppModule("tuner", 100, false, false);
-	
-		application.addAppEdge("TEMP", "client", 1000, 100, "TEMP", AppEdge.SENSOR);
-		application.addAppEdge("client", "classifier", 8000, 100, "_SENSOR", AppEdge.MODULE);
-		application.addAppEdge("classifier", "tuner", 1000000, 100, "HISTORY", AppEdge.MODULE);
-		application.addAppEdge("classifier", "client", 1000, 100, "CLASSIFICATION", AppEdge.MODULE);
-		application.addAppEdge("tuner", "classifier", 1000, 100, "TUNING_PARAMS", AppEdge.MODULE);
-		application.addAppEdge("client", "MOTOR", 1000, 100, "ACTUATOR", AppEdge.ACTUATOR);
-		
-		application.addTupleMapping("client", "TEMP", "_SENSOR", new FractionalSelectivity(1.0));
-		application.addTupleMapping("client", "CLASSIFICATION", "ACTUATOR", new FractionalSelectivity(1.0));
-		application.addTupleMapping("classifier", "_SENSOR", "CLASSIFICATION", new FractionalSelectivity(1.0));
-		application.addTupleMapping("classifier", "_SENSOR", "HISTORY", new FractionalSelectivity(0.1));
-		application.addTupleMapping("tuner", "HISTORY", "TUNING_PARAMS", new FractionalSelectivity(1.0));
-		
-		final AppLoop loop5 = new AppLoop(new ArrayList<String>(){{add("TEMP");add("client");add("classifier");add("client");add("MOTOR");}});
-		final AppLoop loop6 = new AppLoop(new ArrayList<String>(){{add("classifier");add("tuner");add("classifier");}});
-		loops = new ArrayList<AppLoop>(){{add(loop5);add(loop6);}};
-		application.setLoops(loops);
-		exampleApplications.add(application);
-	}
-	
+	/**
+	 * Gets a module by it's name.
+	 * 
+	 * @param application the applications name
+	 * @param name the name of the application module
+	 * @return the module; can be null
+	 */
 	protected static AppModule getModuleByName(Application application, String name) {
 		for(AppModule appModule : application.getModules())
 			if(appModule.getName().equals(name))
@@ -306,13 +281,12 @@ public abstract class FogTest {
 		return null;
 	}
 	
-	protected static Application getAppExampleByName(String name) {
-		for(Application app : exampleApplications)
-			if(app.getAppId().equals(name))
-				return app;
-		return null;
-	}
-	
+	/**
+	 * Gets an application by it's name.
+	 * 
+	 * @param name the name of the application
+	 * @return the application; can be null
+	 */
 	protected static Application getApplicationByName(String name) {
 		for(Application app : applications)
 			if(app.getAppId().equals(name))
@@ -320,6 +294,13 @@ public abstract class FogTest {
 		return null;
 	}
 	
+	
+	/**
+	 * Gets a fog device by it's name.
+	 * 
+	 * @param name the name of the fog device
+	 * @return the fog device; can be null
+	 */
 	protected static FogDevice getFogDeviceByName(String name) {
 		for(FogDevice fogDevice : fogDevices)
 			if(fogDevice.getName().equals(name))
@@ -327,23 +308,53 @@ public abstract class FogTest {
 		return null;
 	}
 	
+	/**
+	 * Gets the list of applications.
+	 * 
+	 * @return the list of applications
+	 */
 	public List<Application> getApplications() {
 		return applications;
 	}
 	
+	
+	/**
+	 * Gets the list of fog devices.
+	 * 
+	 * @return the list of fog devices
+	 */
 	public List<FogDevice> getFogDevices() {
 		return fogDevices;
 	}
 	
+	
+	/**
+	 * Gets the list of actuators.
+	 * 
+	 * @return the list of actuators
+	 */
 	public List<Actuator> getActuators() {
 		return actuators;
 	}
 	
+	
+	/**
+	 * Gets the list of sensors.
+	 * 
+	 * @return the list os sensors
+	 */
 	public List<Sensor> getSensors() {
 		return sensors;
 	}
 	
+	/**
+	 * Gets the map containing the key equal to the name of the client device and a value with the list of names
+	 * of the applications which he want to deploy
+	 * 
+	 * @return the map containing the key-value: client name - list of application names
+	 */
 	public Map<String, LinkedHashSet<String>> getAppToFogMap() {
 		return appToFogMap;
 	}
+	
 }

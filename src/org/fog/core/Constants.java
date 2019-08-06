@@ -1,5 +1,11 @@
 package org.fog.core;
 
+/**
+ * Class which holds all constants used along within the FogComputingSim.
+ * 
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
+ */
 public class Constants {
 	public static final double INF = Double.MAX_VALUE;
 	public static final double EPSILON = 1E-9;

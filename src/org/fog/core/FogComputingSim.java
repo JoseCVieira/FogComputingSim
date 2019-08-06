@@ -30,6 +30,12 @@ import org.fog.utils.Logger;
 import org.fog.utils.TimeKeeper;
 import org.fog.utils.Util;
 
+/**
+ * Class which is responsible to run the FogComputingSim.
+ * 
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
+ */
 public class FogComputingSim {
 	private static final int EXIT = 0;
 	private static final int GUI = 1;
@@ -45,19 +51,17 @@ public class FogComputingSim {
 	private static List<Actuator> actuators;
 	private static Map<String, LinkedHashSet<String>> appToFogMap;
 	
-	private static Util u;
-	
 	public static void main(String[] args) {
-		u = new Util();
-		
 		if(Config.DEBUG_MODE) {
 			Logger.setLogLevel(Logger.DEBUG);
 			Logger.setEnabled(true);
 		}else
 			Log.disable();
 		
+		// Initialize CloudSim
 		CloudSim.init(Calendar.getInstance());
 		
+		// Create the topology to be tested and select the algorithm to be used
 		int option = -1;
 		while(option == -1 || applications == null) {
 			option = menuAlgorithm();
@@ -68,24 +72,33 @@ public class FogComputingSim {
 				actuators == null || actuators.isEmpty() || sensors == null || sensors.isEmpty())
 			throw new IllegalArgumentException("Some of the received arguments are null or empty.");
 		
+		// Create the controller object
 		Controller controller = new Controller("master-controller", applications, fogDevices, sensors, actuators, appToFogMap, option);
 		
 		for(FogDevice fogDevice : fogDevices) {
 			fogDevice.setController(controller);
 		}
 		
-		// Add mobile communications in the first place
-		// Run the optimization algorithm in the first place to deploy the applications' modules in the best way
+		// Add mobile communications and run the optimization algorithm in the first place to deploy the applications' modules in the best way
 		controller.updateTopology(true);
 		
 		System.out.println("Starting simulation...");
 		TimeKeeper.getInstance().setSimulationStartTime(Calendar.getInstance().getTimeInMillis());
+		
+		// Starts the simulation
 		CloudSim.startSimulation();
+		
+		// Ends the simulations
 		CloudSim.stopSimulation();
 		System.out.println("Simulation finished.");
 		System.exit(0);
 	}
 	
+	/**
+	 * Prints a menu to allow choosing one of the optimization algorithms.
+	 * 
+	 * @return the number of the optimization algorithms
+	 */
 	@SuppressWarnings("resource")
 	private static int menuAlgorithm() {
 		System.out.println("—————————————————————————————————————————————————");
@@ -132,6 +145,9 @@ public class FogComputingSim {
 	    return option;
 	}
 	
+	/**
+	 * Prints a menu to allow choosing one of the topology generators and generates the topology to be tested.
+	 */
 	@SuppressWarnings("resource")
 	private static void menuTopology() {
 		System.out.println("————————————————————————————————————————————————————————");
@@ -149,7 +165,7 @@ public class FogComputingSim {
 	    System.out.println("————————————————————————————————————————————————————————");
 	    System.out.print("\n Topology: ");
 	    
-	    FogTest fogTest = null;
+	    Topology fogTest = null;
 	    while(fogTest == null) {
 		    int option = -1;
 		    
@@ -213,6 +229,11 @@ public class FogComputingSim {
 		appToFogMap = fogTest.getAppToFogMap();
 	}
 	
+	/**
+	 * Prints a menu to allow choosing one of the topology generators which is inside a JSON file.
+	 * 
+	 * @return the path to the file
+	 */
 	@SuppressWarnings("resource")
 	private static String menuFile() {
 		Path path = FileSystems.getDefault().getPath(".");
@@ -231,13 +252,13 @@ public class FogComputingSim {
 		System.out.println("————————————————————————————————————————————————————————");
 		System.out.println("|          FOG COMPUTING SIMULATOR MENU - FILE         |");
 		System.out.println("|                                                      |");
-		System.out.println(String.format("%-54s |", "|    Topologies found inside " + dir + ":"));
+		System.out.println(Util.leftString(54, "|    Topologies found inside " + dir + ":") + " |");
 		System.out.println("|                                                      |");
 	    System.out.println("| Options:                                             |");
 	    
 	    for (int i = 0; i < listOfFiles.length; i++) {
 			if (listOfFiles[i].isFile()) {
-				System.out.println(String.format("%-54s |", "|       " + (i+1) + ". " + listOfFiles[i].getName()));
+				System.out.println(Util.leftString(54, "|       " + (i+1) + ". " + listOfFiles[i].getName()) + " |");
 			}
 		}
 	    
@@ -271,15 +292,25 @@ public class FogComputingSim {
         return path + "/topologies/" + listOfFiles[fileIndex].getName();
 	}
 	
-	public static void err(String err) {
+	/**
+	 * Outputs a given error message and terminates the program.
+	 * 
+	 * @param err the error message to be printed
+	 */
+	public static void err(final String err) {
 		System.err.println("err: [ " + err + " ]");
 		System.err.println("FogComputingSim will terminate abruptally.\n");
 		System.exit(-1);
 	}
 	
-	public static void print(String str) {
+	/**
+	 * Prints a log along with the simulation's timestamp.
+	 * 
+	 * @param str the message to be printed
+	 */
+	public static void print(final String str) {
 		DecimalFormat df = new DecimalFormat("0.00");
-		String clock = u.centerString(13, df.format(CloudSim.clock()));
+		String clock = Util.centerString(13, df.format(CloudSim.clock()));
 		System.out.println("Clock=" + clock + "-> " + str);
 	}
 	
