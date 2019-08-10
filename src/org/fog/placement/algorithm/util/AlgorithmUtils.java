@@ -125,6 +125,10 @@ public class AlgorithmUtils {
 	public static void printAlgorithmDetails(final Algorithm al, final List<FogDevice> fogDevices, final List<Application> applications,
 			final List<Sensor> sensors, final List<Actuator> actuators) {
 		
+		System.out.println("\n\n---------------------------------------------------------------------------------------- '' ----------------------------------------------------------------------------------------");
+		System.out.println("                                                                                 ALG. DETAILS START");
+		System.out.println("---------------------------------------------------------------------------------------- '' ----------------------------------------------------------------------------------------\n\n\n");
+		
 		System.out.println("\n*******************************************************");
 		System.out.println("\t\tFOG NODES CHARACTERISTICS:");
 		System.out.println("*******************************************************\n");
@@ -310,7 +314,27 @@ public class AlgorithmUtils {
 			System.out.println();
 		}
 		
-		System.out.println("\n");
+		System.out.println("\n*******************************************************");
+		System.out.println("\t\tLOOPS DEADLINE [s]:");
+		System.out.println("*******************************************************\n");
+		
+		for (int i = 0; i < al.getLoops().length; i++) {
+			for (int j = 0; j < al.getNumberOfModules(); j++) {
+				if(al.getLoops()[i][j] == -1) break;
+				
+				if(j != 0) System.out.print(" -> ");
+				System.out.format(Util.centerString(20, al.getmName()[al.getLoops()[i][j]]));
+			}
+			
+			if(al.getLoopsDeadline()[i] != Constants.INF)
+				System.out.format("::::" + Util.centerString(25, ("Deadline: " + al.getLoopsDeadline()[i])));
+			else
+				System.out.format("::::" + Util.centerString(25, ("Deadline: INF" )));
+		}
+		
+		System.out.println("\n\n\n\n---------------------------------------------------------------------------------------- '' ----------------------------------------------------------------------------------------");
+		System.out.println("                                                                                 ALG. DETAILS END");
+		System.out.println("---------------------------------------------------------------------------------------- '' ----------------------------------------------------------------------------------------\n\n\n");
 	}
 	
 	/**

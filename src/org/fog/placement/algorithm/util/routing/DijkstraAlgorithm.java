@@ -65,7 +65,7 @@ public class DijkstraAlgorithm {
             if (edge.getSource().equals(node) && edge.getDestination().equals(target))
                 return edge.getWeight();
         
-        throw new RuntimeException("Should not happen");
+        throw new RuntimeException("Should not happen (DijkstraAlgorithm)");
     }
 
     private List<Vertex> getNeighbors(Vertex node) {
