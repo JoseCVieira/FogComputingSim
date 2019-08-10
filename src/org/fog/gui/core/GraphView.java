@@ -21,9 +21,7 @@ import javax.swing.JScrollPane;
 
 import org.fog.core.Constants;
 import org.fog.gui.Gui;
-import org.fog.gui.dialog.AddActuator;
 import org.fog.gui.dialog.AddFogDevice;
-import org.fog.gui.dialog.AddSensor;
 import org.fog.utils.FogUtils;
 
 /** Panel that displays a graph */
@@ -36,9 +34,7 @@ public class GraphView extends JPanel {
 
 	private Image imgApp;
 	private Image imgHost;
-	private Image imgSensor;
-	private Image imgActuator;
-
+	
 	Map<Node, Coordinates> coordFogNodes = new HashMap<Node, Coordinates>();
 	private int size;
 	
@@ -46,8 +42,6 @@ public class GraphView extends JPanel {
 		this.graph = graph;
 		imgHost = Toolkit.getDefaultToolkit().getImage(this.getClass().getResource("/images/fog.png"));
 		imgApp = Toolkit.getDefaultToolkit().getImage(this.getClass().getResource("/images/app.png"));
-		imgSensor = Toolkit.getDefaultToolkit().getImage(this.getClass().getResource("/images/sensor.png"));
-		imgActuator = Toolkit.getDefaultToolkit().getImage(this.getClass().getResource("/images/actuator.png"));
 		
 		initComponents();
 	}
@@ -61,7 +55,6 @@ public class GraphView extends JPanel {
 
 				Map<Node, Coordinates> coordForNodes = new HashMap<Node, Coordinates>();
 				Map<Integer, List<Node>> levelMap = new HashMap<Integer, List<Node>>();
-				List<Node> endpoints = new ArrayList<Node>(); 
 
 				FontMetrics f = g.getFontMetrics();
 
@@ -71,22 +64,18 @@ public class GraphView extends JPanel {
 				int minLevel = FogUtils.MAX;
 				
 				for (Node node : graph.getDevicesList().keySet()) {
-					if(node.getType().equals(Constants.FOG_TYPE)){
-						int level = ((FogDeviceGui)node).getLevel();
-						
-						if(!levelMap.containsKey(level))
-							levelMap.put(level, new ArrayList<Node>());
-						
-						levelMap.get(level).add(node);
-						
-						if(level > maxLevel)
-							maxLevel = level;
-						
-						if(level < minLevel)
-							minLevel = level;
+					int level = ((FogDeviceGui)node).getLevel();
 					
-					} else if(node.getType().equals(Constants.SENSOR_TYPE) || node.getType().equals(Constants.ACTUATOR_TYPE))
-						endpoints.add(node);
+					if(!levelMap.containsKey(level))
+						levelMap.put(level, new ArrayList<Node>());
+					
+					levelMap.get(level).add(node);
+					
+					if(level > maxLevel)
+						maxLevel = level;
+					
+					if(level < minLevel)
+						minLevel = level;
 				}
 				
 				double yDist = canvas.getHeight()/(maxLevel-minLevel+3);
@@ -108,21 +97,7 @@ public class GraphView extends JPanel {
 					}
 				}
 				
-				List<PlaceHolder> endpointPlaceHolders = new ArrayList<PlaceHolder>();
-				
-				double xDist = canvas.getWidth()/(endpoints.size()+1);
-				for(int i=0; i < endpoints.size(); i++){
-					Node node = endpoints.get(i);
-					int x = (int)xDist*(i+1);
-					int y = (int)yDist*k;
-					
-					endpointPlaceHolders.add(new PlaceHolder(x, y));
-					
-					coordForNodes.put(node, new Coordinates(x, y));
-					node.setCoordinate(new Coordinates(x, y));
-				}
-				
-				coordForNodes = getCoordForNodes(levelToPlaceHolderMap, endpointPlaceHolders, levelMap, endpoints, minLevel, maxLevel);
+				coordForNodes = getCoordForNodes(levelToPlaceHolderMap, levelMap, minLevel, maxLevel);
 				coordFogNodes = coordForNodes;
 				
 				Map<Node, List<Node>> drawnList = new HashMap<Node, List<Node>>();
@@ -132,7 +107,7 @@ public class GraphView extends JPanel {
 					Coordinates wrapper = entry.getValue();
 					String nodeName = entry.getKey().getName();
 					switch(entry.getKey().getType()){
-						case "APP_MODULE":
+						case Constants.APP_MODULE_TYPE:
 							g.drawImage(imgApp, wrapper.getX() - nodeWidth / 2, wrapper.getY() - nodeHeight / 2, nodeWidth, nodeHeight, this);
 							g.drawString(nodeName, wrapper.getX() - f.stringWidth(nodeName) / 2, wrapper.getY() + nodeHeight);
 							break;
@@ -143,14 +118,6 @@ public class GraphView extends JPanel {
 							String appName = ((FogDeviceGui)entry.getKey()).getApplication();
 							if(!appName.equals(""))
 								g.drawString("[" + appName + "]", wrapper.getX() - f.stringWidth("[" + appName + "]") / 2, wrapper.getY() + nodeHeight + g.getFont().getSize());
-							break;
-						case Constants.SENSOR_TYPE:
-							g.drawImage(imgSensor, wrapper.getX() - nodeWidth / 2, wrapper.getY() - nodeHeight / 2, nodeWidth, nodeHeight, this);
-							g.drawString(nodeName, wrapper.getX() - f.stringWidth(nodeName) / 2, wrapper.getY() + nodeHeight);
-							break;
-						case Constants.ACTUATOR_TYPE:
-							g.drawImage(imgActuator, wrapper.getX() - nodeWidth / 2, wrapper.getY() - nodeHeight / 2, nodeWidth, nodeHeight, this);
-							g.drawString(nodeName, wrapper.getX() - f.stringWidth(nodeName) / 2, wrapper.getY() + nodeHeight);
 							break;
 					}
 				}
@@ -180,14 +147,12 @@ public class GraphView extends JPanel {
 		add(scrollPane);
 	}
 
-	protected Map<Node, Coordinates> getCoordForNodes(Map<Integer, List<PlaceHolder>> levelToPlaceHolderMap,
-			List<PlaceHolder> endpointPlaceHolders, Map<Integer, List<Node>> levelMap, List<Node> endpoints,
+	protected Map<Node, Coordinates> getCoordForNodes(Map<Integer, List<PlaceHolder>> levelToPlaceHolderMap, Map<Integer, List<Node>> levelMap,
 			int minLevel, int maxLevel) {
 
 		Map<Node, Coordinates> coordForNodesMap = new HashMap<Node, Coordinates>();
 		
 		for(Node node : graph.getDevicesList().keySet())node.setPlaced(false);
-		for(Node node : endpoints)node.setPlaced(false);
 		
 		if(maxLevel < 0)
 			return new HashMap<Node, Coordinates>();
@@ -197,18 +162,6 @@ public class GraphView extends JPanel {
 			i = 0;
 			for(PlaceHolder placeHolder : levelToPlaceHolderMap.get(level)){
 				Node node = levelMap.get(level).get(i++);
-				placeHolder.setNode(node);
-				node.setCoordinate(placeHolder.getCoordinates());
-				coordForNodesMap.put(node, node.getCoordinate());
-				node.setPlaced(true);
-			}
-		}
-		
-		i = 0;
-		for(Node node : endpoints){
-			if(!node.isPlaced()){
-				PlaceHolder placeHolder = endpointPlaceHolders.get(i++);
-				placeHolder.setOccupied(true);
 				placeHolder.setNode(node);
 				node.setCoordinate(placeHolder.getCoordinates());
 				coordForNodesMap.put(node, node.getCoordinate());
@@ -243,20 +196,9 @@ public class GraphView extends JPanel {
 			Coordinates wrapper = entry.getValue();
 			if(wrapper.getX() - size/2 <= point.getX() && wrapper.getX() + size/2 >= point.getX() &&
 					wrapper.getY() - size/2 <= point.getY() && wrapper.getY() + size/2 >= point.getY()) {
-				switch(entry.getKey().getType()){
-					case Constants.FOG_TYPE:
-						new AddFogDevice(physicalGraph, frame, (FogDeviceGui)entry.getKey());
-				    	physicalCanvas.repaint();
-						break;
-					case Constants.SENSOR_TYPE:
-						new AddSensor(physicalGraph, frame, (SensorGui)entry.getKey());
-						physicalCanvas.repaint();
-						break;
-					case Constants.ACTUATOR_TYPE:
-						new AddActuator(physicalGraph, frame, (ActuatorGui)entry.getKey());
-						physicalCanvas.repaint();
-						break;
-				}
+				new AddFogDevice(physicalGraph, frame, (FogDeviceGui)entry.getKey());
+		    	physicalCanvas.repaint();
+				break;
 			}
 		}
 		Gui.verifyRun();

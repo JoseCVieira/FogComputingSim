@@ -33,9 +33,9 @@ import org.apache.commons.math3.util.Pair;
 import org.fog.application.AppEdge;
 import org.fog.application.AppModule;
 import org.fog.application.selectivity.FractionalSelectivity;
+import org.fog.gui.GuiUtils;
 import org.fog.gui.core.ApplicationGui;
 import org.fog.gui.core.Graph;
-import org.fog.utils.Util;
 
 /** A dialog to add a new application */
 public class AddApplication extends JDialog {
@@ -158,7 +158,7 @@ public class AddApplication extends JDialog {
 				}
 				
 				if(tfName.getText().contains(" "))
-					Util.prompt(AddApplication.this, "Name cannot contain spaces", "Error");
+					GuiUtils.prompt(AddApplication.this, "Name cannot contain spaces", "Error");
 				else {
 					if(canBeChanged) {
 						if(app == null) {
@@ -169,7 +169,7 @@ public class AddApplication extends JDialog {
 						}else
 							app.setAppId(name);
 					}else
-						Util.prompt(AddApplication.this, name + " already exists", "Error");
+						GuiUtils.prompt(AddApplication.this, name + " already exists", "Error");
 				}
 			}
 		});
@@ -183,7 +183,7 @@ public class AddApplication extends JDialog {
 	private JPanel createModules() {		
 		dtmModules = new DefaultTableModel(getAppModules(), COLUMN_MODULES);
 		jtableModules = createTable(jtableModules, dtmModules);
-		jtableModules.getColumn("Edit").setCellRenderer(new Util.ButtonRenderer());
+		jtableModules.getColumn("Edit").setCellRenderer(new GuiUtils.ButtonRenderer());
 		
 		JPanel jPanel = new JPanel();
 		jPanel.setLayout(new BoxLayout(jPanel, BoxLayout.PAGE_AXIS));
@@ -224,7 +224,7 @@ public class AddApplication extends JDialog {
 	private JPanel createEdges() {
 		dtmEdges = new DefaultTableModel(getAppEdges(), COLUMN_EDGES);
 		jtableEdges = createTable(jtableEdges, dtmEdges);
-		jtableEdges.getColumn("Edit").setCellRenderer(new Util.ButtonRenderer());
+		jtableEdges.getColumn("Edit").setCellRenderer(new GuiUtils.ButtonRenderer());
 		
 		JPanel jPanel = new JPanel();
 		jPanel.setLayout(new BoxLayout(jPanel, BoxLayout.PAGE_AXIS));
@@ -265,7 +265,7 @@ public class AddApplication extends JDialog {
 	private JPanel createTuples() {
 		dtmTuples = new DefaultTableModel(getTuples(), COLUMN_TUPLES);
 		jtableTuples = createTable(jtableTuples, dtmTuples);
-		jtableTuples.getColumn("Edit").setCellRenderer(new Util.ButtonRenderer());
+		jtableTuples.getColumn("Edit").setCellRenderer(new GuiUtils.ButtonRenderer());
 
     	JPanel jPanel = new JPanel();
 		jPanel.setLayout(new BoxLayout(jPanel, BoxLayout.PAGE_AXIS));
@@ -351,7 +351,7 @@ public class AddApplication extends JDialog {
 			    int columnAtPoint = table.columnAtPoint(e.getPoint());
 			    
 			    if(columnAtPoint == 1) {			    	
-			    	if(Util.confirm(AddApplication.this, "Do you really want to remove " +
+			    	if(GuiUtils.confirm(AddApplication.this, "Do you really want to remove " +
 			    			table.getValueAt(rowAtPoint, 0)+ " ?") == JOptionPane.YES_OPTION) {
 			    		
 			    		String[] parts = table.getValueAt(rowAtPoint, 0).toString().split(" -> ");
@@ -503,7 +503,7 @@ public class AddApplication extends JDialog {
 	
 	private void updateTable(DefaultTableModel model, JTable jTable, String[][] data, String[] columns) {
 		model.setDataVector(data, columns);
-		jTable.getColumn("Edit").setCellRenderer(new Util.ButtonRenderer());
+		jTable.getColumn("Edit").setCellRenderer(new GuiUtils.ButtonRenderer());
 	}
 	
 	private JTable createTable(JTable jTable, DefaultTableModel model) {
@@ -527,7 +527,7 @@ public class AddApplication extends JDialog {
 	}
 	
 	private void configureTable(JTable jtable) {
-		jtable.getColumn("Remove").setCellRenderer(new Util.ButtonRenderer());
+		jtable.getColumn("Remove").setCellRenderer(new GuiUtils.ButtonRenderer());
 		jtable.getColumnModel().getColumn(0).setPreferredWidth(WIDTH - 100);
 		jtable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
 	}

@@ -23,8 +23,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
+import org.fog.gui.GuiUtils;
 import org.fog.gui.core.ApplicationGui;
-import org.fog.utils.Util;
 
 /** A dialog to view applications */
 public class AddAppLoop extends JDialog {
@@ -94,7 +94,7 @@ public class AddAppLoop extends JDialog {
 			    int columnAtPoint = table.columnAtPoint(e.getPoint());
 			    
 			    if(columnAtPoint == 2) {
-			    	if(Util.confirm(AddAppLoop.this, "Do you really want to remove " +
+			    	if(GuiUtils.confirm(AddAppLoop.this, "Do you really want to remove " +
 			    			table.getValueAt(rowAtPoint, 1) + " ?") == JOptionPane.YES_OPTION) {
 			    		loop.remove(table.getValueAt(rowAtPoint, 1).toString());
 			    		dtm.setDataVector(getLoop(), columnNames);
@@ -162,7 +162,7 @@ public class AddAppLoop extends JDialog {
 	}
 	
 	private void configureTable(JTable jtable) {
-		jtable.getColumn("Remove").setCellRenderer(new Util.ButtonRenderer());
+		jtable.getColumn("Remove").setCellRenderer(new GuiUtils.ButtonRenderer());
 		jtable.getColumnModel().getColumn(0).setPreferredWidth(200);
 		jtable.getColumnModel().getColumn(1).setPreferredWidth(WIDTH - 200);
 		jtable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);

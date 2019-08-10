@@ -16,7 +16,8 @@ import org.apache.commons.math3.util.Pair;
 import org.fog.application.AppEdge;
 import org.fog.application.AppModule;
 import org.fog.application.selectivity.FractionalSelectivity;
-import org.fog.core.Constants;
+import org.fog.utils.Location;
+import org.fog.utils.Movement;
 import org.fog.utils.distribution.DeterministicDistribution;
 import org.fog.utils.distribution.Distribution;
 import org.fog.utils.distribution.NormalDistribution;
@@ -45,47 +46,42 @@ public class Bridge {
 			Iterator<JSONObject> iter = nodes.iterator();
 			while(iter.hasNext()){
 				JSONObject node = iter.next();
-				String nodeType = (String) node.get("type");
 				String nodeName = (String) node.get("name");
 				String application = (String) node.get("application");
+				int level = new BigDecimal((Long)node.get("level")).intValue();
+				double mips = (Double) node.get("mips");
+				int ram = new BigDecimal((Long)node.get("ram")).intValue();
+				long strg = (Long) node.get("strg");
+				double rateMips = (Double) node.get("ratePerMips");
+				double rateRam = (Double) node.get("ratePerRam");
+				double rateStorage = (Double) node.get("ratePerStrg");
+				double rateBw = (Double) node.get("ratePerBw");
+				double rateEnergy = (Double) node.get("ratePerEn");
+				double idlePower = (Double) node.get("idlePower");
+				double busyPower = (Double) node.get("busyPower");
+				double posX = (Double) node.get("posx");
+				double posY = (Double) node.get("posy");
+				int direction = new BigDecimal((Long)node.get("direction")).intValue();
+				double velocity = (Double) node.get("velocity");
 				
-				if(nodeType.equals(Constants.FOG_TYPE)){
-					int level = new BigDecimal((Long)node.get("level")).intValue();
-					double mips = (Double) node.get("mips");
-					int ram = new BigDecimal((Long)node.get("ram")).intValue();
-					long strg = (Long) node.get("strg");
-					double bw = (Double) node.get("bw");
-					double rateMips = (Double) node.get("ratePerMips");
-					double rateRam = (Double) node.get("ratePerRam");
-					double rateStorage = (Double) node.get("ratePerStrg");
-					double rateBw = (Double) node.get("ratePerBw");
-					double idlePower = (Double) node.get("idlePower");
-					double busyPower = (Double) node.get("busyPower");
-					double cost = (Double) node.get("cost");
-
-					Node fogDevice = new FogDeviceGui(nodeName, level, mips, ram, strg, bw, rateMips, rateRam,
-							rateStorage, rateBw, idlePower, busyPower, cost, application);
-					graph.addNode(fogDevice);
-				} else if(nodeType.equals(Constants.SENSOR_TYPE)){
-					int distType = new BigDecimal((Long)node.get("distribution")).intValue();
-					Distribution distribution = null;
-					
-					if(distType == Distribution.DETERMINISTIC)
-						distribution = new DeterministicDistribution(new BigDecimal((Double)node.get("value")).doubleValue());
-					else if(distType == Distribution.NORMAL){
-						distribution = new NormalDistribution(new BigDecimal((Double)node.get("mean")).doubleValue(), 
-								new BigDecimal((Double)node.get("stdDev")).doubleValue());
-					} else if(distType == Distribution.UNIFORM){
-						distribution = new UniformDistribution(new BigDecimal((Double)node.get("min")).doubleValue(), 
-								new BigDecimal((Double)node.get("max")).doubleValue());
-					}
-					
-					Node sensor = new SensorGui(nodeName, distribution);
-					graph.addNode(sensor);
-				} else if(nodeType.equals(Constants.ACTUATOR_TYPE)){
-					Node actuator = new ActuatorGui(nodeName);
-					graph.addNode(actuator);
+				Movement movement = new Movement(velocity, direction, new Location(posX, posY));
+				
+				int distType = new BigDecimal((Long)node.get("distribution")).intValue();
+				Distribution distribution = null;
+				
+				if(distType == Distribution.DETERMINISTIC)
+					distribution = new DeterministicDistribution(new BigDecimal((Double)node.get("value")).doubleValue());
+				else if(distType == Distribution.NORMAL){
+					distribution = new NormalDistribution(new BigDecimal((Double)node.get("mean")).doubleValue(), 
+							new BigDecimal((Double)node.get("stdDev")).doubleValue());
+				} else if(distType == Distribution.UNIFORM){
+					distribution = new UniformDistribution(new BigDecimal((Double)node.get("min")).doubleValue(), 
+							new BigDecimal((Double)node.get("max")).doubleValue());
 				}
+
+				Node fogDevice = new FogDeviceGui(nodeName, level, mips, ram, strg, rateMips, rateRam, rateStorage, rateBw, rateEnergy, idlePower,
+						busyPower, movement, application, distribution);
+				graph.addNode(fogDevice);
 			}
 				
 			JSONArray links = (JSONArray) doc.get("links");
@@ -209,46 +205,35 @@ public class Bridge {
 			
 			// add node
 			JSONObject jobj = new JSONObject();
-			switch(srcNode.getType()){
-				case Constants.ACTUATOR_TYPE:
-					ActuatorGui actuator = (ActuatorGui)srcNode;
-					jobj.put("name", actuator.getName());
-					jobj.put("type", actuator.getType());
-					break;
-				case Constants.SENSOR_TYPE:
-					SensorGui sensor = (SensorGui)srcNode;
-					jobj.put("name", sensor.getName());
-					jobj.put("type", sensor.getType());
-					jobj.put("distribution", sensor.getDistributionType());
-					
-					if(sensor.getDistributionType()==Distribution.DETERMINISTIC)
-						jobj.put("value", ((DeterministicDistribution)sensor.getDistribution()).getValue());
-					else if(sensor.getDistributionType()==Distribution.NORMAL){
-						jobj.put("mean", ((NormalDistribution)sensor.getDistribution()).getMean());
-						jobj.put("stdDev", ((NormalDistribution)sensor.getDistribution()).getStdDev());
-					} else if(sensor.getDistributionType()==Distribution.UNIFORM){
-						jobj.put("min", ((UniformDistribution)sensor.getDistribution()).getMin());
-						jobj.put("max", ((UniformDistribution)sensor.getDistribution()).getMax());
-					}
-					break;
-				case Constants.FOG_TYPE:
-					FogDeviceGui fogDevice = (FogDeviceGui)srcNode;
-					jobj.put("name", fogDevice.getName());
-					jobj.put("type", fogDevice.getType());
-					jobj.put("mips", fogDevice.getMips());
-					jobj.put("ram", fogDevice.getRam());
-					jobj.put("strg", fogDevice.getStorage());
-					jobj.put("bw", fogDevice.getBw());
-					jobj.put("level", fogDevice.getLevel());
-					jobj.put("ratePerMips", fogDevice.getRateMips());
-					jobj.put("ratePerRam", fogDevice.getRateRam());
-					jobj.put("ratePerStrg", fogDevice.getRateStorage());
-					jobj.put("ratePerBw", fogDevice.getRateBw());
-					jobj.put("idlePower", fogDevice.getIdlePower());
-					jobj.put("busyPower", fogDevice.getBusyPower());
-					jobj.put("cost", fogDevice.getCostPerSec());
-					jobj.put("application", fogDevice.getApplication());
-					break;
+			FogDeviceGui fogDevice = (FogDeviceGui)srcNode;
+			jobj.put("name", fogDevice.getName());
+			jobj.put("mips", fogDevice.getMips());
+			jobj.put("ram", fogDevice.getRam());
+			jobj.put("strg", fogDevice.getStorage());
+			jobj.put("bw", fogDevice.getBw());
+			jobj.put("level", fogDevice.getLevel());
+			jobj.put("ratePerMips", fogDevice.getRateMips());
+			jobj.put("ratePerRam", fogDevice.getRateRam());
+			jobj.put("ratePerStrg", fogDevice.getRateStorage());
+			jobj.put("ratePerBw", fogDevice.getRateBw());
+			jobj.put("ratePerEn", fogDevice.getRateEnergy());
+			jobj.put("idlePower", fogDevice.getIdlePower());
+			jobj.put("busyPower", fogDevice.getBusyPower());
+			jobj.put("posx", fogDevice.getMovement().getLocation().getX());
+			jobj.put("posy", fogDevice.getMovement().getLocation().getY());
+			jobj.put("direction", fogDevice.getMovement().getDirection());
+			jobj.put("velocity", fogDevice.getMovement().getVelocity());
+			jobj.put("application", fogDevice.getApplication());
+			jobj.put("distribution", fogDevice.getDistributionType());
+			
+			if(fogDevice.getDistributionType()==Distribution.DETERMINISTIC)
+				jobj.put("value", ((DeterministicDistribution)fogDevice.getDistribution()).getValue());
+			else if(fogDevice.getDistributionType()==Distribution.NORMAL){
+				jobj.put("mean", ((NormalDistribution)fogDevice.getDistribution()).getMean());
+				jobj.put("stdDev", ((NormalDistribution)fogDevice.getDistribution()).getStdDev());
+			} else if(fogDevice.getDistributionType()==Distribution.UNIFORM){
+				jobj.put("min", ((UniformDistribution)fogDevice.getDistribution()).getMin());
+				jobj.put("max", ((UniformDistribution)fogDevice.getDistribution()).getMax());
 			}
 			nodes.add(jobj);
 			
@@ -262,11 +247,8 @@ public class Bridge {
 				JSONObject jobj2 = new JSONObject();
 				jobj2.put("source", srcNode.getName());
 				jobj2.put("destination", destNode.getName());
-				if(Constants.FOG_TYPE == destNode.getType() || Constants.SENSOR_TYPE == destNode.getType() ||
-						Constants.ACTUATOR_TYPE == destNode.getType()){
-					jobj2.put("latency", edge.getLatency());
-					jobj2.put("bw", edge.getBandwidth());
-				}
+				jobj2.put("latency", edge.getLatency());
+				jobj2.put("bw", edge.getBandwidth());
 				links.add(jobj2);
 				
 				// add exist edge to the edgeList

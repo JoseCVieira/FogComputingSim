@@ -13,7 +13,7 @@ import org.fog.entities.Actuator;
 import org.fog.entities.Client;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
-import org.fog.gui.GuiConfig;
+import org.fog.gui.GuiConstants;
 import org.fog.utils.Location;
 import org.fog.utils.Movement;
 import org.fog.utils.Util;
@@ -70,8 +70,8 @@ public class RandomTopology extends Topology {
 		
 		// Create the cloud device (cloud is seen as a single node)
 		FogDevice cloud = createFogDevice("Cloud", Double.MAX_VALUE, (int) Constants.INF, (int) Constants.INF, (int) Constants.INF,
-				16*GuiConfig.BUSY_POWER, 16*GuiConfig.IDLE_POWER, GuiConfig.RATE_MIPS, GuiConfig.RATE_RAM,
-				GuiConfig.RATE_STRG, GuiConfig.RATE_BW, GuiConfig.RATE_EN, movement, false);
+				16*GuiConstants.BUSY_POWER, 16*GuiConstants.IDLE_POWER, GuiConstants.RATE_MIPS, GuiConstants.RATE_RAM,
+				GuiConstants.RATE_STRG, GuiConstants.RATE_BW, GuiConstants.RATE_EN, movement, false);
 		
 		// Add the cloud to the physical topology
 		fogDevices.add(cloud);
@@ -89,19 +89,19 @@ public class RandomTopology extends Topology {
 			// For each node
 			for(int i = 0; i < nr; i++) {
 				// Generate the quantity of resources
-				double mips = Util.normalRand(GuiConfig.MIPS/iter, RESOURCES_DEV/iter);
-				double ram = Util.normalRand(GuiConfig.RAM/iter, RESOURCES_DEV/iter);
-				double strg = Util.normalRand(GuiConfig.STRG/iter, RESOURCES_DEV/iter);
-				double bw = Util.normalRand(GuiConfig.BW/iter, RESOURCES_DEV/iter);
+				double mips = Util.normalRand(GuiConstants.MIPS/iter, RESOURCES_DEV/iter);
+				double ram = Util.normalRand(GuiConstants.RAM/iter, RESOURCES_DEV/iter);
+				double strg = Util.normalRand(GuiConstants.STRG/iter, RESOURCES_DEV/iter);
+				double bw = Util.normalRand(GuiConstants.BW/iter, RESOURCES_DEV/iter);
 				
-				double bPw = Util.normalRand(GuiConfig.BUSY_POWER, ENERGY_DEV);
-				double iPw = Util.normalRand(GuiConfig.IDLE_POWER, ENERGY_DEV);
+				double bPw = Util.normalRand(GuiConstants.BUSY_POWER, ENERGY_DEV);
+				double iPw = Util.normalRand(GuiConstants.IDLE_POWER, ENERGY_DEV);
 				
-				double rateMips = Util.normalRand(GuiConfig.RATE_MIPS, COST_DEV);
-				double rateRam = Util.normalRand(GuiConfig.RATE_RAM, COST_DEV);
-				double rateStrg = Util.normalRand(GuiConfig.RATE_STRG, COST_DEV);
-				double rateBw = Util.normalRand(GuiConfig.RATE_BW, COST_DEV);
-				double rateEn = Util.normalRand(GuiConfig.RATE_EN, COST_DEV);
+				double rateMips = Util.normalRand(GuiConstants.RATE_MIPS, COST_DEV);
+				double rateRam = Util.normalRand(GuiConstants.RATE_RAM, COST_DEV);
+				double rateStrg = Util.normalRand(GuiConstants.RATE_STRG, COST_DEV);
+				double rateBw = Util.normalRand(GuiConstants.RATE_BW, COST_DEV);
+				double rateEn = Util.normalRand(GuiConstants.RATE_EN, COST_DEV);
 				
 				double posx = Util.rand(-500, 500);
 				double posy = Util.rand(250, 500);
@@ -201,7 +201,7 @@ public class RandomTopology extends Topology {
 			if(!(fogDevice instanceof Client)) continue;
 			
 			// Create a normal distribution
-			Distribution distribution = new DeterministicDistribution(Util.normalRand(GuiConfig.SENSOR_DESTRIBUTION, 1.0));
+			Distribution distribution = new DeterministicDistribution(Util.normalRand(GuiConstants.SENSOR_DESTRIBUTION, 1.0));
 			
 			String clientName = fogDevice.getName();
 			int userId = fogDevice.getId();

@@ -22,11 +22,11 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
 import org.fog.core.Constants;
+import org.fog.gui.GuiUtils;
 import org.fog.gui.core.ApplicationGui;
 import org.fog.gui.core.FogDeviceGui;
 import org.fog.gui.core.Graph;
 import org.fog.gui.core.Node;
-import org.fog.utils.Util;
 
 /** A dialog to view applications */
 public class DisplayApplications extends JDialog {
@@ -98,7 +98,7 @@ public class DisplayApplications extends JDialog {
 			    	dtm.setDataVector(getApplications(), columnNames);
 			    	configureTable(jtable);
 			    }else if(columnAtPoint == 2) {
-			    	if(Util.confirm(DisplayApplications.this, "Do you really want to remove " +
+			    	if(GuiUtils.confirm(DisplayApplications.this, "Do you really want to remove " +
 			    			table.getValueAt(rowAtPoint, 0)+ " ?") == JOptionPane.YES_OPTION) {
 			    		
 			    		ApplicationGui appToRemove = null;
@@ -175,8 +175,8 @@ public class DisplayApplications extends JDialog {
 	}
 	
 	private void configureTable(JTable jtable) {
-		jtable.getColumn("Remove").setCellRenderer(new Util.ButtonRenderer());
-		jtable.getColumn("Edit").setCellRenderer(new Util.ButtonRenderer());
+		jtable.getColumn("Remove").setCellRenderer(new GuiUtils.ButtonRenderer());
+		jtable.getColumn("Edit").setCellRenderer(new GuiUtils.ButtonRenderer());
 		jtable.getColumnModel().getColumn(0).setPreferredWidth(WIDTH - 200);
 		jtable.getColumnModel().getColumn(1).setPreferredWidth(200);
 		jtable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);

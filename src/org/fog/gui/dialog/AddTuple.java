@@ -27,10 +27,10 @@ import org.apache.commons.math3.util.Pair;
 import org.fog.application.AppEdge;
 import org.fog.application.AppModule;
 import org.fog.application.selectivity.FractionalSelectivity;
+import org.fog.gui.GuiUtils;
 import org.fog.gui.core.ApplicationGui;
 import org.fog.gui.core.SpringUtilities;
 import org.fog.utils.Util;
-import org.fog.utils.Util.AppModulesCellRenderer;
 
 public class AddTuple extends JDialog {
 	private static final long serialVersionUID = -511667786177319577L;
@@ -99,7 +99,7 @@ public class AddTuple extends JDialog {
 		inputTuple = new JComboBox<>(inputModel);
 		outputTuple = new JComboBox<>(outputModel);
 		
-		AppModulesCellRenderer renderer = new Util.AppModulesCellRenderer();
+		GuiUtils.AppModulesCellRenderer renderer = new GuiUtils.AppModulesCellRenderer();
 		moduleName.setRenderer(renderer);
 		
 		JLabel lmNameModel = new JLabel("Module Name: ");
@@ -216,7 +216,7 @@ public class AddTuple extends JDialog {
 					app.addTupleMapping(moduleName_, inputTuple_, outputTuple_, new FractionalSelectivity(probability_));
 					setVisible(false);
 				}else
-					Util.prompt(AddTuple.this, error_msg, "Error");
+					GuiUtils.prompt(AddTuple.this, error_msg, "Error");
 			}
 		});
 

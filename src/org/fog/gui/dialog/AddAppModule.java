@@ -23,7 +23,8 @@ import javax.swing.SpringLayout;
 import org.apache.commons.math3.util.Pair;
 import org.fog.application.AppEdge;
 import org.fog.application.AppModule;
-import org.fog.gui.GuiConfig;
+import org.fog.gui.GuiConstants;
+import org.fog.gui.GuiUtils;
 import org.fog.gui.core.ApplicationGui;
 import org.fog.gui.core.SpringUtilities;
 import org.fog.utils.Util;
@@ -135,7 +136,7 @@ public class AddAppModule extends JDialog {
 						app.addAppModule(name_, ram_, size_, clientModule_, globalModule_);
 					setVisible(false);
 				}else
-					Util.prompt(AddAppModule.this, error_msg, "Error");
+					GuiUtils.prompt(AddAppModule.this, error_msg, "Error");
 			}
 		});
 
@@ -156,22 +157,22 @@ public class AddAppModule extends JDialog {
         JPanel springPanel = new JPanel(new SpringLayout());
         springPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 		
-        moduleName = Util.createInput(springPanel, moduleName, "Name: ", module == null ? "" : module.getName());
-        moduleRam = Util.createInput(springPanel, moduleRam, "Ram: ", module == null ? Integer.toString(GuiConfig.MODULE_RAM) : Integer.toString(module.getRam()));
-        moduleSize = Util.createInput(springPanel, moduleSize, "Storage: ", module == null ? Long.toString(GuiConfig.MODULE_SIZE) : Long.toString(module.getSize()));
+        moduleName = GuiUtils.createInput(springPanel, moduleName, "Name: ", module == null ? "" : module.getName());
+        moduleRam = GuiUtils.createInput(springPanel, moduleRam, "Ram: ", module == null ? Integer.toString(GuiConstants.MODULE_RAM) : Integer.toString(module.getRam()));
+        moduleSize = GuiUtils.createInput(springPanel, moduleSize, "Storage: ", module == null ? Long.toString(GuiConstants.MODULE_SIZE) : Long.toString(module.getSize()));
         
         @SuppressWarnings({ "rawtypes", "unchecked" })
 		ComboBoxModel<String> clientModuleModel = new DefaultComboBoxModel(Arrays.asList("YES", "NO").toArray());
         clientModule = new JComboBox<>(clientModuleModel);
         
-        clientModule = Util.createDropDown(springPanel, clientModule, "Client Model: ", clientModuleModel, null);
+        clientModule = GuiUtils.createDropDown(springPanel, clientModule, "Client Model: ", clientModuleModel, null);
         
         
         @SuppressWarnings({ "rawtypes", "unchecked" })
 		ComboBoxModel<String> globalModuleModel = new DefaultComboBoxModel(Arrays.asList("YES", "NO").toArray());
         globalModule = new JComboBox<>(globalModuleModel);
         
-        globalModule = Util.createDropDown(springPanel, globalModule, "Client Model: ", globalModuleModel, null);        
+        globalModule = GuiUtils.createDropDown(springPanel, globalModule, "Client Model: ", globalModuleModel, null);        
         
         if(module != null) {
         	clientModuleModel.setSelectedItem(module.isClientModule() ? "Yes" : "No");

@@ -18,19 +18,20 @@ import org.cloudbus.cloudsim.sdn.overbooking.VmSchedulerTimeSharedOverbookingEne
 import org.fog.application.AppEdge;
 import org.fog.application.Application;
 import org.fog.core.Constants;
-import org.fog.core.FogTest;
+import org.fog.core.Topology;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
 import org.fog.entities.FogDeviceCharacteristics;
 import org.fog.entities.Sensor;
 import org.fog.entities.Tuple;
 import org.fog.policy.AppModuleAllocationPolicy;
+import org.fog.test.ApplicationsExample;
 import org.fog.utils.FogLinearPowerModel;
 import org.fog.utils.FogUtils;
 import org.fog.utils.Location;
 import org.fog.utils.Movement;
 
-public class RunGUI extends FogTest {
+public class RunGUI extends Topology {
 	private final Graph graph;
 	
 	public RunGUI(final Graph graph){
@@ -46,9 +47,7 @@ public class RunGUI extends FogTest {
 	@Override
 	protected void createFogDevices() {
 		for(Node node : graph.getDevicesList().keySet()) {
-			if(node.getType().equals(Constants.FOG_TYPE)) {
-				fogDevices.add(createFogDevice((FogDeviceGui)node));
-			}
+			fogDevices.add(createFogDevice((FogDeviceGui)node));
 		}
 		
 		for (Entry<Node, List<Link>> entry : graph.getDevicesList().entrySet()) {
@@ -79,36 +78,23 @@ public class RunGUI extends FogTest {
 			}
 		}
 	}
-	
 	private FogDevice createFogDevice(FogDeviceGui fog) {
-		List<Pe> processingElementsList = new ArrayList<Pe>();
-		processingElementsList.add(new Pe(0, new PeProvisioner(fog.getMips())));
-
-		PowerHost host = new PowerHost(
-				FogUtils.generateEntityId(),
-				new RamProvisioner(fog.getRam()),
-				new BwProvisioner((long) fog.getBw()),
-				fog.getStorage(),
-				processingElementsList,
-				new VmSchedulerTimeSharedOverbookingEnergy(processingElementsList),
-				new FogLinearPowerModel(fog.getBusyPower(), fog.getIdlePower())
-			);
-
-		List<Host> hostList = new ArrayList<Host>();
-		hostList.add(host);
-
-		FogDeviceCharacteristics characteristics = new FogDeviceCharacteristics(Constants.FOG_DEVICE_ARCH,
-				Constants.FOG_DEVICE_OS, Constants.FOG_DEVICE_VMM, host, Constants.FOG_DEVICE_TIMEZONE,
-				fog.getCostPerSec(), fog.getRateMips(), fog.getRateRam(), fog.getRateStorage(), fog.getRateBw());
+		String name = fog.getName();
+		double mips = fog.getMips();
+		int ram = fog.getRam();
+		long strg = fog.getStorage();
+		long bw = (long) fog.getBw();
+		double bPw = fog.getBusyPower();
+		double iPw = fog.getIdlePower();
+		double costPerMips = fog.getRateMips();
+		double costPerMem = fog.getRateRam();
+		double costPerStorage = fog.getRateStorage();
+		double costPerBw = fog.getRateBw();
+		double costPerEnergy = fog.getRateEnergy();
+		Movement movement = fog.getMovement();
+		boolean client = fog.getApplication().equals("") ? false : true;
 		
-		try {
-			Movement movement = new Movement(0.0, Movement.EAST, new Location(0, 0));
-			return new FogDevice(fog.getName(), characteristics, new AppModuleAllocationPolicy(hostList),
-					new LinkedList<Storage>(), Constants.SCHEDULING_INTERVAL, movement);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
+		return createFogDevice(name, mips, ram, strg, bw, bPw, iPw, costPerMips, costPerMem, costPerStorage, costPerBw, costPerEnergy, movement, client);
 	}
 	
 	private ArrayList<FogDeviceGui> getClients(){
@@ -122,42 +108,11 @@ public class RunGUI extends FogTest {
 		return clients;
 	}
 	
-	
-
 	@Override
 	protected void createClients() {
 		for(FogDeviceGui client : getClients()) {
-			SensorGui sensor = null;
-			ActuatorGui actuator = null;
 			String tupleType = "";
 			String actuatorType = "";
-			double sensorLat = -1;
-			double actuatorLat = -1;
-			
-			for (Entry<Node, List<Link>> entry : graph.getDevicesList().entrySet()) {
-				for (Link edge : entry.getValue()) {
-					if(entry.getKey().equals(client)){
-						if(edge.getNode().getType().equals(Constants.SENSOR_TYPE)) {
-							sensor = (SensorGui)edge.getNode();
-							sensorLat = edge.getLatency();
-						}else if(edge.getNode().getType().equals(Constants.ACTUATOR_TYPE)) {
-							actuator = (ActuatorGui)edge.getNode();
-							actuatorLat = edge.getLatency();
-						}
-					}else if(entry.getKey().getType().equals(Constants.SENSOR_TYPE) && edge.getNode().equals(client)) {
-						sensor = (SensorGui)entry.getKey();
-						sensorLat = edge.getLatency();
-					}else if(entry.getKey().getType().equals(Constants.ACTUATOR_TYPE) && edge.getNode().equals(client)) {
-						actuator = (ActuatorGui)entry.getKey();
-						actuatorLat = edge.getLatency();
-					}
-					
-					if(sensor != null && actuator != null)
-						break;
-				}
-				if(sensor != null && actuator != null)
-					break;
-			}
 			
 			for(ApplicationGui applicationGui : graph.getAppList()) {
 				if(applicationGui.getAppId().equals(client.getApplication())) {
@@ -174,11 +129,8 @@ public class RunGUI extends FogTest {
 			FogDevice fogDevice = getFogDeviceByName(client.getName());
 			int userId = fogDevice.getId();
 			
-			sensors.add(new Sensor(sensor.getName() + client.getName(), tupleType + "_" + userId, userId, appName,
-					sensor.getDistribution(), userId, sensorLat));
-	
-			actuators.add(new Actuator(actuator.getName() + client.getName(), userId, appName, userId, actuatorLat,
-					actuatorType + "_" + userId));
+			sensors.add(new Sensor(client.getName() + "_sensor", tupleType + "_" + userId, userId, appName, client.getDistribution(), userId));
+			actuators.add(new Actuator(client.getName() + "_actuator", userId, appName, userId, actuatorType + "_" + userId));
 			
 			if(!appToFogMap.containsKey(fogDevice.getName())) {
 				LinkedHashSet<String> appList = new LinkedHashSet<String>();
@@ -192,7 +144,7 @@ public class RunGUI extends FogTest {
 	
 	protected void createExampleApplications(){
 		for(ApplicationGui app : graph.getAppList()) {
-			exampleApplications.add(new Application(app));
+			ApplicationsExample.exampleApplications.add(new Application(app));
 		}
 	}
 	

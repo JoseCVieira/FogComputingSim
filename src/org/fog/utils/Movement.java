@@ -18,6 +18,8 @@ public class Movement {
 	public static final int SOUTH = 6;
 	public static final int SOUTHEAST = 7;
 	
+	public static final String[] S_DIRECTIONS = {"EAST", "NORTHEAST", "NORTH", "NORTHWEST", "WEST", "SOUTHWEST", "SOUTH", "SOUTHEAST"};
+	
 	/** The velocity of the node */
 	private double velocity;
 	

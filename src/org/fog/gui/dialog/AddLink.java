@@ -33,19 +33,18 @@ import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 
 import org.fog.core.Constants;
+import org.fog.gui.GuiUtils;
+import org.fog.gui.GuiUtils.NodeCellRenderer;
 import org.fog.gui.core.Graph;
 import org.fog.gui.core.Link;
 import org.fog.gui.core.Node;
 import org.fog.utils.Util;
-import org.fog.utils.Util.NodeCellRenderer;
 
 /** A dialog to add a new link */
 public class AddLink extends JDialog {
 	private static final long serialVersionUID = 4794808969864918000L;
 	private static final int WIDTH = 1000;
 	private static final int HEIGHT = 1000;
-	private static final int SENSOR = 0;
-	private static final int ACTUATOR = 1;
 	
 	private static final String[] COLUMNS = {"From/To", "From/To", "Latency", "Bandwidth", "Remove"};
 	
@@ -92,7 +91,7 @@ public class AddLink extends JDialog {
 		targetNode.setMinimumSize(new Dimension(150, targetNode.getPreferredSize().height));
 		targetNode.setPreferredSize(new Dimension(150, targetNode.getPreferredSize().height));
 
-		NodeCellRenderer renderer = new Util.NodeCellRenderer();
+		NodeCellRenderer renderer = new NodeCellRenderer();
 
 		sourceNode.setRenderer(renderer);
 		targetNode.setRenderer(renderer);
@@ -109,38 +108,21 @@ public class AddLink extends JDialog {
 				List<Node> nodesToDisplay = new ArrayList<Node>();
 				Set<Node> allNodes = graph.getDevicesList().keySet();
 
-				// get edged for selected node and throw out all target nodes where already an edge exists
+				// Get edges for selected node and throw out all target nodes where already exists an edge
 				List<Link> edgesForSelectedNode = graph.getDevicesList().get(selectedNode);
 				Set<Node> nodesInEdges = new HashSet<Node>();
 				for (Link edge : edgesForSelectedNode)
 					nodesInEdges.add(edge.getNode());
 				
-				for(Node node : graph.getDevicesList().keySet())
-					for(Link edge : graph.getDevicesList().get(node))
+				for(Node node : graph.getDevicesList().keySet()) {
+					for(Link edge : graph.getDevicesList().get(node)) {
 						if(edge.getNode().equals(selectedNode) && !nodesInEdges.contains(node))
 							nodesInEdges.add(node);
+					}
+				}
 
-				if(selectedNode.getType().equals(Constants.FOG_TYPE) || edgesForSelectedNode.size() == 0){
+				if(edgesForSelectedNode.size() == 0) {
 					for (Node node : allNodes) {
-						if(!selectedNode.getType().equals(Constants.FOG_TYPE) && !node.getType().equals(Constants.FOG_TYPE))
-							continue;
-						
-						if(selectedNode.getType().equals(Constants.FOG_TYPE) && node.getType().equals(Constants.SENSOR_TYPE) &&
-								hasSensorActuator(selectedNode.getName())[SENSOR])
-							continue;
-						
-						if(selectedNode.getType().equals(Constants.FOG_TYPE) && node.getType().equals(Constants.ACTUATOR_TYPE) &&
-								hasSensorActuator(selectedNode.getName())[ACTUATOR])
-							continue;
-						
-						if(selectedNode.getType().equals(Constants.SENSOR_TYPE) && node.getType().equals(Constants.FOG_TYPE) &&
-								hasSensorActuator(node.getName())[SENSOR])
-							continue;
-						
-						if(selectedNode.getType().equals(Constants.ACTUATOR_TYPE) && node.getType().equals(Constants.FOG_TYPE) &&
-								hasSensorActuator(node.getName())[ACTUATOR])
-							continue;
-						
 						if (!node.equals(selectedNode) && !nodesInEdges.contains(node)) {
 							if(!node.getType().equals(Constants.FOG_TYPE) && !isConnected(node.getName()))
 								nodesToDisplay.add(node);
@@ -194,7 +176,7 @@ public class AddLink extends JDialog {
 
 				if(error_msg == "") {
 					if (sourceNode.getSelectedItem() == null || targetNode.getSelectedItem() == null)
-						Util.prompt(AddLink.this, "Please select node", "Error");
+						GuiUtils.prompt(AddLink.this, "Please select node", "Error");
 					else {
 						Node source = (Node) sourceNode.getSelectedItem();
 						Node target = (Node) targetNode.getSelectedItem();
@@ -202,7 +184,7 @@ public class AddLink extends JDialog {
 						Link link = new Link(target, latency, bandwidth);
 						graph.addEdge(source, link);
 						dtm.setDataVector(getConnections(), COLUMNS);
-						jtable.getColumn("Remove").setCellRenderer(new Util.ButtonRenderer());
+						jtable.getColumn("Remove").setCellRenderer(new GuiUtils.ButtonRenderer());
 						
 						ComboBoxModel<String> sourceNodeModel = new DefaultComboBoxModel(sourceNodesToDisplay().toArray());
 						sourceNode.setModel(sourceNodeModel);
@@ -211,7 +193,7 @@ public class AddLink extends JDialog {
 						tfBandwidth.setText("");
 					}
 				}else
-					Util.prompt(AddLink.this, error_msg, "Error");
+					GuiUtils.prompt(AddLink.this, error_msg, "Error");
 			}
 		});
 
@@ -245,7 +227,7 @@ public class AddLink extends JDialog {
 			    int columnAtPoint = table.columnAtPoint(e.getPoint());
 			    
 			    if(columnAtPoint == 4) {
-			    	if(Util.confirm(AddLink.this, "Do you realy want to remove the edge [ " + table.getValueAt(rowAtPoint, 0) +
+			    	if(GuiUtils.confirm(AddLink.this, "Do you realy want to remove the edge [ " + table.getValueAt(rowAtPoint, 0) +
 			    			" ] <---> [ " + table.getValueAt(rowAtPoint, 1) + " ] ?") == JOptionPane.YES_OPTION) {
 			    		
 			    		for(Node node : graph.getDevicesList().keySet()) {
@@ -270,7 +252,7 @@ public class AddLink extends JDialog {
 			}
         });
     	
-    	jtable.getColumn("Remove").setCellRenderer(new Util.ButtonRenderer());
+    	jtable.getColumn("Remove").setCellRenderer(new GuiUtils.ButtonRenderer());
         
         JScrollPane jScrollPane = new JScrollPane(jtable);
         jScrollPane.setMaximumSize(new Dimension(WIDTH, HEIGHT-250));
@@ -350,32 +332,5 @@ public class AddLink extends JDialog {
 				nodesToDisplay.add(node);
 		}
 		return nodesToDisplay;
-	}
-	
-	private Boolean[] hasSensorActuator(String name){
-		Boolean[] sa = new Boolean[2];
-		sa[SENSOR] = false;
-		sa[ACTUATOR] = false;
-		
-		for(Node node : graph.getDevicesList().keySet()) {
-			for(Link edge : graph.getDevicesList().get(node)) {
-				if(node.getName().equals(name)) {
-					if(edge.getNode().getType().equals(Constants.SENSOR_TYPE))
-						sa[SENSOR] = true;
-					else if(edge.getNode().getType().equals(Constants.ACTUATOR_TYPE))
-						sa[ACTUATOR] = true;
-				}else if(edge.getNode().getName().equals(name)) {
-					if(node.getType().equals(Constants.SENSOR_TYPE))
-						sa[SENSOR] = true;
-					else if(node.getType().equals(Constants.ACTUATOR_TYPE))
-						sa[ACTUATOR] = true;
-				}
-				
-				if(sa[SENSOR] && sa[ACTUATOR])
-					return sa;
-			}
-		}
-		
-		return sa;
 	}
 }

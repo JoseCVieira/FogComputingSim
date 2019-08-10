@@ -18,7 +18,7 @@ import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import org.fog.core.Constants;
+import org.fog.gui.dialog.DisplayApplications;
 import org.fog.gui.core.Bridge;
 import org.fog.gui.core.FogDeviceGui;
 import org.fog.gui.core.Graph;
@@ -26,14 +26,15 @@ import org.fog.gui.core.GraphView;
 import org.fog.gui.core.Link;
 import org.fog.gui.core.Node;
 import org.fog.gui.core.RunGUI;
-import org.fog.gui.dialog.About;
-import org.fog.gui.dialog.AddActuator;
-import org.fog.gui.dialog.DisplayApplications;
-import org.fog.utils.Util;
 import org.fog.gui.dialog.AddFogDevice;
 import org.fog.gui.dialog.AddLink;
-import org.fog.gui.dialog.AddSensor;
 
+/**
+ * Class which is responsible for running the Graphical User Interface.
+ * 
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
+ */
 public class Gui extends JFrame {
 	private static final long serialVersionUID = -2238414769964738933L;
 	
@@ -41,14 +42,24 @@ public class Gui extends JFrame {
 	private JPanel panel;
 	private JPanel graph;
 	
+	/** The current topology */
 	private static Graph physicalGraph;
+	
+	/** Panel that displays a graph */
 	private static GraphView physicalCanvas;
 	
+	/** Button which allows to run the current topology */
 	private static JButton btnRun;
+	
+	/** Object which holds the display mode */
 	private DisplayMode dm;
 	
+	/** Object which hold the current topology */
 	private RunGUI runGUI;
 	
+	/**
+	 * Creates a new GUI object.
+	 */
 	public Gui() {
 		 //UIManager.setLookAndFeel("com.jtattoo.plaf.hifi.HiFiLookAndFeel");
          //UIManager.setLookAndFeel("com.jtattoo.plaf.mint.MintLookAndFeel");
@@ -71,7 +82,6 @@ public class Gui extends JFrame {
 		contentPane.setLayout(new BorderLayout());
 
 		initUI();
-		initGraph();
 		
 		pack();
 		setVisible(true);
@@ -80,6 +90,9 @@ public class Gui extends JFrame {
 		Toolkit.getDefaultToolkit().addAWTEventListener(new Listener(Gui.this), AWTEvent.MOUSE_EVENT_MASK);
 	}
 	
+	/**
+	 * Initializes the GUI.
+	 */
 	private final void initUI() {
 		setUIFont(new javax.swing.plaf.FontUIResource("Serif", Font.BOLD,18));
 
@@ -90,48 +103,40 @@ public class Gui extends JFrame {
         
 		initBar();
 		this.setLocation(0, 0);
-	}
-	
-	private void initGraph(){
-    	physicalGraph = new Graph();
+		
+		physicalGraph = new Graph();
     	physicalCanvas = new GraphView(physicalGraph);
     	
 		graph.add(physicalCanvas);
 		contentPane.add(graph, BorderLayout.CENTER);
-    }
+	}
 	
+	/**
+	 * Creates menu bar.
+	 */
     private final void initBar() {
+    	
+    	// Create button listeners
 		ActionListener addFogDeviceListener = new ActionListener() {
 		    public void actionPerformed(ActionEvent e) {
-		    	openAddFogDeviceDialog();
+		    	new AddFogDevice(physicalGraph, Gui.this, null);
+		    	physicalCanvas.repaint();
 		    	verifyRun();
 		    }
 		};
 		
 		ActionListener addLinkListener = new ActionListener() {
 		    public void actionPerformed(ActionEvent e) {
-		    	openAddLinkDialog();
+		    	new AddLink(physicalGraph, Gui.this);
+		    	physicalCanvas.repaint();
 		    	verifyRun();
 		    }
 		};
 		
 		ActionListener addAppListener = new ActionListener() {
 		    public void actionPerformed(ActionEvent e) {
-		    	openAddAppDialog();
-		    }
-		};
-		
-		ActionListener addActuatorListener = new ActionListener() {
-		    public void actionPerformed(ActionEvent e) {
-		    	openAddActuatorDialog();
-		    	verifyRun();
-		    }
-		};
-		
-		ActionListener addSensorListener = new ActionListener() {
-		    public void actionPerformed(ActionEvent e) {
-		    	openAddSensorDialog();
-		    	verifyRun();
+		    	new DisplayApplications(physicalGraph, Gui.this);
+		    	physicalCanvas.repaint();
 		    }
 		};
 		
@@ -146,7 +151,7 @@ public class Gui extends JFrame {
 				    	physicalCanvas.setGraph(physicalGraph);
 				    	physicalCanvas.repaint();
 					} catch (Exception e1) {
-						Util.prompt(Gui.this, "Invalid File", "Error");
+						GuiUtils.prompt(Gui.this, "Invalid File", "Error");
 					}
 		    	}
 		    	verifyRun();
@@ -158,7 +163,7 @@ public class Gui extends JFrame {
 		    	try {
 					saveFile("json", physicalGraph);
 				} catch (IOException e1) {
-					Util.prompt(Gui.this, "Something went wrong...", "Error");
+					GuiUtils.prompt(Gui.this, "Something went wrong...", "Error");
 				}
 		    }
 		};
@@ -169,12 +174,6 @@ public class Gui extends JFrame {
             	Gui.this.setVisible(false);
             }
         };
-        
-        ActionListener helpListener = new ActionListener() {
-            public void actionPerformed(ActionEvent event) {
-            	openAboutDialog();
-            }
-        };
 		
 		ActionListener exitListener = new ActionListener() {
             public void actionPerformed(ActionEvent event) {
@@ -182,22 +181,16 @@ public class Gui extends JFrame {
             }
         };
     	
+        // Create the buttons
         JToolBar toolbar = new JToolBar();
-        ImageIcon iSensor = new ImageIcon(getClass().getResource("/images/sensor.png"));
-        ImageIcon iActuator = new ImageIcon(getClass().getResource("/images/actuator.png"));
         ImageIcon iFogDevice = new ImageIcon(getClass().getResource("/images/fog.png"));
         ImageIcon iLink = new ImageIcon(getClass().getResource("/images/link.png"));
         ImageIcon iApp = new ImageIcon(getClass().getResource("/images/app.png"));
         ImageIcon iHOpen = new ImageIcon(getClass().getResource("/images/load.png"));
         ImageIcon iHSave = new ImageIcon(getClass().getResource("/images/save.png"));
         ImageIcon run = new ImageIcon(getClass().getResource("/images/play.png"));
-        ImageIcon help = new ImageIcon(getClass().getResource("/images/help.png"));
         ImageIcon exit = new ImageIcon(getClass().getResource("/images/exit.png"));
-
-        final JButton btnSensor = new JButton(iSensor);
-        btnSensor.setToolTipText("Add Sensor");
-        final JButton btnActuator = new JButton(iActuator);
-        btnActuator.setToolTipText("Add Actuator");
+        
         final JButton btnFogDevice = new JButton(iFogDevice);
         btnFogDevice.setToolTipText("Add Fog Device");
         final JButton btnLink = new JButton(iLink);
@@ -212,27 +205,19 @@ public class Gui extends JFrame {
         btnRun = new JButton(run);
         btnRun.setToolTipText("Start simulation");
         
-        JButton btnHelp = new JButton(help);
-        btnHelp.setToolTipText("About FogComputingSim");
-        toolbar.setAlignmentX(0);
-        
         JButton btnExit = new JButton(exit);
         btnExit.setToolTipText("Exit FogComputingSim");
         toolbar.setAlignmentX(0);
         
-        btnSensor.addActionListener(addSensorListener);
-        btnActuator.addActionListener(addActuatorListener);
+        // Define which button listener
         btnFogDevice.addActionListener(addFogDeviceListener);
         btnLink.addActionListener(addLinkListener);
         btnApp.addActionListener(addAppListener);
         btnHopen.addActionListener(importPhyTopoListener);
         btnHsave.addActionListener(savePhyTopoListener);
         btnRun.addActionListener(runListener);
-        btnHelp.addActionListener(helpListener);
         btnExit.addActionListener(exitListener);
-
-        toolbar.add(btnSensor);
-        toolbar.add(btnActuator);
+        
         toolbar.add(btnFogDevice);
         toolbar.add(btnLink);
         toolbar.add(btnApp);
@@ -243,44 +228,19 @@ public class Gui extends JFrame {
         toolbar.add(btnRun);
         
         toolbar.add(Box.createHorizontalGlue());
-        toolbar.add(btnHelp);
         toolbar.add(btnExit);
-
+        
         panel.add(toolbar);
         contentPane.add(panel, BorderLayout.NORTH);
     	btnRun.setEnabled(false);
     }
-
-    private void openAddActuatorDialog() {
-		new AddActuator(physicalGraph, Gui.this, null);
-		physicalCanvas.repaint();
-	}
-	
-	private void openAddSensorDialog() {
-		new AddSensor(physicalGraph, Gui.this, null);
-		physicalCanvas.repaint();
-	}
-
-	private void openAddFogDeviceDialog() {
-		new AddFogDevice(physicalGraph, Gui.this, null);
-    	physicalCanvas.repaint();
-	}
-	
-	private void openAddLinkDialog() {
-		new AddLink(physicalGraph, Gui.this);
-    	physicalCanvas.repaint();
-	}
-
-	private void openAddAppDialog() {
-		new DisplayApplications(physicalGraph, Gui.this);
-    	physicalCanvas.repaint();
-	}
-	
-	private void openAboutDialog() {
-		new About(Gui.this);
-    	physicalCanvas.repaint();
-	}
     
+    /**
+     * Opens user current directory to allow to choose a topology written in a given file (e.g., JSON).
+     * 
+     * @param type type of file
+     * @return return the file path; can be empty
+     */
     private String importFile(String type) {
         JFileChooser fileopen = new JFileChooser();
         File workingDirectory = new File(System.getProperty("user.dir"));
@@ -298,6 +258,13 @@ public class Gui extends JFrame {
         return "";
     }
     
+    /**
+     * Saves the current topology in a given file.
+     * 
+     * @param type type of file
+     * @param graph the object which holds the current topology
+     * @throws IOException if file does not exists
+     */
     private void saveFile(String type, Graph graph) throws IOException {
     	JFileChooser fileopen = new JFileChooser();
     	File workingDirectory = new File(System.getProperty("user.dir"));
@@ -318,6 +285,11 @@ public class Gui extends JFrame {
         }
     }
     
+    /**
+     * Sets the type of font to be displayed within the GUI.
+     * 
+     * @param f the type of font
+     */
     private static void setUIFont(javax.swing.plaf.FontUIResource f) {
         @SuppressWarnings("rawtypes")
 		java.util.Enumeration keys = UIManager.getDefaults().keys();
@@ -345,14 +317,16 @@ public class Gui extends JFrame {
 		}
     }
     
+    /**
+     * Verifies if the topology is correct in order to simulate it. If it is, it enables the run button, otherwise disable it.
+     */
     public static void verifyRun() {
     	btnRun.setEnabled(false);
     	
     	ArrayList<Node> list = new ArrayList<Node>();
     	for(Node node : physicalGraph.getDevicesList().keySet()) {
-    		if(node.getType().equals(Constants.FOG_TYPE))
-    			if(((FogDeviceGui)node).getApplication().length() > 0)
-    				list.add(node);
+    		if(((FogDeviceGui)node).getApplication().length() > 0)
+				list.add(node);
     		
     		boolean isConnected = false;
     		for(Node node1 : physicalGraph.getDevicesList().keySet())
@@ -368,53 +342,13 @@ public class Gui extends JFrame {
     		btnRun.setEnabled(true);
     	else
     		return;
-    	
-    	for(Node fogNode : list) {
-    		if(!hasSensorActuator(fogNode)) {
-    			btnRun.setEnabled(false);
-    			return;
-    		}
-    	}
     }
     
-    public static boolean hasSensorActuator(Node fogNode) {
-    	boolean sensor = false, actuator = false;
-		
-		for(Node node : physicalGraph.getDevicesList().keySet()) {
-			if(fogNode.equals(node)) {
-				for(Link edge : physicalGraph.getDevicesList().get(node)) {
-	    			if(!sensor && edge.getNode().getType().equals(Constants.SENSOR_TYPE))
-	    				sensor = true;
-	    			
-	    			if(!actuator && edge.getNode().getType().equals(Constants.ACTUATOR_TYPE))
-	    				actuator = true;
-	    			
-	    			if(actuator && sensor)
-	    				break;
-	    		}
-			}else if(node.getType().equals(Constants.SENSOR_TYPE) || node.getType().equals(Constants.ACTUATOR_TYPE)) {
-				for(Link edge : physicalGraph.getDevicesList().get(node)) {    					
-					if(!sensor && edge.getNode().equals(fogNode) && node.getType().equals(Constants.SENSOR_TYPE))
-	    				sensor = true;
-				
-					if(!actuator && edge.getNode().equals(fogNode) && node.getType().equals(Constants.ACTUATOR_TYPE))
-						actuator = true;
-				
-					if(actuator && sensor)
-	    				break;
-				}
-			}
-		}
-		
-		if(!actuator || !sensor)
-			return false;
-		return true;
-    }
-    
-    public Graph getPhysicalGraph() {
-    	return physicalGraph;
-    }
-    
+    /**
+     * Gets the object which hold the topology.
+     * 
+     * @return the topology
+     */
     public RunGUI getRunGUI() {
     	return runGUI;
     }

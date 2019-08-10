@@ -1,7 +1,7 @@
 package org.fog.core;
 
 /**
- * Class which holds all constants used along within the FogComputingSim.
+ * Class which holds all constants used within the FogComputingSim.
  * 
  * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
  * @since  July, 2019
@@ -12,8 +12,6 @@ public class Constants {
 	public static final double REFERENCE_COST = Integer.MAX_VALUE;
 	
 	public static final String FOG_TYPE = "FOG_DEVICE";
-	public static final String SENSOR_TYPE = "SENSOR";
-	public static final String ACTUATOR_TYPE = "ACTUATOR";
 	public static final String SENSOR_MODULE_TYPE = "SENSOR_MODULE";
 	public static final String ACTUATOR_MODULE_TYPE = "ACTUATOR_MODULE";
 	public static final String APP_MODULE_TYPE = "APP_MODULE";

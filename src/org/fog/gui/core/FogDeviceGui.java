@@ -1,13 +1,16 @@
 package org.fog.gui.core;
 
 import org.fog.core.Constants;
+import org.fog.utils.Movement;
+import org.fog.utils.distribution.Distribution;
 
 /**
- * The model that represents virtual machine node for the graph.
+ * The model that represents virtual machine node for the graph. Nota: apenas uma aplicação
  * 
  */
 public class FogDeviceGui extends Node {
 	private static final long serialVersionUID = -8635044061126993668L;
+	private static final double BANDWIDTH = 1000; // Currently, bandwidth is defined at the links instead at the nodes, thus is a dummy value
 	
 	private String name;
 	private int level;
@@ -19,14 +22,17 @@ public class FogDeviceGui extends Node {
 	private double rateRam;
 	private double rateStorage;
 	private double rateBw;
+	private double rateEnergy;
 	private double idlePower;
 	private double busyPower;
-	private double costPerSec;
-	private String application;
+	private Movement movement;
+	
+	private String application; // Application name
+	
+	private Distribution distribution; // Sensor distribution
 
-	public FogDeviceGui(String name, int level, double mips, int ram, long storage, double bw,
-			double rateMips, double rateRam, double rateStorage, double rateBw, double idlePower,
-			double busyPower, double costPerSec, String appId) {
+	public FogDeviceGui(String name, int level, double mips, int ram, long storage, double rateMips, double rateRam, double rateStorage,
+			double rateBw, double rateEnergy, double idlePower, double busyPower, Movement movement, String appId, Distribution distribution) {
 		super(name, Constants.FOG_TYPE);
 		
 		this.setName(name);
@@ -34,34 +40,37 @@ public class FogDeviceGui extends Node {
 		this.setMips(mips);
 		this.setRam(ram);
 		this.setStorage(storage);
-		this.setBw(bw);
+		this.setBw(BANDWIDTH);
 		this.setRateMips(rateMips);
 		this.setRateRam(rateRam);
 		this.setRateStorage(rateStorage);
 		this.setRateBw(rateBw);
+		this.setRateEnergy(rateEnergy);
 		this.setIdlePower(idlePower);
 		this.setBusyPower(busyPower);
-		this.setCostPerSec(costPerSec);
+		this.setMovement(movement);
 		this.setApplication(appId);
+		this.setDistribution(distribution);
 	}
 	
-	public void setValues(String name, int level, double mips, int ram, long storage, double bw,
-			double rateMips, double rateRam, double rateStorage, double rateBw, double idlePower,
-			double busyPower, double costPerSec, String appId) {
+	public void setValues(String name, int level, double mips, int ram, long storage, double rateMips, double rateRam, double rateStorage,
+			double rateBw, double rateEnergy, double idlePower, double busyPower, Movement movement, String appId, Distribution distribution) {
 		this.setName(name);
 		this.setLevel(level);
 		this.setMips(mips);
 		this.setRam(ram);
 		this.setStorage(storage);
-		this.setBw(bw);
+		this.setBw(BANDWIDTH);
 		this.setRateMips(rateMips);
 		this.setRateRam(rateRam);
 		this.setRateStorage(rateStorage);
 		this.setRateBw(rateBw);
+		this.setRateEnergy(rateEnergy);
 		this.setIdlePower(idlePower);
 		this.setBusyPower(busyPower);
-		this.setCostPerSec(costPerSec);
+		this.setMovement(movement);
 		this.setApplication(appId);
+		this.setDistribution(distribution);
 	}
 	
 	public String getName() {
@@ -143,13 +152,13 @@ public class FogDeviceGui extends Node {
 	public void setRateBw(double rateBw) {
 		this.rateBw = rateBw;
 	}
-
-	public String getApplication() {
-		return application;
+	
+	public double getRateEnergy() {
+		return rateEnergy;
 	}
 
-	public void setApplication(String application) {
-		this.application = application;
+	public void setRateEnergy(double rateEnergy) {
+		this.rateEnergy = rateEnergy;
 	}
 
 	public double getIdlePower() {
@@ -168,20 +177,32 @@ public class FogDeviceGui extends Node {
 		this.busyPower = busyPower;
 	}
 	
-	public double getCostPerSec() {
-		return costPerSec;
+	public Movement getMovement() {
+		return movement;
 	}
 
-	public void setCostPerSec(double costPerSec) {
-		this.costPerSec = costPerSec;
+	public void setMovement(Movement movement) {
+		this.movement = movement;
+	}
+	
+	public String getApplication() {
+		return application;
 	}
 
-	@Override
-	public String toString() {
-		return "FogDeviceGui [name=" + name + ", level=" + level + ", mips=" + mips + ", ram=" + ram + ", storage="
-				+ storage + ", bw=" + bw + ", rateMips=" + rateMips + ", rateRam=" + rateRam + ", rateStorage="
-				+ rateStorage + ", rateBw=" + rateBw + ", idlePower=" + idlePower + ", busyPower=" + busyPower
-				+ ", costPerSec=" + costPerSec + ", application=" + application + "]";
+	public void setApplication(String application) {
+		this.application = application;
 	}
+	
+	public Distribution getDistribution() {
+		return this.distribution;
+	}
+	
+	public void setDistribution(Distribution distribution) {
+		this.distribution = distribution;
+	}
+	
+	public int getDistributionType(){
+		return distribution.getDistributionType();
+	}	
 	
 }

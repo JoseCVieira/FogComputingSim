@@ -27,11 +27,12 @@ import javax.swing.SpringLayout;
 import org.apache.commons.math3.util.Pair;
 import org.fog.application.AppEdge;
 import org.fog.application.AppModule;
-import org.fog.gui.GuiConfig;
+import org.fog.gui.GuiConstants;
+import org.fog.gui.GuiUtils;
+import org.fog.gui.GuiUtils.AppModulesCellRenderer;
 import org.fog.gui.core.ApplicationGui;
 import org.fog.gui.core.SpringUtilities;
 import org.fog.utils.Util;
-import org.fog.utils.Util.AppModulesCellRenderer;
 
 public class AddAppEdge extends JDialog {
 	private static final long serialVersionUID = -511667786177319577L;
@@ -99,7 +100,7 @@ public class AddAppEdge extends JDialog {
 		edgeType = new JComboBox<>(edgeTypeModel);
 		periodic = new JComboBox<>(periodicModel); 
 		
-		AppModulesCellRenderer renderer = new Util.AppModulesCellRenderer();
+		AppModulesCellRenderer renderer = new AppModulesCellRenderer();
 		sourceNode.setRenderer(renderer);
 		targetNode.setRenderer(renderer);
 		
@@ -140,11 +141,11 @@ public class AddAppEdge extends JDialog {
 		lactuator.setLabelFor(actuatorName);
 		springPanel.add(actuatorName);
 		
-		periodic = Util.createDropDown(springPanel, periodic, "Periodic: ", periodicModel, null);
-		periodicity = Util.createInput(springPanel, periodicity, "Periodicity: ", edge == null ? Double.toString(GuiConfig.EDGE_PERIODICITY) : Double.toString(edge.getPeriodicity()));		
-		tupleCpuLength = Util.createInput(springPanel, tupleCpuLength, "Tuple CPU Length: ", edge == null ? Double.toString(GuiConfig.EDGE_CPU_LENGTH) : Double.toString(edge.getTupleCpuLength()));
-		tupleNwLength = Util.createInput(springPanel, tupleNwLength, "Tuple NW Length: ", edge == null ? Double.toString(GuiConfig.EDGE_NW_LENGTH) : Double.toString(edge.getTupleNwLength()));
-		tupleType = Util.createInput(springPanel, tupleType, "Tuple Type: ", edge == null ? "" : edge.getTupleType());
+		periodic = GuiUtils.createDropDown(springPanel, periodic, "Periodic: ", periodicModel, null);
+		periodicity = GuiUtils.createInput(springPanel, periodicity, "Periodicity: ", edge == null ? Double.toString(GuiConstants.EDGE_PERIODICITY) : Double.toString(edge.getPeriodicity()));		
+		tupleCpuLength = GuiUtils.createInput(springPanel, tupleCpuLength, "Tuple CPU Length: ", edge == null ? Double.toString(GuiConstants.EDGE_CPU_LENGTH) : Double.toString(edge.getTupleCpuLength()));
+		tupleNwLength = GuiUtils.createInput(springPanel, tupleNwLength, "Tuple NW Length: ", edge == null ? Double.toString(GuiConstants.EDGE_NW_LENGTH) : Double.toString(edge.getTupleNwLength()));
+		tupleType = GuiUtils.createInput(springPanel, tupleType, "Tuple Type: ", edge == null ? "" : edge.getTupleType());
 		
 		if(edge != null && edge.getEdgeType() == AppEdge.SENSOR) {
 			sensorName.setText(edge.getSource());
@@ -362,7 +363,7 @@ public class AddAppEdge extends JDialog {
 					}
 					setVisible(false);
 				}else
-					Util.prompt(AddAppEdge.this, error_msg, "Error");
+					GuiUtils.prompt(AddAppEdge.this, error_msg, "Error");
 			}
 		});
 
