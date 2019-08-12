@@ -68,11 +68,34 @@ public class GuiUtils {
 	}
 	
 	/**
+	 * Creates an input field in the GUI with tool tip text.
+	 * 
+	 * @param jPanel the generic lightweight container
+	 * @param jTextField the input field
+	 * @param label the text to be displayed before the text field
+	 * @param value the value of the text field
+	 * @param tip the tip text to be displayed
+	 * @return the input field
+	 */
+	public static JTextField createInput(final JPanel jPanel, JTextField jTextField, final String label, final String value, String tip) {
+		JLabel jLabel = new JLabel(label);
+		jLabel.setToolTipText(tip);
+		jPanel.add(jLabel);
+		jTextField = new JTextField();
+		jTextField.setText(value);
+		jLabel.setLabelFor(jTextField);
+		jPanel.add(jTextField);
+		jTextField.setToolTipText(tip);
+		
+		return jTextField;
+	}
+	
+	/**
 	 * Creates a drop-down list in the GUI.
 	 * 
 	 * @param jPanel the generic lightweight container
 	 * @param jComboBox the component that combines a button or editable field and a drop-down list
-	 * @param label the label assigned to the drop-down list
+	 * @param label the text to be displayed before the drop-down list
 	 * @param model the list containing the name of the items
 	 * @param option the name of the item to be selected
 	 * @return the drop-down list
@@ -84,6 +107,31 @@ public class GuiUtils {
 		jLabel.setLabelFor(jComboBox);
 		model.setSelectedItem(option);
 		jPanel.add(jComboBox);
+		return jComboBox;
+	}
+	
+	/**
+	 * Creates a drop-down list in the GUI with tool tip text.
+	 * 
+	 * @param jPanel the generic lightweight container
+	 * @param jComboBox the component that combines a button or editable field and a drop-down list
+	 * @param label the text to be displayed before the drop-down list
+	 * @param model the list containing the name of the items
+	 * @param option the name of the item to be selected
+	 * @param tip the tip text to be displayed
+	 * @return the drop-down list
+	 */
+	public static JComboBox<String> createDropDown(final JPanel jPanel, JComboBox<String> jComboBox, final String label,
+			final ComboBoxModel<String> model, final String option, String tip) {
+		jComboBox = new JComboBox<>(model);
+		JLabel jLabel = new JLabel(label);
+		jLabel.setToolTipText(tip);
+		jPanel.add(jLabel);
+		jLabel.setLabelFor(jComboBox);
+		model.setSelectedItem(option);
+		jPanel.add(jComboBox);
+		jComboBox.setToolTipText(tip);
+		
 		return jComboBox;
 	}
 	

@@ -12,7 +12,6 @@ import java.awt.Toolkit;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
@@ -51,9 +50,6 @@ public class Gui extends JFrame {
 	/** Button which allows to run the current topology */
 	private static JButton btnRun;
 	
-	/** Object which holds the display mode */
-	private DisplayMode dm;
-	
 	/** Object which hold the current topology */
 	private RunGUI runGUI;
 	
@@ -64,13 +60,11 @@ public class Gui extends JFrame {
 		 //UIManager.setLookAndFeel("com.jtattoo.plaf.hifi.HiFiLookAndFeel");
          //UIManager.setLookAndFeel("com.jtattoo.plaf.mint.MintLookAndFeel");
 		
-		// Get only the first screen (for multiple screens)
-		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-	    GraphicsDevice[] gs = ge.getScreenDevices();
-	    dm = gs[0].getDisplayMode();
+	    setExtendedState(JFrame.MAXIMIZED_BOTH); 
+	    setUndecorated(true);
 		
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setPreferredSize(new Dimension(dm.getWidth(), dm.getHeight()));
+        //setPreferredSize(new Dimension(dm.getWidth(), dm.getHeight()));
         setLocationRelativeTo(null);
         
         setTitle("Fog Computing Simulator - FogComputingSim");
@@ -222,6 +216,11 @@ public class Gui extends JFrame {
         toolbar.add(btnLink);
         toolbar.add(btnApp);
         
+        // Get only the first screen (for multiple screens)
+ 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+ 	    GraphicsDevice[] gs = ge.getScreenDevices();
+ 	    DisplayMode dm = gs[0].getDisplayMode();
+        
         toolbar.addSeparator(new Dimension(dm.getWidth()/3, 0));
         toolbar.add(btnHopen);
         toolbar.add(btnHsave);
@@ -323,25 +322,31 @@ public class Gui extends JFrame {
     public static void verifyRun() {
     	btnRun.setEnabled(false);
     	
-    	ArrayList<Node> list = new ArrayList<Node>();
+    	// Its required more than one node in the physical topology
+    	if(physicalGraph.getDevicesList().size() <= 1) return;
+    	
+    	boolean application = false;
+    	boolean fixedTopology = false;
     	for(Node node : physicalGraph.getDevicesList().keySet()) {
-    		if(((FogDeviceGui)node).getApplication().length() > 0)
-				list.add(node);
+    		if(!((FogDeviceGui)node).getApplication().isEmpty()) {
+    			application = true;
+    		}
     		
-    		boolean isConnected = false;
-    		for(Node node1 : physicalGraph.getDevicesList().keySet())
-				for(Link edge : physicalGraph.getDevicesList().get(node1))
-					if(edge.getNode().getName().equals(node.getName()) || node1.getName().equals(node.getName()))
-						isConnected =  true;
-    		
-			if(!isConnected)
-				return;
+    		for(Node node1 : physicalGraph.getDevicesList().keySet()) {
+				for(Link edge : physicalGraph.getDevicesList().get(node1)) {
+					if(edge.getNode().getName().equals(node.getName()))
+						fixedTopology =  true;
+				}
+    		}
     	}
     	
-    	if(list.size() > 0)
-    		btnRun.setEnabled(true);
-    	else
-    		return;
+    	// Its required at least one application
+    	if(!application) return;
+    	
+    	// Its required at least two fixed nodes (mobile nodes may not exit)
+    	if(!fixedTopology) return;
+    	
+    	btnRun.setEnabled(true);
     }
     
     /**
