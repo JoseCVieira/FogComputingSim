@@ -11,7 +11,6 @@ import org.fog.application.selectivity.FractionalSelectivity;
 import org.fog.application.selectivity.SelectivityModel;
 import org.fog.core.FogComputingSim;
 import org.fog.entities.Tuple;
-import org.fog.gui.core.ApplicationGui;
 import org.fog.utils.FogUtils;
 import org.fog.utils.Logger;
 
@@ -45,27 +44,6 @@ public class Application {
 		setModules(new ArrayList<AppModule>());
 		setEdges(new ArrayList<AppEdge>());
 		setLoops(new ArrayList<AppLoop>());
-	}
-	
-	/**
-	 * Creates a new application based on the application created in the GUI.
-	 * 
-	 * @param applicationGui the GUI application
-	 */
-	public Application(ApplicationGui applicationGui) {
-		setAppId(applicationGui.getAppId());
-		setModules(applicationGui.getModules());
-		setEdges(applicationGui.getEdges());
-		
-		List<AppLoop> loops = new ArrayList<AppLoop>();
-		for(List<String> loop : applicationGui.getLoops()) {
-			ArrayList<String> l = new ArrayList<String>();
-			for(String name : loop)
-				l.add(name);
-			loops.add(new AppLoop(l));
-		}
-		
-		setLoops(loops);
 	}
 	
 	/**

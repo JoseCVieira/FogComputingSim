@@ -63,7 +63,7 @@ public class ApplicationsExample {
 		application.addTupleMapping("calculator_MP", "_SENSOR_MP", "CONCENTRATION_MP", new FractionalSelectivity(1.0));
 		application.addTupleMapping("client_MP", "GLOBAL_GAME_STATE_MP", "GLOBAL_STATE_UPDATE_MP", new FractionalSelectivity(1.0));
 		
-		final AppLoop loop2 = new AppLoop(new ArrayList<String>(){{add("EEG_MP");add("client_MP");add("calculator_MP");add("client_MP");add("DISPLAY_MP");}}, 100000);
+		final AppLoop loop2 = new AppLoop(new ArrayList<String>(){{add("EEG_MP");add("client_MP");add("calculator_MP");add("client_MP");add("DISPLAY_MP");}}, 1000);
 		loops = new ArrayList<AppLoop>(){{add(loop2);}};
 		application.setLoops(loops);
 		exampleApplications.add(application);
@@ -87,6 +87,7 @@ public class ApplicationsExample {
 		final AppLoop loop3 = new AppLoop(new ArrayList<String>(){{add("motion_detector");add("object_detector");add("object_tracker");}}, 10);
 		final AppLoop loop4 = new AppLoop(new ArrayList<String>(){{add("object_tracker");add("PTZ_CONTROL");}}, 10);
 		loops = new ArrayList<AppLoop>(){{add(loop3);add(loop4);}};
+		application.setLoops(loops);
 		exampleApplications.add(application);
 		
 		application = new Application("TEMP");
@@ -130,6 +131,15 @@ public class ApplicationsExample {
 	public static Application getAppExampleByIndex(int index) {
 		if(index < 0 || index >= exampleApplications.size()) return null;
 		return exampleApplications.get(index);
+	}
+	
+	/**
+	 * Adds a new application to the example applications list.
+	 * 
+	 * @return the application
+	 */
+	public static void addApplicationExample(Application application) {
+		exampleApplications.add(application);
 	}
 	
 	/**

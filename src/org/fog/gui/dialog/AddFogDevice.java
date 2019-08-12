@@ -8,7 +8,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
-import java.util.Vector;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -19,15 +18,15 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SpringLayout;
 import javax.swing.border.TitledBorder;
 
+import org.fog.application.Application;
 import org.fog.gui.GuiConstants;
+import org.fog.gui.GuiMsg;
 import org.fog.gui.GuiUtils;
-import org.fog.gui.core.ApplicationGui;
 import org.fog.gui.core.FogDeviceGui;
 import org.fog.gui.core.Graph;
 import org.fog.gui.core.SpringUtilities;
@@ -39,49 +38,101 @@ import org.fog.utils.distribution.Distribution;
 import org.fog.utils.distribution.NormalDistribution;
 import org.fog.utils.distribution.UniformDistribution;
 
+/**
+ * Class which allows to add or edit fixed or mobile fog devices (i.e., fog nodes or clients).
+ * 
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
+ */
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class AddFogDevice extends JDialog {
 	private static final long serialVersionUID = -5116677861770319577L;
 	
-	// Fog device
+	/** Object which holds the current topology */
 	private final Graph graph;
+	
+	/** Object which contains the device to be edited or null if its a new one */
 	private final FogDeviceGui fog;
 	
-	private JLabel deviceNameLabel;
-	private JLabel levelLabel;
-	
+	/** Name of the fog device */
 	private JTextField deviceName;
+	
+	/** Available MIPS of the machine */
 	private JTextField mips;
+	
+	/** Available ram in the machine */
 	private JTextField ram;
+	
+	/** Available storage in the machine */
 	private JTextField storage;
+	
+	 /** Price that will be charged by using processing resources */
 	private JTextField rateMips;
+	
+	/** Price that will be charged by using memory resources */
 	private JTextField rateRam;
+	
+	/** Price that will be charged by using storage resources */
 	private JTextField rateStorage;
+	
+	/** Price that will be charged by bandwidth resources */
 	private JTextField rateBw;
+	
+	/** Price that will be charged by spending energy */
 	private JTextField rateEn;
+	
+	/** Power value while using the full processing capacity of the machine */
 	private JTextField idlePower;
+	
+	/** Power value while using no processing resources in the machine */
 	private JTextField busyPower;
+	
+	/** X coordinate of the machine */
 	private JTextField posX;
+	
+	/** Y coordinate of the machine */
 	private JTextField posY;
+	
+	/** List used in the drop-down containing the names of all possible directions */
 	private JComboBox<String> direction;
+	
+	/** Velocity of the machine (if it is a fixed node this value is ignored) */
 	private JTextField velocity;
 	
-	// GUI only
+	/** Defines the position at the graphical interface (it is not used by the simulation itself) */
 	private JComboBox<String> level;
 	
-	// Aplication
-	private JComboBox<String> application;
+	/** List used in the drop-down containing the names of all defined applications */
+	private JComboBox<String> application;	
 	
-	// Sensor
-	@SuppressWarnings("rawtypes")
+	/** Time interval (deterministic or not) which defines when the sensor will generate new tuples */
 	private JComboBox distribution;
+	
+	/** Minimum value of the uniform distribution */
 	private JTextField uniformLowerBound;
+	
+	/** Maximum value of the uniform distribution */
 	private JTextField uniformUpperBound;
+	
+	/** Value of the deterministic distribution */
 	private JTextField deterministicValue;
+	
+	/** Mean of the normal distribution */
 	private JTextField normalMean;
+	
+	/** Standard deviation of the normal distribution */
 	private JTextField normalStdDev;
 	
+	/** Panel used to define the sensor characteristics (hidden when it is not a client) */
 	private JPanel jPanelSensor;
-
+	
+	/**
+	 * Creates or edits a fog device.
+	 * 
+	 * @param graph the object which holds the current topology
+	 * @param frame the current context
+	 * @param fog the node to be edited; can be null when a new fog node is to be added
+	 */
 	public AddFogDevice(final Graph graph, final JFrame frame, final FogDeviceGui fog) {
 		this.graph = graph;
 		this.fog = fog;
@@ -99,6 +150,11 @@ public class AddFogDevice extends JDialog {
 		setVisible(true);
 	}
 
+	/**
+	 * Creates the button panel (i.e., Ok, Cancel, Delete) and defines its behavior upon being clicked.
+	 * 
+	 * @return the panel containing the buttons
+	 */
 	private JPanel createButtonPanel() {
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.LINE_AXIS));
@@ -113,6 +169,7 @@ public class AddFogDevice extends JDialog {
             }
         });
 		
+		// If its a new fog device, hide the delete button
 		if(fog != null) {
 			delBtn.addActionListener(new ActionListener() {
 	            public void actionPerformed(ActionEvent event) {
@@ -124,83 +181,93 @@ public class AddFogDevice extends JDialog {
 	            }
 	        });
 		}
-
+		
+		// Verify the introduced data and add or edit the fog device when the OK button is pressed 
 		okBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				String error_msg = "", name_ = "";
-				int ram_= -1, level_= -1, direction_ = -1;
 				long storage_ = -1;
-				double mips_= -1, rateMips_ = -1, rateRam_ = -1, rateStorage_ = -1, rateBw_ = -1, rateEn_ = -1, idlePower_ = -1, busyPower_ = -1;
+				int ram_= -1, level_= -1, direction_ = -1;
 				double posX_ = -1, posY_ = -1, velocity_ = -1;
 				double normalMean_ = -1, normalStdDev_ = -1, uniformLow_ = -1, uniformUp_ = -1, deterministicVal_ = -1;
-				
-				if (Util.validString(deviceName.getText())) {
-					if(fog == null || (fog != null && !fog.getName().equals(deviceName.getText())))
-						if(graph.isRepeatedName(deviceName.getText()))
-							error_msg += "\nName already exists";
-				}else
-					error_msg += "Missing name\n";
-				
-				if(deviceName.getText().contains(" "))
-					error_msg += "Name cannot contain spaces\n";
-				
-				level_ = level.getSelectedIndex();
-				String dist = (String)distribution.getSelectedItem();
-				String appId = (String)application.getSelectedItem();
-				
-				if (!Util.validString(mips.getText())) error_msg += "Missing Mips\n";
-				if (!Util.validString(ram.getText())) error_msg += "Missing Ram\n";
-				if (!Util.validString(storage.getText())) error_msg += "Missing storage\n";
-				if (!Util.validString(rateMips.getText())) error_msg += "Missing rate/Mips\n";
-				if (!Util.validString(rateRam.getText())) error_msg += "Missing rate/Ram\n";
-				if (!Util.validString(rateStorage.getText())) error_msg += "Missing rate/Strg\n";
-				if (!Util.validString(rateBw.getText())) error_msg += "Missing rate/Bw\n";
-				if (!Util.validString(rateEn.getText())) error_msg += "Missing rate/En\n";
-				if (!Util.validString(idlePower.getText())) error_msg += "Missing Idle Power\n";
-				if (!Util.validString(busyPower.getText())) error_msg += "Missing Busy Power\n";
-				if (!Util.validString(posX.getText())) error_msg += "Missing X Position\n";
-				if (!Util.validString(posY.getText())) error_msg += "Missing Y Position\n";
-				if (!Util.validString(velocity.getText())) error_msg += "Missing Velocity\n";				
+				double mips_= -1, rateMips_ = -1, rateRam_ = -1, rateStorage_ = -1, rateBw_ = -1, rateEn_ = -1, idlePower_ = -1, busyPower_ = -1;
 				
 				name_ = deviceName.getText();
-				if((mips_ = Util.stringToDouble(mips.getText())) < 0) error_msg += "\nMips should be a positive number";
-				if((ram_ = Util.stringToInt(ram.getText())) < 0) error_msg += "\nRam should be a positive number";
-				if((storage_ = Util.stringToInt(storage.getText())) < 0) error_msg += "\nStrg should be a positive number";
-				if((rateMips_ = Util.stringToDouble(rateMips.getText())) < 0) error_msg += "\nRate/Mips should be a positive number";
-				if((rateRam_ = Util.stringToDouble(rateRam.getText())) < 0) error_msg += "\nRate/Ram should be a positive number";
-				if((rateStorage_ = Util.stringToDouble(rateStorage.getText())) < 0) error_msg += "\nRate/Strg should be a positive number";
-				if((rateBw_ = Util.stringToDouble(rateBw.getText())) < 0) error_msg += "\nRate/Bw should be a positive number";
-				if((rateEn_ = Util.stringToDouble(rateEn.getText())) < 0) error_msg += "\nRate/En should be a positive number";
-				if((idlePower_ = Util.stringToDouble(idlePower.getText())) < 0) error_msg += "\nIdle Power should be a positive number";
-				if((busyPower_ = Util.stringToDouble(busyPower.getText())) < 0) error_msg += "\nBusy Power should be a positive number";
-				if((velocity_ = Util.stringToDouble(velocity.getText())) < 0) error_msg += "\nVelocity should be a positive number";
+				level_ = level.getSelectedIndex();
+				direction_ = direction.getSelectedIndex();
+				
+				// Verify all the introduced data
+				if(fog == null || (fog != null && !fog.getName().equals(name_))) {
+					if(graph.isRepeatedName(name_))
+						error_msg += "\nName already exists";
+				}
+				
+				if(name_.contains(" "))
+					error_msg += "Name cannot contain spaces\n";
+				
+				if (!Util.validString(deviceName.getText())) 	error_msg += GuiMsg.errMissing("Name");
+				if (!Util.validString(mips.getText())) 			error_msg += GuiMsg.errMissing("Mips");
+				if (!Util.validString(ram.getText())) 			error_msg += GuiMsg.errMissing("Ram");
+				if (!Util.validString(storage.getText())) 		error_msg += GuiMsg.errMissing("Storage");
+				if (!Util.validString(rateMips.getText())) 		error_msg += GuiMsg.errMissing("Mips price");
+				if (!Util.validString(rateRam.getText())) 		error_msg += GuiMsg.errMissing("Ram price");
+				if (!Util.validString(rateStorage.getText())) 	error_msg += GuiMsg.errMissing("Storage price");
+				if (!Util.validString(rateBw.getText())) 		error_msg += GuiMsg.errMissing("Bandwidth price");
+				if (!Util.validString(rateEn.getText())) 		error_msg += GuiMsg.errMissing("Energy price");
+				if (!Util.validString(idlePower.getText())) 	error_msg += GuiMsg.errMissing("Idle Power");
+				if (!Util.validString(busyPower.getText())) 	error_msg += GuiMsg.errMissing("Busy Power");
+				if (!Util.validString(posX.getText())) 			error_msg += GuiMsg.errMissing("X Position");
+				if (!Util.validString(posY.getText())) 			error_msg += GuiMsg.errMissing("Y Position");
+				if (!Util.validString(velocity.getText())) 		error_msg += GuiMsg.errMissing("Velocity");
+				if(level_ < 0) 									error_msg += GuiMsg.errMissing("Level");
+				if(direction_ < 0) 								error_msg += GuiMsg.errMissing("Direction");
+				
+				if((mips_ = Util.stringToDouble(mips.getText())) < 0) 				error_msg += GuiMsg.errFormat("Mips");
+				if((ram_ = Util.stringToInt(ram.getText())) < 0) 					error_msg += GuiMsg.errFormat("Ram");
+				if((storage_ = Util.stringToInt(storage.getText())) < 0) 			error_msg += GuiMsg.errFormat("Storage");
+				if((rateMips_ = Util.stringToDouble(rateMips.getText())) < 0) 		error_msg += GuiMsg.errFormat("Mips price");
+				if((rateRam_ = Util.stringToDouble(rateRam.getText())) < 0) 		error_msg += GuiMsg.errFormat("Ram price");
+				if((rateStorage_ = Util.stringToDouble(rateStorage.getText())) < 0) error_msg += GuiMsg.errFormat("Storage price");
+				if((rateBw_ = Util.stringToDouble(rateBw.getText())) < 0) 			error_msg += GuiMsg.errFormat("Bandwidth price");
+				if((rateEn_ = Util.stringToDouble(rateEn.getText())) < 0) 			error_msg += GuiMsg.errFormat("Energy price");
+				if((idlePower_ = Util.stringToDouble(idlePower.getText())) < 0) 	error_msg += GuiMsg.errFormat("Idle Power");
+				if((busyPower_ = Util.stringToDouble(busyPower.getText())) < 0) 	error_msg += GuiMsg.errFormat("Busy Power");
+				if((velocity_ = Util.stringToDouble(velocity.getText())) < 0) 		error_msg += GuiMsg.errFormat("Velocity");
 				
 				posX_ = Util.stringToDouble(posX.getText());
 				posY_ = Util.stringToDouble(posY.getText());
-				direction_ = direction.getSelectedIndex();
-				
-				Movement movement = new Movement(velocity_, direction_, new Location(posX_, posY_));
+				String dist = (String)distribution.getSelectedItem();
+				String appId = (String)application.getSelectedItem();
 				
 				if(!appId.isEmpty()) {
 					if(dist.equals("Normal")) {
-						if (!Util.validString(normalMean.getText())) error_msg += "Missing Normal Mean\n";
-						if (!Util.validString(normalStdDev.getText())) error_msg += "Missing Standard Deviation\n";
-						if((normalMean_ = Util.stringToDouble(normalMean.getText())) < 0) error_msg += "\nNormal Mean should be a positive number";
-						if((normalStdDev_ = Util.stringToDouble(normalStdDev.getText())) < 0) error_msg += "\nStandard Deviation should be a positive number";
+						String mean = normalMean.getText();
+						String sdt = normalStdDev.getText();
+						
+						if (!Util.validString(mean)) 								error_msg += GuiMsg.errMissing("Normal mean");
+						if (!Util.validString(sdt)) 								error_msg += GuiMsg.errMissing("Standard deviation");
+						if((normalMean_ = Util.stringToDouble(mean)) < 0) 			error_msg += GuiMsg.errFormat("Normal mean");
+						if((normalStdDev_ = Util.stringToDouble(sdt)) < 0) 			error_msg += GuiMsg.errFormat("Standard deviation");
 					}else if(dist.equals("Uniform")) {
-						if (!Util.validString(uniformLowerBound.getText())) error_msg += "Missing Uniform Lower Bound\n";
-						if (!Util.validString(uniformUpperBound.getText())) error_msg += "Missing Uniform Upper Bound\n";
-						if((uniformLow_ = Util.stringToDouble(uniformLowerBound.getText())) < 0) error_msg += "\nUniform Lower Bound should be a positive number";
-						if((uniformUp_ = Util.stringToDouble(uniformUpperBound.getText())) < 0) error_msg += "\nUniform Upper Bound should be a positive number";
+						String lower = uniformLowerBound.getText();
+						String upper = uniformUpperBound.getText();
+						
+						if (!Util.validString(lower)) 								error_msg += GuiMsg.errMissing("Uniform Lower Bound");
+						if (!Util.validString(upper)) 								error_msg += GuiMsg.errMissing("Uniform Upper Bound");
+						if((uniformLow_ = Util.stringToDouble(lower)) < 0) 			error_msg += GuiMsg.errFormat("Uniform Lower Bound");
+						if((uniformUp_ = Util.stringToDouble(upper)) < 0) 			error_msg += GuiMsg.errFormat("Uniform Upper Bound");
 					}else if(dist.equals("Deterministic")) {
-						if (!Util.validString(deterministicValue.getText())) error_msg += "Missing Deterministic Value\n";
-						if((deterministicVal_ = Util.stringToDouble(deterministicValue.getText())) < 0) error_msg += "\nDeterministic Value should be a positive number";
+						String value = deterministicValue.getText();
+						
+						if (!Util.validString(value)) 								error_msg += GuiMsg.errMissing("Deterministic value");
+						if((deterministicVal_ = Util.stringToDouble(value)) < 0)	error_msg += GuiMsg.errFormat("Deterministic value");
 					}
 				}
 				
-				if(error_msg == "") {
+				if(error_msg.isEmpty()) {
 					Distribution distribution = null;
 					
+					// Create the sensor distribution when its a client (i.e., has an application)
 					if(!appId.isEmpty()) {
 						if(dist.equals("Normal")) {
 							distribution = new NormalDistribution(normalMean_, normalStdDev_);
@@ -211,9 +278,15 @@ public class AddFogDevice extends JDialog {
 						}
 					}
 					
+					// Create the fog device movement
+					Movement movement = new Movement(velocity_, direction_, new Location(posX_, posY_));
+					
+					// Add a new fog device
 					if(fog != null)
 						fog.setValues(name_, level_, mips_, ram_, storage_, rateMips_, rateRam_, rateStorage_, rateBw_, rateEn_, idlePower_,
 								busyPower_, movement, appId, distribution);
+					
+					// Edit the current fog device
 					else {
 						FogDeviceGui fogDevice = new FogDeviceGui(name_, level_, mips_, ram_, storage_, rateMips_, rateRam_, rateStorage_,
 								rateBw_, rateEn_, idlePower_, busyPower_, movement, appId, distribution);
@@ -229,6 +302,7 @@ public class AddFogDevice extends JDialog {
 		buttonPanel.add(okBtn);
 		buttonPanel.add(Box.createRigidArea(new Dimension(10, 0)));
 		buttonPanel.add(cancelBtn);
+		
 		if(fog != null) {
 			buttonPanel.add(Box.createRigidArea(new Dimension(10, 0)));
 			buttonPanel.add(delBtn);
@@ -239,6 +313,11 @@ public class AddFogDevice extends JDialog {
 		return buttonPanel;
 	}
 	
+	/**
+	 * Creates all the inputs that users need to fill up.
+	 * 
+	 * @return the panel containing the inputs
+	 */
 	private JPanel createInputPanelArea() {
         JPanel springPanel = new JPanel(new SpringLayout());
         
@@ -253,68 +332,66 @@ public class AddFogDevice extends JDialog {
 		return springPanel;
 	}
 	
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	/**
+	 * Creates the fog device form.
+	 * 
+	 * @return the panel containing the inputs related to the fog device itself
+	 */
 	private JPanel createFogNodeInput() {
 		JPanel jPanel = new JPanel(new SpringLayout());
 		jPanel.setBorder(new TitledBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY), "Fog node"));
-        
-		deviceNameLabel = new JLabel("Name: ");
-		jPanel.add(deviceNameLabel);
-		deviceName = new JTextField();
 		
-		deviceName.setText(fog == null ? GuiConstants.FOG_NAME : fog.getName());
-		deviceNameLabel.setLabelFor(deviceName);
-		jPanel.add(deviceName);
+		ArrayList<String> levels = new ArrayList<String>();
+		for(int i = 0; i <= graph.getMaxLevel() + 1; i++)
+			levels.add(Integer.toString(i));
 		
-		levelLabel = new JLabel("Level: ");
-		jPanel.add(levelLabel);
+		String nameVal = fog == null ? GuiConstants.FOG_NAME : fog.getName();
+		String levelVal = fog == null ? "" : Integer.toString(fog.getLevel());
+		String mipsVal = fog == null ? Double.toString(GuiConstants.MIPS) : Double.toString(fog.getMips());
+		String ramVal = fog == null ? Long.toString(GuiConstants.RAM) : Long.toString(fog.getRam());
+		String storageVal = fog == null ? Long.toString(GuiConstants.STRG) : Long.toString(fog.getStorage());
+		String rateMipsVal = fog == null ? Double.toString(GuiConstants.RATE_MIPS) : Double.toString(fog.getRateMips());
+		String rateRamVal = fog == null ? Double.toString(GuiConstants.RATE_RAM) : Double.toString(fog.getRateRam());
+		String rateStrgVal = fog == null ? Double.toString(GuiConstants.RATE_STRG) : Double.toString(fog.getRateStorage());
+		String rateBwVal = fog == null ? Double.toString(GuiConstants.RATE_BW) : Double.toString(fog.getRateBw());
+		String rateEnVal = fog == null ? Double.toString(GuiConstants.RATE_EN) : Double.toString(fog.getRateEnergy());
+		String BusyPwVal = fog == null ? Double.toString(GuiConstants.BUSY_POWER) : Double.toString(fog.getBusyPower());
+		String IdlePwVal = fog == null ? Double.toString(GuiConstants.IDLE_POWER) : Double.toString(fog.getIdlePower());
+		String xPosVal = fog == null ? "0.0" : Double.toString(fog.getMovement().getLocation().getX());
+		String yPosVal = fog == null ? "0.0" : Double.toString(fog.getMovement().getLocation().getY());
+		String dirVal = fog == null ? "" : Movement.S_DIRECTIONS[fog.getMovement().getDirection()];
+		String velVal = fog == null ? "0.0" : Double.toString(fog.getMovement().getVelocity());
 		
-		ArrayList<String> choices = new ArrayList<String>();
-		int maxLevel = graph.getMaxLevel();
-		for(int i = 0; i <= maxLevel + 1; i++)
-			choices.add(Integer.toString(i));
-		level = new JComboBox<String>(new Vector<String>(choices));
-		level.setSelectedIndex(fog == null ? maxLevel+1 : fog.getLevel());
-		jPanel.add(level);
+		ComboBoxModel<String> levelModel = new DefaultComboBoxModel(levels.toArray());
+		ComboBoxModel<String> directionModel = new DefaultComboBoxModel(Movement.S_DIRECTIONS);
 		
-		mips = GuiUtils.createInput(jPanel, mips, "MIPS: ", fog == null ? Double.toString(GuiConstants.MIPS) : Double.toString(fog.getMips()));
-		ram = GuiUtils.createInput(jPanel, ram, "RAM (MB): ", fog == null ? Long.toString(GuiConstants.RAM) : Long.toString(fog.getRam()));
-		storage = GuiUtils.createInput(jPanel, storage, "Storage (MB): ", fog == null ? Long.toString(GuiConstants.STRG) : Long.toString(fog.getStorage()));
-		rateMips = GuiUtils.createInput(jPanel, rateMips, "Rate/MIPS (€): ", fog == null ? Double.toString(GuiConstants.RATE_MIPS) : Double.toString(fog.getRateMips()));
-		rateRam = GuiUtils.createInput(jPanel, rateRam, "Rate/RAM (€/sec for 1 MB): ", fog == null ? Double.toString(GuiConstants.RATE_RAM) : Double.toString(fog.getRateRam()));
-		rateStorage = GuiUtils.createInput(jPanel, rateStorage, "Rate/Storage (€/sec for 1 MB): ", fog == null ? Double.toString(GuiConstants.RATE_STRG) : Double.toString(fog.getRateStorage()));
-		rateBw = GuiUtils.createInput(jPanel, rateBw, "Rate/Bw (€/1 MB): ", fog == null ? Double.toString(GuiConstants.RATE_BW) : Double.toString(fog.getRateBw()));
-		rateEn = GuiUtils.createInput(jPanel, rateEn, "Rate/En (€/W): ", fog == null ? Double.toString(GuiConstants.RATE_EN) : Double.toString(fog.getRateEnergy()));
-		idlePower = GuiUtils.createInput(jPanel, idlePower, "Idle Power (W): ", fog == null ? Double.toString(GuiConstants.IDLE_POWER) : Double.toString(fog.getIdlePower()));
-		busyPower = GuiUtils.createInput(jPanel, busyPower, "Busy Power (W): ", fog == null ? Double.toString(GuiConstants.BUSY_POWER) : Double.toString(fog.getBusyPower()));
-		posX = GuiUtils.createInput(jPanel, posX, "X position: ", fog == null ? "0.0" : Double.toString(fog.getMovement().getLocation().getX()));
-		posY = GuiUtils.createInput(jPanel, posY, "Y position: ", fog == null ? "0.0" : Double.toString(fog.getMovement().getLocation().getY()));
-		
-		ArrayList<String> directions = new ArrayList<String>();
-		for(int i = Movement.EAST; i <= Movement.SOUTHEAST; i++) {
-			directions.add(Movement.S_DIRECTIONS[i]);
-		}
-		
-		ComboBoxModel<String> directionModel = new DefaultComboBoxModel(directions.toArray());
-		direction = new JComboBox<>(directionModel);
-		directionModel.setSelectedItem("");
-		
-		JLabel ldirection = new JLabel("Direction: ");
-		jPanel.add(ldirection);
-		ldirection.setLabelFor(direction);
-		
-		String directionOp = fog == null ? Movement.S_DIRECTIONS[0] : Movement.S_DIRECTIONS[fog.getMovement().getDirection()];
-		
-		direction.setSelectedItem(directionOp);
-		jPanel.add(direction);
-		
-		velocity = GuiUtils.createInput(jPanel, velocity, "Velocity: ", fog == null ? "0.0" : Double.toString(fog.getMovement().getVelocity()));
+		deviceName = GuiUtils.createInput(jPanel, deviceName, "Name: ", nameVal, GuiMsg.TipDevName);
+		level = GuiUtils.createDropDown(jPanel, level, "Level: ", levelModel, levelVal, GuiMsg.TipDevLevel);
+		mips = GuiUtils.createInput(jPanel, mips, "Mips [MIPS]: ", mipsVal, GuiMsg.TipDevMips);
+		ram = GuiUtils.createInput(jPanel, ram, "Ram [Bytes]: ", ramVal, GuiMsg.TipDevRam);
+		storage = GuiUtils.createInput(jPanel, storage, "Storage [Bytes]: ", storageVal, GuiMsg.TipDevStrg);
+		rateMips = GuiUtils.createInput(jPanel, rateMips, "Mips price [€/s per MIPS]: ", rateMipsVal, GuiMsg.TipDevMipsPrice);
+		rateRam = GuiUtils.createInput(jPanel, rateRam, "Ram price [€/s per Byte]: ", rateRamVal, GuiMsg.TipDevRamPrice);
+		rateStorage = GuiUtils.createInput(jPanel, rateStorage, "Storage price [€/s per Byte]: ", rateStrgVal, GuiMsg.TipDevStrgPrice);
+		rateBw = GuiUtils.createInput(jPanel, rateBw, "Bandwidth price [€/s per Byte/s]: ", rateBwVal, GuiMsg.TipDevBwPrice);
+		rateEn = GuiUtils.createInput(jPanel, rateEn, "Energy price [€/s per W]: ", rateEnVal, GuiMsg.TipDevEnPrice);
+		busyPower = GuiUtils.createInput(jPanel, busyPower, "Busy power [W]: ", BusyPwVal, GuiMsg.TipDevBusyPw);
+		idlePower = GuiUtils.createInput(jPanel, idlePower, "Idle power [W]: ", IdlePwVal, GuiMsg.TipDevIdlePw);
+		posX = GuiUtils.createInput(jPanel, posX, "X Coordinate [m]: ", xPosVal, GuiMsg.TipDevXCoord);
+		posY = GuiUtils.createInput(jPanel, posY, "Y Coordinate [m]: ", yPosVal, GuiMsg.TipDevYCoord);
+		direction = GuiUtils.createDropDown(jPanel, direction, "Direction: ", directionModel, dirVal, GuiMsg.TipDevDir);
+		velocity = GuiUtils.createInput(jPanel, velocity, "Velocity [m/s]: ", velVal, GuiMsg.TipDevVel);		
 		
 		SpringUtilities.makeCompactGrid(jPanel, 16, 2, 6, 6, 6, 6);
 		
 		return jPanel;
 	}
 	
+	/**
+	 * Creates the wrapper for the application and sensor forms (if it is fill up it means that its a client).
+	 * 
+	 * @return the panel containing the inputs related to the application and sensor forms
+	 */
 	private JPanel createApplicationInput() {
 		JPanel jPanel = new JPanel(new SpringLayout());
 		jPanel.setBorder(new TitledBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY), "Application"));
@@ -325,10 +402,11 @@ public class AddFogDevice extends JDialog {
 		jPanel.add(jPanelApp);
 		jPanel.add(jPanelSensor);
 		
-		if (((String)application.getSelectedItem()).isEmpty()) {
-			jPanelSensor.setVisible(false);
-		}else {
-			jPanelSensor.setVisible(true);
+		if (application != null) {
+			if (!((String)application.getSelectedItem()).isEmpty())
+				jPanelSensor.setVisible(true);
+			else
+				jPanelSensor.setVisible(false);
 		}
 		
 		SpringUtilities.makeCompactGrid(jPanel, 2, 1, 6, 6, 6, 6);
@@ -336,29 +414,24 @@ public class AddFogDevice extends JDialog {
 		return jPanel;
 	}
 	
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	/**
+	 * Creates the application form.
+	 * 
+	 * @return the panel containing the inputs related to the application
+	 */
 	private JPanel createApplicationGeneralInput() {
 		JPanel jPanel = new JPanel(new SpringLayout());
 		jPanel.setBorder(new TitledBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY), "General"));
 		
 		ArrayList<String> applicationIds = new ArrayList<String>();
-		for(ApplicationGui applicationGui : graph.getAppList())
+		for(Application applicationGui : graph.getAppList())
 			applicationIds.add(applicationGui.getAppId());
 		applicationIds.add("");
 		
+		String appVal = fog == null ? "" : fog.getApplication();
+		
 		ComboBoxModel<String> applicationModel = new DefaultComboBoxModel(applicationIds.toArray());
-		
-		application = new JComboBox<>(applicationModel);
-		applicationModel.setSelectedItem("");
-		
-		JLabel lapplication = new JLabel("Application: ");
-		jPanel.add(lapplication);
-		lapplication.setLabelFor(application);
-		
-		if(fog != null && fog.getApplication() != null && fog.getApplication().length() > 0)
-			application.setSelectedItem(fog.getApplication());
-		
-		jPanel.add(application);
+		application = GuiUtils.createDropDown(jPanel, application, "Application: ", applicationModel, appVal, GuiMsg.TipDevApp);
 		
 		SpringUtilities.makeCompactGrid(jPanel, 1, 2, 6, 6, 6, 6);
 		
@@ -376,36 +449,41 @@ public class AddFogDevice extends JDialog {
 		return jPanel;
 	}
 	
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	/**
+	 * Creates the sensor form.
+	 * 
+	 * @return the panel containing the inputs related to the sensor
+	 */
 	private JPanel createSensorInput() {
 		String[] distributionType = {"Normal", "Uniform", "Deterministic"};
 		
 		JPanel jPanel = new JPanel(new SpringLayout());
 		jPanel.setBorder(new TitledBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY), "Sensor"));
 		
+		String nMeanVal = (fog != null && fog.getDistribution() instanceof NormalDistribution) ? Double.toString(((NormalDistribution) fog.getDistribution()).getMean()) : "";
+		String nStdDevVal = (fog != null && fog.getDistribution() instanceof NormalDistribution) ? Double.toString(((NormalDistribution) fog.getDistribution()).getStdDev()) : "";
+		String uLowerVal = (fog != null && fog.getDistribution() instanceof UniformDistribution) ? Double.toString(((UniformDistribution) fog.getDistribution()).getMin()) : "";
+		String uUpperVal = (fog != null && fog.getDistribution() instanceof UniformDistribution) ? Double.toString(((UniformDistribution) fog.getDistribution()).getMax()) : "";
+		String detVal = (fog != null && fog.getDistribution() instanceof DeterministicDistribution) ? Double.toString(((DeterministicDistribution) fog.getDistribution()).getValue()) : "";
 		
-		JLabel distLabel = new JLabel("Distribution Type: ", JLabel.TRAILING);
-		jPanel.add(distLabel);	
-		distribution = new JComboBox(distributionType);
-		distLabel.setLabelFor(distribution);
-		distribution.setSelectedIndex(-1);
+		ComboBoxModel<String> distributionModel = new DefaultComboBoxModel(distributionType);
+		distribution = GuiUtils.createDropDown(jPanel, distribution, "Distribution Type: ", distributionModel, null, GuiMsg.TipDevDist);
+		
 		distribution.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				
 				JComboBox ctype = (JComboBox)e.getSource();
 				String item = (String)ctype.getSelectedItem();
-				updatePanel(item);				
+				updatePanel(item);
 			}
 		});
 		
-		jPanel.add(distribution);
-		
-		normalMean = GuiUtils.createInput(jPanel, normalMean, "Mean: ", (fog != null && fog.getDistribution() instanceof NormalDistribution) ? Double.toString(((NormalDistribution) fog.getDistribution()).getMean()) : "");
-		normalStdDev = GuiUtils.createInput(jPanel, normalStdDev, "StdDev: ", (fog != null && fog.getDistribution() instanceof NormalDistribution) ? Double.toString(((NormalDistribution) fog.getDistribution()).getStdDev()) : "");
-		uniformLowerBound = GuiUtils.createInput(jPanel, uniformLowerBound, "Min: ", (fog != null && fog.getDistribution() instanceof UniformDistribution) ? Double.toString(((UniformDistribution) fog.getDistribution()).getMin()) : "");
-		uniformUpperBound = GuiUtils.createInput(jPanel, uniformUpperBound, "Max: ", (fog != null && fog.getDistribution() instanceof UniformDistribution) ? Double.toString(((UniformDistribution) fog.getDistribution()).getMax()) : "");
-		deterministicValue = GuiUtils.createInput(jPanel, deterministicValue, "Value: ", (fog != null && fog.getDistribution() instanceof DeterministicDistribution) ? Double.toString(((DeterministicDistribution) fog.getDistribution()).getValue()) : "");
+		normalMean = GuiUtils.createInput(jPanel, normalMean, "Mean: ", nMeanVal, GuiMsg.TipDevnMean);
+		normalStdDev = GuiUtils.createInput(jPanel, normalStdDev, "StdDev: ", nStdDevVal, GuiMsg.TipDevnStd);
+		uniformLowerBound = GuiUtils.createInput(jPanel, uniformLowerBound, "Min: ", uLowerVal, GuiMsg.TipDevuLow);
+		uniformUpperBound = GuiUtils.createInput(jPanel, uniformUpperBound, "Max: ", uUpperVal, GuiMsg.TipDevuUp);
+		deterministicValue = GuiUtils.createInput(jPanel, deterministicValue, "Value: ", detVal, GuiMsg.TipDevdVal);
 
 		String item = "";
 		if(fog != null && fog.getDistribution() != null) {
@@ -430,8 +508,11 @@ public class AddFogDevice extends JDialog {
 		
 		return jPanel;
 	}
-	
-	/* Miscellaneous methods */
+	/**
+	 * Updates the visibility of the sensor inputs based on the name of the distribution.
+	 * 
+	 * @param item the name of the sensor distribution
+	 */
     private void updatePanel(String item) {
 		switch(item){
 		case "Normal":

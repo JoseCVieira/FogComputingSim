@@ -17,11 +17,19 @@ public class Location {
 	
 	/**
 	 * Creates a new location.
+	 */
+	public Location(){
+		this.setX(0);
+		this.setY(0);
+	}
+	
+	/**
+	 * Creates a new location.
 	 * 
 	 * @param x the X coordinate of the node
 	 * @param y the Y coordinate of the node
 	 */
-	public Location(final double x, double y){
+	public Location(final double x, final double y){
 		this.setX(x);
 		this.setY(y);
 	}

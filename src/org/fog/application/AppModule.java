@@ -91,14 +91,12 @@ public class AppModule extends PowerVm {
 	 * 
 	 * @param name the application module name
 	 * @param ram the memory resource units necessary to the application module
-	 * @param size the storage resource units necessary to the application module
 	 * @param clientModule if the application module is a global module
 	 * @param glogbalModule if the application global is a global module
 	 */
-	public void setValues(String name, int ram, long size, boolean clientModule, boolean glogbalModule) {
+	public void setValues(String name, int ram, boolean clientModule, boolean glogbalModule) {
 		setName(name);
 		setRam(ram);
-		setSize(size);
 		setClientModule(clientModule);
 		setGlobalModule(glogbalModule);
 	}
@@ -191,49 +189,6 @@ public class AppModule extends PowerVm {
 	 */
 	public void setGlobalModule(boolean globalModule) {
 		this.globalModule = globalModule;
-	}
-	
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((appId == null) ? 0 : appId.hashCode());
-		result = prime * result + (clientModule ? 1231 : 1237);
-		result = prime * result + (globalModule ? 1231 : 1237);
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		result = prime * result + ((selectivityMap == null) ? 0 : selectivityMap.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		AppModule other = (AppModule) obj;
-		if (appId == null) {
-			if (other.appId != null)
-				return false;
-		} else if (!appId.equals(other.appId))
-			return false;
-		if (clientModule != other.clientModule)
-			return false;
-		if (globalModule != other.globalModule)
-			return false;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
-			return false;
-		if (selectivityMap == null) {
-			if (other.selectivityMap != null)
-				return false;
-		} else if (!selectivityMap.equals(other.selectivityMap))
-			return false;
-		return true;
 	}
 	
 	@Override
