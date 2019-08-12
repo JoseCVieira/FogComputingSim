@@ -19,11 +19,10 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.fog.gui.dialog.DisplayApplications;
 import org.fog.gui.core.Bridge;
-import org.fog.gui.core.FogDeviceGui;
+import org.fog.gui.core.Node;
 import org.fog.gui.core.Graph;
 import org.fog.gui.core.GraphView;
 import org.fog.gui.core.Link;
-import org.fog.gui.core.Node;
 import org.fog.gui.core.RunGUI;
 import org.fog.gui.dialog.AddFogDevice;
 import org.fog.gui.dialog.AddLink;
@@ -328,7 +327,7 @@ public class Gui extends JFrame {
     	boolean application = false;
     	boolean fixedTopology = false;
     	for(Node node : physicalGraph.getDevicesList().keySet()) {
-    		if(!((FogDeviceGui)node).getApplication().isEmpty()) {
+    		if(!node.getApplication().isEmpty()) {
     			application = true;
     		}
     		
