@@ -7,26 +7,38 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.fog.application.Application;
+
 /**
  * A graph model. Normally a model should not have any logic, but in this case we implement logic to manipulate the
- * devicesList like reorganizing, adding nodes, removing nodes
+ * devicesList like reorganizing, adding nodes, removing nodes.
+ * 
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
  */
 public class Graph implements Serializable {
 	private static final long serialVersionUID = 745864022429447529L;
 	
+	/** List holding both the fog nodes and all its links */
 	private Map<Node, List<Link>> devicesList;
-	private List<ApplicationGui> appList;
-
+	
+	/** List which contains all the defined applications */
+	private List<Application> appList;
+	
+	/**
+	 * Creates a new empty graph.
+	 */
 	public Graph() {
 		devicesList = new HashMap<Node, List<Link>>();
-		appList = new ArrayList<ApplicationGui>();
+		appList = new ArrayList<Application>();
 	}
-
-	public Graph(Map<Node, List<Link>> devicesList) {
-		this.devicesList = devicesList;
-	}
-
-	/** Adds a given device to the devicesList. If the base node is not yet part of the devicesList a new entry is added */
+	
+	/**
+	 * Adds a given device to the devices list. If the base node is not yet part of the devicesList a new entry is added.
+	 * 
+	 * @param key the node
+	 * @param value the link
+	 */
 	public void addEdge(Node key, Link value) {
 		if (devicesList.containsKey(key)) {
 			if (devicesList.get(key) == null)
@@ -42,22 +54,33 @@ public class Graph implements Serializable {
 			devicesList.put(key, edges);
 		}
 	}
-
-	/** Simply adds a new node, without setting any edges */
+	
+	/**
+	 * Simply adds a new node, without setting any edges.
+	 * 
+	 * @param node the node
+	 */
 	public void addNode(Node node) {
 		addEdge(node, null);
 	}
-
+	
+	/**
+	 * Removes an edge from the devices list.
+	 * 
+	 * @param key the node
+	 * @param value the link
+	 */
 	public void removeEdge(Node key, Link value) {
 		if (!devicesList.containsKey(key))
 			throw new IllegalArgumentException("The devices list does not contain a node for the given key: " + key);
+		
 		List<Link> edges = devicesList.get(key);
-
+		
 		if (!edges.contains(value)) 
 			throw new IllegalArgumentException("The list of edges does not contain the given edge to remove: " + value);
 
 		edges.remove(value);
-		// remove bidirectional
+		
 		List<Link> reverseEdges = devicesList.get(value.getNode());
 		List<Link> toRemove = new ArrayList<Link>();
 		for (Link edge : reverseEdges) {
@@ -65,11 +88,15 @@ public class Graph implements Serializable {
 				toRemove.add(edge);
 			}
 		}
-		//normally only one element
+		
 		reverseEdges.removeAll(toRemove);
 	}
-
-	/** Deletes a node */
+	
+	/**
+	 * Deletes a node.
+	 * 
+	 * @param key the node to be removed
+	 */
 	public void removeNode(Node key) {
 		if (!devicesList.containsKey(key))
 			throw new IllegalArgumentException("The devices list does not contain a node for the given key: " + key);
@@ -88,6 +115,12 @@ public class Graph implements Serializable {
 		}
 	}
 	
+	/**
+	 * Verifies whether there are some other nodes with the same name as the provided one.
+	 * 
+	 * @param name the name to be checked
+	 * @return true it's a repeated name, otherwise false
+	 */
 	public boolean isRepeatedName(String name) {
 		for(Node node : devicesList.keySet())
 			if(node.getName().equals(name))
@@ -95,38 +128,74 @@ public class Graph implements Serializable {
 		return false;
 	}
 	
-	public void addApp(ApplicationGui applicationGui) {
-		getAppList().add(applicationGui);
+	/**
+	 * Adds a new application to the application list.
+	 * 
+	 * @param application the application to be added
+	 */
+	public void addApp(Application application) {
+		getAppList().add(application);
 	}
 	
-	public void removeApp(ApplicationGui applicationGui) {
-		getAppList().remove(applicationGui);
+	/**
+	 * Removes an application from the application list.
+	 * 
+	 * @param application the application to be removed
+	 */
+	public void removeApp(Application application) {
+		getAppList().remove(application);
 	}
 	
-	public List<ApplicationGui> getAppList() {
+	/**
+	 * Gets the application list.
+	 * 
+	 * @return the application list
+	 */
+	public List<Application> getAppList() {
 		return appList;
 	}
-
-	public void setAppList(List<ApplicationGui> appList) {
+	
+	/**
+	 * Sets the application list.
+	 * 
+	 * @param appList the application list
+	 */
+	public void setAppList(List<Application> appList) {
 		this.appList = appList;
 	}
 	
-	public void clearGraph(){
-		devicesList.clear();
-	}
-	
+	/**
+	 * Converts the current topology into a JSON string.
+	 * 
+	 * @return the JSON string
+	 */
 	public String toJsonString(){
 		return Bridge.graphToJson(this);
 	}
 	
+	/**
+	 * Sets the devices list.
+	 * 
+	 * @param devicesList the devices list
+	 */
 	public void setDevicesList(Map<Node, List<Link>> devicesList) {
 		this.devicesList = devicesList;
 	}
-
+	
+	/**
+	 * Gets the devices list.
+	 * 
+	 * @return the devices list
+	 */
 	public Map<Node, List<Link>> getDevicesList() {
 		return devicesList;
 	}
 	
+	/**
+	 * Gets the maximum level of the graph (levels are only used within the GUI).
+	 * 
+	 * @return the maximum level of the graph
+	 */
 	public int getMaxLevel() {
 		int maxLevel = -1;
 		
