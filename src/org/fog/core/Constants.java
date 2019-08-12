@@ -11,11 +11,6 @@ public class Constants {
 	public static final double EPSILON = 1E-9;
 	public static final double REFERENCE_COST = Integer.MAX_VALUE;
 	
-	public static final String FOG_TYPE = "FOG_DEVICE";
-	public static final String SENSOR_MODULE_TYPE = "SENSOR_MODULE";
-	public static final String ACTUATOR_MODULE_TYPE = "ACTUATOR_MODULE";
-	public static final String APP_MODULE_TYPE = "APP_MODULE";
-	
 	public static final double RESOURCE_MGMT_INTERVAL = 100;
 	public static final int RESOURCE_MANAGE_INTERVAL = 100;
 	public static final String FOG_DEVICE_ARCH = "x86";

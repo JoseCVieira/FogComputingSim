@@ -27,7 +27,7 @@ import org.fog.application.Application;
 import org.fog.gui.GuiConstants;
 import org.fog.gui.GuiMsg;
 import org.fog.gui.GuiUtils;
-import org.fog.gui.core.FogDeviceGui;
+import org.fog.gui.core.Node;
 import org.fog.gui.core.Graph;
 import org.fog.gui.core.SpringUtilities;
 import org.fog.utils.Location;
@@ -52,7 +52,7 @@ public class AddFogDevice extends JDialog {
 	private final Graph graph;
 	
 	/** Object which contains the device to be edited or null if its a new one */
-	private final FogDeviceGui fog;
+	private final Node fog;
 	
 	/** Name of the fog device */
 	private JTextField deviceName;
@@ -133,7 +133,7 @@ public class AddFogDevice extends JDialog {
 	 * @param frame the current context
 	 * @param fog the node to be edited; can be null when a new fog node is to be added
 	 */
-	public AddFogDevice(final Graph graph, final JFrame frame, final FogDeviceGui fog) {
+	public AddFogDevice(final Graph graph, final JFrame frame, final Node fog) {
 		this.graph = graph;
 		this.fog = fog;
 		setLayout(new BorderLayout());
@@ -288,7 +288,7 @@ public class AddFogDevice extends JDialog {
 					
 					// Edit the current fog device
 					else {
-						FogDeviceGui fogDevice = new FogDeviceGui(name_, level_, mips_, ram_, storage_, rateMips_, rateRam_, rateStorage_,
+						Node fogDevice = new Node(name_, level_, mips_, ram_, storage_, rateMips_, rateRam_, rateStorage_,
 								rateBw_, rateEn_, idlePower_, busyPower_, movement, appId, distribution);
 						graph.addNode(fogDevice);
 					}

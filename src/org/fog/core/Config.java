@@ -133,8 +133,8 @@ public class Config {
 	public static final double PROB_MAX_VELOCITY = 0.1667;
 	public static final double PROB_MED_VELOCITY = 0.6667;
 	public static final double PROB_MIN_VELOCITY = 0.1667;
-	public static final double MAX_VELOCITY = 330.3333;				// 33.3333 m/s = 120 km/h 	-> high speed car
-	public static final double MED_VELOCITY = 130.8889;				// 13.8889 m/s = 50 km/h  	-> slow speed car
-	public static final double MIN_VELOCITY = 10.34000;				// 1.34 m/s					-> average walking speed
+	public static final double MAX_VELOCITY = 33.3333;				// 33.3333 m/s = 120 km/h 	-> high speed car
+	public static final double MED_VELOCITY = 13.8889;				// 13.8889 m/s = 50 km/h  	-> slow speed car
+	public static final double MIN_VELOCITY = 1.34000;				// 1.34 m/s					-> average walking speed
 	
 }
