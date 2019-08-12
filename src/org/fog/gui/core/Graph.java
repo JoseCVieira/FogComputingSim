@@ -84,7 +84,7 @@ public class Graph implements Serializable {
 		List<Link> reverseEdges = devicesList.get(value.getNode());
 		List<Link> toRemove = new ArrayList<Link>();
 		for (Link edge : reverseEdges) {
-			if (edge.getNode().equals(key)) {
+			if (edge.getNode().getName().equals(key.getName())) {
 				toRemove.add(edge);
 			}
 		}
@@ -108,7 +108,7 @@ public class Graph implements Serializable {
 			List<Link> toRemove = new ArrayList<Link>();
 
 			for (Link edge : entry.getValue())
-				if (edge.getNode().equals(key))
+				if (edge.getNode().getName().equals(key.getName()))
 					toRemove.add(edge);
 			
 			entry.getValue().removeAll(toRemove);
@@ -201,8 +201,8 @@ public class Graph implements Serializable {
 		
 		for (Entry<Node, List<Link>> entry : devicesList.entrySet()) {
 			Node node = entry.getKey();
-			if(maxLevel < ((FogDeviceGui)node).getLevel())
-				maxLevel = ((FogDeviceGui)node).getLevel();
+			if(maxLevel < node.getLevel())
+				maxLevel = node.getLevel();
 		}
 		
 		return maxLevel;

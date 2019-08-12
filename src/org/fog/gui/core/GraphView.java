@@ -19,41 +19,59 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
-import org.fog.core.Constants;
 import org.fog.gui.Gui;
 import org.fog.gui.dialog.AddFogDevice;
 import org.fog.utils.FogUtils;
+import org.fog.utils.Location;
 
-/** Panel that displays a graph */
+/**
+ * Panel that displays a graph.
+ * 
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
+ */
 public class GraphView extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final int ARR_SIZE = 5;
-
+	
 	private JPanel canvas;
+	
+	/** Object which holds the topology */
 	private Graph graph;
-
-	private Image imgApp;
+	
+	/** Image which represents a fog device */
 	private Image imgHost;
 	
-	Map<Node, Coordinates> coordFogNodes = new HashMap<Node, Coordinates>();
+	/** Map which the nodes and it's correspondent coordinates */
+	Map<Node, Location> coordFogNodes;
+	
+	/** The node icon height */
 	private int size;
 	
+	/**
+	 * Creates a new context to display the topology.
+	 * 
+	 * @param graph the topology
+	 */
 	public GraphView(final Graph graph) {
 		this.graph = graph;
+		
+		coordFogNodes = new HashMap<Node, Location>();
 		imgHost = Toolkit.getDefaultToolkit().getImage(this.getClass().getResource("/images/fog.png"));
-		imgApp = Toolkit.getDefaultToolkit().getImage(this.getClass().getResource("/images/app.png"));
 		
 		initComponents();
 	}
 	
+	/**
+	 * Draws the topology (i.e., nodes, links and applications).
+	 */
 	@SuppressWarnings("serial")
 	private void initComponents() {
 		canvas = new JPanel() {
 			@Override
 			public void paint(Graphics g) {
 				if(graph.getDevicesList() == null) return;
-
-				Map<Node, Coordinates> coordForNodes = new HashMap<Node, Coordinates>();
+				
 				Map<Integer, List<Node>> levelMap = new HashMap<Integer, List<Node>>();
 
 				FontMetrics f = g.getFontMetrics();
@@ -64,7 +82,7 @@ public class GraphView extends JPanel {
 				int minLevel = FogUtils.MAX;
 				
 				for (Node node : graph.getDevicesList().keySet()) {
-					int level = ((FogDeviceGui)node).getLevel();
+					int level = node.getLevel();
 					
 					if(!levelMap.containsKey(level))
 						levelMap.put(level, new ArrayList<Node>());
@@ -97,38 +115,32 @@ public class GraphView extends JPanel {
 					}
 				}
 				
-				coordForNodes = getCoordForNodes(levelToPlaceHolderMap, levelMap, minLevel, maxLevel);
-				coordFogNodes = coordForNodes;
+				coordFogNodes = getCoordForNodes(levelToPlaceHolderMap, levelMap, minLevel, maxLevel);
 				
+				// Draw nodes and it's applications
 				Map<Node, List<Node>> drawnList = new HashMap<Node, List<Node>>();
-				for (Entry<Node, Coordinates> entry : coordForNodes.entrySet()) {
+				for (Entry<Node, Location> entry : coordFogNodes.entrySet()) {
 					g.setColor(Color.black);
 					
-					Coordinates wrapper = entry.getValue();
+					Location wrapper = entry.getValue();
 					String nodeName = entry.getKey().getName();
-					switch(entry.getKey().getType()){
-						case Constants.APP_MODULE_TYPE:
-							g.drawImage(imgApp, wrapper.getX() - nodeWidth / 2, wrapper.getY() - nodeHeight / 2, nodeWidth, nodeHeight, this);
-							g.drawString(nodeName, wrapper.getX() - f.stringWidth(nodeName) / 2, wrapper.getY() + nodeHeight);
-							break;
-						case Constants.FOG_TYPE:
-							g.drawImage(imgHost, wrapper.getX() - nodeWidth / 2, wrapper.getY() - nodeHeight / 2, nodeWidth, nodeHeight, this);
-							g.drawString(nodeName, wrapper.getX() - f.stringWidth(nodeName) / 2, wrapper.getY() + nodeHeight);
-							
-							String appName = ((FogDeviceGui)entry.getKey()).getApplication();
-							if(!appName.equals(""))
-								g.drawString("[" + appName + "]", wrapper.getX() - f.stringWidth("[" + appName + "]") / 2, wrapper.getY() + nodeHeight + g.getFont().getSize());
-							break;
-					}
+				
+					g.drawImage(imgHost, (int)(wrapper.getX() - nodeWidth / 2), (int)(wrapper.getY() - nodeHeight / 2), nodeWidth, nodeHeight, this);
+					g.drawString(nodeName, (int)(wrapper.getX() - f.stringWidth(nodeName) / 2), (int)(wrapper.getY() + nodeHeight));
+					
+					String appName = entry.getKey().getApplication();
+					if(!appName.equals(""))
+						g.drawString("[" + appName + "]", (int)(wrapper.getX() - f.stringWidth("[" + appName + "]") / 2), (int)(wrapper.getY() + nodeHeight + g.getFont().getSize()));
 				}
-
+				
+				// Draw links
 				for (Entry<Node, List<Link>> entry : graph.getDevicesList().entrySet()) {
-					Coordinates startNode = coordForNodes.get(entry.getKey());
+					Location startNode = coordFogNodes.get(entry.getKey());
 
 					for (Link edge : entry.getValue()) {
-						Coordinates targetNode = coordForNodes.get(edge.getNode());
+						Location targetNode = coordFogNodes.get(edge.getNode());
 						g.setColor(Color.RED);
-						drawArrow(g, startNode.getX(), startNode.getY(), targetNode.getX(), targetNode.getY());
+						drawArrow(g, (int)startNode.getX(), (int)startNode.getY(), (int)targetNode.getX(), (int)targetNode.getY());
 
 						if (drawnList.containsKey(entry.getKey()))
 							drawnList.get(entry.getKey()).add(edge.getNode());
@@ -146,16 +158,23 @@ public class GraphView extends JPanel {
 		setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
 		add(scrollPane);
 	}
-
-	protected Map<Node, Coordinates> getCoordForNodes(Map<Integer, List<PlaceHolder>> levelToPlaceHolderMap, Map<Integer, List<Node>> levelMap,
+	
+	/**
+	 * Gets the coordinates of the nodes to be drawn.
+	 * 
+	 * @param levelToPlaceHolderMap the map with levels and the corresponding place holders
+	 * @param levelMap the map with levels and the corresponding nodes
+	 * @param minLevel the minimum level of the nodes
+	 * @param maxLevel the maximum level of the nodes
+	 * @return the map which contains the nodes and the corresponding coordinates
+	 */
+	protected Map<Node, Location> getCoordForNodes(Map<Integer, List<PlaceHolder>> levelToPlaceHolderMap, Map<Integer, List<Node>> levelMap,
 			int minLevel, int maxLevel) {
 
-		Map<Node, Coordinates> coordForNodesMap = new HashMap<Node, Coordinates>();
-		
-		for(Node node : graph.getDevicesList().keySet())node.setPlaced(false);
+		Map<Node, Location> coordForNodesMap = new HashMap<Node, Location>();
 		
 		if(maxLevel < 0)
-			return new HashMap<Node, Coordinates>();
+			return new HashMap<Node, Location>();
 
 		int i = 0;
 		for(int level = minLevel; level <= maxLevel; level++){
@@ -165,12 +184,20 @@ public class GraphView extends JPanel {
 				placeHolder.setNode(node);
 				node.setCoordinate(placeHolder.getCoordinates());
 				coordForNodesMap.put(node, node.getCoordinate());
-				node.setPlaced(true);
 			}
 		}
 		return coordForNodesMap;
 	}
-
+	
+	/**
+	 * Draws an arrow from a given point to another.
+	 * 
+	 * @param g1 the context
+	 * @param x1 the x coordinate of the first point
+	 * @param y1 the y coordinate of the first point
+	 * @param x2 the x coordinate of the second point
+	 * @param y2 the y coordinate of the second point
+	 */
 	private void drawArrow(Graphics g1, int x1, int y1, int x2, int y2) {
 		Graphics2D g = (Graphics2D) g1.create();
 		double dx = x2 - x1, dy = y2 - y1;
@@ -187,16 +214,29 @@ public class GraphView extends JPanel {
 		g.fillPolygon(new int[] { 0, 0 - ARR_SIZE, 0 - ARR_SIZE, 0 }, new int[] { -ARR_SIZE, 0, 0, ARR_SIZE}, 4);
 	}
 	
+	/**
+	 * Sets the new topology.
+	 * 
+	 * @param newGraph object which holds the new topology
+	 */
 	public void setGraph(Graph newGraph){
 		this.graph = newGraph;
 	}
 	
+	/**
+	 * Opens the device drawn in a given point details to allow editing it.
+	 * 
+	 * @param frame the context
+	 * @param physicalCanvas the panel that displays a graph
+	 * @param physicalGraph the object which holds the topology
+	 * @param point the point where the click was made
+	 */
 	public void openDeviceDetails(final JFrame frame, GraphView physicalCanvas, Graph physicalGraph, java.awt.Point point) {
-		for (Entry<Node, Coordinates> entry : coordFogNodes.entrySet()) {
-			Coordinates wrapper = entry.getValue();
+		for (Entry<Node, Location> entry : coordFogNodes.entrySet()) {
+			Location wrapper = entry.getValue();
 			if(wrapper.getX() - size/2 <= point.getX() && wrapper.getX() + size/2 >= point.getX() &&
 					wrapper.getY() - size/2 <= point.getY() && wrapper.getY() + size/2 >= point.getY()) {
-				new AddFogDevice(physicalGraph, frame, (FogDeviceGui)entry.getKey());
+				new AddFogDevice(physicalGraph, frame, entry.getKey());
 		    	physicalCanvas.repaint();
 				break;
 			}

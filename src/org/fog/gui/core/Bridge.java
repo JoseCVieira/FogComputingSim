@@ -89,7 +89,7 @@ public class Bridge {
 					// Do nothing
 				}
 
-				Node fogDevice = new FogDeviceGui(nodeName, level, mips, ram, strg, rateMips, rateRam, rateStorage, rateBw, rateEnergy, idlePower,
+				Node fogDevice = new Node(nodeName, level, mips, ram, strg, rateMips, rateRam, rateStorage, rateBw, rateEnergy, idlePower,
 						busyPower, movement, application, distribution);
 				graph.addNode(fogDevice);
 			}		
@@ -103,9 +103,8 @@ public class Bridge {
 				String dst = (String) link.get("destination");
 				double lat = (Double) link.get("latency");
 				double bw = (Double) link.get("bw");
-				
-				Node source = (Node) getNode(graph, src);
-				Node target = (Node) getNode(graph, dst);
+				Node source = (Node)getNode(graph, src);
+				Node target = (Node)getNode(graph, dst);
 				
 				if(source!=null && target!=null){
 					Link edge = new Link(target, lat, bw);
@@ -241,7 +240,7 @@ public class Bridge {
 			
 			// add node
 			JSONObject jobj = new JSONObject();
-			FogDeviceGui fogDevice = (FogDeviceGui)srcNode;
+			Node fogDevice = (Node)srcNode;
 			jobj.put("name", fogDevice.getName());
 			jobj.put("mips", fogDevice.getMips());
 			jobj.put("ram", fogDevice.getRam());
