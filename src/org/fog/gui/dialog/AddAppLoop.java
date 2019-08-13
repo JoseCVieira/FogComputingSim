@@ -21,32 +21,59 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 
+import org.fog.application.AppLoop;
+import org.fog.application.Application;
+import org.fog.core.Constants;
+import org.fog.gui.GuiMsg;
 import org.fog.gui.GuiUtils;
-import org.fog.gui.core.ApplicationGui;
+import org.fog.utils.Util;
 
-/** A dialog to view applications */
+/**
+ * Class which allows to add an application loop.
+ * 
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
+ */
 public class AddAppLoop extends JDialog {
 	private static final long serialVersionUID = 4794808969864918000L;
 	private static final int WIDTH = 800;
 	private static final int HEIGHT = 800;
+	private static final String[] columnNames = {"No", "Name", "Remove"};
 	
+	/** Object which holds the content of the table */
 	private DefaultTableModel dtm;
 	
-	private final ApplicationGui app;
-	private final JFrame frame;
-	private List<String> loop = new ArrayList<String>();
+	/** Application of the loop */
+	private final Application app;
 	
-	public AddAppLoop(final JFrame frame, final ApplicationGui app) {
+	/** The context */
+	private final JFrame frame;
+	
+	/** List which contains all the module names of the loop */
+	private List<String> loop;
+	
+	/** Loop deadline (time acceptable by the user for the loop execution in the worst case scenario) */
+	private JTextField deadline;
+	
+	/**
+	 * Creats a new application loop.
+	 * 
+	 * @param frame the current context
+	 * @param app the application of the loop
+	 */
+	public AddAppLoop(final JFrame frame, final Application app) {
 		this.app = app;
 		this.frame = frame;
 		setLayout(new BorderLayout());
+		loop = new ArrayList<String>();
 
 		add(createInputPanel(), BorderLayout.CENTER);
 		add(createButtonPanel(), BorderLayout.PAGE_END);
 
-		setTitle("  Add Loop");
+		setTitle("  Add Application Loop");
 		setModal(true);
 		setPreferredSize(new Dimension(WIDTH, HEIGHT));
 		setResizable(false);
@@ -54,10 +81,13 @@ public class AddAppLoop extends JDialog {
 		setLocationRelativeTo(frame);
 		setVisible(true);
 	}
-
+	
+	/**
+	 * Creates all the inputs that users need to fill up.
+	 * 
+	 * @return the panel containing the inputs
+	 */
 	private JPanel createInputPanel() {
-		String[] columnNames = {"No", "Name", "Remove"};
-        
         dtm = new DefaultTableModel(getLoop(), columnNames);
         JTable jtable = new JTable(dtm) {
 			private static final long serialVersionUID = 1L;
@@ -82,8 +112,15 @@ public class AddAppLoop extends JDialog {
 		
 		JPanel jPanel = new JPanel();
 		jPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		
+		deadline = GuiUtils.createInput(jPanel, deadline, "Loop deadline [s]: ", Double.toString(Constants.INF), GuiMsg.TipLoopDeadline);	
+		
+		jPanel = new JPanel();
+		jPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		
 		jPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		jPanel.add(okBtn);
+		
 		inputPanelWrapper.add(jPanel);
         
     	jtable.addMouseListener(new MouseAdapter() {
@@ -111,7 +148,12 @@ public class AddAppLoop extends JDialog {
         
 		return inputPanelWrapper;
 	}
-
+	
+	/**
+	 * Creates the button panel (i.e., Ok, Cancel) and defines its behavior upon being clicked.
+	 * 
+	 * @return the panel containing the buttons
+	 */
 	private JPanel createButtonPanel() {
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.LINE_AXIS));
@@ -125,10 +167,21 @@ public class AddAppLoop extends JDialog {
 		JButton okBtn = new JButton("Close");
 		
 		okBtn.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent event) {
-            	if(!loop.isEmpty())
-            		app.getLoops().add(loop);
-            	setVisible(false);
+            public void actionPerformed(ActionEvent event) {            	
+            	String error_msg = "";
+				double value;
+				
+				if (!Util.validString(deadline.getText()))	error_msg += GuiMsg.errMissing("Deadline value");
+				if((value = Util.stringToDouble(deadline.getText())) < 0) error_msg += GuiMsg.errFormat("Deadline");
+				
+				if(error_msg == "") {					
+					if(!loop.isEmpty())
+	            		app.getLoops().add(new AppLoop(loop, value));
+					
+					setVisible(false);
+				}else
+					GuiUtils.prompt(AddAppLoop.this, error_msg, "Error");
+            	
             }
         });
 		
@@ -142,7 +195,11 @@ public class AddAppLoop extends JDialog {
 		return buttonPanel;
 	}
 	
-	/* Miscellaneous methods */
+	/**
+	 * Gets the content of the application loop table.
+	 * 
+	 * @return the content of the application loop table
+	 */
 	private String[][] getLoop() {
 		if(loop.isEmpty())
 			return null;
@@ -161,10 +218,16 @@ public class AddAppLoop extends JDialog {
 		return lists;
 	}
 	
+	/**
+	 * Configures the sizes of the columns within a given table.
+	 * 
+	 * @param jtable the table with the columns sizes configured
+	 */
 	private void configureTable(JTable jtable) {
 		jtable.getColumn("Remove").setCellRenderer(new GuiUtils.ButtonRenderer());
-		jtable.getColumnModel().getColumn(0).setPreferredWidth(200);
-		jtable.getColumnModel().getColumn(1).setPreferredWidth(WIDTH - 200);
+		jtable.getColumnModel().getColumn(0).setPreferredWidth(75);
+		jtable.getColumnModel().getColumn(1).setPreferredWidth(WIDTH - 175);
+		jtable.getColumnModel().getColumn(2).setPreferredWidth(100);
 		jtable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
 	}
 	
