@@ -18,7 +18,6 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SpringLayout;
@@ -26,28 +25,54 @@ import javax.swing.SpringLayout;
 import org.apache.commons.math3.util.Pair;
 import org.fog.application.AppEdge;
 import org.fog.application.AppModule;
+import org.fog.application.Application;
 import org.fog.application.selectivity.FractionalSelectivity;
+import org.fog.gui.GuiMsg;
 import org.fog.gui.GuiUtils;
-import org.fog.gui.core.ApplicationGui;
 import org.fog.gui.core.SpringUtilities;
 import org.fog.utils.Util;
 
-public class AddTuple extends JDialog {
+/**
+ * Class which allows to add or edit an application tuple mapping.
+ * 
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
+ */
+public class AddTupleMapping extends JDialog {
 	private static final long serialVersionUID = -511667786177319577L;
-	private static final int WIDTH = 600;
-	private static final int HEIGHT = 280;
+	private static final int WIDTH = 500;
+	private static final int HEIGHT = 260;
 	
+	/** Object which contains the module of the tuple mapping to be edited or null if its a new one */
 	private final AppModule module;
-	private final ApplicationGui app;
+	
+	/** Application of the module */
+	private final Application app;
+	
+	/** Pair containing both the input and output tuple names/labels */
 	private final Pair<String, String> pair;
 	
+	/** Probability of generating the output tuple from upon the processing of the input tuple */
 	private JTextField probability;
-
+	
+	/** Module name of the tuple mapping */
 	private JComboBox<String> moduleName;
+	
+	/** Input tuple name/label of the tuple mapping */
 	private JComboBox<String> inputTuple;
+	
+	/** Output tuple name/label of the tuple mapping */
 	private JComboBox<String> outputTuple;
 	
-	public AddTuple(final JFrame frame, final ApplicationGui app, final AppModule module, final Pair<String, String> pair) {
+	/**
+	 * Creates or edits an application tuple mapping.
+	 * 
+	 * @param frame the current context
+	 * @param app the application of the tuple mapping
+	 * @param module the application module of the tuple mapping
+	 * @param pair the pair containing both the input and output tuple names/labels
+	 */
+	public AddTupleMapping(final JFrame frame, final Application app, final AppModule module, final Pair<String, String> pair) {
 		this.app = app;
 		this.pair = pair;
 		this.module = module;
@@ -56,7 +81,7 @@ public class AddTuple extends JDialog {
 		add(createInputPanelArea(), BorderLayout.CENTER);
 		add(createButtonPanel(), BorderLayout.PAGE_END);
 
-		setTitle(module == null ? "  Add Tuple" : "  Edit Tuple");
+		setTitle(module == null ? "  Add Tuple Mapping" : "  Edit Tuple Mapping");
 		setModal(true);
 		setPreferredSize(new Dimension(WIDTH, HEIGHT));
 		setResizable(false);
@@ -64,66 +89,45 @@ public class AddTuple extends JDialog {
 		setLocationRelativeTo(frame);
 		setVisible(true);
 	}
-
-	@SuppressWarnings("unchecked")
+	
+	/**
+	 * Creates all the inputs that users need to fill up.
+	 * 
+	 * @return the panel containing the inputs
+	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private JPanel createInputPanelArea() {
 		JPanel springPanel = new JPanel(new SpringLayout());
         springPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-
-		@SuppressWarnings({ "rawtypes" })
-		ComboBoxModel<String> mNameModel = new DefaultComboBoxModel(app.getModules().toArray());
-		mNameModel.setSelectedItem(module == null ? null : module);
+        
+        AppModule moduleOp = module == null ? null : module;
+		String inputOp = module == null ? null : pair.getFirst();
+		String outputOp = module == null ? null : pair.getSecond();
+		String probOp = module == null ? "" : Double.toString(((FractionalSelectivity)module.getSelectivityMap().get(pair)).getSelectivity());
+        
+		ArrayList<String> inTmp = new ArrayList<String>();
+		for(AppEdge appEdge : app.getEdges()) {
+			if(!inTmp.contains(appEdge.getTupleType()))
+				inTmp.add(appEdge.getTupleType());
+		}
 		
-		ArrayList<String> aux = new ArrayList<String>();
-		for(AppEdge appEdge : app.getEdges())
-			if(!aux.contains(appEdge.getTupleType()))
-				aux.add(appEdge.getTupleType());
+		ArrayList<String> outTmp = new ArrayList<String>();
+		if(module != null) {
+			for(AppEdge appEdge : app.getEdges()) {
+				if(!outTmp.contains(appEdge.getTupleType()) && !(inputOp).equals(appEdge.getTupleType()))
+					outTmp.add(appEdge.getTupleType());
+			}
+		}
 		
-		@SuppressWarnings({ "rawtypes" })
-		ComboBoxModel<String> inputModel = new DefaultComboBoxModel(aux.toArray());
-		inputModel.setSelectedItem(module == null ? null : pair.getFirst());
+		ComboBoxModel<String> nameModel = new DefaultComboBoxModel(app.getModules().toArray());
+		ComboBoxModel<String> inputModel = new DefaultComboBoxModel(inTmp.toArray());
+		ComboBoxModel<String> outputModel = new DefaultComboBoxModel(outTmp.toArray());
 		
-		
-		aux = new ArrayList<String>();
-		if(module != null)
-			for(AppEdge appEdge : app.getEdges())
-				if(!aux.contains(appEdge.getTupleType()))
-					if(!((String)inputModel.getSelectedItem()).equals(appEdge.getTupleType()))
-						aux.add(appEdge.getTupleType());
-		
-		@SuppressWarnings({ "rawtypes" })
-		ComboBoxModel<String> outputModel = new DefaultComboBoxModel(aux.toArray());
-		outputModel.setSelectedItem(module == null ? null : pair.getSecond());
-		
-		moduleName = new JComboBox<>(mNameModel);
-		inputTuple = new JComboBox<>(inputModel);
-		outputTuple = new JComboBox<>(outputModel);
-		
-		GuiUtils.AppModulesCellRenderer renderer = new GuiUtils.AppModulesCellRenderer();
-		moduleName.setRenderer(renderer);
-		
-		JLabel lmNameModel = new JLabel("Module Name: ");
-		springPanel.add(lmNameModel);
-		lmNameModel.setLabelFor(moduleName);
-		springPanel.add(moduleName);
-		
-		JLabel linputModel = new JLabel("Input Tuple: ");
-		springPanel.add(linputModel);
-		linputModel.setLabelFor(inputTuple);
-		springPanel.add(inputTuple);
-		
-		JLabel loutputTuple = new JLabel("Output Tuple: ");
-		springPanel.add(loutputTuple);
-		loutputTuple.setLabelFor(outputTuple);
-		springPanel.add(outputTuple);
-		
-		JLabel lprob = new JLabel("Probability: ");
-		springPanel.add(lprob);
-		probability = new JTextField();
-		probability.setText(module == null ? "" :
-			Double.toString(((FractionalSelectivity)module.getSelectivityMap().get(pair)).getSelectivity()));
-		lprob.setLabelFor(probability);
-		springPanel.add(probability);
+		moduleName = GuiUtils.createDropDown(springPanel, moduleName, "Module name: ", nameModel, moduleOp, GuiMsg.TipTupleMod);
+		inputTuple = GuiUtils.createDropDown(springPanel, inputTuple, "Input Tuple: ", inputModel, inputOp, GuiMsg.TipTupleIn);
+		outputTuple = GuiUtils.createDropDown(springPanel, outputTuple, "Output Tuple: ", outputModel, outputOp, GuiMsg.TipTupleOut);
+		probability = GuiUtils.createInput(springPanel, probability, "Probability: ", probOp, GuiMsg.TipTupleProb);
+		moduleName.setRenderer(new GuiUtils.AppModulesCellRenderer());
 		
 		inputTuple.addItemListener(new ItemListener() {
 			@Override
@@ -143,8 +147,7 @@ public class AddTuple extends JDialog {
 							if(module == null) {
 								for(AppModule appModule : app.getModules()) {
 									for(Pair<String, String> p : appModule.getSelectivityMap().keySet()) {
-										if(selectedNode.equals(p.getFirst()) &&
-												(appEdge.getTupleType()).equals(p.getSecond()))
+										if(selectedNode.equals(p.getFirst()) && (appEdge.getTupleType()).equals(p.getSecond()))
 										canBeAdded = false;
 										break;
 									}
@@ -155,9 +158,8 @@ public class AddTuple extends JDialog {
 								tuplesToDisplay.add(appEdge.getTupleType());
 						}
 					}
-				}				
-
-				@SuppressWarnings("rawtypes")
+				}
+				
 				ComboBoxModel<String> outputModel = new DefaultComboBoxModel(tuplesToDisplay.toArray());
 				outputTuple.setModel(outputModel);
 			}
@@ -167,6 +169,11 @@ public class AddTuple extends JDialog {
 		return springPanel;
 	}
 	
+	/**
+	 * Creates the button panel (i.e., Ok, Cancel, Delete) and defines its behavior upon being clicked.
+	 * 
+	 * @return the panel containing the buttons
+	 */
 	private JPanel createButtonPanel() {
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.LINE_AXIS));
@@ -198,25 +205,26 @@ public class AddTuple extends JDialog {
 				
 				AppModule source = (AppModule)moduleName.getSelectedItem();
 				if(source != null) moduleName_ = source.getName();
-				else error_msg += "Missing Module Name\n";
+				else error_msg +=  GuiMsg.errMissing("Module name");
 				
 				String input = (String)inputTuple.getSelectedItem();
 				if(input != null) inputTuple_ = input;
-				else error_msg += "Missing Input Tuple\n";
+				else error_msg += GuiMsg.errMissing("Input tuple");
 				
 				String output = (String)outputTuple.getSelectedItem();
 				if(output != null) outputTuple_ = output;
-				else error_msg += "Missing Output Tuple\n";
+				else error_msg += GuiMsg.errMissing("Output tuple");
 				
 				if (!Util.validString(probability.getText())) error_msg += "Missing Probability\n";
 				if((probability_ = Util.stringToProbability(probability.getText())) < 0) error_msg +=
 						"\nProbability should be a number between [0.0; 1.0]";
 				
+				// Add/edit(override) the new tuple mapping
 				if(error_msg == ""){
 					app.addTupleMapping(moduleName_, inputTuple_, outputTuple_, new FractionalSelectivity(probability_));
 					setVisible(false);
 				}else
-					GuiUtils.prompt(AddTuple.this, error_msg, "Error");
+					GuiUtils.prompt(AddTupleMapping.this, error_msg, "Error");
 			}
 		});
 
