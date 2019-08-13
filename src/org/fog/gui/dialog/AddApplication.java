@@ -31,48 +31,89 @@ import javax.swing.table.DefaultTableModel;
 
 import org.apache.commons.math3.util.Pair;
 import org.fog.application.AppEdge;
+import org.fog.application.AppLoop;
 import org.fog.application.AppModule;
+import org.fog.application.Application;
 import org.fog.application.selectivity.FractionalSelectivity;
 import org.fog.gui.GuiUtils;
-import org.fog.gui.core.ApplicationGui;
 import org.fog.gui.core.Graph;
 
-/** A dialog to add a new application */
+/**
+ * Class which allows to add or edit an application.
+ * 
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
+ */
 public class AddApplication extends JDialog {
 	private static final long serialVersionUID = 4794808969864918000L;
 	private static final int WIDTH = 1500;
 	private static final int HEIGHT = 1000;
+	private static final String[] COLUMN_MODULES = {"Name", "Ram [B]", "Client Module", "Global Module", "Edit"};
+	private static final String[] COLUMN_EDGES = {"Source", "Destination", "Tuple CPU [MI]", "Tuple NW [B]",
+			"Tuple Type", "Edge Type", "Periodicity [s]", "Edit"};
+	private static final String[] COLUMN_TUPLES = {"Module Name", "Input Tuple Type", "Output Tuple Type",
+			"Selectivity", "Edit"};
+	private static final String[] COLUMN_LOOPS = {"Loop", "Deadline [s]", "Remove"};
 	
-	private static final String[] COLUMN_MODULES = {"Name", "Ram", "Strg", "Client Module", "Global Module", "Edit"};
-	private static final String[] COLUMN_EDGES = {"Source", "Destination", "Tuple CPU",
-			"Tuple NW", "Tuple Type", "Edge Type", "Periodicity", "Edit"};
-	private static final String[] COLUMN_TUPLES = {"Module Name", "Input Tuple Type",
-			"Output Tuple Type", "Selectivity", "Edit"};
-	private static final String[] COLUMN_LOOPS = {"Loop", "Remove"};
+	/** Object which contains the application to be edited or null if its a new one */
+	private Application app;
 	
-	private ApplicationGui app;
+	/** Object which holds the current topology */
 	private final Graph graph;
+	
+	/** The context */
 	private final JFrame frame;
 	
+	/** Table which holds and displays the application modules */
 	private JTable jtableModules;
+	
+	/** Table which holds and displays the application edges */
 	private JTable jtableEdges;
+	
+	/** Table which holds and displays the application tuple mapping */
 	private JTable jtableTuples;
+	
+	/** Table which holds and displays the application loops */
 	private JTable jtableLoops;
 	
+	/** Object which holds the content of the application modules table */
 	private DefaultTableModel dtmModules;
+	
+	/** Object which holds the content of the application edges table */
 	private DefaultTableModel dtmEdges;
+	
+	/** Object which holds the content of the application tuple mapping table */
 	private DefaultTableModel dtmTuples;
+	
+	/** Object which holds the content of the application loops table */
 	private DefaultTableModel dtmLoops;
 	
+	/** Button to allow to add a new application module */
 	private JButton addModuleBtn;
+	
+	/** Button to allow to add a new application edge */
 	private JButton addEdgeBtn;
+	
+	/** Button to allow to add a new application tuple mapping */
 	private JButton addTupleBtn;
+	
+	/** Button to allow to add a new application loop */
 	private JButton addLoopBtn;
 	
+	/** Name of the application (AppId) */
 	private JTextField tfName;
+	
+	/** Tabbed pane to switch between tables */
 	private JTabbedPane tp;
 	
-	public AddApplication(final Graph graph, final JFrame frame, ApplicationGui app) {
+	/**
+	 * Creates or edits an application.
+	 * 
+	 * @param graph the current topology
+	 * @param frame the current context
+	 * @param app the application be edited; can be null when a new application is to be added
+	 */
+	public AddApplication(final Graph graph, final JFrame frame, Application app) {
 		this.graph = graph;
 		this.app = app;
 		this.frame = frame;
@@ -95,6 +136,11 @@ public class AddApplication extends JDialog {
 		setVisible(true);
 	}
 	
+	/**
+	 * Creates the tabs needed.
+	 * 
+	 * @return the panel containing the tabs
+	 */
 	private JPanel createTabs() {
 		Box.createRigidArea(new Dimension(10, 0));
 
@@ -127,6 +173,11 @@ public class AddApplication extends JDialog {
 	    return jpanel;
 	}
 	
+	/**
+	 * Creates the input text field to edit the application name.
+	 * 
+	 * @return the panel containing the input text field to edit the application name
+	 */
 	private JPanel changeName() {
 		JPanel jPanel = new JPanel();
 		tfName = new JTextField();
@@ -148,8 +199,8 @@ public class AddApplication extends JDialog {
 				String name = tfName.getText();
 				boolean canBeChanged = true;
 				
-				for(ApplicationGui applicationGui : graph.getAppList()) {
-					if(app == null || (app != null && !app.equals(applicationGui))) {
+				for(Application applicationGui : graph.getAppList()) {
+					if(app == null || (app != null && !app.getAppId().equals(applicationGui.getAppId()))) {
 						if(name.equals(applicationGui.getAppId())) {
 							canBeChanged = false;
 							break;
@@ -164,7 +215,7 @@ public class AddApplication extends JDialog {
 						if(app == null) {
 							tp.setEnabled(true);
 							addModuleBtn.setEnabled(true);
-							app = new ApplicationGui(name, new ArrayList<List<String>>());
+							app = new Application(name);
 							graph.getAppList().add(app);
 						}else
 							app.setAppId(name);
@@ -180,7 +231,13 @@ public class AddApplication extends JDialog {
 		return jPanel;
 	}
 	
-	private JPanel createModules() {		
+	/**
+	 * Creates the module tab which contains both the table displaying the modules, its characteristics and the edit button,
+	 * as well as the button to add a new application module.
+	 * 
+	 * @return the panel containing the application modules tab
+	 */
+	private JPanel createModules() {
 		dtmModules = new DefaultTableModel(getAppModules(), COLUMN_MODULES);
 		jtableModules = createTable(jtableModules, dtmModules);
 		jtableModules.getColumn("Edit").setCellRenderer(new GuiUtils.ButtonRenderer());
@@ -210,7 +267,7 @@ public class AddApplication extends JDialog {
 			    int rowAtPoint = table.rowAtPoint(e.getPoint());
 			    int columnAtPoint = table.columnAtPoint(e.getPoint());
 			    
-			    if(columnAtPoint == 5) {			    	
+			    if(columnAtPoint == 4) {			    	
 			    	new AddAppModule(frame, app, app.getModules().get(rowAtPoint));
 			    	updateTable(dtmModules, jtableModules, getAppModules(), COLUMN_MODULES);
 			    }
@@ -221,6 +278,12 @@ public class AddApplication extends JDialog {
 		return jPanel;
 	}
 	
+	/**
+	 * Creates the edge tab which contains both the table displaying the edges, its characteristics and the edit button,
+	 * as well as the button to add a new application edge.
+	 * 
+	 * @return the panel containing the application edges tab
+	 */
 	private JPanel createEdges() {
 		dtmEdges = new DefaultTableModel(getAppEdges(), COLUMN_EDGES);
 		jtableEdges = createTable(jtableEdges, dtmEdges);
@@ -262,6 +325,12 @@ public class AddApplication extends JDialog {
 		return jPanel;
 	}
 	
+	/**
+	 * Creates the tuple mapping tab which contains both the table displaying the tuple mapping, its characteristics and the edit button,
+	 * as well as the button to add a new application tuple mapping.
+	 * 
+	 * @return the panel containing the application tuple mapping tab
+	 */
 	private JPanel createTuples() {
 		dtmTuples = new DefaultTableModel(getTuples(), COLUMN_TUPLES);
 		jtableTuples = createTable(jtableTuples, dtmTuples);
@@ -275,7 +344,7 @@ public class AddApplication extends JDialog {
 		addTupleBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				new AddTuple(frame, app, null, null);
+				new AddTupleMapping(frame, app, null, null);
 				updateTable(dtmTuples, jtableTuples, getTuples(), COLUMN_TUPLES);
 			}
 		});
@@ -310,7 +379,7 @@ public class AddApplication extends JDialog {
 			    		}
 			    	}
 			    	
-			    	new AddTuple(frame, app, appModule, pair);
+			    	new AddTupleMapping(frame, app, appModule, pair);
 			    	updateTable(dtmTuples, jtableTuples, getTuples(), COLUMN_TUPLES);
 			    }
 			}
@@ -320,6 +389,12 @@ public class AddApplication extends JDialog {
 		return jPanel;
 	}
 	
+	/**
+	 * Creates the loop tab which contains both the table displaying the loops, its characteristics and the edit button,
+	 * as well as the button to add a new application loop.
+	 * 
+	 * @return the panel containing the application loops tab
+	 */
 	private JPanel createLoops() {
 		dtmLoops = new DefaultTableModel(getLoops(), COLUMN_LOOPS);
 		jtableLoops = createTable(jtableLoops, dtmLoops);
@@ -350,17 +425,27 @@ public class AddApplication extends JDialog {
 			    int rowAtPoint = table.rowAtPoint(e.getPoint());
 			    int columnAtPoint = table.columnAtPoint(e.getPoint());
 			    
-			    if(columnAtPoint == 1) {			    	
+			    if(columnAtPoint == 2) {
 			    	if(GuiUtils.confirm(AddApplication.this, "Do you really want to remove " +
-			    			table.getValueAt(rowAtPoint, 0)+ " ?") == JOptionPane.YES_OPTION) {
+			    			table.getValueAt(rowAtPoint, 0) + " ?") == JOptionPane.YES_OPTION) {
 			    		
 			    		String[] parts = table.getValueAt(rowAtPoint, 0).toString().split(" -> ");
+			    		double deadline = Double.parseDouble(table.getValueAt(rowAtPoint, 1).toString());
 			    		
 			    		List<String> lparts = new ArrayList<String>();
 			    		for(String p : parts)
 			    			lparts.add(p);
 			    		
-			    		app.getLoops().remove(lparts);
+			    		AppLoop toRemove = null;
+			    		for(AppLoop appLoop : app.getLoops()) {
+			    			if(appLoop.getModules().equals(lparts) && deadline == appLoop.getDeadline()) {
+			    				toRemove = appLoop;
+			    				break;
+			    			}
+			    		}
+			    		
+			    		app.getLoops().remove(toRemove);
+			    		
 			    		dtmLoops.setDataVector(getLoops(), COLUMN_LOOPS);
 						configureTable(jtableLoops);
 			    	}
@@ -373,6 +458,11 @@ public class AddApplication extends JDialog {
 		return jPanel;
 	}
 	
+	/**
+	 * Gets the content of the application modules table.
+	 * 
+	 * @return the content of the application modules table
+	 */
 	private String[][] getAppModules() {
 		if(app == null)
 			return null;
@@ -381,19 +471,24 @@ public class AddApplication extends JDialog {
 		int index = 0;
 		
 		for(AppModule appModule : app.getModules()) {
-			String[] list = new String[6];
+			String[] list = new String[5];
 				
 			list[0] = appModule.getName();
 			list[1] = Integer.toString(appModule.getRam());
-			list[2] = Long.toString(appModule.getSize());
-			list[3] = appModule.isClientModule() ? "Yes" : "No";
-			list[4] = appModule.isGlobalModule() ? "Yes" : "No";
-			list[5] = "✎";
+			list[2] = appModule.isClientModule() ? "Yes" : "No";
+			list[3] = appModule.isGlobalModule() ? "Yes" : "No";
+			list[4] = "✎";
 			lists[index++] = list;
 		}
 		return lists;
 	}
 	
+	
+	/**
+	 * Gets the content of the application edges table.
+	 * 
+	 * @return the content of the application edges table
+	 */
 	private String[][] getAppEdges() {
 		if(app == null)
 			return null;
@@ -423,6 +518,11 @@ public class AddApplication extends JDialog {
 		return lists;
 	}
 	
+	/**
+	 * Gets the content of the application tuple mapping table.
+	 * 
+	 * @return the content of the application tuple mapping table
+	 */
 	private String[][] getTuples() {
 		if(app == null)
 			return null;
@@ -449,6 +549,11 @@ public class AddApplication extends JDialog {
 		return lists;
 	}
 	
+	/**
+	 * Gets the content of the application loops table.
+	 * 
+	 * @return the content of the application loops table
+	 */
 	private String[][] getLoops() {
 		if(app == null)
 			return null;
@@ -456,23 +561,29 @@ public class AddApplication extends JDialog {
 		String[][] lists = new String[app.getLoops().size()][];
 		int index = 0;
 		
-		for(List<String> loop : app.getLoops()) {
-			String[] list = new String[2];
+		for(AppLoop loop : app.getLoops()) {
+			String[] list = new String[3];
 			list[0] = "";
 			
 			int i = 0;
-			for(String name : loop) {
+			for(String name : loop.getModules()) {
 				list[0] += name;
-				if(i++ < loop.size() - 1)
+				if(i++ < loop.getModules().size() - 1)
 					list[0] += " -> ";
 			}
 			
-			list[1] = "✘";
+			list[1] = Double.toString(loop.getDeadline());
+			list[2] = "✘";
 			lists[index++] = list;
 		}
 		return lists;
 	}
 	
+	/**
+	 * Creates the button panel (i.e., Ok, Cancel, Delete) and defines its behavior upon being clicked.
+	 * 
+	 * @return the panel containing the buttons
+	 */
 	private JPanel createButtonPanel() {
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.LINE_AXIS));
@@ -501,11 +612,26 @@ public class AddApplication extends JDialog {
 		return buttonPanel;
 	}
 	
+	/**
+	 * Render the edit button within a given table.
+	 * 
+	 * @param model the object which holds the content of the table
+	 * @param jTable the table itself
+	 * @param data the data to fill up the table
+	 * @param columns the name of the columns
+	 */
 	private void updateTable(DefaultTableModel model, JTable jTable, String[][] data, String[] columns) {
 		model.setDataVector(data, columns);
 		jTable.getColumn("Edit").setCellRenderer(new GuiUtils.ButtonRenderer());
 	}
 	
+	/**
+	 * Creates a table with non editable cells.
+	 * 
+	 * @param jTable the table itself
+	 * @param model the object which holds the content of the table
+	 * @return the table with non editable cells
+	 */
 	private JTable createTable(JTable jTable, DefaultTableModel model) {
 		jTable = new JTable(model) {
 			private static final long serialVersionUID = 1L;
@@ -518,6 +644,12 @@ public class AddApplication extends JDialog {
     	return jTable;
 	}
 	
+	/**
+	 * Creates a scrollable pane inside a given table.
+	 * 
+	 * @param jTable the table itself
+	 * @return the table with a scrollable pane within it
+	 */
 	private JScrollPane createJScrollPane(JTable jTable) {
 		JScrollPane jScrollPane = new JScrollPane(jTable);
         jScrollPane.setMaximumSize(new Dimension(WIDTH - 40, HEIGHT - 250));
@@ -526,9 +658,19 @@ public class AddApplication extends JDialog {
         return jScrollPane;
 	}
 	
+	/**
+	 * Configures the sizes of the columns within a given table.
+	 * 
+	 * @param jtable the table with the columns sizes configured
+	 */
 	private void configureTable(JTable jtable) {
 		jtable.getColumn("Remove").setCellRenderer(new GuiUtils.ButtonRenderer());
-		jtable.getColumnModel().getColumn(0).setPreferredWidth(WIDTH - 100);
+		
+		jtable.getColumnModel().getColumn(0).setPreferredWidth(WIDTH - 250);
+		jtable.getColumnModel().getColumn(1).setPreferredWidth(150);
+		jtable.getColumnModel().getColumn(2).setPreferredWidth(100);
+		
 		jtable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
 	}
+	
 }
