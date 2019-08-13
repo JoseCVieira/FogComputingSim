@@ -5,7 +5,6 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -23,26 +22,55 @@ import javax.swing.SpringLayout;
 import org.apache.commons.math3.util.Pair;
 import org.fog.application.AppEdge;
 import org.fog.application.AppModule;
+import org.fog.application.Application;
 import org.fog.gui.GuiConstants;
+import org.fog.gui.GuiMsg;
 import org.fog.gui.GuiUtils;
-import org.fog.gui.core.ApplicationGui;
 import org.fog.gui.core.SpringUtilities;
 import org.fog.utils.Util;
 
+/**
+ * Class which allows to add or edit an application module.
+ * 
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
+ */
 public class AddAppModule extends JDialog {
 	private static final long serialVersionUID = -511667786177319577L;
+	private static final String[] booleanOp = {"YES", "NO"};
 	
+	/** Object which contains the module to be edited or null if its a new one */
 	private final AppModule module;
-	private final ApplicationGui app;
 	
+	/** Application of the module */
+	private final Application app;
+	
+	/** Name of the module */
 	private JTextField moduleName;
-	private JTextField moduleRam;
-	private JTextField moduleSize;
 	
+	/** Ram needed to support the module */
+	private JTextField moduleRam;
+	
+	/**
+	 * Denotes if the application module is a client module.
+	 * Client modules only run inside the client device (e.g., Graphical User Interface)
+	 */
 	private JComboBox<String> clientModule;
+	
+	/**
+	 * Denotes if the application module is a global module.
+	 * Global modules are used by all clients running the same application (e.g., Multiplayer Games)
+	 */
 	private JComboBox<String> globalModule;
 	
-	public AddAppModule(final JFrame frame, final ApplicationGui app, final AppModule module) {
+	/**
+	 * Creates or edits an application module.
+	 * 
+	 * @param frame the current context
+	 * @param app the application
+	 * @param module the application module be edited; can be null when a new application module is to be added
+	 */
+	public AddAppModule(final JFrame frame, final Application app, final AppModule module) {
 		this.app = app;
 		this.module = module;
 		setLayout(new BorderLayout());
@@ -58,7 +86,12 @@ public class AddAppModule extends JDialog {
 		setLocationRelativeTo(frame);
 		setVisible(true);
 	}
-
+	
+	/**
+	 * Creates the button panel (i.e., Ok, Cancel, Delete) and defines its behavior upon being clicked.
+	 * 
+	 * @return the panel containing the buttons
+	 */
 	private JPanel createButtonPanel() {
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.LINE_AXIS));
@@ -102,7 +135,6 @@ public class AddAppModule extends JDialog {
 			public void actionPerformed(ActionEvent e) {
 				String error_msg = "", name_ = "";
 				int ram_ = -1;
-				long size_ = -1;
 				boolean clientModule_ = false, globalModule_ = false;
 				
 				if (Util.validString(moduleName.getText())) {
@@ -112,28 +144,31 @@ public class AddAppModule extends JDialog {
 								error_msg += "Name already exists\n";
 					}
 				}else
-					error_msg += "Missing name\n";
+					error_msg += GuiMsg.errMissing("Name");
 				
 				if(moduleName.getText().contains(" "))
 					error_msg += "Name cannot contain spaces\n";
 				
 				if (!Util.validString(moduleRam.getText())) error_msg += "Missing Ram\n";
-				if (!Util.validString(moduleSize.getText())) error_msg += "Missing Storage\n";
-				if (!Util.validString((String) clientModule.getSelectedItem())) error_msg += "Missing Client Module\n";
-				if (!Util.validString((String) globalModule.getSelectedItem())) error_msg += "Missing Global Module\n";
-
-				name_ = moduleName.getText();
-				if((ram_ = Util.stringToInt(moduleRam.getText())) < 0) error_msg += "\nRam should be a positive number";
-				if((size_ = Util.stringToLong(moduleSize.getText())) < 0) error_msg += "\nStorage should be a positive number";
+				if (!Util.validString((String) clientModule.getSelectedItem())) error_msg += GuiMsg.errMissing("Client module");
+				if (!Util.validString((String) globalModule.getSelectedItem())) error_msg += GuiMsg.errMissing("Global module");
 				
-				if(error_msg == ""){
+				name_ = moduleName.getText();
+				if((ram_ = Util.stringToInt(moduleRam.getText())) < 0) error_msg += GuiMsg.errFormat("Ram");
+				
+				if(error_msg == "") {
 					clientModule_ = ((String) clientModule.getSelectedItem()).equals("YES") ? true : false;
 					globalModule_ = ((String) globalModule.getSelectedItem()).equals("YES") ? true : false;
 					
+					if(clientModule_ && globalModule_)
+						error_msg += "Modules cannot be of global and client types at the same time";
+				}
+				
+				if(error_msg == ""){
 					if(module != null)
-						module.setValues(name_, ram_, size_, clientModule_, globalModule_);
+						module.setValues(name_, ram_, clientModule_, globalModule_);
 					else
-						app.addAppModule(name_, ram_, size_, clientModule_, globalModule_);
+						app.addAppModule(name_, ram_, clientModule_, globalModule_);
 					setVisible(false);
 				}else
 					GuiUtils.prompt(AddAppModule.this, error_msg, "Error");
@@ -152,35 +187,36 @@ public class AddAppModule extends JDialog {
 
 		return buttonPanel;
 	}
-
+	
+	/**
+	 * Creates all the inputs that users need to fill up.
+	 * 
+	 * @return the panel containing the inputs
+	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private JPanel createInputPanelArea() {
         JPanel springPanel = new JPanel(new SpringLayout());
         springPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-		
-        moduleName = GuiUtils.createInput(springPanel, moduleName, "Name: ", module == null ? "" : module.getName());
-        moduleRam = GuiUtils.createInput(springPanel, moduleRam, "Ram: ", module == null ? Integer.toString(GuiConstants.MODULE_RAM) : Integer.toString(module.getRam()));
-        moduleSize = GuiUtils.createInput(springPanel, moduleSize, "Storage: ", module == null ? Long.toString(GuiConstants.MODULE_SIZE) : Long.toString(module.getSize()));
         
-        @SuppressWarnings({ "rawtypes", "unchecked" })
-		ComboBoxModel<String> clientModuleModel = new DefaultComboBoxModel(Arrays.asList("YES", "NO").toArray());
-        clientModule = new JComboBox<>(clientModuleModel);
-        
-        clientModule = GuiUtils.createDropDown(springPanel, clientModule, "Client Model: ", clientModuleModel, null);
-        
-        
-        @SuppressWarnings({ "rawtypes", "unchecked" })
-		ComboBoxModel<String> globalModuleModel = new DefaultComboBoxModel(Arrays.asList("YES", "NO").toArray());
-        globalModule = new JComboBox<>(globalModuleModel);
-        
-        globalModule = GuiUtils.createDropDown(springPanel, globalModule, "Client Model: ", globalModuleModel, null);        
+        String nameOp = module == null ? "" : module.getName();
+        String ramOp = module == null ? Integer.toString(GuiConstants.MODULE_RAM) : Integer.toString(module.getRam());
+        String clientOp = "", globalOp = "";
         
         if(module != null) {
-        	clientModuleModel.setSelectedItem(module.isClientModule() ? "Yes" : "No");
-        	globalModuleModel.setSelectedItem(module.isGlobalModule() ? "Yes" : "No");
+        	clientOp = module.isClientModule() ? "Yes" : "No";
+        	globalOp = module.isGlobalModule() ? "Yes" : "No";
         }
         
+        ComboBoxModel<String> clientModuleModel = new DefaultComboBoxModel(booleanOp);
+        ComboBoxModel<String> globalModuleModel = new DefaultComboBoxModel(booleanOp);
+        
+        moduleName = GuiUtils.createInput(springPanel, moduleName, "Name: ", nameOp, GuiMsg.TipModName);
+        moduleRam = GuiUtils.createInput(springPanel, moduleRam, "Ram [Bytes]: ", ramOp, GuiMsg.TipModRam);
+        clientModule = GuiUtils.createDropDown(springPanel, clientModule, "Client module: ", clientModuleModel, clientOp, GuiMsg.TipModClient);
+        globalModule = GuiUtils.createDropDown(springPanel, globalModule, "Global module: ", globalModuleModel, globalOp, GuiMsg.TipModGlobal);        
+        
 		//rows, cols, initX, initY, xPad, yPad
-        SpringUtilities.makeCompactGrid(springPanel, 5, 2, 6, 6, 6, 6);
+        SpringUtilities.makeCompactGrid(springPanel, 4, 2, 6, 6, 6, 6);
 		return springPanel;
 	}
 }
