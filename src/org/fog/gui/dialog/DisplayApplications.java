@@ -21,23 +21,38 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
-import org.fog.core.Constants;
+import org.fog.application.Application;
 import org.fog.gui.GuiUtils;
-import org.fog.gui.core.ApplicationGui;
-import org.fog.gui.core.FogDeviceGui;
-import org.fog.gui.core.Graph;
 import org.fog.gui.core.Node;
+import org.fog.gui.core.Graph;
 
-/** A dialog to view applications */
+/**
+ * Class which allows to display applications.
+ * 
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
+ */
 public class DisplayApplications extends JDialog {
 	private static final long serialVersionUID = 4794808969864918000L;
 	private static final int WIDTH = 800;
 	private static final int HEIGHT = 800;
+	private static final String[] columnNames = {"Name", "Edit", "Remove"};
 	
+	/** Object which holds the current topology */
 	private final Graph graph;
+	
+	/** The context */
 	private final JFrame frame;
+	
+	/** Object which holds the content of the applications table */
 	private DefaultTableModel dtm;
 	
+	/**
+	 * Creates a dialog to display the applications.
+	 * 
+	 * @param graph the object which holds the current topology
+	 * @param frame the current context 
+	 */
 	public DisplayApplications(final Graph graph, final JFrame frame) {
 		this.graph = graph;
 		this.frame = frame;
@@ -55,9 +70,12 @@ public class DisplayApplications extends JDialog {
 		setVisible(true);
 	}
 
+	/**
+	 * Creates the application table as well as the edit and add buttons.
+	 * 
+	 * @return the panel containing the inputs
+	 */
 	private JPanel createInputPanel() {
-		String[] columnNames = {"Name", "Edit", "Remove"};
-        
         dtm = new DefaultTableModel(getApplications(), columnNames);
         JTable jtable = new JTable(dtm) {
 			private static final long serialVersionUID = 1L;
@@ -101,15 +119,14 @@ public class DisplayApplications extends JDialog {
 			    	if(GuiUtils.confirm(DisplayApplications.this, "Do you really want to remove " +
 			    			table.getValueAt(rowAtPoint, 0)+ " ?") == JOptionPane.YES_OPTION) {
 			    		
-			    		ApplicationGui appToRemove = null;
-			    		for(ApplicationGui applicationGui : graph.getAppList())
+			    		Application appToRemove = null;
+			    		for(Application applicationGui : graph.getAppList())
 			    			if(applicationGui.getAppId().equals(table.getValueAt(rowAtPoint, 0)))
 			    				appToRemove = applicationGui;
 			    		
 			    		for(Node node : graph.getDevicesList().keySet())
-			    			if(node.getType().equals(Constants.FOG_TYPE))
-			    				if(((FogDeviceGui)node).getApplication().equals(appToRemove.getAppId()))
-			    					((FogDeviceGui)node).setApplication("");
+			    			if(node.getApplication().equals(appToRemove.getAppId()))
+		    					node.setApplication("");
 			    		
 			    		graph.removeApp(appToRemove);
 			    		dtm.setDataVector(getApplications(), columnNames);
@@ -126,7 +143,12 @@ public class DisplayApplications extends JDialog {
         
 		return inputPanelWrapper;
 	}
-
+	
+	/**
+	 * Creates the button panel (i.e., close) and defines its behavior upon being clicked.
+	 * 
+	 * @return the panel containing the buttons
+	 */
 	private JPanel createButtonPanel() {
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.LINE_AXIS));
@@ -155,7 +177,11 @@ public class DisplayApplications extends JDialog {
 		return buttonPanel;
 	}
 	
-	/* Miscellaneous methods */
+	/**
+	 * Gets the content of the application table.
+	 * 
+	 * @return the content of the application table
+	 */
 	private String[][] getApplications() {
 		if(graph.getAppList() == null)
 			return null;
@@ -163,7 +189,7 @@ public class DisplayApplications extends JDialog {
 		String[][] lists = new String[graph.getAppList().size()][];
 		int index = 0;
 		
-		for(ApplicationGui app : graph.getAppList()) {
+		for(Application app : graph.getAppList()) {
 			String[] list = new String[3];
 				
 			list[0] = app.getAppId();
@@ -174,6 +200,11 @@ public class DisplayApplications extends JDialog {
 		return lists;
 	}
 	
+	/**
+	 * Configures the sizes of the columns within a given table.
+	 * 
+	 * @param jtable the table with the columns sizes configured
+	 */
 	private void configureTable(JTable jtable) {
 		jtable.getColumn("Remove").setCellRenderer(new GuiUtils.ButtonRenderer());
 		jtable.getColumn("Edit").setCellRenderer(new GuiUtils.ButtonRenderer());
