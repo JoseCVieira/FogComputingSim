@@ -21,18 +21,36 @@ import javax.swing.JPanel;
 
 import org.fog.application.AppEdge;
 import org.fog.application.AppModule;
-import org.fog.gui.core.ApplicationGui;
+import org.fog.application.Application;
 
+/**
+ * Class which allows to add an application module to a loop.
+ * 
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
+ */
 public class AddLoop extends JDialog {
 	private static final long serialVersionUID = -511667786177319577L;
-	private static final int WIDTH = 600;
-	private static final int HEIGHT = 150;
+	private static final int WIDTH = 300;
+	private static final int HEIGHT = 95;
 	
-	private final ApplicationGui app;
+	/** Application of the loop */
+	private final Application app;
+	
+	/** Module name to be added to the loop */
 	private JComboBox<String> name;
+	
+	/** List which contains all the module names of the loop */
 	private final List<String> loop;
 	
-	public AddLoop(final JFrame frame, final ApplicationGui app, final List<String> loop) {
+	/**
+	 * Creates a dialog to add a new application module to an application loop.
+	 * 
+	 * @param frame the current context
+	 * @param app the application of the loop
+	 * @param loop the loop itself
+	 */
+	public AddLoop(final JFrame frame, final Application app, final List<String> loop) {
 		this.app = app;
 		this.loop = loop;
 		setLayout(new BorderLayout());
@@ -48,7 +66,12 @@ public class AddLoop extends JDialog {
 		setLocationRelativeTo(frame);
 		setVisible(true);
 	}
-
+	
+	/**
+	 * Creates all the inputs that users need to fill up.
+	 * 
+	 * @return the panel containing the inputs
+	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private JPanel createInputPanelArea() {
 		JPanel inputPanelWrapper = new JPanel();
@@ -80,6 +103,11 @@ public class AddLoop extends JDialog {
 		return inputPanelWrapper;
 	}
 	
+	/**
+	 * Creates the button panel (i.e., Ok, Cancel) and defines its behavior upon being clicked.
+	 * 
+	 * @return the panel containing the buttons
+	 */
 	private JPanel createButtonPanel() {
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.LINE_AXIS));

@@ -59,7 +59,7 @@ public class AddAppLoop extends JDialog {
 	private JTextField deadline;
 	
 	/**
-	 * Creats a new application loop.
+	 * Creates a dialog to add a new application loop.
 	 * 
 	 * @param frame the current context
 	 * @param app the application of the loop
@@ -114,6 +114,7 @@ public class AddAppLoop extends JDialog {
 		jPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		
 		deadline = GuiUtils.createInput(jPanel, deadline, "Loop deadline [s]: ", Double.toString(Constants.INF), GuiMsg.TipLoopDeadline);	
+		inputPanelWrapper.add(jPanel);
 		
 		jPanel = new JPanel();
 		jPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -173,11 +174,10 @@ public class AddAppLoop extends JDialog {
 				
 				if (!Util.validString(deadline.getText()))	error_msg += GuiMsg.errMissing("Deadline value");
 				if((value = Util.stringToDouble(deadline.getText())) < 0) error_msg += GuiMsg.errFormat("Deadline");
+				if(loop.size() <= 1) error_msg += "A loop is defined at least by two modules";
 				
-				if(error_msg == "") {					
-					if(!loop.isEmpty())
-	            		app.getLoops().add(new AppLoop(loop, value));
-					
+				if(error_msg == "") {
+					app.getLoops().add(new AppLoop(loop, value));
 					setVisible(false);
 				}else
 					GuiUtils.prompt(AddAppLoop.this, error_msg, "Error");
