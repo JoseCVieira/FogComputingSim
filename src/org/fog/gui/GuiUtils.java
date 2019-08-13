@@ -101,7 +101,7 @@ public class GuiUtils {
 	 * @return the drop-down list
 	 */
 	public static JComboBox<String> createDropDown(final JPanel jPanel, JComboBox<String> jComboBox, final String label,
-			final ComboBoxModel<String> model, final String option) {
+			final ComboBoxModel<String> model, final Object option) {
 		JLabel jLabel = new JLabel(label);
 		jPanel.add(jLabel);
 		jLabel.setLabelFor(jComboBox);
@@ -122,7 +122,7 @@ public class GuiUtils {
 	 * @return the drop-down list
 	 */
 	public static JComboBox<String> createDropDown(final JPanel jPanel, JComboBox<String> jComboBox, final String label,
-			final ComboBoxModel<String> model, final String option, String tip) {
+			final ComboBoxModel<String> model, final Object option, String tip) {
 		jComboBox = new JComboBox<>(model);
 		JLabel jLabel = new JLabel(label);
 		jLabel.setToolTipText(tip);

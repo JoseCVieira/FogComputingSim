@@ -32,30 +32,53 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 
-import org.fog.core.Constants;
 import org.fog.gui.GuiUtils;
 import org.fog.gui.GuiUtils.NodeCellRenderer;
+import org.fog.gui.core.Node;
 import org.fog.gui.core.Graph;
 import org.fog.gui.core.Link;
-import org.fog.gui.core.Node;
 import org.fog.utils.Util;
 
-/** A dialog to add a new link */
+/**
+ * Class which allows to add and display connections between fog devices. Although connections are unidirectional, for
+ * simplicity, by adding one link, there are created both directions with the same characteristics.
+ * 
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
+ */
 public class AddLink extends JDialog {
 	private static final long serialVersionUID = 4794808969864918000L;
-	private static final int WIDTH = 1000;
+	private static final int WIDTH = 1500;
 	private static final int HEIGHT = 1000;
+	private static final String[] COLUMNS = {"From/To", "From/To", "Latency [s]", "Bandwidth [B/s]", "Remove"};
 	
-	private static final String[] COLUMNS = {"From/To", "From/To", "Latency", "Bandwidth", "Remove"};
-	
+	/** Object which holds the current topology */
 	private final Graph graph;
 	
+	/** One of the fog nodes to be added the connection */
 	private JComboBox<String> sourceNode;
+	
+	/** Another fog node to be added the connection */
 	private JComboBox<String> targetNode;
-	private JTextField tfLatency;
-	private JTextField tfBandwidth;
+	
+	/** Latency which characterizes the connection */
+	private JTextField latency;
+	
+	/** Bandwidth which characterizes the connection */
+	private JTextField bandwidth;
+	
+	/** Object which holds the content of the link table */
 	private DefaultTableModel dtm;
-	private JTable jtable;	
+	
+	/** Table which holds and displays the links */
+	private JTable jtable;
+	
+	/**
+	 * Creates a dialog to add, delete and display the connections between fog devices.
+	 * 
+	 * @param graph the object which holds the current topology
+	 * @param frame the current context
+	 */
 	public AddLink(final Graph graph, final JFrame frame) {
 		this.graph = graph;
 		setLayout(new BorderLayout());
@@ -71,31 +94,35 @@ public class AddLink extends JDialog {
 		setLocationRelativeTo(frame); // must be called between pack and setVisible to work properly
 		setVisible(true);
 	}
-
+	
+	/**
+	 * Creates the link table as well as the add and delete buttons.
+	 * 
+	 * @return the panel containing the inputs
+	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private JPanel createInputPanel() {
 		Box.createRigidArea(new Dimension(10, 0));
 
 		JPanel inputPanelWrapper = new JPanel();
 		inputPanelWrapper.setLayout(new BoxLayout(inputPanelWrapper, BoxLayout.PAGE_AXIS));
-
-		ComboBoxModel<String> sourceNodeModel = new DefaultComboBoxModel(sourceNodesToDisplay().toArray());
-		sourceNodeModel.setSelectedItem(null);
-
-		sourceNode = new JComboBox<>(sourceNodeModel);
-		targetNode = new JComboBox<>();
-		sourceNode.setMaximumSize(sourceNode.getPreferredSize());
-		sourceNode.setMinimumSize(new Dimension(150, sourceNode.getPreferredSize().height));
-		sourceNode.setPreferredSize(new Dimension(150, sourceNode.getPreferredSize().height));
-		targetNode.setMaximumSize(targetNode.getPreferredSize());
-		targetNode.setMinimumSize(new Dimension(150, targetNode.getPreferredSize().height));
-		targetNode.setPreferredSize(new Dimension(150, targetNode.getPreferredSize().height));
-
+		
 		NodeCellRenderer renderer = new NodeCellRenderer();
-
+		
+		ComboBoxModel<String> sourceNodeModel = new DefaultComboBoxModel(graph.getDevicesList().keySet().toArray());
+		ComboBoxModel<String> destNodeModel = new DefaultComboBoxModel();
+		
+		sourceNodeModel.setSelectedItem(null);
+		
+		sourceNode = new JComboBox<>(sourceNodeModel);
+		targetNode = new JComboBox<>(destNodeModel);
+		
 		sourceNode.setRenderer(renderer);
 		targetNode.setRenderer(renderer);
-
+		
+		configureInputDropDown(sourceNode);
+		configureInputDropDown(targetNode);
+		
 		sourceNode.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -116,20 +143,14 @@ public class AddLink extends JDialog {
 				
 				for(Node node : graph.getDevicesList().keySet()) {
 					for(Link edge : graph.getDevicesList().get(node)) {
-						if(edge.getNode().equals(selectedNode) && !nodesInEdges.contains(node))
+						if(edge.getNode().getName().equals(selectedNode.getName()) && !nodesInEdges.contains(node))
 							nodesInEdges.add(node);
 					}
 				}
-
-				if(edgesForSelectedNode.size() == 0) {
-					for (Node node : allNodes) {
-						if (!node.equals(selectedNode) && !nodesInEdges.contains(node)) {
-							if(!node.getType().equals(Constants.FOG_TYPE) && !isConnected(node.getName()))
-								nodesToDisplay.add(node);
-							else if(node.getType().equals(Constants.FOG_TYPE))
-								nodesToDisplay.add(node);
-						}
-					}						
+				
+				for (Node node : allNodes) {
+					if (!node.getName().equals(selectedNode.getName()) && !nodesInEdges.contains(node))
+						nodesToDisplay.add(node);
 				}
 				
 				ComboBoxModel<String> targetNodeModel = new DefaultComboBoxModel(nodesToDisplay.toArray());
@@ -148,49 +169,45 @@ public class AddLink extends JDialog {
 		jPanel.add(sourceNode);
 		jPanel.add(new JLabel(" <---> "));
 		jPanel.add(targetNode);
-		jPanel.add(new JLabel("  Latency: "));
-		tfLatency = new JTextField();
-		tfLatency.setMaximumSize(tfLatency.getPreferredSize());
-		tfLatency.setMinimumSize(new Dimension(150, tfLatency.getPreferredSize().height));
-		tfLatency.setPreferredSize(new Dimension(150, tfLatency.getPreferredSize().height));
-		jPanel.add(tfLatency);
+		jPanel.add(new JLabel("  Latency [s]: "));
+		latency = new JTextField();
+		configureInput(latency);
+		jPanel.add(latency);
 		
-		jPanel.add(new JLabel("  Bandwidth: "));
-		tfBandwidth = new JTextField();
-		tfBandwidth.setMaximumSize(tfBandwidth.getPreferredSize());
-		tfBandwidth.setMinimumSize(new Dimension(150, tfBandwidth.getPreferredSize().height));
-		tfBandwidth.setPreferredSize(new Dimension(150, tfBandwidth.getPreferredSize().height));
-		jPanel.add(tfBandwidth);
+		jPanel.add(new JLabel("  Bandwidth [B/s]: "));
+		bandwidth = new JTextField();
+		configureInput(bandwidth);
+		jPanel.add(bandwidth);
 
 		JButton okBtn = new JButton("Add");
 		okBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 
-				double latency = 0;
-				double bandwidth = 0;
+				double latency_ = 0;
+				double bandwidth_ = 0;
 				String error_msg = "";
 				
-				if((latency = Util.stringToDouble(tfLatency.getText())) < 0) error_msg += "\nLatency should be a positive number";
-				if((bandwidth = Util.stringToDouble(tfBandwidth.getText())) < 0) error_msg += "\nBandwidth should be a positive number";
+				if((latency_ = Util.stringToDouble(latency.getText())) < 0) error_msg += "\nLatency should be a positive number";
+				if((bandwidth_ = Util.stringToDouble(bandwidth.getText())) < 0) error_msg += "\nBandwidth should be a positive number";
 
 				if(error_msg == "") {
 					if (sourceNode.getSelectedItem() == null || targetNode.getSelectedItem() == null)
 						GuiUtils.prompt(AddLink.this, "Please select node", "Error");
 					else {
-						Node source = (Node) sourceNode.getSelectedItem();
-						Node target = (Node) targetNode.getSelectedItem();
+						Node source = (Node)sourceNode.getSelectedItem();
+						Node target = (Node)targetNode.getSelectedItem();
 
-						Link link = new Link(target, latency, bandwidth);
+						Link link = new Link(target, latency_, bandwidth_);
 						graph.addEdge(source, link);
 						dtm.setDataVector(getConnections(), COLUMNS);
-						jtable.getColumn("Remove").setCellRenderer(new GuiUtils.ButtonRenderer());
 						
-						ComboBoxModel<String> sourceNodeModel = new DefaultComboBoxModel(sourceNodesToDisplay().toArray());
+						ComboBoxModel<String> sourceNodeModel = new DefaultComboBoxModel(graph.getDevicesList().keySet().toArray());
 						sourceNode.setModel(sourceNodeModel);
 						sourceNodeModel.setSelectedItem(null);
-						tfLatency.setText("");
-						tfBandwidth.setText("");
+						latency.setText("");
+						bandwidth.setText("");
+						configureTable(jtable);
 					}
 				}else
 					GuiUtils.prompt(AddLink.this, error_msg, "Error");
@@ -202,7 +219,7 @@ public class AddLink extends JDialog {
 		inputPanelWrapper.add(jPanel);
 		
 		jPanel = new JPanel(new GridBagLayout());
-		jLabel = new JLabel(" Edit connections");
+		jLabel = new JLabel(" Connections");
 		jLabel.setHorizontalAlignment(JLabel.LEFT);
 		jPanel.add(jLabel);
 		jPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -244,7 +261,7 @@ public class AddLink extends JDialog {
 			    			}
 			    		}
 			    		
-			    		ComboBoxModel<String> sourceNodeModel = new DefaultComboBoxModel(sourceNodesToDisplay().toArray());
+			    		ComboBoxModel<String> sourceNodeModel = new DefaultComboBoxModel(graph.getDevicesList().keySet().toArray());
 						sourceNode.setModel(sourceNodeModel);
 						sourceNodeModel.setSelectedItem(null);
 			    	}	
@@ -253,6 +270,7 @@ public class AddLink extends JDialog {
         });
     	
     	jtable.getColumn("Remove").setCellRenderer(new GuiUtils.ButtonRenderer());
+    	configureTable(jtable);
         
         JScrollPane jScrollPane = new JScrollPane(jtable);
         jScrollPane.setMaximumSize(new Dimension(WIDTH, HEIGHT-250));
@@ -262,7 +280,12 @@ public class AddLink extends JDialog {
         
 		return inputPanelWrapper;
 	}
-
+	
+	/**
+	 * Creates the button panel (i.e., close) and defines its behavior upon being clicked.
+	 * 
+	 * @return the panel containing the buttons
+	 */
 	private JPanel createButtonPanel() {
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.LINE_AXIS));
@@ -291,7 +314,11 @@ public class AddLink extends JDialog {
 		return buttonPanel;
 	}
 	
-	/* Miscellaneous methods */
+	/**
+	 * Gets the content of the link table.
+	 * 
+	 * @return the content of the link table
+	 */
 	private String[][] getConnections() {
 		int total = 0;		
 		for(Node node : graph.getDevicesList().keySet())
@@ -315,22 +342,30 @@ public class AddLink extends JDialog {
 		return lists;
 	}
 	
-	private boolean isConnected(String name) {
-		for(Node node : graph.getDevicesList().keySet())
-			for(Link edge : graph.getDevicesList().get(node))
-				if(edge.getNode().getName().equals(name) || node.getName().equals(name))
-					return true;
-		return false;
+	/**
+	 * Configures the sizes of the columns within a given table.
+	 * 
+	 * @param jtable the table with the columns sizes configured
+	 */
+	private void configureTable(JTable jtable) {
+		jtable.getColumn("Remove").setCellRenderer(new GuiUtils.ButtonRenderer());
+		jtable.getColumnModel().getColumn(0).setPreferredWidth((WIDTH - 150)/4);
+		jtable.getColumnModel().getColumn(1).setPreferredWidth((WIDTH - 150)/4);
+		jtable.getColumnModel().getColumn(2).setPreferredWidth((WIDTH - 150)/4);
+		jtable.getColumnModel().getColumn(3).setPreferredWidth((WIDTH - 150)/4);
+		jtable.getColumnModel().getColumn(4).setPreferredWidth(150);
 	}
 	
-	private List<Node> sourceNodesToDisplay(){
-		List<Node> nodesToDisplay = new ArrayList<Node>();
-		for(Node node : graph.getDevicesList().keySet()) {
-			if(node.getType().equals(Constants.FOG_TYPE))
-				nodesToDisplay.add(node);
-			else if(!node.getType().equals(Constants.FOG_TYPE) && !isConnected(node.getName()))
-				nodesToDisplay.add(node);
-		}
-		return nodesToDisplay;
+	private void configureInputDropDown(JComboBox<String> jComboBox) {
+		jComboBox.setMaximumSize(jComboBox.getPreferredSize());
+		jComboBox.setMinimumSize(new Dimension(150, jComboBox.getPreferredSize().height));
+		jComboBox.setPreferredSize(new Dimension(150, jComboBox.getPreferredSize().height));
 	}
+	
+	private void configureInput(JTextField jTextField) {
+		jTextField.setMaximumSize(jTextField.getPreferredSize());
+		jTextField.setMinimumSize(new Dimension(150, jTextField.getPreferredSize().height));
+		jTextField.setPreferredSize(new Dimension(150, jTextField.getPreferredSize().height));
+	}
+	
 }
