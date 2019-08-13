@@ -7,7 +7,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -19,7 +18,6 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SpringLayout;
@@ -27,20 +25,29 @@ import javax.swing.SpringLayout;
 import org.apache.commons.math3.util.Pair;
 import org.fog.application.AppEdge;
 import org.fog.application.AppModule;
+import org.fog.application.Application;
 import org.fog.gui.GuiConstants;
+import org.fog.gui.GuiMsg;
 import org.fog.gui.GuiUtils;
 import org.fog.gui.GuiUtils.AppModulesCellRenderer;
-import org.fog.gui.core.ApplicationGui;
 import org.fog.gui.core.SpringUtilities;
 import org.fog.utils.Util;
 
+/**
+ * Class which allows to add or edit an application edge.
+ * 
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
+ */
 public class AddAppEdge extends JDialog {
 	private static final long serialVersionUID = -511667786177319577L;
 	private static final int WIDTH = 600;
-	private static final int HEIGHT = 530;
+	private static final int HEIGHT = 460;
+	private static final String[] EdgeTypes = {"SENSOR", "ACTUATOR", "MODULE"};
+	private static final String[] PeriodicOp = {"YES", "NO"};
 	
 	private final AppEdge edge;
-	private final ApplicationGui app;
+	private final Application app;
 	
 	private JTextField tupleCpuLength;
 	private JTextField tupleNwLength;
@@ -49,17 +56,19 @@ public class AddAppEdge extends JDialog {
 	private JTextField actuatorName;
 	private JTextField sensorName;
 	
-	private JLabel lsensor;
-	private JLabel lactuator;
-	private JLabel lsourceNode;
-	private JLabel ltargetNode;
-	
 	private JComboBox<String> edgeType;
 	private JComboBox<String> sourceNode;
 	private JComboBox<String> targetNode;
 	private JComboBox<String> periodic;
 	
-	public AddAppEdge(final JFrame frame, final ApplicationGui app, final AppEdge edge) {
+	/**
+	 * Creates or edits an application edge.
+	 * 
+	 * @param frame the current context
+	 * @param app the application
+	 * @param edge the application edge be edited; can be null when a new application edge is to be added
+	 */
+	public AddAppEdge(final JFrame frame, final Application app, final AppEdge edge) {
 		this.app = app;
 		this.edge = edge;
 		setLayout(new BorderLayout());
@@ -75,121 +84,81 @@ public class AddAppEdge extends JDialog {
 		setLocationRelativeTo(frame);
 		setVisible(true);
 	}
-
-	@SuppressWarnings("unchecked")
+	
+	/**
+	 * Creates all the inputs that users need to fill up.
+	 * 
+	 * @return the panel containing the inputs
+	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private JPanel createInputPanelArea() {
 		JPanel springPanel = new JPanel(new SpringLayout());
         springPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-
-		@SuppressWarnings({ "rawtypes" })
+        
+        AppModulesCellRenderer renderer = new AppModulesCellRenderer();
+        
+        String edgeOp = "", periodicOp = "", sensorOp = "", actuatorOp = "", tupleTypeOp = "";
+        String periodicityOp = Double.toString(GuiConstants.EDGE_PERIODICITY);
+        String tupleCpuLengthOp = Double.toString(GuiConstants.EDGE_CPU_LENGTH);
+        String tupleNwLengthOp = Double.toString(GuiConstants.EDGE_NW_LENGTH);
+        AppModule fromOp = null, toOp = null;
+        if(edge != null) {
+			if(edge.getEdgeType() == AppEdge.ACTUATOR) {
+				edgeOp = "ACTUATOR";
+				sensorOp = edge.getDestination();
+			}else if(edge.getEdgeType() == AppEdge.SENSOR) {
+				edgeOp = "SENSOR";
+				actuatorOp = edge.getSource();
+			}else {
+				edgeOp = "MODULE";
+			}
+			
+			periodicOp = edge.isPeriodic() ? "YES" : "NO";
+			
+			for(AppModule appModule : app.getModules()) {
+				if(edge.getEdgeType() != AppEdge.SENSOR && appModule.getName().equals(edge.getSource())) {
+					fromOp = appModule;
+				}
+				
+				if(edge.getEdgeType() != AppEdge.ACTUATOR && appModule.getName().equals(edge.getDestination())) {
+					toOp = appModule;
+				}
+			}
+			
+			periodicityOp = Double.toString(edge.getPeriodicity());
+			tupleCpuLengthOp = Double.toString(edge.getTupleCpuLength());
+			tupleNwLengthOp = Double.toString(edge.getTupleNwLength());
+			tupleTypeOp = edge.getTupleType();
+		}
+        
 		ComboBoxModel<String> sourceModel = new DefaultComboBoxModel(app.getModules().toArray());
-		
-		@SuppressWarnings({ "rawtypes" })
 		ComboBoxModel<String> targetModel = new DefaultComboBoxModel(app.getModules().toArray());
+		ComboBoxModel<String> edgeTypeModel = new DefaultComboBoxModel(EdgeTypes);
+		ComboBoxModel<String> periodicModel = new DefaultComboBoxModel(PeriodicOp);
 		
-		@SuppressWarnings({ "rawtypes" })
-		ComboBoxModel<String> edgeTypeModel =
-		new DefaultComboBoxModel(Arrays.asList("SENSOR", "ACTUATOR", "MODULE").toArray());
+		edgeType = GuiUtils.createDropDown(springPanel, edgeType, "Edge type: ", edgeTypeModel, edgeOp, GuiMsg.TipEdgeType);
+		sourceNode = GuiUtils.createDropDown(springPanel, sourceNode, "From: ", sourceModel, fromOp, GuiMsg.TipEdgeFrom);
+		targetNode = GuiUtils.createDropDown(springPanel, targetNode, "To: ", targetModel, toOp, GuiMsg.TipEdgeTo);
+		sensorName = GuiUtils.createInput(springPanel, sensorName, "Sensor: ", sensorOp, GuiMsg.TipEdgeSensor);
+		actuatorName = GuiUtils.createInput(springPanel, actuatorName, "Actuator: ", actuatorOp, GuiMsg.TipEdgeActuator);
+		periodic = GuiUtils.createDropDown(springPanel, periodic, "Periodic: ", periodicModel, periodicOp, GuiMsg.TipEdgePeri);
+		periodicity = GuiUtils.createInput(springPanel, periodicity, "Periodicity [s]: ", periodicityOp, GuiMsg.TipEdgePeriod);
+		tupleCpuLength = GuiUtils.createInput(springPanel, tupleCpuLength, "Tuple CPU length [MI]: ", tupleCpuLengthOp, GuiMsg.TipEdgeCPU);
+		tupleNwLength = GuiUtils.createInput(springPanel, tupleNwLength, "Tuple NW length [Bytes]: ", tupleNwLengthOp, GuiMsg.TipEdgeNW);
+		tupleType = GuiUtils.createInput(springPanel, tupleType, "Tuple type: ", tupleTypeOp, GuiMsg.TipEdgeTupleType);
 		
-		@SuppressWarnings({ "rawtypes" })
-		ComboBoxModel<String> periodicModel =
-		new DefaultComboBoxModel(Arrays.asList("YES", "NO").toArray());
-		
-		sourceNode = new JComboBox<>(sourceModel);
-		targetNode = new JComboBox<>(targetModel);
-		edgeType = new JComboBox<>(edgeTypeModel);
-		periodic = new JComboBox<>(periodicModel); 
-		
-		AppModulesCellRenderer renderer = new AppModulesCellRenderer();
 		sourceNode.setRenderer(renderer);
 		targetNode.setRenderer(renderer);
 		
-		JLabel ledgeType = new JLabel("Edge Type: ");
-		springPanel.add(ledgeType);
-
-		String eType = "MODULE";
 		if(edge != null) {
-			if(edge.getEdgeType() == AppEdge.ACTUATOR)
-				eType = "ACTUATOR";
-			else if(edge.getEdgeType() == AppEdge.SENSOR)
-				eType = "SENSOR";
-		}
-		
-		ledgeType.setLabelFor(edgeType);
-		edgeTypeModel.setSelectedItem(edge == null ? null : eType);
-		springPanel.add(edgeType);
-		
-		lsourceNode = new JLabel("From: ");
-		springPanel.add(lsourceNode);
-		lsourceNode.setLabelFor(sourceNode);
-		springPanel.add(sourceNode);
-		
-		lsensor = new JLabel("Sensor: ");
-		sensorName = new JTextField();
-		springPanel.add(lsensor);
-		lsensor.setLabelFor(sensorName);
-		springPanel.add(sensorName);
-		
-		ltargetNode = new JLabel("To: ");
-		springPanel.add(ltargetNode);
-		ltargetNode.setLabelFor(targetNode);
-		springPanel.add(targetNode);
-		
-		lactuator = new JLabel("Actuator: ");
-		actuatorName = new JTextField();
-		springPanel.add(lactuator);
-		lactuator.setLabelFor(actuatorName);
-		springPanel.add(actuatorName);
-		
-		periodic = GuiUtils.createDropDown(springPanel, periodic, "Periodic: ", periodicModel, null);
-		periodicity = GuiUtils.createInput(springPanel, periodicity, "Periodicity: ", edge == null ? Double.toString(GuiConstants.EDGE_PERIODICITY) : Double.toString(edge.getPeriodicity()));		
-		tupleCpuLength = GuiUtils.createInput(springPanel, tupleCpuLength, "Tuple CPU Length: ", edge == null ? Double.toString(GuiConstants.EDGE_CPU_LENGTH) : Double.toString(edge.getTupleCpuLength()));
-		tupleNwLength = GuiUtils.createInput(springPanel, tupleNwLength, "Tuple NW Length: ", edge == null ? Double.toString(GuiConstants.EDGE_NW_LENGTH) : Double.toString(edge.getTupleNwLength()));
-		tupleType = GuiUtils.createInput(springPanel, tupleType, "Tuple Type: ", edge == null ? "" : edge.getTupleType());
-		
-		if(edge != null && edge.getEdgeType() == AppEdge.SENSOR) {
-			sensorName.setText(edge.getSource());
-			sensorName.setEditable(false);
-			lsourceNode.setVisible(false);
-			sourceNode.setVisible(false);
-		}else if(edge != null) {
-			sensorName.setVisible(false);
-			lsensor.setVisible(false);
-		}
-		
-		if(edge != null && edge.getEdgeType() == AppEdge.ACTUATOR) {
-			actuatorName.setText(edge.getDestination());
-			actuatorName.setEditable(false);
-			ltargetNode.setVisible(false);
-			targetNode.setVisible(false);
-		}else if(edge != null) {
-			actuatorName.setVisible(false);
-			lactuator.setVisible(false);
-		}
-		
-		if(edge != null) {
-			periodicModel.setSelectedItem(edge.isPeriodic() ? "YES" : "NO");
 			if(!edge.isPeriodic()) periodicity.setVisible(false);
-		}
-		
-		if(edge != null && edge.getEdgeType() != AppEdge.SENSOR) {
-			for(AppModule appModule : app.getModules()) {
-				if(appModule.getName().equals(edge.getSource())) {
-					sourceModel.setSelectedItem(appModule);
-					break;
-				}
-			}
-		}else if(edge == null) {
-			sourceModel.setSelectedItem(null);
-			targetModel.setSelectedItem(null);
-		}
-		
-		if(edge != null && edge.getEdgeType() != AppEdge.ACTUATOR) {
-			for(AppModule appModule : app.getModules()) {
-				if(appModule.getName().equals(edge.getDestination())) {
-					targetModel.setSelectedItem(appModule);
-					break;
-				}
+			
+			if(edge.getEdgeType() == AppEdge.SENSOR) {
+				changeEdgeType("SENSOR");
+			}else if(edge.getEdgeType() == AppEdge.ACTUATOR) {
+				changeEdgeType("ACTUATOR");
+			}else {
+				changeEdgeType("MODULE");
 			}
 		}
 		
@@ -201,27 +170,12 @@ public class AddAppEdge extends JDialog {
 				
 				targetNode.removeAllItems();
 				List<AppModule> nodesToDisplay = new ArrayList<AppModule>();
+				nodesToDisplay.addAll(app.getModules());
+				nodesToDisplay.remove(selectedNode);
 				
-				for(AppModule appModule : app.getModules())
-					if(!appModule.getName().equals(selectedNode.getName()))
-						nodesToDisplay.add(appModule);
-				
-				@SuppressWarnings("rawtypes")
-				ComboBoxModel<String> targetModel = new DefaultComboBoxModel(nodesToDisplay.toArray());
-				targetNode.setModel(targetModel);
-			}
-		});
-		
-		targetNode.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				AppModule selectedSourceNode = (AppModule) sourceNode.getSelectedItem();
-				AppModule selectedTargetNode = (AppModule) targetNode.getSelectedItem();
-				String eType = (String) edgeType.getSelectedItem();
-				
-				if(selectedSourceNode != null && eType != null && eType.equals("MODULE") &&
-						selectedSourceNode.equals(selectedTargetNode))
-					targetModel.setSelectedItem(null);
+				targetNode.setModel(new DefaultComboBoxModel(nodesToDisplay.toArray()));
+				targetNode.setRenderer(renderer);
+				targetNode.setSelectedItem(null);
 			}
 		});
 		
@@ -241,19 +195,7 @@ public class AddAppEdge extends JDialog {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if((String) edgeType.getSelectedItem() == null) return;
-				String eType = (String) edgeType.getSelectedItem();
-				
-				changeEdgeType(eType);
-				
-				if(eType.equals("SENSOR")) {
-					@SuppressWarnings({ "rawtypes" })
-					ComboBoxModel<String> targetModel = new DefaultComboBoxModel(app.getModules().toArray());
-					targetNode.setModel(targetModel);
-				}else if(eType.equals("ACTUATOR")) {
-					@SuppressWarnings({ "rawtypes" })
-					ComboBoxModel<String> sourceModel = new DefaultComboBoxModel(app.getModules().toArray());
-					sourceNode.setModel(sourceModel);
-				}
+				changeEdgeType((String) edgeType.getSelectedItem());
 			}
 		});
 		
@@ -261,6 +203,11 @@ public class AddAppEdge extends JDialog {
 		return springPanel;
 	}
 	
+	/**
+	 * Creates the button panel (i.e., Ok, Cancel, Delete) and defines its behavior upon being clicked.
+	 * 
+	 * @return the panel containing the buttons
+	 */
 	private JPanel createButtonPanel() {
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.LINE_AXIS));
@@ -301,9 +248,9 @@ public class AddAppEdge extends JDialog {
 				if(!sensorName.isVisible()) {
 					AppModule source = (AppModule)sourceNode.getSelectedItem();
 					if(source != null) srcName_ = source.getName();
-					else error_msg += "Missing Source\n";
+					else error_msg += GuiMsg.errMissing("Source");
 				}else if (!Util.validString(sensorName.getText()))
-					error_msg += "Missing Sensor Name\n";
+					error_msg += GuiMsg.errMissing("Sensor name");
 				else if(!sensorName.getText().contains(" "))
 					srcName_ = sensorName.getText();
 				else
@@ -312,32 +259,42 @@ public class AddAppEdge extends JDialog {
 				if(!actuatorName.isVisible()) {
 					AppModule dst = (AppModule)targetNode.getSelectedItem();
 					if(dst != null) dstName_ = dst.getName();
-					else error_msg += "Missing Destination\n";
+					else error_msg += GuiMsg.errMissing("Destination");
 				}else if (!Util.validString(actuatorName.getText()))
-					error_msg += "Missing Sensor Name\n";
+					error_msg += GuiMsg.errMissing("Actuator name");
 				else if(!actuatorName.getText().contains(" "))
 					dstName_ = actuatorName.getText();
 				else
 					error_msg += "Actuator name cannot contain spaces\n";
 				
-				if(srcName_.equals(dstName_)) error_msg += "Source equals to Destination\n";
-				if (!Util.validString(tupleCpuLength.getText())) error_msg += "Missing Tuple CPU Length\n";
-				if (!Util.validString(tupleNwLength.getText())) error_msg += "Missing Tuple NW Length\n";
-				if (!Util.validString(tupleType.getText())) error_msg += "Missing Tuple Type\n";
-				if (!Util.validString((String)edgeType.getSelectedItem())) error_msg += "Missing Edge Type\n";
-				if (!Util.validString((String)periodic.getSelectedItem())) error_msg += "Missing Periodic\n";
-				if(periodicity.isVisible() && !Util.validString((String)periodicity.getText()))error_msg += "Missing Periodicity\n";
-				for(AppEdge appEdge : app.getEdges())
-					if(appEdge.getTupleType().equals(tupleType.getText()))
-						if(edge == null || edge != null && !appEdge.getTupleType().equals(edge.getTupleType()))
-							error_msg += "Repeated Tuple Type\n";
+				if(srcName_.equals(dstName_)) error_msg += "Source equals to destination\n";
+				
+				if(periodicity.isVisible() &&
+						!Util.validString((String)periodicity.getText()))	error_msg += GuiMsg.errMissing("Periodicity");
+				if (!Util.validString(tupleCpuLength.getText())) 			error_msg += GuiMsg.errMissing("Tuple CPU length");
+				if (!Util.validString(tupleNwLength.getText())) 			error_msg += GuiMsg.errMissing("Tuple NW length");
+				if (!Util.validString(tupleType.getText())) 				error_msg += GuiMsg.errMissing("Tuple type");
+				if (!Util.validString((String)edgeType.getSelectedItem()))	error_msg += GuiMsg.errMissing("Edge type");
+				if (!Util.validString((String)periodic.getSelectedItem()))	error_msg += GuiMsg.errMissing("Periodic");
+				
+				for(AppEdge appEdge : app.getEdges()) {
+					if(appEdge.getTupleType().equals(tupleType.getText())) {
+						if(edge == null || edge != null && !appEdge.getTupleType().equals(edge.getTupleType())) {
+							error_msg += "Repeated tuple types\n";
+							break;
+						}
+					}
+				}
 				
 				if(tupleType.getText().contains(" "))
-					error_msg += "Tuple Type cannot contain spaces\n";
-
-				if((tupleCpuLength_ = Util.stringToDouble(tupleCpuLength.getText())) < 0) error_msg += "\nTuple CPU Length should be a positive number";
-				if((tupleNwLength_ = Util.stringToDouble(tupleNwLength.getText())) < 0) error_msg += "\nTuple NW Length should be a positive number";
-				if(periodicity.isVisible() && (periodicity_ = Util.stringToDouble(periodicity.getText())) < 0) error_msg += "\nPeriodicity should be a positive number";
+					error_msg += "Tuple type cannot contain spaces\n";
+				
+				if(periodicity.isVisible() &&
+						(periodicity_ = Util.stringToDouble(periodicity.getText())) < 0)	error_msg += GuiMsg.errFormat("Periodicity");
+				if((tupleCpuLength_ = Util.stringToDouble(tupleCpuLength.getText())) < 0) 	error_msg += GuiMsg.errFormat("Tuple CPU length");
+				if((tupleNwLength_ = Util.stringToDouble(tupleNwLength.getText())) < 0) 	error_msg += GuiMsg.errFormat("Tuple NW length");
+				
+				
 				
 				if(error_msg == ""){
 					int iEdgeType = 1; // SENSOR
@@ -345,22 +302,24 @@ public class AddAppEdge extends JDialog {
 					if(((String)edgeType.getSelectedItem()).equals("MODULE")) iEdgeType = 3;
 					
 					if(edge != null) {
+						// Edit the periodic application edge
 						if(periodicity.isVisible())
-							edge.setValues(srcName_, dstName_, periodicity_, tupleCpuLength_, tupleNwLength_,
-									tupleType.getText(), iEdgeType);
+							edge.setValues(srcName_, dstName_, periodicity_, tupleCpuLength_, tupleNwLength_, tupleType.getText(), iEdgeType);
+						
+						// Edit the non periodic application edge
 						else
-							edge.setValues(srcName_, dstName_, tupleCpuLength_, tupleNwLength_,
-									tupleType.getText(), iEdgeType);
+							edge.setValues(srcName_, dstName_, tupleCpuLength_, tupleNwLength_, tupleType.getText(), iEdgeType);
 					}
 					else {
+						// Add a new periodic application edge
 						if(periodicity.isVisible())
-							app.addAppEdge(srcName_, dstName_, periodicity_, tupleCpuLength_, tupleNwLength_,
-									tupleType.getText(), iEdgeType);
+							app.addAppEdge(srcName_, dstName_, periodicity_, tupleCpuLength_, tupleNwLength_, tupleType.getText(), iEdgeType);
+						
+						// Add a new non periodic application edge
 						else
-							app.addAppEdge(srcName_, dstName_, tupleCpuLength_, tupleNwLength_,
-									tupleType.getText(), iEdgeType);
-
+							app.addAppEdge(srcName_, dstName_, tupleCpuLength_, tupleNwLength_, tupleType.getText(), iEdgeType);
 					}
+					
 					setVisible(false);
 				}else
 					GuiUtils.prompt(AddAppEdge.this, error_msg, "Error");
@@ -380,16 +339,18 @@ public class AddAppEdge extends JDialog {
 		return buttonPanel;
 	}
 	
+	/**
+	 * Modifies the inputs visibility and its content based on the selected edge type value.
+	 * 
+	 * @param value the selected edge type value
+	 */
 	private void changeEdgeType(String value) {
 		if(value.equals("SENSOR")) {
 			sensorName.setVisible(true);
-			lsensor.setVisible(true);
 			actuatorName.setVisible(false);
-			lactuator.setVisible(false);
 			targetNode.setVisible(true);
-			ltargetNode.setVisible(true);
 			sourceNode.setVisible(false);
-			lsourceNode.setVisible(false);
+			sensorName.setEditable(true);
 			for(AppEdge appEdge : app.getEdges()) {
 				if(appEdge.getEdgeType() == AppEdge.SENSOR) {
 					sensorName.setText(appEdge.getSource());
@@ -399,13 +360,10 @@ public class AddAppEdge extends JDialog {
 			}
 		}else if(value.equals("ACTUATOR")) {
 			sensorName.setVisible(false);
-			lsensor.setVisible(false);
 			actuatorName.setVisible(true);
-			lactuator.setVisible(true);
 			targetNode.setVisible(false);
-			ltargetNode.setVisible(false);
 			sourceNode.setVisible(true);
-			lsourceNode.setVisible(true);
+			actuatorName.setEditable(true);
 			for(AppEdge appEdge : app.getEdges()) {
 				if(appEdge.getEdgeType() == AppEdge.ACTUATOR) {
 					actuatorName.setText(appEdge.getDestination());
@@ -415,13 +373,9 @@ public class AddAppEdge extends JDialog {
 			}
 		}else {
 			sensorName.setVisible(false);
-			lsensor.setVisible(false);
 			actuatorName.setVisible(false);
-			lactuator.setVisible(false);
 			targetNode.setVisible(true);
-			ltargetNode.setVisible(true);
 			sourceNode.setVisible(true);
-			lsourceNode.setVisible(true);
 		}
 	}
 }
