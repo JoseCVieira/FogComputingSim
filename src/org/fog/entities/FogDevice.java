@@ -748,15 +748,12 @@ public class FogDevice extends PowerDatacenter {
 				double rxPower = MobilePathLossModel.computeReceivedPower(distance);
 				Map<String, Double> map = MobileBandwidthModel.computeCommunicationBandwidth(1, rxPower);
 				
-				String modulation = "";
-				double bandwidth = 0.0;
-				for(String m : map.keySet()) {
-					modulation = m;
-					bandwidth = map.get(m);
-				}
+				String modulation = map.entrySet().iterator().next().getKey();
+				double bandwidth = map.entrySet().iterator().next().getValue();
 				
 				if(Config.PRINT_DETAILS) {
-					FogComputingSim.print("Communication between " + getName() + " and " + neighbor.getName() + " is using " + modulation + " modulation" + " w/ bandwidth = "  + String.format("%.2f", bandwidth) + " kB/s" );
+					FogComputingSim.print("Communication between " + getName() + " and " + neighbor.getName() + " is using " +
+							modulation + " modulation" + " w/ bandwidth = "  + String.format("%.2f", bandwidth) + " kB/s" );
 				}
 				
 				bandwidthMap.put(neighborId, bandwidth);
