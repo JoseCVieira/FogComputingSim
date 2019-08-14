@@ -27,7 +27,7 @@ public class MobileBandwidthModel {
 	 * 
 	 * @param nSub number of subcarriers
 	 * @param signalPower signal power at the receiver
-	 * @return the bandwidth available in the communication
+	 * @return the bandwidth available in the communication in bytes/s
 	 */
 	public static Map<String, Double> computeCommunicationBandwidth(int nSub, double signalPower) {
 		double noisePower = -EFFECTIVE_NOISE_POWER + 10*Math.log10(nSub*BANDWIDTH_SIGNAL) + NOISE_FACTOR;
@@ -46,7 +46,7 @@ public class MobileBandwidthModel {
 		}
 		
 		Map<String, Double> retVal = new HashMap<String, Double>();
-		retVal.put(NAMES[modulationIndex], communicationSpeed*1024);
+		retVal.put(NAMES[modulationIndex], communicationSpeed*1024*1024);
 		
 		return retVal;
 	}

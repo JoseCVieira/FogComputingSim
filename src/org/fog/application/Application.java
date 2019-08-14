@@ -50,7 +50,7 @@ public class Application {
 	 * Adds an application module to the application.
 	 * 
 	 * @param moduleName the module name
-	 * @param ram the ram size (kB) needed to run this module
+	 * @param ram the ram size (Bytes) needed to run this module
 	 */
 	public void addAppModule(String moduleName, int ram, boolean clientModule, boolean glogbalModule) {
 		int mips = 0;

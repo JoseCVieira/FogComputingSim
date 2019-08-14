@@ -142,18 +142,16 @@ public class AlgorithmUtils {
 			System.out.println(Util.leftString(26, "Id: ") + fDevice.getId());
 			System.out.println(Util.leftString(26, "Name: ") + al.getfName()[i]);
 			System.out.println(Util.leftString(26, "Mips [MIPS]: ") + al.getfMips()[i]);
-			System.out.println(Util.leftString(26, "Ram [kB]: ") + al.getfRam()[i]);
-			System.out.println(Util.leftString(26, "Storage [kB]: ") + al.getfStrg()[i]);
+			System.out.println(Util.leftString(26, "Ram [B]: ") + al.getfRam()[i]);
+			System.out.println(Util.leftString(26, "Storage [B]: ") + al.getfStrg()[i]);
 			System.out.println(Util.leftString(26, "Mips price [€/MIPS]: ") + al.getfMipsPrice()[i]);
-			System.out.println(Util.leftString(26, "Ram price [€/kB]: ") + al.getfRamPrice()[i]);
-			System.out.println(Util.leftString(26, "Storage price [€/kB]: ") + al.getfStrgPrice()[i]);
-			System.out.println(Util.leftString(26, "Bandwidth price [€/kB/s]: ") + al.getfBwPrice()[i]);
+			System.out.println(Util.leftString(26, "Ram price [€/B]: ") + al.getfRamPrice()[i]);
+			System.out.println(Util.leftString(26, "Storage price [€/B]: ") + al.getfStrgPrice()[i]);
+			System.out.println(Util.leftString(26, "Bandwidth price [€/B/s]: ") + al.getfBwPrice()[i]);
 			System.out.println(Util.leftString(26, "Energy price [€/W]: ") + al.getfEnPrice()[i]);
 			System.out.println(Util.leftString(26, "Busy power [W]: ") + al.getfBusyPw()[i]);
 			System.out.println(Util.leftString(26, "Idle power [W]: ") + al.getfIdlePw()[i]);
 			System.out.println(Util.leftString(26, "Transmission power [W]: ") + al.getfTxPw()[i]);
-			System.out.println(Util.leftString(26, "Latency Map [s]: ") + fDevice.getLatencyMap().toString());
-			System.out.println(Util.leftString(26, "Bandwidth Map [kB/s]: ") + fDevice.getBandwidthMap().toString());
 			
 			if(i < fogDevices.size() -1)
 				System.out.println();
@@ -167,15 +165,15 @@ public class AlgorithmUtils {
 		for(int i = 0; i < al.getNumberOfModules(); i++) {
 			System.out.println(Util.leftString(15, "Name: ") + al.getmName()[i]);
 			System.out.println(Util.leftString(15, "Mips [MIPS]: ") + al.getmMips()[i]);
-			System.out.println(Util.leftString(15, "Ram [kB]: ") + al.getmRam()[i]);
-			System.out.println(Util.leftString(15, "Strorage [kB]: ") + al.getmStrg()[i]);
+			System.out.println(Util.leftString(15, "Ram [B]: ") + al.getmRam()[i]);
+			System.out.println(Util.leftString(15, "Strorage [B]: ") + al.getmStrg()[i]);
 			
 			if(i < al.getNumberOfModules() -1)
 				System.out.println();
 		}
 		
 		System.out.println("\n*******************************************************");
-		System.out.println("\t\tBANDWIDTH MAP (Between modules) [kB/s]:");
+		System.out.println("\t\tBANDWIDTH MAP (Between modules) [MB/s]:");
 		System.out.println("*******************************************************\n");
 		
 		System.out.format(Util.centerString(20, " "));
@@ -187,7 +185,7 @@ public class AlgorithmUtils {
 			System.out.format(Util.centerString(20, al.getmName()[i]));
 			for (int j = 0; j < al.getNumberOfModules(); j++) {
 				if(al.getmBandwidthMap()[i][j] != 0)
-					System.out.format(Util.centerString(20, String.format("%.5f", al.getmBandwidthMap()[i][j])));
+					System.out.format(Util.centerString(20, String.format("%.5f", al.getmBandwidthMap()[i][j]/1024/1024)));
 				else
 					System.out.format(Util.centerString(20, "-"));
 			}
@@ -233,7 +231,7 @@ public class AlgorithmUtils {
 		}
 		
 		System.out.println("\n*******************************************************");
-		System.out.println("\t\tNETWORK MAP (Between modules) [kB]:");
+		System.out.println("\t\tNETWORK MAP (Between modules) [B]:");
 		System.out.println("*******************************************************\n");
 		
 		System.out.format(Util.centerString(20, " "));
@@ -271,7 +269,7 @@ public class AlgorithmUtils {
 		}
 		
 		System.out.println("\n*******************************************************");
-		System.out.println("\t\tBANDWIDTH MAP (Between nodes) [kB/s]:");
+		System.out.println("\t\tBANDWIDTH MAP (Between nodes) [MB/s]:");
 		System.out.println("*******************************************************\n");
 		
 		System.out.format(Util.centerString(20, " "));
@@ -287,7 +285,7 @@ public class AlgorithmUtils {
 				else if(al.getfBandwidthMap()[i][j] == 0)
 					System.out.format(Util.centerString(20, "-"));
 				else
-					System.out.format(Util.centerString(20, String.format("%.2f", al.getfBandwidthMap()[i][j])));
+					System.out.format(Util.centerString(20, String.format("%.2f", al.getfBandwidthMap()[i][j]/1024/1024)));
 			}
 			System.out.println();
 		}		

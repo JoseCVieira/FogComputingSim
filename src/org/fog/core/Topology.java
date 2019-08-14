@@ -88,9 +88,9 @@ public abstract class Topology {
 	 * @param bPw the busy power value
 	 * @param iPw the idle power value
 	 * @param costPerMips the monetary cost (€/MIPS) of processing resources usage
-	 * @param costPerMem the monetary cost (€/kB) of memory usage
-	 * @param costPerStorage the monetary cost (€/kB) of storage usage
-	 * @param costPerBw the monetary cost (€/kB) of bandwidth usage in at any link which the node is the source
+	 * @param costPerMem the monetary cost (€/Bytes) of memory usage
+	 * @param costPerStorage the monetary cost (€/Bytes) of storage usage
+	 * @param costPerBw the monetary cost (€/Bytes) of bandwidth usage in at any link which the node is the source
 	 * @param costPerEnergy the monetary cost (€/W) of energy spent at the node
 	 * @param movement the movement of the node
 	 * @param client if the node is a client

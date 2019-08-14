@@ -28,9 +28,9 @@ public class FogDeviceCharacteristics extends DatacenterCharacteristics {
 	 * @param host object which executes actions related to management of virtual machines (e.g., creation and destruction)
 	 * @param timeZone local time zone of a user that owns this reservation
 	 * @param costPerMips the monetary cost per processing resource units (€/MIPS)
-	 * @param costPerMem the monetary cost per memory resource units (€/kB)
-	 * @param costPerStorage the monetary cost per storage resource units (€/kB)
-	 * @param costPerBw the monetary cost per network resource units (€/kB)
+	 * @param costPerMem the monetary cost per memory resource units (€/Bytes)
+	 * @param costPerStorage the monetary cost per storage resource units (€/Bytes)
+	 * @param costPerBw the monetary cost per network resource units (€/Bytes)
 	 * @param costPerEnergy the monetary cost per energy units (€/W)
 	 */	
 	@SuppressWarnings("serial")

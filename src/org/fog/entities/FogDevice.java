@@ -753,7 +753,7 @@ public class FogDevice extends PowerDatacenter {
 				
 				if(Config.PRINT_DETAILS) {
 					FogComputingSim.print("Communication between " + getName() + " and " + neighbor.getName() + " is using " +
-							modulation + " modulation" + " w/ bandwidth = "  + String.format("%.2f", bandwidth) + " kB/s" );
+							modulation + " modulation" + " w/ bandwidth = "  + String.format("%.2f", bandwidth/1024/1024) + " MB/s" );
 				}
 				
 				bandwidthMap.put(neighborId, bandwidth);
