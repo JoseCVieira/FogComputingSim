@@ -826,6 +826,9 @@ public class FogDevice extends PowerDatacenter {
 		
 		sendTo(tuple, vmRoutingTable.get(vm.getName()));
 		
+		if(Config.PRINT_DETAILS)
+			FogComputingSim.print("[" + getName() + "] started the migration of the vm: " + vm.getName() + " toward the machine: " + to.getName());
+		
 		getVmAllocationPolicy().deallocateHostForVm(vm);
 		getVmList().remove(vm);
 		getHost().getVmList().remove(vm);
