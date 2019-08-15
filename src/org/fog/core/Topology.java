@@ -347,14 +347,4 @@ public abstract class Topology {
 		return sensors;
 	}
 	
-	/**
-	 * Gets the map containing the key equal to the name of the client device and a value with the list of names
-	 * of the applications which he want to deploy
-	 * 
-	 * @return the map containing the key-value: client name - list of application names
-	 */
-	public Map<String, LinkedHashSet<String>> getAppToFogMap() {
-		return appToFogMap;
-	}
-	
 }

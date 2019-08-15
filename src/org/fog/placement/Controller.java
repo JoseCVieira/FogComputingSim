@@ -1,7 +1,7 @@
 package org.fog.placement;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -20,27 +20,65 @@ import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.entities.Tuple;
 import org.fog.placement.algorithm.Algorithm;
+import org.fog.placement.algorithm.Job;
 import org.fog.utils.FogEvents;
 import org.fog.utils.Location;
 import org.fog.utils.MobileBandwidthModel;
 import org.fog.utils.MobilePathLossModel;
 import org.fog.utils.Util;
 
+/**
+ * Class representing the controller of the fog network. It supervises and manages the network connections and runs the optimization algorithm.
+ * Based on the solution found by the optimization algorithm, it performs the deployment of the application modules, creates and updates
+ * both the routing tuple and routing migration tables. Also, it sends some events (control messages) to the fog nodes so that they perform some
+ * actions (e.g., start migrating some virtual machine).
+ * 
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
+ */
 public class Controller extends SimEntity {
+	/** Map between the name of the application and it's module placement within the fog network */
 	private Map<String, ModulePlacement> appModulePlacementPolicy;
+	
+	/** Map between the name of the application and the application itself */
 	private Map<String, Application> applications;
+	
+	/** Map between the name of the application to be deployed and the delay until being launched */
 	private Map<String, Integer> appLaunchDelays;
 	
+	/** List containing all applications which it needs to supervise and manage */
 	private List<Application> appList;
-	private List<FogDevice> fogDevices;
-	private List<Sensor> sensors;
-	private List<Actuator> actuators;
-	private Map<String, LinkedHashSet<String>> appToFogMap;
 	
+	/** List containing all fog devices which it needs to supervise and manage */
+	private List<FogDevice> fogDevices;
+	
+	/** List containing all sensors which it needs to supervise and manage */
+	private List<Sensor> sensors;
+	
+	/** List containing all actuators which it needs to supervise and manage */
+	private List<Actuator> actuators;
+	
+	/** Object responsible for running the optimization algorithm and hold it's solution */
 	private ControllerAlgorithm controllerAlgorithm;
 	
+	/** Object which holds all the information needed to run the optimization algorithm */
+	private Algorithm algorithm;
+	
+	/** Object which holds the results of the optimization algorithm */
+	private Job solution;
+	
+	/**
+	 * Creates a new controller.
+	 * 
+	 * @param name the name of the controller
+	 * @param applications the list containing all applications which it needs to supervise and manage
+	 * @param fogDevices the list containing all fog devices which it needs to supervise and manage
+	 * @param sensors the list containing all sensors which it needs to supervise and manage
+	 * @param actuators the list containing all actuators which it needs to supervise and manage
+	 * @param algorithmOp the id of the optimization algorithm chosen to be executed
+	 */
 	public Controller(String name, List<Application> applications, List<FogDevice> fogDevices, List<Sensor> sensors,
-			List<Actuator> actuators, Map<String, LinkedHashSet<String>> appToFogMap, int algorithmOp) {
+			List<Actuator> actuators, int algorithmOp) {
 		super(name);
 		
 		setApplications(new HashMap<String, Application>());
@@ -51,11 +89,14 @@ public class Controller extends SimEntity {
 		this.appList = applications;
 		this.sensors = sensors;
 		this.actuators = actuators;
-		this.appToFogMap = appToFogMap;
 		
-		controllerAlgorithm = new ControllerAlgorithm(fogDevices, appList, sensors, actuators, algorithmOp);
+		controllerAlgorithm = new ControllerAlgorithm(algorithmOp);
 	}
 	
+	/**
+	 * At the beginning send the events to: launch the applications with the respective delays, to start the resource
+	 * management at the fog nodes, and to periodically update the mobile nodes position.
+	 */
 	@Override
 	public void startEntity() {
 		for(String appId : getApplications().keySet()) {
@@ -76,7 +117,10 @@ public class Controller extends SimEntity {
 			}
 		}
 	}
-
+	
+	/**
+	 * Processes the events that can occur in the controller.
+	 */
 	@Override
 	public void processEvent(SimEvent ev) {
 		switch(ev.getTag()){
@@ -84,7 +128,7 @@ public class Controller extends SimEntity {
 			processAppSubmit(ev);
 			break;
 		case FogEvents.UPDATE_TOPOLOGY:
-			updateTopology(false);
+			updateTopology();
 			break;
 		case FogEvents.UPDATE_VM_POSITION:
 			updateVmPosition(ev);
@@ -108,6 +152,13 @@ public class Controller extends SimEntity {
 		
 	}
 	
+	/**
+	 * Submits one application to the controller with a given delay.
+	 * 
+	 * @param application the application itself
+	 * @param delay the delay after which it will be launched
+	 * @param modulePlacement the module placement of the application
+	 */
 	private void submitApplication(Application application, int delay, ModulePlacement modulePlacement) {
 		getApplications().put(application.getAppId(), application);
 		appLaunchDelays.put(application.getAppId(), delay);
@@ -120,15 +171,30 @@ public class Controller extends SimEntity {
 			ac.setApp(getApplications().get(ac.getAppId()));
 	}
 	
+	/**
+	 * Submits one application to the controller with no delay.
+	 * 
+	 * @param application the application itself
+	 * @param modulePlacement the module placement of the application
+	 */
 	private void submitApplication(Application application, ModulePlacement modulePlacement) {
 		submitApplication(application, 0, modulePlacement);
 	}
 	
-	private void processAppSubmit(SimEvent ev){
-		Application app = (Application) ev.getData();
-		processAppSubmit(app);
+	/**
+	 * The defined delay to launch the application its over and now it is submitted according to it's application module placement.
+	 * 
+	 * @param ev the event that just occurred containing the application to be submitted
+	 */
+	private void processAppSubmit(SimEvent ev) {
+		processAppSubmit((Application) ev.getData());
 	}
 	
+	/**
+	 * The defined delay to launch the application its over and now it is submitted according to it's application module placement.
+	 * 
+	 * @param application the application to be submitted
+	 */
 	private void processAppSubmit(Application application) {
 		FogComputingSim.print("Submitted application " + application.getAppId());
 		getApplications().put(application.getAppId(), application);
@@ -148,14 +214,86 @@ public class Controller extends SimEntity {
 		}
 	}
 	
-	// Mobile nodes always connect to the closest fixed fog device (which offer the best received signal strength)
-	// Similarly to what happens in mobile communications, handover has a threshold in order to avoid
-	// abuse of handovers in the border areas
-	public void updateTopology(boolean first) {
+	/**
+	 * Computes the new connections for the mobile nodes, and executes the optimization algorithm in order to reconfigure
+	 * the module placement, tuple routing and migration routing tables if needed.
+	 */
+	public void updateTopology() {
+		// Computes the handovers which occurred since the previous algorithm execution
+		Map<FogDevice, Map<FogDevice, FogDevice>> handovers = computeHandovers();
+		int[][] previousModulePlacement = null;
+		boolean first = false;
+		
+		// Schedules the next reconfiguration of the topology
+		send(getId(), Config.RECONFIG_PERIOD, FogEvents.UPDATE_TOPOLOGY);
+		
+		// If it's the first execution
+		if(algorithm == null) {
+			first = true;
+			
+			for(FogDevice mobile : handovers.keySet()) {
+				Map<FogDevice, FogDevice> handover = handovers.get(mobile);
+				FogDevice from = handover.entrySet().iterator().next().getKey();
+				FogDevice to = handover.get(from);
+				
+				// Create the connections for the mobile nodes
+				createConnection(mobile, to);
+			}
+			
+		// Else, if it's not the first execution check if there were some handovers and if the users selected a dynamic simulation
+		}else if(!handovers.isEmpty() && Config.DYNAMIC_SIMULATION) {
+			algorithm.updateMobileConnectionsVelocity(fogDevices);
+			previousModulePlacement = solution.getModulePlacementMap();
+			
+			// If the user choose to allow to perform migrations
+			if(!Config.ALLOW_MIGRATION)
+				algorithm.setPossibleDeployment(algorithm.getCurrentPlacement());
+			
+		// Otherwise, do nothing
+		}else
+			return;
+		
+		// Execute the selected optimization algorithm and extract both the solution and the algorithm from it
+		controllerAlgorithm.computeAlgorithm(fogDevices, appList, sensors, actuators);
+		algorithm = controllerAlgorithm.getAlgorithm();
+		solution = controllerAlgorithm.getSolution();
+		
+		// If it's the first execution, just deploy the applications into the respective nodes and create the tuple routing tables
+		if(first) {
+			deployApplications(algorithm.extractPlacementMap(solution.getModulePlacementMap()));
+			updateTupleRoutingTables(algorithm, solution.getTupleRoutingMap());
+			
+		// Otherwise, notify the fog nodes to change their connections, update the routing tables and migrate modules if needed
+		}else {
+			updateTupleRoutingTables(algorithm, solution.getTupleRoutingMap());
+			updateMigrationTables(algorithm, solution.getMigrationRoutingMap());
+		
+			// Update connections
+			for(FogDevice mobile : handovers.keySet()) {
+				Map<FogDevice, FogDevice> handover = handovers.get(mobile);
+				FogDevice from = handover.entrySet().iterator().next().getKey();
+				FogDevice to = handover.get(from);
+				
+				createConnection(mobile, to);
+				removeConnection(mobile, from);
+			}
+			
+			// Migrate modules
+			migrateModules(solution.getModulePlacementMap(), previousModulePlacement);
+		}
+	}
+	
+	/**
+	 *  Computes the new connections for the mobile nodes. Mobile nodes always connect to the closest fixed fog device
+	 *  (which offer the best received signal strength; similarly to what happens in mobile communications). The
+	 *  handover has a threshold in order to avoid abuse of swaps in the border areas.
+	 * 
+	 * @return the list containing the handovers which occurred
+	 */
+	private Map<FogDevice, Map<FogDevice, FogDevice>> computeHandovers() {
 		Map<FogDevice, Map<FogDevice, FogDevice>> handovers = new HashMap<FogDevice, Map<FogDevice,FogDevice>>();
 		
 		for(FogDevice f1 : fogDevices) {
-			
 			// If f1 is a fixed node do nothing
 			if(f1.isStaticNode())
 				continue;
@@ -192,12 +330,11 @@ public class Controller extends SimEntity {
 			if(best == null)
 				FogComputingSim.err("There are some mobile devices with no possible communications");
 			
-			if(!f1.getLatencyMap().isEmpty()) {
-				
+			if(!f1.getLatencyMap().isEmpty()) {				
 				// If its not the same node which it is already connected
 				// If already has a connection, remove it because there is a better one
 				if(bestNeighbor.getId() != best.getId()) {					
-					controllerAlgorithm.getAlgorithm().changeConnectionMap(f1, bestNeighbor, best);
+					algorithm.changeConnectionMap(f1, bestNeighbor, best);
 					Map<FogDevice, FogDevice> handover = new HashMap<FogDevice, FogDevice>();
 					handover.put(bestNeighbor, best);
 					handovers.put(f1, handover);
@@ -209,50 +346,15 @@ public class Controller extends SimEntity {
 			}
 		}
 		
-		if(first) {
-			for(FogDevice mobile : handovers.keySet()) {
-				Map<FogDevice, FogDevice> handover = handovers.get(mobile);
-				FogDevice from = handover.entrySet().iterator().next().getKey();
-				FogDevice to = handover.get(from);
-				
-				createConnection(mobile, from, to);
-			}
-			
-			controllerAlgorithm.computeAlgorithm();
-			
-			deployApplications(controllerAlgorithm.getAlgorithm().extractPlacementMap(controllerAlgorithm.getSolution().getModulePlacementMap()));
-			createTupleRoutingTables(controllerAlgorithm.getAlgorithm(), controllerAlgorithm.getSolution().getTupleRoutingMap());
-			
-		}else if(!handovers.isEmpty() && Config.DYNAMIC_SIMULATION) {
-			controllerAlgorithm.getAlgorithm().updateMobileConnectionsVelocity(fogDevices);
-			
-			int[][] previousModulePlacement = controllerAlgorithm.getSolution().getModulePlacementMap();
-			
-			if(!Config.ALLOW_MIGRATION)
-				controllerAlgorithm.getAlgorithm().setPossibleDeployment(controllerAlgorithm.getAlgorithm().getCurrentPlacement());
-			
-			controllerAlgorithm.recomputeAlgorithm();
-			
-			createTupleRoutingTables(controllerAlgorithm.getAlgorithm(), controllerAlgorithm.getSolution().getTupleRoutingMap());
-			createMigrationTables(controllerAlgorithm.getAlgorithm(), controllerAlgorithm.getSolution().getMigrationRoutingMap());
-		
-			// Update connections
-			for(FogDevice mobile : handovers.keySet()) {
-				Map<FogDevice, FogDevice> handover = handovers.get(mobile);
-				FogDevice from = handover.entrySet().iterator().next().getKey();
-				FogDevice to = handover.get(from);
-				
-				createConnection(mobile, from, to);
-				removeConnection(mobile, from);
-			}
-			
-			// Migrate modules
-			migrateModules(controllerAlgorithm.getSolution().getModulePlacementMap(), previousModulePlacement);
-		}
-		
-		send(getId(), Config.RECONFIG_PERIOD, FogEvents.UPDATE_TOPOLOGY);
+		return handovers;
 	}
 	
+	/**
+	 * Updates the position of a given virtual machine (application module). It's required to keep track of their current positions
+	 * so that if the topology changes during one migration, the system is capable of forward it to the correct destination.
+	 * 
+	 * @param ev the event that just occurred containing the virtual machine and its current position (fog device id)
+	 */
 	@SuppressWarnings("unchecked")
 	private void updateVmPosition(SimEvent ev) {
 		Map<AppModule, Integer> vmPosition = (Map<AppModule, Integer>)ev.getData();
@@ -264,13 +366,20 @@ public class Controller extends SimEntity {
 			fogId = vmPosition.get(appModule);
 		}
 		
-		int fogIndex = controllerAlgorithm.getAlgorithm().getNodeIndexByNodeId(fogId);
-		int vmIndex = controllerAlgorithm.getAlgorithm().getModuleIndexByModuleName(vm.getName());
+		int fogIndex = algorithm.getNodeIndexByNodeId(fogId);
+		int vmIndex = algorithm.getModuleIndexByModuleName(vm.getName());
 		
-		controllerAlgorithm.getAlgorithm().setCurrentPlacement(vmIndex, fogIndex);
+		algorithm.setCurrentPlacement(vmIndex, fogIndex);
 	}
-
-	private void createConnection(FogDevice mobile, FogDevice from, FogDevice to) {
+	
+	/**
+	 * Creates a new connection between two nodes. This is used for mobile communications, hence both the mobile path loss and the mobile
+	 * bandwidth models are used to compute the connection characteristics.
+	 * 
+	 * @param mobile the mobile fog device
+	 * @param to the new fixed node where the mobile one will be connected
+	 */
+	private void createConnection(FogDevice mobile, FogDevice to) {
 		if(Config.PRINT_DETAILS)
 			FogComputingSim.print("Creating connection between: " + mobile.getName() + " <-> " + to.getName());
 			
@@ -281,15 +390,13 @@ public class Controller extends SimEntity {
 		double rxPower = MobilePathLossModel.computeReceivedPower(distance);
 		Map<String, Double> map = MobileBandwidthModel.computeCommunicationBandwidth(1, rxPower);
 		
-		String modulation = "";
-		double bandwidth = 0.0;
-		for(String m : map.keySet()) {
-			modulation = m;
-			bandwidth = map.get(m);
-		}
+		
+		String modulation = map.entrySet().iterator().next().getKey();
+		double bandwidth = map.entrySet().iterator().next().getValue();
 		
 		if(Config.PRINT_DETAILS) {
-			FogComputingSim.print("Communication between " + mobile.getName() + " and " + to.getName() + " is using " + modulation + " modulation" + " w/ bandwidth = "  + String.format("%.2f", bandwidth/1024/1024) + " MHz");
+			FogComputingSim.print("Communication between " + mobile.getName() + " and " + to.getName() + " is using " +
+					modulation + " modulation" + " w/ bandwidth = "  + String.format("%.2f", bandwidth/1024/1024) + " MB/s");
 		}
 		
 		mobile.getBandwidthMap().put(to.getId(), bandwidth);
@@ -302,41 +409,58 @@ public class Controller extends SimEntity {
 		to.getTupleLinkBusy().put(mobile.getId(), false);
 	}
 	
+	/**
+	 * Notifies the fog nodes to remove their connections between them.
+	 * 
+	 * @param mobile one of the fog devices
+	 * @param from another fog device
+	 */
 	private void removeConnection(FogDevice mobile, FogDevice from) {
 		// Then, remove the old connections
 		sendNow(mobile.getId(), FogEvents.CONNECTION_LOST, from.getId());
 		sendNow(from.getId(), FogEvents.CONNECTION_LOST, mobile.getId());
 	}
 	
+	/**
+	 * Deploys the application application modules according a given module placement map.
+	 * 
+	 * @param modulePlacementMap the map between the node names and the application modules names
+	 */
 	private void deployApplications(Map<String, List<String>> modulePlacementMap) {
-		for(FogDevice fogDevice : fogDevices) {
-			if(appToFogMap.containsKey(fogDevice.getName())) {
-				for(Application application : appList) {
-					ModuleMapping moduleMapping = ModuleMapping.createModuleMapping();
-					
-					for(AppModule appModule : application.getModules()) {
-						for(String fogName : modulePlacementMap.keySet()) {
-							if(modulePlacementMap.get(fogName).contains(appModule.getName())) {
-								moduleMapping.addModuleToDevice(appModule.getName(), fogName);
-							}
-						}
+		for(Application application : appList) {
+			Map<String, List<String>> moduleMapping = new HashMap<String, List<String>>();
+			
+			for(AppModule appModule : application.getModules()) {
+				for(String deviceName : modulePlacementMap.keySet()) {
+					if(modulePlacementMap.get(deviceName).contains(appModule.getName())) {
+						if(!moduleMapping.containsKey(deviceName))
+							moduleMapping.put(deviceName, new ArrayList<String>());
+						if(!moduleMapping.get(deviceName).contains(appModule.getName()))
+							moduleMapping.get(deviceName).add(appModule.getName());
 					}
-					
-					ModulePlacement modulePlacement = new ModulePlacementMapping(fogDevices, application, moduleMapping);
-					submitApplication(application, modulePlacement);
 				}
 			}
+			
+			ModulePlacement modulePlacement = new ModulePlacement(fogDevices, application, moduleMapping);
+			submitApplication(application, modulePlacement);
 		}
 	}
 	
+	/**
+	 * Verifies the differences between the current module placement and the one obtained from the optimization algorithm and notifies
+	 * the corresponding nodes to perform migration if needed.
+	 * 
+	 * @param currentModulePlacement the current module placement
+	 * @param previousModulePlacement the module placement obtained from the optimization algorithm
+	 */
 	private void migrateModules(int[][] currentModulePlacement, int[][] previousModulePlacement) {
 		appModulePlacementPolicy.clear();
 		
-		for(int j = 0; j < controllerAlgorithm.getAlgorithm().getNumberOfModules(); j++) {
+		for(int j = 0; j < algorithm.getNumberOfModules(); j++) {
 			int previousPlacement = -1;
 			int currentPlacement = -1;
 			
-			for(int i = 0; i < controllerAlgorithm.getAlgorithm().getNumberOfNodes(); i++) {
+			for(int i = 0; i < algorithm.getNumberOfNodes(); i++) {
 				if(currentModulePlacement[i][j] == 1) {
 					currentPlacement = i;
 				}
@@ -347,16 +471,16 @@ public class Controller extends SimEntity {
 			}
 			
 			if(previousPlacement == -1 || previousPlacement == -1)
-				FogComputingSim.err("Should not happen");
+				FogComputingSim.err("Should not happen (Controller)");
 			
 			if(currentPlacement != previousPlacement) {
-				AppModule module = getModuleByName(controllerAlgorithm.getAlgorithm().getmName()[j]);
+				AppModule module = getModuleByName(algorithm.getmName()[j]);
 				
 				if(module.isInMigration())
 					continue;
 				
-				FogDevice from = getFogDeviceByName(controllerAlgorithm.getAlgorithm().getfName()[previousPlacement]);
-				FogDevice to = getFogDeviceByName(controllerAlgorithm.getAlgorithm().getfName()[currentPlacement]);
+				FogDevice from = getFogDeviceByName(algorithm.getfName()[previousPlacement]);
+				FogDevice to = getFogDeviceByName(algorithm.getfName()[currentPlacement]);
 				
 				if(Config.PRINT_DETAILS)
 					FogComputingSim.print("Migratig module: " + module.getName() +  " from: " + from.getName() + " to: " + to.getName());
@@ -364,19 +488,26 @@ public class Controller extends SimEntity {
 				Application application = getApplicationByModule(module);
 				
 				if(application == null)
-					FogComputingSim.err("Should not happen");
+					FogComputingSim.err("Should not happen (Controller)");
 				
 				Map<FogDevice, Map<Application, AppModule>> map = new HashMap<FogDevice, Map<Application,AppModule>>();
 				Map<Application, AppModule> appMap = new HashMap<Application, AppModule>();
 				appMap.put(application, module);
 				map.put(to, appMap);
 				
+				// notifies the fog device to perform migration
 				sendNow(from.getId(), FogEvents.MIGRATION, map);
 			}
 		}
 	}
 	
-	private void createTupleRoutingTables(Algorithm algorithm, int[][] routingMatrix) {
+	/**
+	 * Updates the tuple routing tables for all fog devices.
+	 * 
+	 * @param algorithm the object which holds all the information needed to run the optimization algorithm
+	 * @param routingMatrix the tuple routing matrix obtained from the optimization algorithm
+	 */
+	private void updateTupleRoutingTables(Algorithm algorithm, int[][] routingMatrix) {
 		// Clear the current routing tables
 		for(FogDevice fogDevice : fogDevices)
 			fogDevice.getTupleRoutingTable().clear();
@@ -397,17 +528,15 @@ public class Controller extends SimEntity {
 				fogDevice.getTupleRoutingTable().put(hop.get(node), algorithm.getfId()[routingMap.get(hop)]);
 			}
 		}
-		
-		if(Config.PRINT_DETAILS) {
-			System.out.println("\nRouting Tuple tables:");
-			for(FogDevice f : fogDevices) {
-				System.out.println(f.getName() + " : " + f.getTupleRoutingTable());
-			}
-			System.out.println();
-		}
 	}
 	
-	private void createMigrationTables(Algorithm algorithm, int[][] migrationMatrix) {
+	/**
+	 * Updates the migration of virtual machines routing tables for all fog devices.
+	 * 
+	 * @param algorithm the object which holds all the information needed to run the optimization algorithm
+	 * @param migrationMatrix the virtual machine routing matrix obtained from the optimization algorithm
+	 */
+	private void updateMigrationTables(Algorithm algorithm, int[][] migrationMatrix) {
 		for(FogDevice fogDevice : fogDevices)
 			fogDevice.getVmRoutingTable().clear();
 		
@@ -424,16 +553,14 @@ public class Controller extends SimEntity {
 				}
 			}
 		}
-		
-		if(Config.PRINT_DETAILS) {
-			System.out.println("\nRouting VM tables:");
-			for(FogDevice f : fogDevices) {
-				System.out.println(f.getName() + " : " + f.getVmRoutingTable());
-			}
-			System.out.println();
-		}
 	}
 	
+	/**
+	 * Gets a given fog device from its id.
+	 * 
+	 * @param id the id of the fog device
+	 * @return the fog device itself; can be full if it was not found
+	 */
 	public FogDevice getFogDeviceById(int id){
 		for(FogDevice fogDevice : getFogDevices())
 			if(id==fogDevice.getId())
@@ -441,6 +568,12 @@ public class Controller extends SimEntity {
 		return null;
 	}
 	
+	/**
+	 * Gets a given fog device from its name.
+	 * 
+	 * @param name the name of the fog device
+	 * @return the fog device itself; can be full if it was not found
+	 */
 	private FogDevice getFogDeviceByName(String name){
 		for(FogDevice fogDevice : getFogDevices())
 			if(name.equals(fogDevice.getName()))
@@ -448,6 +581,12 @@ public class Controller extends SimEntity {
 		return null;
 	}
 	
+	/**
+	 * Gets a given application module from its name.
+	 * 
+	 * @param name the name of the application module
+	 * @return the application module itself; can be full if it was not found
+	 */
 	private AppModule getModuleByName(String name){
 		for(Application application : appList)
 			for(AppModule appModule : application.getModules())
@@ -456,6 +595,12 @@ public class Controller extends SimEntity {
 		return null;
 	}
 	
+	/**
+	 * Gets a given application from one of its application modules names.
+	 * 
+	 * @param name the name of the application module name
+	 * @return the application itself; can be full if it was not found
+	 */
 	private Application getApplicationByModule(AppModule appModule){		
 		for(String appId : applications.keySet()) {
 			Application application = applications.get(appId);
@@ -465,18 +610,38 @@ public class Controller extends SimEntity {
 		return null;
 	}
 	
+	/**
+	 * Gets the list containing all fog devices which it needs to supervise and manage.
+	 * 
+	 * @return the list containing all fog devices which it needs to supervise and manage
+	 */
 	public List<FogDevice> getFogDevices() {
 		return fogDevices;
 	}
-
+	
+	/**
+	 * Sets the list containing all fog devices which it needs to supervise and manage.
+	 * 
+	 * @param fogDevices the list containing all fog devices which it needs to supervise and manage
+	 */
 	public void setFogDevices(List<FogDevice> fogDevices) {
 		this.fogDevices = fogDevices;
 	}
-
+	
+	/**
+	 * Gets the map between the name of the application and the application itself.
+	 * 
+	 * @return the map between the name of the application and the application itself
+	 */
 	public Map<String, Application> getApplications() {
 		return applications;
 	}
-
+	
+	/**
+	 * Sets the map between the name of the application and the application itself.
+	 * 
+	 * @param applications the map between the name of the application and the application itself
+	 */
 	public void setApplications(Map<String, Application> applications) {
 		this.applications = applications;
 	}

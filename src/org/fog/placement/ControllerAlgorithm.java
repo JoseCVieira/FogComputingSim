@@ -1,12 +1,5 @@
 package org.fog.placement;
 
-/**
- * Class which is responsible for choosing and running the optimization algorithm in order to
- * optimize the module disposition within the fog network.
- * 
- * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
- * @since  July, 2019
- */
 import java.util.List;
 
 import org.fog.application.Application;
@@ -24,6 +17,13 @@ import org.fog.placement.algorithm.ga.GeneticAlgorithm;
 import org.fog.placement.algorithm.random.RandomAlgorithm;
 import org.fog.placement.algorithm.util.AlgorithmUtils;
 
+/**
+ * Class which is responsible for choosing and running the optimization algorithm in order to
+ * optimize the module disposition within the fog network.
+ * 
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
+ */
 public class ControllerAlgorithm {
 	public static final int MOLP = 1;
 	public static final int MOGA = 2;
@@ -38,18 +38,6 @@ public class ControllerAlgorithm {
 	
 	/** Object which holds the results of the optimization algorithm */
 	private Job solution;
-	
-	/** List containing all fog devices within the fog network */
-	private List<FogDevice> fogDevices;
-	
-	/** List containing all applications to be deployed into the fog network */
-	private List<Application> appList;
-	
-	/** List containing all sensors (there is one sensor per user's application) */
-	private List<Sensor> sensors;
-	
-	/** List containing all actuators (there is one actuator per user's application) */
-	private List<Actuator> actuators;
 	
 	/** Id of the optimization algorithm chosen to be executed */
 	private int algorithmOp;
@@ -66,19 +54,14 @@ public class ControllerAlgorithm {
 	 * @param actuators the list containing all actuators
 	 * @param algorithmOp the id of the optimization algorithm chosen to be executed
 	 */
-	public ControllerAlgorithm(List<FogDevice> fogDevices, List<Application> appList, List<Sensor> sensors,
-			List<Actuator> actuators, int algorithmOp) {
-		this.fogDevices = fogDevices;
-		this.appList = appList;
-		this.sensors = sensors;
-		this.actuators = actuators;
+	public ControllerAlgorithm(int algorithmOp) {
 		this.algorithmOp = algorithmOp;
 	}
 	
 	/**
 	 * Parses the information and executes the chosen optimization algorithm.
 	 */
-	public void computeAlgorithm() {
+	public void computeAlgorithm(List<FogDevice> fogDevices, List<Application> appList, List<Sensor> sensors, List<Actuator> actuators) {
 		// It will be the first execution of the optimization algorithm
 		if(algorithm == null) {
 			switch (algorithmOp) {

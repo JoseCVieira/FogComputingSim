@@ -5,9 +5,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.util.Calendar;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
 
 import org.cloudbus.cloudsim.Log;
@@ -49,7 +47,6 @@ public class FogComputingSim {
 	private static List<FogDevice> fogDevices;
 	private static List<Sensor> sensors;
 	private static List<Actuator> actuators;
-	private static Map<String, LinkedHashSet<String>> appToFogMap;
 	
 	public static void main(String[] args) {
 		if(Config.DEBUG_MODE) {
@@ -73,14 +70,14 @@ public class FogComputingSim {
 			throw new IllegalArgumentException("Some of the received arguments are null or empty.");
 		
 		// Create the controller object
-		Controller controller = new Controller("master-controller", applications, fogDevices, sensors, actuators, appToFogMap, option);
+		Controller controller = new Controller("master-controller", applications, fogDevices, sensors, actuators, option);
 		
 		for(FogDevice fogDevice : fogDevices) {
 			fogDevice.setController(controller);
 		}
 		
 		// Add mobile communications and run the optimization algorithm in the first place to deploy the applications' modules in the best way
-		controller.updateTopology(true);
+		controller.updateTopology();
 		
 		System.out.println("Starting simulation...");
 		TimeKeeper.getInstance().setSimulationStartTime(Calendar.getInstance().getTimeInMillis());
@@ -165,8 +162,8 @@ public class FogComputingSim {
 	    System.out.println("————————————————————————————————————————————————————————");
 	    System.out.print("\n Topology: ");
 	    
-	    Topology fogTest = null;
-	    while(fogTest == null) {
+	    Topology topology = null;
+	    while(topology == null) {
 		    int option = -1;
 		    
 		    try {
@@ -182,28 +179,28 @@ public class FogComputingSim {
 				case GUI:
 					Gui gui = new Gui();
 					
-					while(fogTest == null) {
+					while(topology == null) {
 						Util.promptEnterKey("Press \"ENTER\" to continue...");
-						fogTest = gui.getRunGUI();
+						topology = gui.getRunGUI();
 					}
 					break;
 				case RANDOM:
-					fogTest = new RandomTopology();
+					topology = new RandomTopology();
 					break;
 				case VRGAME:
-					fogTest = new VRGameFog();
+					topology = new VRGameFog();
 					break;
 				case DCNS:
-					fogTest = new DCNSFog();
+					topology = new DCNSFog();
 					break;
 				case TEMP:
-					fogTest = new TEMPFog();
+					topology = new TEMPFog();
 					break;
 				case FILE:
 					String filePath = menuFile();
 					if(filePath != null) {
 						Graph graph= Bridge.jsonToGraph(filePath);
-				    	fogTest = new RunGUI(graph);
+						topology = new RunGUI(graph);
 					}else {
 						returning = true;
 					}
@@ -212,7 +209,7 @@ public class FogComputingSim {
 					break;
 			}
 		    
-		    if(fogTest == null) {
+		    if(topology == null) {
 		    	if(returning) {
 		    		returning = false;
 		    		System.out.print("Topology: ");
@@ -222,11 +219,10 @@ public class FogComputingSim {
 		    }
 	    }
 	    
-	    applications = fogTest.getApplications();
-		fogDevices = fogTest.getFogDevices();
-		sensors = fogTest.getSensors();
-		actuators = fogTest.getActuators();
-		appToFogMap = fogTest.getAppToFogMap();
+	    applications = topology.getApplications();
+		fogDevices = topology.getFogDevices();
+		sensors = topology.getSensors();
+		actuators = topology.getActuators();
 	}
 	
 	/**
