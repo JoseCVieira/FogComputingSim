@@ -43,15 +43,15 @@ public class RandomAlgorithm extends Algorithm {
 		
 		
 		while (iteration <= Config.MAX_ITER_RANDOM) {
-			Job job = Job.generateRandomJob(this, currentPlacement);
+			Job job = Job.generateRandomJob(this, getCurrentPlacement());
 			
 			if(bestCost > job.getCost()) {
 				bestCost = job.getCost();
-    			valueIterMap.put(iteration, bestCost);
+    			getValueIterMap().put(iteration, bestCost);
     			bestSolution = new Job(job);
     			
     			if(Config.PRINT_ALGORITHM_ITER)
-    				System.out.println("iteration: " + iteration + " value: " + bestCost);
+    				System.out.println("Iteration: " + iteration + " value: " + bestCost);
 			}
 			
 			iteration++;
@@ -60,7 +60,7 @@ public class RandomAlgorithm extends Algorithm {
 		// Time at the end of the execution of the algorithm
 		long finish = System.currentTimeMillis();
 		
-		elapsedTime = finish - start;
+		setElapsedTime(finish - start);
 		
 		return bestSolution;
 	}
