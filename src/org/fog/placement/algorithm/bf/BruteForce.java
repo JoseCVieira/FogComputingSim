@@ -1,6 +1,5 @@
 package org.fog.placement.algorithm.bf;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -12,9 +11,6 @@ import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.placement.algorithm.Algorithm;
 import org.fog.placement.algorithm.Job;
-import org.fog.placement.algorithm.util.routing.DijkstraAlgorithm;
-import org.fog.placement.algorithm.util.routing.Edge;
-import org.fog.placement.algorithm.util.routing.Graph;
 import org.fog.placement.algorithm.util.routing.Vertex;
 
 /**
@@ -39,12 +35,6 @@ public class BruteForce extends Algorithm {
 	/** Time at the end of the execution of the algorithm */
 	private long finish;
 	
-	/** List with the nodes for the execution of the Dijkstra Algorithm */
-	private List<Vertex> nodes;
-	
-	/** Object responsible for running the Dijkstra Algorithm */
-	private DijkstraAlgorithm dijkstra;
-	
 	public BruteForce(final List<FogDevice> fogDevices, final List<Application> applications,
 			final List<Sensor> sensors, final List<Actuator> actuators) {
 		super(fogDevices, applications, sensors, actuators);
@@ -64,32 +54,16 @@ public class BruteForce extends Algorithm {
 		// Time at the beginning of the execution of the algorithm
 		start = System.currentTimeMillis();
 		
-		// Generate a new Dijkstra graph
-		nodes = new ArrayList<Vertex>();
-		List<Edge> edges = new ArrayList<Edge>();
-		
-		for(int i  = 0; i < getNumberOfNodes(); i++) {
-			nodes.add(new Vertex("Node=" + i));
-		}
-		
-		for(int i  = 0; i < getNumberOfNodes(); i++) {
-			for(int j  = 0; j < getNumberOfNodes(); j++) {
-				if(getfLatencyMap()[i][j] < Constants.INF) {
-					 edges.add(new Edge(nodes.get(i), nodes.get(j), 1.0));
-				}
-			}
-        }
-		
-		Graph graph = new Graph(nodes, edges);
-		dijkstra = new DijkstraAlgorithm(graph);
+		// Generate the Dijkstra graph
+		generateDijkstraGraph();
 		
 		// Solve the problem
-		solveModulePlacement(new int[NR_NODES][NR_MODULES], 0);
+		solveModulePlacement(new int[getNumberOfNodes()][getNumberOfModules()], 0);
 		
 		// Time at the end of the execution of the algorithm
 		finish = System.currentTimeMillis();
 		
-		elapsedTime = finish - start;
+		setElapsedTime(finish - start);
 		
 		return bestSolution;
 	}
@@ -103,17 +77,17 @@ public class BruteForce extends Algorithm {
 	private void solveModulePlacement(int[][] modulePlacementMap, final int index) {
 		int[][] currentPositionInt = getCurrentPositionInt();
 		
-		for(int i = 0; i < NR_NODES; i++) {
+		for(int i = 0; i < getNumberOfNodes(); i++) {
 			// If its not a valid placement continue
-			if(possibleDeployment[i][index] == 0) continue;
+			if(getPossibleDeployment()[i][index] == 0) continue;
 			
 			// Clear other placements of the module and place it in the correct node index
-			for(int j = 0; j < NR_NODES; j++) {
+			for(int j = 0; j < getNumberOfNodes(); j++) {
 				modulePlacementMap[j][index] = j == i ? 1 : 0;
 			}
 			
 			// If its not the final module, solve the next one
-			if(index != NR_MODULES - 1) {
+			if(index != getNumberOfModules() - 1) {
 				solveModulePlacement(modulePlacementMap, index + 1);
 			}
 			
@@ -122,20 +96,20 @@ public class BruteForce extends Algorithm {
 				int[][] tupleRoutingMap = new int[getNumberOfDependencies()][getNumberOfNodes()];
 				
 				int tmp = 0;
-				for(int j = 0; j < NR_MODULES; j++) {
-					for(int z = 0; z < NR_MODULES; z++) {
+				for(int j = 0; j < getNumberOfModules(); j++) {
+					for(int z = 0; z < getNumberOfModules(); z++) {
 						if(getmDependencyMap()[j][z] != 0) {
 							tupleRoutingMap[tmp][0] = Job.findModulePlacement(modulePlacementMap, j);
-							tupleRoutingMap[tmp++][NR_NODES-1] = Job.findModulePlacement(modulePlacementMap, z);
+							tupleRoutingMap[tmp++][getNumberOfNodes()-1] = Job.findModulePlacement(modulePlacementMap, z);
 						}
 					}
 				}
 		        
 		        int[][] migrationRoutingMap = new int[getNumberOfModules()][getNumberOfNodes()];
 		        
-				for(int j = 0; j < NR_MODULES; j++) {
+				for(int j = 0; j < getNumberOfModules(); j++) {
 					migrationRoutingMap[j][0] = isFirstOptimization() ? Job.findModulePlacement(modulePlacementMap, j) : Job.findModulePlacement(currentPositionInt, j);
-					migrationRoutingMap[j][NR_NODES-1] = Job.findModulePlacement(modulePlacementMap, j);
+					migrationRoutingMap[j][getNumberOfNodes()-1] = Job.findModulePlacement(modulePlacementMap, j);
 				}
 				
 				solveVmRouting(modulePlacementMap, tupleRoutingMap, migrationRoutingMap, 0, 1);
@@ -166,7 +140,7 @@ public class BruteForce extends Algorithm {
 			int previousNode = migrationRoutingMap[row][col-1];
 			
 			// If it already find out the destination just fill the next hops with the destination index
-			if(previousNode == migrationRoutingMap[row][NR_NODES-1]) {
+			if(previousNode == migrationRoutingMap[row][getNumberOfNodes()-1]) {
 				migrationRoutingMap[row][col] = previousNode;
 				
 				// If its not the final hop, fill the next hop for the current module/VM
@@ -179,9 +153,9 @@ public class BruteForce extends Algorithm {
 				
 			// Otherwise, keep filling the VM routing matrix
 			}else {
-				for(int i = 0; i < NR_NODES; i++) {
+				for(int i = 0; i < getNumberOfNodes(); i++) {
 					if(getfLatencyMap()[previousNode][i] == Constants.INF) continue;
-					if(!isValidHop(i, migrationRoutingMap[row][NR_NODES-1], NR_NODES - col)) continue;
+					if(!isValidHop(i, migrationRoutingMap[row][getNumberOfNodes()-1], getNumberOfNodes() - col)) continue;
 					
 					migrationRoutingMap[row][col] = i;
 				
@@ -218,7 +192,7 @@ public class BruteForce extends Algorithm {
 			if(job.getCost() < bestCost) {
 				bestCost = job.getCost();
 				bestSolution = new Job(job);
-    			valueIterMap.put(iteration, bestCost);
+    			getValueIterMap().put(iteration, bestCost);
     			
     			if(Config.PRINT_ALGORITHM_ITER)
     				System.out.println("iteration: " + iteration + " value: " + bestCost);
@@ -231,7 +205,7 @@ public class BruteForce extends Algorithm {
 			int previousNode = tupleRoutingMap[row][col-1];
 			
 			// If it already find out the destination just fill the next hops with the destination index
-			if(previousNode == tupleRoutingMap[row][NR_NODES-1]) {
+			if(previousNode == tupleRoutingMap[row][getNumberOfNodes()-1]) {
 				tupleRoutingMap[row][col] = previousNode;
 				
 				// If its not the final hop, fill the next hop for the current tuple
@@ -244,9 +218,9 @@ public class BruteForce extends Algorithm {
 				
 				// Otherwise, keep filling the tuple routing matrix
 			}else {
-				for(int i = 0; i < NR_NODES; i++) {
+				for(int i = 0; i < getNumberOfNodes(); i++) {
 					if(getfLatencyMap()[previousNode][i] == Constants.INF) continue;
-					if(!isValidHop(i, tupleRoutingMap[row][NR_NODES-1], NR_NODES - col)) continue;
+					if(!isValidHop(i, tupleRoutingMap[row][getNumberOfNodes()-1], getNumberOfNodes() - col)) continue;
 					
 					tupleRoutingMap[row][col] = i;
 				
@@ -272,8 +246,8 @@ public class BruteForce extends Algorithm {
 	 * @return true is it's a valid node. False, otherwise.
 	 */
 	private boolean isValidHop(final int nodeIndex, final int finalNodeIndex, final int maxDistance) {
-			dijkstra.execute(nodes.get(nodeIndex));
-			LinkedList<Vertex> path = dijkstra.getPath(nodes.get(finalNodeIndex));
+			getDijkstra().execute(getDijkstraNodes().get(nodeIndex));
+			LinkedList<Vertex> path = getDijkstra().getPath(getDijkstraNodes().get(finalNodeIndex));
 			
 			// If path is null, means that both start and finish refer to the same node, thus it can be added
 	        if((path != null && path.size() <= maxDistance) || path == null)
