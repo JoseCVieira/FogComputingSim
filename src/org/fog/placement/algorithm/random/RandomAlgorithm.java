@@ -10,6 +10,7 @@ import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.placement.algorithm.Algorithm;
 import org.fog.placement.algorithm.Job;
+import org.fog.placement.algorithm.SingleObjectiveCostFunction;
 
 /**
  * Class in which defines and executes the random algorithm.
@@ -45,7 +46,7 @@ public class RandomAlgorithm extends Algorithm {
 		generateDijkstraGraph();
 		
 		while (iteration <= Config.MAX_ITER_RANDOM) {
-			Job job = Job.generateRandomJob(this);
+			Job job = Job.generateRandomJob(this, new SingleObjectiveCostFunction());
 			
 			if(bestCost > job.getCost()) {
 				bestCost = job.getCost();

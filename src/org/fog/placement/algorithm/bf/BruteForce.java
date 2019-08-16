@@ -10,6 +10,7 @@ import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.placement.algorithm.Algorithm;
 import org.fog.placement.algorithm.Job;
+import org.fog.placement.algorithm.SingleObjectiveCostFunction;
 
 /**
  * Class in which defines and executes the brute force algorithm.
@@ -185,7 +186,7 @@ public class BruteForce extends Algorithm {
 		
 		// If tuple routing matrix is already filled analyze the following solution
 		if(row == max_r + 1 && col == 1) {			
-			Job job = new Job(this, modulePlacementMap, tupleRoutingMap, migrationRoutingMap);
+			Job job = new Job(this, new SingleObjectiveCostFunction(), modulePlacementMap, tupleRoutingMap, migrationRoutingMap);
 			
 			if(job.getCost() < bestCost) {
 				bestCost = job.getCost();

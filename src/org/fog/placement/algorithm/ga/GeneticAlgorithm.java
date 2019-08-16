@@ -11,7 +11,9 @@ import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.placement.algorithm.Algorithm;
+import org.fog.placement.algorithm.CostFunction;
 import org.fog.placement.algorithm.Job;
+import org.fog.placement.algorithm.SingleObjectiveCostFunction;
 
 /**
  * Class in which defines and executes the genetic algorithm.
@@ -144,6 +146,8 @@ public class GeneticAlgorithm extends Algorithm {
 	 * @return the population containing the whole solution (module placement map, and tuple and virtual machine migration routing maps)
 	 */
 	public Individual[] GARouting(Individual[] population) {
+		CostFunction cf = new SingleObjectiveCostFunction();
+		
 		// For each individual with a given module placement map
 		for (int i = 0; i < Config.POPULATION_SIZE_GA; i++) {
 			
@@ -157,7 +161,7 @@ public class GeneticAlgorithm extends Algorithm {
 			for (int j = 0; j < Config.POPULATION_SIZE_GA; j++) {
 				int[][] tupleRoutingMap = Job.generateRandomTupleRouting(this, modulePlacementMap, getNumberOfNodes(), getNumberOfDependencies());
 				int[][] migrationRoutingMap = Job.generateRandomMigrationRouting(this, modulePlacementMap, getNumberOfNodes(), getNumberOfModules());
-				populationR[j] = new Individual(this, new Job(this, modulePlacementMap, tupleRoutingMap, migrationRoutingMap));
+				populationR[j] = new Individual(this, new Job(this, cf, modulePlacementMap, tupleRoutingMap, migrationRoutingMap));
 			}
 			
 			double bestValue = Constants.REFERENCE_COST;
@@ -203,7 +207,7 @@ public class GeneticAlgorithm extends Algorithm {
 		        	int[][] childMigrationRoutingMap = populationR[r1].mateMigrationRouting(populationR[r2]);
 		        	
 		        	// Create the new individual
-		        	newGeneration[z] = new Individual(this, new Job(this, modulePlacementMap, childTupleRoutingMap, childMigrationRoutingMap));
+		        	newGeneration[z] = new Individual(this, new Job(this, cf, modulePlacementMap, childTupleRoutingMap, childMigrationRoutingMap));
 		        }
 		        
 		        // Set the current generation's population
