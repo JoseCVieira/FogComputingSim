@@ -109,8 +109,6 @@ public class FogComputingSim {
 	    System.out.println("|       4. Genetic Algorithm                    |");
 	    System.out.println("|       5. Random Algorithm                     |");
 	    System.out.println("|       6. Brute Force                          |");
-	    System.out.println("|       7. Markov Decision Process              |");
-	    System.out.println("|       8. Compare all algorithms               |");
 	    System.out.println("|       0. Exit                                 |");
 	    System.out.println("|                                               |");
 	    System.out.println("—————————————————————————————————————————————————");
