@@ -41,9 +41,11 @@ public class RandomAlgorithm extends Algorithm {
 		// Time at the beginning of the execution of the algorithm
 		long start = System.currentTimeMillis();
 		
+		// Generate the Dijkstra graph
+		generateDijkstraGraph();
 		
 		while (iteration <= Config.MAX_ITER_RANDOM) {
-			Job job = Job.generateRandomJob(this, getCurrentPlacement());
+			Job job = Job.generateRandomJob(this);
 			
 			if(bestCost > job.getCost()) {
 				bestCost = job.getCost();

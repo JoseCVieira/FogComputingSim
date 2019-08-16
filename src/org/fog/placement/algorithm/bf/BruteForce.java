@@ -1,6 +1,5 @@
 package org.fog.placement.algorithm.bf;
 
-import java.util.LinkedList;
 import java.util.List;
 
 import org.fog.application.Application;
@@ -11,7 +10,6 @@ import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.placement.algorithm.Algorithm;
 import org.fog.placement.algorithm.Job;
-import org.fog.placement.algorithm.util.routing.Vertex;
 
 /**
  * Class in which defines and executes the brute force algorithm.
@@ -108,7 +106,7 @@ public class BruteForce extends Algorithm {
 		        int[][] migrationRoutingMap = new int[getNumberOfModules()][getNumberOfNodes()];
 		        
 				for(int j = 0; j < getNumberOfModules(); j++) {
-					migrationRoutingMap[j][0] = isFirstOptimization() ? Job.findModulePlacement(modulePlacementMap, j) : Job.findModulePlacement(currentPositionInt, j);
+					migrationRoutingMap[j][0] = Job.findModulePlacement(isFirstOptimization() ? modulePlacementMap : currentPositionInt, j);
 					migrationRoutingMap[j][getNumberOfNodes()-1] = Job.findModulePlacement(modulePlacementMap, j);
 				}
 				
@@ -234,26 +232,6 @@ public class BruteForce extends Algorithm {
 				}
 			}
 		}
-	}
-	
-	/**
-	 * Checks whether the node is valid. It is valid if, and only if, from the current node index towards the final node index
-	 * there is a path which has lower or equal number of hops as the provided maximum distance.
-	 * 
-	 * @param nodeIndex the current node index
-	 * @param finalNodeIndex the final node index
-	 * @param maxDistance the maximum allowed distance
-	 * @return true is it's a valid node. False, otherwise.
-	 */
-	private boolean isValidHop(final int nodeIndex, final int finalNodeIndex, final int maxDistance) {
-			getDijkstra().execute(getDijkstraNodes().get(nodeIndex));
-			LinkedList<Vertex> path = getDijkstra().getPath(getDijkstraNodes().get(finalNodeIndex));
-			
-			// If path is null, means that both start and finish refer to the same node, thus it can be added
-	        if((path != null && path.size() <= maxDistance) || path == null)
-	        	return true;
-	        
-	        return false;
 	}
 	
 }
