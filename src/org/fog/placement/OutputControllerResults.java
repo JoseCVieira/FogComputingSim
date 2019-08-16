@@ -31,19 +31,11 @@ public class OutputControllerResults {
 	public OutputControllerResults(Controller controller) {
 		this.controller = controller;
 		
-		printPacketDetails();
 		printTimeDetails();
 		printEnergyDetails();
 		printCostDetails();
 		printNetworkUsageDetails();
-	}
-	
-	/**
-	 * Prints both the number of packet drop and packet successfully delivered in order to check the QoS degradation.
-	 */
-	private static void printPacketDetails() {
-		System.out.println("\n\nPacket drop count: " + Analysis.getPacketDrop());
-		System.out.println("Packet success count: " + Analysis.getPacketSuccess());
+		printPacketDetails();
 	}
 	
 	/**
@@ -82,22 +74,35 @@ public class OutputControllerResults {
 	}
 	
 	/**
-	 * Prints the network usage details obtained in the simulation execution.
+	 * Prints the energy details obtained in the simulation execution.
 	 */
-	private void printNetworkUsageDetails() {
+	private void printEnergyDetails() {
+		DecimalFormat df = new DecimalFormat("0.00");
+		Double aux = 0.0;
+		
 		System.out.println("\n");
 		newDetailsField(2, '=');
-		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "TOTAL NETWORK USAGE") + "|");
+		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "ENERGY CONSUMED") + "|");
 		newDetailsField(2, '-');
-		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "" +
-				NetworkUsageMonitor.getNetworkUsage()/Config.MAX_SIMULATION_TIME) + "|");
+		System.out.print("|" + Util.centerString(MAX_COLUMN_SIZE/5-1, "ID") + "|" +
+				Util.centerString(MAX_COLUMN_SIZE-MAX_COLUMN_SIZE/5, "NAME") + "|" +
+				Util.centerString(MAX_COLUMN_SIZE, "VALUE") + "|\n");
+		newDetailsField(2, '-');
+		for(FogDevice fogDevice : controller.getFogDevices()) {
+			aux += fogDevice.getEnergyConsumption();
+			System.out.print("|" + Util.centerString(MAX_COLUMN_SIZE/5-1, String.valueOf(fogDevice.getId())) + "|" +
+					Util.centerString(MAX_COLUMN_SIZE-MAX_COLUMN_SIZE/5, fogDevice.getName()) + "|" +
+					Util.centerString(MAX_COLUMN_SIZE, String.valueOf(df.format(fogDevice.getEnergyConsumption()))) + "|\n");
+		}
+		newDetailsField(2, '-');
+		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "TOTAL = " + df.format(aux)) + "|");
 		newDetailsField(2, '=');
 	}
 	
 	/**
 	 * Prints the monetary cost details obtained in the simulation execution.
 	 */
-	private void printCostDetails(){
+	private void printCostDetails() {
 		DecimalFormat df = new DecimalFormat("0.00"); 
 		Double aux = 0.0;
 		
@@ -121,28 +126,30 @@ public class OutputControllerResults {
 	}
 	
 	/**
-	 * Prints the energy details obtained in the simulation execution.
+	 * Prints the network usage details obtained in the simulation execution.
 	 */
-	private void printEnergyDetails() {
-		DecimalFormat df = new DecimalFormat("0.00");
-		Double aux = 0.0;
-		
+	private void printNetworkUsageDetails() {
 		System.out.println("\n");
 		newDetailsField(2, '=');
-		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "ENERGY CONSUMED") + "|");
+		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "TOTAL NETWORK USAGE") + "|");
 		newDetailsField(2, '-');
-		System.out.print("|" + Util.centerString(MAX_COLUMN_SIZE/5-1, "ID") + "|" +
-				Util.centerString(MAX_COLUMN_SIZE-MAX_COLUMN_SIZE/5, "NAME") + "|" +
-				Util.centerString(MAX_COLUMN_SIZE, "VALUE") + "|\n");
+		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "" +
+				NetworkUsageMonitor.getNetworkUsage()/Config.MAX_SIMULATION_TIME) + "|");
+		newDetailsField(2, '=');
+	}
+	
+	/**
+	 * Prints both the number of packet drop and packet successfully delivered in order to check the QoS degradation.
+	 */
+	private static void printPacketDetails() {
+		System.out.println("\n");
+		newDetailsField(2, '=');
+		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "PACKET COUTERS") + "|");
 		newDetailsField(2, '-');
-		for(FogDevice fogDevice : controller.getFogDevices()) {
-			aux += fogDevice.getEnergyConsumption();
-			System.out.print("|" + Util.centerString(MAX_COLUMN_SIZE/5-1, String.valueOf(fogDevice.getId())) + "|" +
-					Util.centerString(MAX_COLUMN_SIZE-MAX_COLUMN_SIZE/5, fogDevice.getName()) + "|" +
-					Util.centerString(MAX_COLUMN_SIZE, String.valueOf(df.format(fogDevice.getEnergyConsumption()))) + "|\n");
-		}
-		newDetailsField(2, '-');
-		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "TOTAL = " + df.format(aux)) + "|");
+			System.out.print("|" + Util.centerString(MAX_COLUMN_SIZE, "Success") + "|" +
+					Util.centerString(MAX_COLUMN_SIZE, Integer.toString(Analysis.getPacketSuccess())) + "|\n");
+			System.out.print("|" + Util.centerString(MAX_COLUMN_SIZE, "Drop") + "|" +
+					Util.centerString(MAX_COLUMN_SIZE, Integer.toString(Analysis.getPacketDrop())) + "|\n");
 		newDetailsField(2, '=');
 	}
 	
