@@ -1,74 +1,99 @@
 package org.fog.placement.algorithm;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
 import org.fog.core.Constants;
-import org.fog.placement.algorithm.routing.DijkstraAlgorithm;
-import org.fog.placement.algorithm.routing.Edge;
-import org.fog.placement.algorithm.routing.Graph;
-import org.fog.placement.algorithm.routing.Vertex;
 import org.fog.utils.Util;
 
-public class Job implements Comparable<Job> {
+/**
+ * Class representing the solution of the optimization algorithm.
+ * 
+ * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
+ * @since  July, 2019
+ */
+public class Job {
+	/** Matrix representing the application module placement table (binary) */
 	private int[][] modulePlacementMap;
-	private int[][] tupleRoutingMap;
-	private int[][] migrationRoutingMap;
-	private double cost;
-	private boolean isValid;
 	
+	/** Matrix representing the tuple routing table (each row is a dependency between different pair of nodes) */
+	private int[][] tupleRoutingMap;
+	
+	/** Matrix representing the virtual machine migration routing table */
+	private int[][] migrationRoutingMap;
+	
+	/** Result of the cost function */
+	private double cost;
+	
+	/** Defines whether the solution is valid (respects all constraints) */
+	private boolean valid;
+	
+	/**
+	 * Creates a copy of a solution.
+	 * 
+	 * @param anotherJob the solution to be copied
+	 */
 	public Job(Job anotherJob) {
 		this.modulePlacementMap = Util.copy(anotherJob.getModulePlacementMap());
 		this.tupleRoutingMap = Util.copy(anotherJob.getTupleRoutingMap());
-		this.setMigrationRoutingMap(Util.copy(anotherJob.getMigrationRoutingMap()));
+		this.migrationRoutingMap = Util.copy(anotherJob.getMigrationRoutingMap());
 		this.cost = anotherJob.getCost();
-		this.setValid(anotherJob.isValid());
+		this.valid = anotherJob.isValid();
 	}
 	
+	/**
+	 * Creates a new solution only with the module placement defined (by default it's an invalid solution).
+	 * 
+	 * @param modulePlacementMap
+	 */
 	public Job(int[][] modulePlacementMap) {
 		this.modulePlacementMap = modulePlacementMap;
-		this.cost = -1;
 	}
 	
-	public Job(Algorithm algorithm, int[][] modulePlacementMap, int[][] tupleRoutingMap, int[][] migrationRoutingMap) {
+	/**
+	 * Creates a solution based on the application module placement, tuple routing, and virtual machine migration
+	 * routing tables.
+	 * 
+	 * @param algorithm the object which holds all the information needed to run the optimization algorithm
+	 * @param cf the object which contains the methods to analyze the cost and the constrains of the solution
+	 * @param modulePlacementMap the module placement matrix (binary)
+	 * @param tupleRoutingMap the tuple routing matrix
+	 * @param migrationRoutingMap the migration routing matrix
+	 */
+	public Job(Algorithm algorithm, CostFunction cf, int[][] modulePlacementMap, int[][] tupleRoutingMap, int[][] migrationRoutingMap) {
 		this.modulePlacementMap = modulePlacementMap;
 		this.tupleRoutingMap = tupleRoutingMap;
 		this.migrationRoutingMap = migrationRoutingMap;
-		CostFunction.computeCost(this, algorithm);
+		cf.analyzeSolution(algorithm, this);
 	}
 	
-	public Job(Algorithm algorithm, int[][] modulePlacementMap, int[][][] tupleRoutingVectorMap,
-			int[][][] migrationRoutingVectorMap, double[][] currentPlacement) {
+	/**
+	 * Creates a solution based on the application module placement, tuple routing, and virtual machine migration
+	 * routing tables (all of which being binary tables).
+	 * 
+	 * @param algorithm the object which holds all the information needed to run the optimization algorithm
+	 * @param cf the object which contains the methods to analyze the cost and the constrains of the solution; can be
+	 * null (e.g., if it was calculated via CPLEX, there is no need to verify the constraints again neither to compute
+	 * the result of the cost function; this way the solution is set to valid automatically)
+	 * @param modulePlacementMap the module placement matrix (binary)
+	 * @param tupleRoutingVectorMap the tuple routing matrix (binary)
+	 * @param migrationRoutingVectorMap the migration routing matrix (binary)
+	 */
+	public Job(Algorithm algorithm, CostFunction cf, int[][] modulePlacementMap, int[][][] tupleRoutingVectorMap, int[][][] migrationRoutingVectorMap) {
 		int nrDependencies = tupleRoutingVectorMap.length;
 		int nrNodes = algorithm.getNumberOfNodes();
 		int nrModules = algorithm.getNumberOfModules();
 		int[][] tupleRoutingMap = new int[nrDependencies][nrNodes];
 		int[][] migrationRoutingMap = new int[nrModules][nrNodes];
 		
-		// Tuple routing map
-		int iter = 0;
+		int iter;
 		
-		for(int i = 0; i < nrModules; i++) {
-			for (int j = 0; j < nrModules; j++) {
-				if(algorithm.getmDependencyMap()[i][j] == 0)
-					continue;
-				
-				for(int z = 0; z < nrNodes; z++) {
-					if(modulePlacementMap[z][i] != 1)
-						continue;
-					
-					tupleRoutingMap[iter++][0] = z;
-					break;
-				}
-			}
-		}
-		
+		// Tuple routing map		
 		for(int i = 0; i < nrDependencies; i++) {
+			int from = Job.findModulePlacement(modulePlacementMap, algorithm.getStartModDependency(i));
+			tupleRoutingMap[i][0] = from;
 			iter = 1;
-			int from = tupleRoutingMap[i][0];
 			
 			boolean found = true;
 			while(found) {
@@ -89,54 +114,65 @@ public class Job implements Comparable<Job> {
 			}
 		}
 		
+		
 		// Migration routing map
-		if(!algorithm.isFirstOptimization()) {
-			for(int i = 0; i < nrModules; i++) {
-				iter = 1;
+		for(int i = 0; i < nrModules; i++) {
+			int from = Job.findModulePlacement(modulePlacementMap, i);
+			migrationRoutingMap[i][0] = from;
+			iter = 1;
+			
+			boolean found = true;
+			while(found) {
+				found = false;
 				
 				for(int j = 0; j < nrNodes; j++) {
-					if(currentPlacement[j][i] == 1) {
-						migrationRoutingMap[i][0] = j;
+					if(migrationRoutingVectorMap[i][from][j] == 1) {
+						migrationRoutingMap[i][iter++] = j;
+						from = j;
+						j = nrNodes;
+						found = true;
 					}
 				}
-				
-				int from = migrationRoutingMap[i][0];
-				boolean found = true;
-				while(found) {
-					found = false;
-					
-					for(int j = 0; j < nrNodes; j++) {
-						if(migrationRoutingVectorMap[i][from][j] == 1) {
-							migrationRoutingMap[i][iter++] = j;
-							from = j;
-							j = nrNodes;
-							found = true;
-						}
-					}
-				}
-				
-				for(int j = iter; j < nrNodes; j++) {
-					migrationRoutingMap[i][j] = from;
-				}
+			}
+			
+			for(int j = iter; j < nrNodes; j++) {
+				migrationRoutingMap[i][j] = from;
 			}
 		}
 		
 		this.modulePlacementMap = modulePlacementMap;
 		this.tupleRoutingMap = tupleRoutingMap;
 		this.migrationRoutingMap = migrationRoutingMap;
-		CostFunction.computeCost(this, algorithm);
+		if(cf != null) cf.analyzeSolution(algorithm, this);
+		else this.valid = true;
 	}
 	
-	public static Job generateRandomJob(Algorithm algorithm, double[][] currentPosition) {
+	/**
+	 * Generates a random algorithm solution.
+	 * 
+	 * @param algorithm the object which holds all the information needed to run the optimization algorithm
+	 * @param cf the object which contains the methods to analyze the cost and the constrains of the solution; can be null
+	 * @return the random algorithm solution 
+	 */
+	public static Job generateRandomJob(Algorithm algorithm, CostFunction cf) {
 		int nrFogNodes = algorithm.getNumberOfNodes();
 		int nrModules = algorithm.getNumberOfModules();
+		int nrDependencies = algorithm.getNumberOfDependencies();
 		
 		int[][] modulePlacementMap = generateRandomPlacement(algorithm, nrFogNodes, nrModules);
-		int[][] tupleRoutingMap = generateRandomTupleRouting(algorithm, modulePlacementMap, nrFogNodes);
-		int[][] migrationRoutingMap = generateRandomMigrationRouting(algorithm, modulePlacementMap, currentPosition, nrFogNodes, nrModules);
-		return new Job(algorithm, modulePlacementMap, tupleRoutingMap, migrationRoutingMap);
+		int[][] tupleRoutingMap = generateRandomTupleRouting(algorithm, modulePlacementMap, nrFogNodes, nrDependencies);
+		int[][] migrationRoutingMap = generateRandomMigrationRouting(algorithm, modulePlacementMap, nrFogNodes, nrModules);
+		return new Job(algorithm, cf, modulePlacementMap, tupleRoutingMap, migrationRoutingMap);
 	}
 	
+	/**
+	 * Generates a random application module placement based on the possibles one.
+	 * 
+	 * @param algorithm the object which holds all the information needed to run the optimization algorithm
+	 * @param nrFogNodes the number of fog nodes in the topology
+	 * @param nrModules the number of modules in the topology
+	 * @return the random application module placement
+	 */
 	public static int[][] generateRandomPlacement(Algorithm algorithm, int nrFogNodes, int nrModules) {
 		int[][] modulePlacementMap = new int[nrFogNodes][nrModules];
 		double[][] possibleDeployment = algorithm.getPossibleDeployment();
@@ -154,57 +190,37 @@ public class Job implements Comparable<Job> {
 		return modulePlacementMap;
 	}
 	
-	public static int[][] generateRandomTupleRouting(Algorithm algorithm, int[][] modulePlacementMap, int nrFogNodes) {
-		List<Integer> initialNodes = new ArrayList<Integer>();
-		List<Integer> finalNodes = new ArrayList<Integer>();
-		List<Vertex> nodes = new ArrayList<Vertex>();
-		List<Edge> edges = new ArrayList<Edge>();
+	/**
+	 * Generates a random tuple routing table based on a given module placement and the distances computed by the Dijkstra algorithm.
+	 * 
+	 * @param algorithm the object which holds all the information needed to run the optimization algorithm
+	 * @param modulePlacementMap the module placement
+	 * @param nrFogNodes the number of fog nodes in the topology
+	 * @param nrDependencies the number of dependencies between pairs of nodes
+	 * @return the random tuple routing table
+	 */
+	public static int[][] generateRandomTupleRouting(Algorithm algorithm, int[][] modulePlacementMap, int nrFogNodes, int nrDependencies) {
+		int[][] routingMap = new int[nrDependencies][nrFogNodes];
 		
-		for(int i = 0; i < algorithm.getmDependencyMap().length; i++) {
-			for(int j = 0; j < algorithm.getmDependencyMap()[0].length; j++) {
-				if(algorithm.getmDependencyMap()[i][j] != 0) {
-					initialNodes.add(findModulePlacement(modulePlacementMap, i));
-					finalNodes.add(findModulePlacement(modulePlacementMap, j));
-				}
-			}
-		}
-		
-		for(int i  = 0; i < nrFogNodes; i++) {
-			nodes.add(new Vertex("Node=" + i));
-		}
-		
-		for(int i  = 0; i < nrFogNodes; i++) {
-			for(int j  = 0; j < nrFogNodes; j++) {
-				if(algorithm.getfLatencyMap()[i][j] < Constants.INF) {
-					 edges.add(new Edge(nodes.get(i), nodes.get(j), 1.0));
-				}
-			}
-        }
-		
-		int[][] routingMap = new int[initialNodes.size()][nrFogNodes];
-		
-		for(int i  = 0; i < initialNodes.size(); i++) {
-			routingMap[i][0] = initialNodes.get(i);
-			routingMap[i][nrFogNodes - 1] = finalNodes.get(i);
-			
-			Graph graph = new Graph(nodes, edges);
-	        DijkstraAlgorithm dijkstra = new DijkstraAlgorithm(graph);
+		for(int i  = 0; i < nrDependencies; i++) {			
+			routingMap[i][0] = Job.findModulePlacement(modulePlacementMap, algorithm.getStartModDependency(i));
+			routingMap[i][nrFogNodes-1] = Job.findModulePlacement(modulePlacementMap, algorithm.getFinalModDependency(i));
 	        
 			for(int j = 1; j < nrFogNodes - 1; j++) {
+				// If its already the final node, then just fill the remain ones
+				if(routingMap[i][j-1] == routingMap[i][nrFogNodes-1]) {
+					for(; j < nrFogNodes - 1; j++) {
+						routingMap[i][j] = routingMap[i][nrFogNodes-1];
+					}
+					break;
+				}
+				
 				List<Integer> validValues = new ArrayList<Integer>();
 				
-				for(int z = 0; z < nrFogNodes; z++) {
-					if(algorithm.getfLatencyMap()[routingMap[i][j-1]][z] < Constants.INF) {
-						
-						dijkstra.execute(nodes.get(z));
-						LinkedList<Vertex> path = dijkstra.getPath(nodes.get(finalNodes.get(i)));
-						
-						
-						// If path is null, means that both start and finish refer to the same node, thus it can be added
-				        if((path != null && path.size() <= nrFogNodes - j) || path == null) {
-				        	validValues.add(z);
-				        }
-					}
+				for(int z = 0; z < nrFogNodes; z++) {					
+					if(algorithm.getfLatencyMap()[routingMap[i][j-1]][z] == Constants.INF) continue;
+					if(!algorithm.isValidHop(z, routingMap[i][nrFogNodes-1], nrFogNodes - j)) continue;
+					validValues.add(z);
 				}
 						
 				routingMap[i][j] = validValues.get(new Random().nextInt(validValues.size()));
@@ -214,68 +230,42 @@ public class Job implements Comparable<Job> {
 		return routingMap;
 	}
 	
-	public static int[][] generateRandomMigrationRouting(Algorithm algorithm, int[][] modulePlacementMap, double[][] currentPosition,
-			int nrFogNodes, int nrModules) {
-		
+	
+	/**
+	 * Generates a random virtual machine migration routing table based on a given module placement and current position and the distances
+	 * computed by the Dijkstra algorithm.
+	 * 
+	 * @param algorithm the object which holds all the information needed to run the optimization algorithm
+	 * @param modulePlacementMap the module placement
+	 * @param nrFogNodes the number of fog nodes in the topology
+	 * @param nrModules the number of modules in the topology
+	 * @return the random virtual machine migration routing table
+	 */
+	public static int[][] generateRandomMigrationRouting(Algorithm algorithm, int[][] modulePlacementMap, int nrFogNodes, int nrModules) {
+		int[][] currentPosition = algorithm.getCurrentPositionInt();
 		int[][] routingMap = new int[nrModules][nrFogNodes];
-		if(algorithm.isFirstOptimization()) {
-			for(int i = 0; i < nrModules; i++) {
-				int pos = findModulePlacement(modulePlacementMap, i);
-				for (int j = 0; j < nrFogNodes; j++) {
-					routingMap[i][j] = pos;
-				}
-			}
-			return routingMap;
-		}
 		
-		List<Integer> initialNodes = new ArrayList<Integer>();
-		List<Integer> finalNodes = new ArrayList<Integer>();
-		List<Vertex> nodes = new ArrayList<Vertex>();
-		List<Edge> edges = new ArrayList<Edge>();
-		
-		int[][] currentPositionInt = algorithm.getCurrentPositionInt();
-		
-		for(int i = 0; i < algorithm.getmDependencyMap().length; i++) {
-			initialNodes.add(findModulePlacement(currentPositionInt, i));
-			finalNodes.add(findModulePlacement(modulePlacementMap, i));
-		}
-		
-		for(int i  = 0; i < nrFogNodes; i++) {
-			nodes.add(new Vertex("Node=" + i));
-		}
-		
-		for(int i  = 0; i < nrFogNodes; i++) {
-			for(int j  = 0; j < nrFogNodes; j++) {
-				if(algorithm.getfLatencyMap()[i][j] < Constants.INF) {
-					 edges.add(new Edge(nodes.get(i), nodes.get(j), 1.0));
-				}
-			}
-        }
-		
-		for(int i  = 0; i < initialNodes.size(); i++) {
-			routingMap[i][0] = initialNodes.get(i);
-			routingMap[i][nrFogNodes - 1] = finalNodes.get(i);
+		for(int i = 0; i < nrModules; i++) { // Module index
+			routingMap[i][0] = Job.findModulePlacement(algorithm.isFirstOptimization() ? modulePlacementMap : currentPosition, i);
+			routingMap[i][nrFogNodes-1] = Job.findModulePlacement(modulePlacementMap, i);
 			
-			Graph graph = new Graph(nodes, edges);
-	        DijkstraAlgorithm dijkstra = new DijkstraAlgorithm(graph);
-	        
-			for(int j = 1; j < nrFogNodes - 1; j++) {
+			for(int j = 1; j < nrFogNodes - 1; j++) { // Routing hop index
+				// If its already the final node, then just fill the remain ones
+				if(routingMap[i][j-1] == routingMap[i][nrFogNodes-1]) {
+					for(; j < nrFogNodes - 1; j++) {
+						routingMap[i][j] = routingMap[i][nrFogNodes-1];
+					}
+					break;
+				}
+				
 				List<Integer> validValues = new ArrayList<Integer>();
 				
-				for(int z = 0; z < nrFogNodes; z++) {
-					if(algorithm.getfLatencyMap()[routingMap[i][j-1]][z] < Constants.INF) {
-						
-						dijkstra.execute(nodes.get(z));
-						LinkedList<Vertex> path = dijkstra.getPath(nodes.get(finalNodes.get(i)));
-						
-						
-						// If path is null, means that both start and finish refer to the same node, thus it can be added
-				        if((path != null && path.size() <= nrFogNodes - j) || path == null) {
-				        	validValues.add(z);
-				        }
-					}
+				for(int z = 0; z < nrFogNodes; z++) { // Node index
+					if(algorithm.getfLatencyMap()[routingMap[i][j-1]][z] == Constants.INF) continue;
+					if(!algorithm.isValidHop(z, routingMap[i][nrFogNodes-1], nrFogNodes - j)) continue;
+					validValues.add(z);
 				}
-						
+				
 				routingMap[i][j] = validValues.get(new Random().nextInt(validValues.size()));
 			}
 		}
@@ -283,78 +273,81 @@ public class Job implements Comparable<Job> {
 		return routingMap;
 	}
 	
+	/**
+	 * Gets the matrix representing the application module placement table (binary).
+	 * 
+	 * @return the matrix representing the application module placement table
+	 */
 	public int[][] getModulePlacementMap() {
 		return modulePlacementMap;
 	}
-
+	
+	/**
+	 * Gets the matrix representing the tuple routing table (each row is a dependency between different pair of nodes).
+	 * 
+	 * @return the matrix representing the tuple routing table
+	 */
 	public int[][] getTupleRoutingMap() {
 		return tupleRoutingMap;
 	}
 	
+	/**
+	 * Gets the matrix representing the virtual machine migration routing table.
+	 * 
+	 * @return the matrix representing the virtual machine migration routing table
+	 */
+	public int[][] getMigrationRoutingMap() {
+		return migrationRoutingMap;
+	}
+	
+	/**
+	 * Gets the result of the cost function.
+	 * 
+	 * @return the result of the cost function
+	 */
 	public double getCost() {
 		return cost;
 	}
 	
+	/**
+	 * Sets the result of the cost function.
+	 * 
+	 * @param cost the result of the cost function
+	 */
 	public void setCost(double cost) {
 		this.cost = cost;
 	}
 	
+	/**
+	 * Verifies whether the solution is valid (respects all constraints).
+	 * 
+	 * @return true if the solution is valid, otherwise false
+	 */
 	public boolean isValid() {
-		return isValid;
-	}
-
-	public void setValid(boolean isValid) {
-		this.isValid = isValid;
+		return valid;
 	}
 	
-	public int[][] getMigrationRoutingMap() {
-		return migrationRoutingMap;
-	}
-
-	public void setMigrationRoutingMap(int[][] migrationRoutingMap) {
-		this.migrationRoutingMap = migrationRoutingMap;
+	/**
+	 * Defines whether the solution is valid (respects all constraints).
+	 * 
+	 * @param valid if the solution is valid
+	 */
+	public void setValid(boolean valid) {
+		this.valid = valid;
 	}
 	
-	public static int findModulePlacement(int[][] chromosome, int colomn) {
-		for(int i = 0; i < chromosome.length; i++)
-			if(chromosome[i][colomn] == 1)
+	/**
+	 * Finds the fog device index where a given module was placed.
+	 * 
+	 * @param binary the binary matrix representing the module placement
+	 * @param colomn the module to find the fog device index
+	 * @return the fog device index; -1 if it was not found
+	 */
+	public static int findModulePlacement(int[][] binary, int colomn) {
+		for(int i = 0; i < binary.length; i++)
+			if(binary[i][colomn] == 1)
 				return i;
 		return -1;
-	}
-	
-	@Override
-	public int compareTo(Job job) {
-		return Double.compare(this.cost, job.getCost());
-	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		long temp;
-		temp = Double.doubleToLongBits(cost);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		result = prime * result + Arrays.deepHashCode(modulePlacementMap);
-		result = prime * result + Arrays.deepHashCode(tupleRoutingMap);
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Job other = (Job) obj;
-		if (Double.doubleToLongBits(cost) != Double.doubleToLongBits(other.cost))
-			return false;
-		if (!Arrays.deepEquals(modulePlacementMap, other.modulePlacementMap))
-			return false;
-		if (!Arrays.deepEquals(tupleRoutingMap, other.tupleRoutingMap))
-			return false;
-		return true;
 	}
 	
 }
