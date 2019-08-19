@@ -7,13 +7,37 @@ import org.fog.core.FogComputingSim;
 
 /**
  * Class in which constraints are defined and analyzed both for single- or multiple-objective optimization
- * problems. Violated constraints are multiplied by Constants.REFERENCE_COST in order to allow an easier
- * conversion for the evolutionary algorithms.
+ * problems (except for problems defined using frameworks such as CPLEX and NSGA2). Violated constraints
+ * are multiplied by Constants.REFERENCE_COST in order to allow an easier conversion for the evolutionary
+ * algorithms.
  * 
  * @author  José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST)
  * @since   July, 2019
  */
 public class Constraints {
+	/**
+	 * Verifies if all constraints are met.
+	 * 
+	 * @param algorithm object which contains all information about the topology and which algorithm was used
+	 * @param modulePlacementMap matrix which represents the next module placement
+	 * @param tupleRoutingMap matrix which contains the routing for each module pair dependency
+	 * @param migrationRoutingMap matrix which contains the routing for each module migration
+	 * @return the number of violations times a constant
+	 */
+	static double checkConstraints(final Algorithm algorithm, final int[][] modulePlacementMap,
+			final int[][] tupleRoutingMap, final int[][] migrationRoutingMap) {
+		Constraints.checkVariableSizeType(algorithm, modulePlacementMap, tupleRoutingMap, migrationRoutingMap);
+		
+		double constraint = checkResourcesExceeded(algorithm, modulePlacementMap);
+		constraint += checkPossiblePlacement(algorithm, modulePlacementMap);
+		constraint += checkMultiplePlacement(algorithm, modulePlacementMap);
+		constraint += checkDependencies(algorithm, modulePlacementMap, tupleRoutingMap);
+		constraint += checkBandwidth(algorithm, tupleRoutingMap);
+		constraint += checkMigration(algorithm, modulePlacementMap, migrationRoutingMap);
+		constraint += checkDeadlines(algorithm, modulePlacementMap, tupleRoutingMap, migrationRoutingMap);
+		
+		return constraint;
+	}
 	
 	/**
 	 * Check if all variables have the correct size and type.
@@ -23,7 +47,7 @@ public class Constraints {
 	 * @param tupleRoutingMap matrix which contains the routing for each module pair dependency
 	 * @param migrationRoutingMap matrix which contains the routing for each module migration
 	 */
-	static void checkVariableSizeType(final Algorithm algorithm, final int[][] modulePlacementMap,
+	private static void checkVariableSizeType(final Algorithm algorithm, final int[][] modulePlacementMap,
 			final int[][] tupleRoutingMap, final int[][] migrationRoutingMap) {
 		
 		if(modulePlacementMap.length != algorithm.getNumberOfNodes() || modulePlacementMap[0].length != algorithm.getNumberOfModules())
@@ -64,7 +88,7 @@ public class Constraints {
 	 * @param modulePlacementMap matrix which represents the next module placement
 	 * @return the number of violations times a constant (zero if this constraint has been respected)
 	 */
-	static double checkResourcesExceeded(final Algorithm algorithm, final int[][] modulePlacementMap) {
+	private static double checkResourcesExceeded(final Algorithm algorithm, final int[][] modulePlacementMap) {
 		double violations = 0;
 		
 		for(int i = 0; i < algorithm.getNumberOfNodes(); i++) {
@@ -95,7 +119,7 @@ public class Constraints {
 	 * @param modulePlacementMap matrix which represents the next module placement
 	 * @return the number of violations times a constant (zero if this constraint has been respected)
 	 */
-	static double checkPossiblePlacement(final Algorithm algorithm, final int[][] modulePlacementMap) {
+	private static double checkPossiblePlacement(final Algorithm algorithm, final int[][] modulePlacementMap) {
 		double violations = 0;
 		
 		for(int i  = 0; i < algorithm.getNumberOfNodes(); i++) {
@@ -118,7 +142,7 @@ public class Constraints {
 	 * @param modulePlacementMap matrix which represents the next module placement
 	 * @return the number of violations times a constant (zero if this constraint has been respected)
 	 */
-	static double checkMultiplePlacement(final Algorithm algorithm, final int[][] modulePlacementMap) {
+	private static double checkMultiplePlacement(final Algorithm algorithm, final int[][] modulePlacementMap) {
 		double violations = 0;
 		
 		for(int j = 0; j < algorithm.getNumberOfModules(); j++) {
@@ -147,7 +171,7 @@ public class Constraints {
 	 * @param tupleRoutingMap matrix which contains the routing for each module pair dependency
 	 * @return the number of violations times a constant (zero if this constraint has been respected)
 	 */
-	static double checkDependencies(final Algorithm algorithm, final int[][] modulePlacementMap, final int[][] tupleRoutingMap) {
+	private static double checkDependencies(final Algorithm algorithm, final int[][] modulePlacementMap, final int[][] tupleRoutingMap) {
 		double violations = 0;
 		int tmp = 0;
 		
@@ -184,7 +208,7 @@ public class Constraints {
 	 * @param tupleRoutingMap matrix which contains the routing for each module pair dependency
 	 * @return the number of violations times a constant (zero if this constraint has been respected)
 	 */
-	static double checkBandwidth(final Algorithm algorithm, final int[][] tupleRoutingMap) {
+	private static double checkBandwidth(final Algorithm algorithm, final int[][] tupleRoutingMap) {
 		double violations = 0;
 		double bwUsage[][] = new double[algorithm.getNumberOfNodes()][algorithm.getNumberOfNodes()];
 		
@@ -228,7 +252,8 @@ public class Constraints {
 	 * @param migrationRoutingMap matrix which contains the routing for each module migration
 	 * @return the number of violations times a constant (zero if this constraint has been respected)
 	 */
-	static double checkMigration(final Algorithm algorithm, final int[][] modulePlacementMap, final int[][] migrationRoutingMap) {
+	private static double checkMigration(final Algorithm algorithm, final int[][] modulePlacementMap,
+			final int[][] migrationRoutingMap) {
 		double violations = 0;
 		int[][] currentPlacement = algorithm.getCurrentPositionInt();
 		boolean firstOpt = algorithm.isFirstOptimization();
@@ -262,7 +287,8 @@ public class Constraints {
 	 * @param migrationRoutingMap matrix which contains the routing for each module migration
 	 * @return the number of violations times a constant (zero if this constraint has been respected)
 	 */
-	static double checkDeadlines(final Algorithm algorithm, final int[][] modulePlacementMap, final int[][] tupleRoutingMap, final int[][] migrationRoutingMap) {
+	private static double checkDeadlines(final Algorithm algorithm, final int[][] modulePlacementMap,
+			final int[][] tupleRoutingMap, final int[][] migrationRoutingMap) {
 		double violations = 0;
 		int [][] loops = algorithm.getLoops();
 		
