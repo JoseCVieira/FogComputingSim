@@ -105,10 +105,9 @@ public class FogComputingSim {
 	    System.out.println("|       1. Multiobjective Linear Programming    |");
 	    System.out.println("|       2. Multiobjective Genetic Algorithm     |");
 	    System.out.println("|                  -------------                |");
-	    System.out.println("|       3. Linear Programming                   |");
-	    System.out.println("|       4. Genetic Algorithm                    |");
-	    System.out.println("|       5. Random Algorithm                     |");
-	    System.out.println("|       6. Brute Force                          |");
+	    System.out.println("|       3. Genetic Algorithm                    |");
+	    System.out.println("|       4. Random Algorithm                     |");
+	    System.out.println("|       5. Brute Force                          |");
 	    System.out.println("|       0. Exit                                 |");
 	    System.out.println("|                                               |");
 	    System.out.println("—————————————————————————————————————————————————");

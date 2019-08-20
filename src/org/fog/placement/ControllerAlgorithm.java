@@ -11,7 +11,6 @@ import org.fog.entities.Sensor;
 import org.fog.placement.algorithm.Algorithm;
 import org.fog.placement.algorithm.Job;
 import org.fog.placement.algorithm.bf.BruteForce;
-import org.fog.placement.algorithm.lp.LinearProgramming;
 import org.fog.placement.algorithm.lp.MultiObjectiveLinearProgramming;
 import org.fog.placement.algorithm.ga.GeneticAlgorithm;
 import org.fog.placement.algorithm.random.RandomAlgorithm;
@@ -27,11 +26,10 @@ import org.fog.placement.algorithm.util.AlgorithmUtils;
 public class ControllerAlgorithm {
 	public static final int MOLP = 1;
 	public static final int MOGA = 2;
-	public static final int LP = 3;
-	public static final int GA = 4;
-	public static final int RAND = 5;
-	public static final int BF = 6;
-	public static final int NR_ALGORITHMS = 6;
+	public static final int GA = 3;
+	public static final int RAND = 4;
+	public static final int BF = 5;
+	public static final int NR_ALGORITHMS = 5;
 	
 	/** Object which holds all the information needed to run the optimization algorithm */
 	private Algorithm algorithm;
@@ -73,10 +71,6 @@ public class ControllerAlgorithm {
 					algorithmName = "Multiobjective Genetic Algorithm";
 					algorithm = new MultiObjectiveGeneticAlgorithm(fogDevices, appList, sensors, actuators);
 					break;*/
-				case LP:
-					algorithmName = "Linear Programming";
-					algorithm = new LinearProgramming(fogDevices, appList, sensors, actuators);
-					break;
 				case GA:
 					algorithmName = "Genetic Algorithm";
 					algorithm = new GeneticAlgorithm(fogDevices, appList, sensors, actuators);
