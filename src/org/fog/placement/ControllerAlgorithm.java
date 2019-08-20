@@ -46,10 +46,6 @@ public class ControllerAlgorithm {
 	/**
 	 * Creates a new instance and receives all the information needed for the optimization algorithm.
 	 * 
-	 * @param fogDevices the list containing all fog devices within the fog network
-	 * @param appList the list containing all applications to be deployed into the fog network
-	 * @param sensors the list containing all sensors
-	 * @param actuators the list containing all actuators
 	 * @param algorithmOp the id of the optimization algorithm chosen to be executed
 	 */
 	public ControllerAlgorithm(int algorithmOp) {
@@ -58,6 +54,11 @@ public class ControllerAlgorithm {
 	
 	/**
 	 * Parses the information and executes the chosen optimization algorithm.
+	 * 
+	 * @param fogDevices the list containing all fog devices within the fog network
+	 * @param appList the list containing all applications to be deployed into the fog network
+	 * @param sensors the list containing all sensors
+	 * @param actuators the list containing all actuators
 	 */
 	public void computeAlgorithm(List<FogDevice> fogDevices, List<Application> appList, List<Sensor> sensors, List<Actuator> actuators) {
 		// It will be the first execution of the optimization algorithm
