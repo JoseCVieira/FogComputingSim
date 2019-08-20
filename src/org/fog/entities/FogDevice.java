@@ -46,6 +46,7 @@ import org.fog.utils.Util;
  * @since  July, 2019
  */
 public class FogDevice extends PowerDatacenter {
+	
 	/** List containing all deployed modules within it */
 	private List<String> deployedModules;
 	

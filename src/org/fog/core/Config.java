@@ -106,7 +106,7 @@ public class Config {
 	public static boolean PRINT_COST_DETAILS = false;
 	
 	/** Defines whether the simulation is dynamic (i.e., mobile nodes actualy move around) */
-	public static boolean DYNAMIC_SIMULATION = true;
+	public static boolean DYNAMIC_SIMULATION = false;
 	
 	/** Defines whether the simulation is allowed to perform migrations of VMs */
 	public static boolean ALLOW_MIGRATION = true;
@@ -133,8 +133,8 @@ public class Config {
 	public static final double PROB_MAX_VELOCITY = 0.1667;
 	public static final double PROB_MED_VELOCITY = 0.6667;
 	public static final double PROB_MIN_VELOCITY = 0.1667;
-	public static final double MAX_VELOCITY = 33.3333;				// 33.3333 m/s = 120 km/h 	-> high speed car
-	public static final double MED_VELOCITY = 13.8889;				// 13.8889 m/s = 50 km/h  	-> slow speed car
-	public static final double MIN_VELOCITY = 1.34000;				// 1.34 m/s					-> average walking speed
+	public static final double MAX_VELOCITY = 330.3333;				// 33.3333 m/s = 120 km/h 	-> high speed car
+	public static final double MED_VELOCITY = 130.8889;				// 13.8889 m/s = 50 km/h  	-> slow speed car
+	public static final double MIN_VELOCITY = 100.34000;				// 1.34 m/s					-> average walking speed
 	
 }

@@ -85,8 +85,8 @@ public abstract class Topology {
 	 * @param ram the memory resource units available at the node
 	 * @param strg the storage resource units available at the node
 	 * @param bw the network resource units available at the node
-	 * @param bPw the busy power value
-	 * @param iPw the idle power value
+	 * @param bPw the busy power value (power consumption while using the full processing capacity of the node)
+	 * @param iPw the idle power value (power consumption while using no processing resources at the node)
 	 * @param costPerMips the monetary cost (€/MIPS) of processing resources usage
 	 * @param costPerMem the monetary cost (€/Bytes) of memory usage
 	 * @param costPerStorage the monetary cost (€/Bytes) of storage usage
