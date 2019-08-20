@@ -50,6 +50,7 @@ public class GeneticAlgorithm extends Algorithm {
 		iteration = 0;
 		bestCost = Constants.REFERENCE_COST;
 		bestSolution = null;
+		getValueIterMap().clear();
 		
 		// Time at the beginning of the execution of the algorithm
 		start = System.currentTimeMillis();

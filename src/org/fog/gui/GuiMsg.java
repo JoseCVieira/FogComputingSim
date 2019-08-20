@@ -59,6 +59,15 @@ public class GuiMsg {
 	public static final String TipTupleOut = "The name/label of the output tuple";
 	public static final String TipTupleProb = "The probability of the outuput tuple being generated upon the execution of the input one";
 	
+	public static final String TipSettPrintAlgIter = "Defines whether the details (e.g., cost of the best solution and if it's valid) between iterations are printed";
+	public static final String TipSettPrintAlgRes = "Defines whether the final result of the algorithm (i.e., the best solution) is printed";
+	public static final String TipSettPlotAlgRes = "Defines whether the iteration-value map is plotted";
+	public static final String TipSettDebug = "Defines whether the simulation runs in debug mode (i.e., prints the debug logs defined in the original version of iFogSim)";
+	public static final String TipSettDetails = "Defines whether the simulation should print logs about the simulation (e.g., tuple transmission, migrations, processing, etc.)";
+	public static final String TipSettCost = "Defines whether the simulation should print logs about the costs and resource usage";
+	public static final String TipSettDynamic = "Defines whether the simulation is dynamic (i.e., mobile nodes actualy move around)";
+	public static final String TipSettMigration = "Defines whether the simulation is allowed to perform migrations of VMs";
+	
 	/**
 	 * Concatenate the missing error message to the provided string.
 	 * 

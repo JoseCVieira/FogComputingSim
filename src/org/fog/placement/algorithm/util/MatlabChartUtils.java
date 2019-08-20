@@ -48,6 +48,10 @@ public class MatlabChartUtils extends JFrame implements ChartMouseListener {
 	public MatlabChartUtils(final Algorithm al, final String title) {
 		valueIterMap = al.getValueIterMap();
 		
+		for(Integer i : valueIterMap.keySet()) {
+			System.out.println("Iter: " + i + " Value: " + valueIterMap.get(i));
+		}
+		
     	XYDataset dataset = createDataset();
         JFreeChart chart = createChart(dataset);
         chartPanel = new ChartPanel(chart);
@@ -86,8 +90,8 @@ public class MatlabChartUtils extends JFrame implements ChartMouseListener {
     	
         JFreeChart chart = ChartFactory.createXYLineChart(
                 "Best value per iteration", 
-                "Best", 
                 "Iteration", 
+                "Value", 
                 dataset, 
                 PlotOrientation.VERTICAL,
                 true, 

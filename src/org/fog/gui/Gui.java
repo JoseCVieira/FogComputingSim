@@ -18,6 +18,7 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.fog.gui.dialog.DisplayApplications;
+import org.fog.gui.dialog.DisplaySettings;
 import org.fog.gui.core.Bridge;
 import org.fog.gui.core.Node;
 import org.fog.gui.core.Graph;
@@ -167,6 +168,13 @@ public class Gui extends JFrame {
             	Gui.this.setVisible(false);
             }
         };
+        
+        ActionListener settingsListener = new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+            	new DisplaySettings(Gui.this);
+		    	physicalCanvas.repaint();
+            }
+        };
 		
 		ActionListener exitListener = new ActionListener() {
             public void actionPerformed(ActionEvent event) {
@@ -182,6 +190,7 @@ public class Gui extends JFrame {
         ImageIcon iHOpen = new ImageIcon(getClass().getResource("/images/load.png"));
         ImageIcon iHSave = new ImageIcon(getClass().getResource("/images/save.png"));
         ImageIcon run = new ImageIcon(getClass().getResource("/images/play.png"));
+        ImageIcon settings = new ImageIcon(getClass().getResource("/images/settings.png"));
         ImageIcon exit = new ImageIcon(getClass().getResource("/images/exit.png"));
         
         final JButton btnFogDevice = new JButton(iFogDevice);
@@ -194,6 +203,8 @@ public class Gui extends JFrame {
         btnHopen.setToolTipText("Open Scenario");
         final JButton btnHsave = new JButton(iHSave);
         btnHsave.setToolTipText("Save Scenario");
+        final JButton btnSettings  = new JButton(settings);
+        btnSettings.setToolTipText("Simulation settings");
         
         btnRun = new JButton(run);
         btnRun.setToolTipText("Start simulation");
@@ -209,6 +220,7 @@ public class Gui extends JFrame {
         btnHopen.addActionListener(importPhyTopoListener);
         btnHsave.addActionListener(savePhyTopoListener);
         btnRun.addActionListener(runListener);
+        btnSettings.addActionListener(settingsListener);
         btnExit.addActionListener(exitListener);
         
         toolbar.add(btnFogDevice);
@@ -224,6 +236,7 @@ public class Gui extends JFrame {
         toolbar.add(btnHopen);
         toolbar.add(btnHsave);
         toolbar.add(btnRun);
+        toolbar.add(btnSettings);
         
         toolbar.add(Box.createHorizontalGlue());
         toolbar.add(btnExit);

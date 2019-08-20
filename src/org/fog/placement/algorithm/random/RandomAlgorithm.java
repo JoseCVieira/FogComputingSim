@@ -38,6 +38,7 @@ public class RandomAlgorithm extends Algorithm {
 		iteration = 0;
 		bestCost = Constants.REFERENCE_COST;
 		bestSolution = null;
+		getValueIterMap().clear();
 		
 		// Time at the beginning of the execution of the algorithm
 		long start = System.currentTimeMillis();

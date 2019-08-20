@@ -42,7 +42,10 @@ public class MultiObjectiveLinearProgramming extends Algorithm {
 	 * @return the best solution; can be null
 	 */
 	@Override
-	public Job execute() {		
+	public Job execute() {
+		bestSolution = null;
+		getValueIterMap().clear();
+		
 		// Time at the beginning of the execution of the algorithm
 		start = System.currentTimeMillis();
 		
