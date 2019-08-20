@@ -8,6 +8,12 @@ import ilog.concert.IloLinearNumExpr;
 import ilog.concert.IloNumVar;
 import ilog.cplex.IloCplex;
 
+/**
+ * Class in which constraints are defined for the problem defined using CPLEX framework.
+ * 
+ * @author  José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST)
+ * @since   July, 2019
+ */
 class Constraints {
 	/**
 	 * Verifies if all constraints are met.
