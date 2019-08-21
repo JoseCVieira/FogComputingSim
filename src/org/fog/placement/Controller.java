@@ -203,7 +203,8 @@ public class Controller extends SimEntity {
 		
 		Map<Integer, List<AppModule>> deviceToModuleMap = modulePlacement.getDeviceToModuleMap();
 		for(Integer deviceId : deviceToModuleMap.keySet()){
-			for(AppModule module : deviceToModuleMap.get(deviceId)){
+			
+			for(AppModule module : deviceToModuleMap.get(deviceId)){				
 				sendNow(deviceId, FogEvents.APP_SUBMIT, application);
 				sendNow(deviceId, FogEvents.LAUNCH_MODULE, module);
 				

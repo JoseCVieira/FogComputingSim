@@ -4,6 +4,7 @@ import org.cloudbus.cloudsim.core.CloudSim;
 import org.fog.core.Config;
 import org.fog.core.Constants;
 import org.fog.core.FogComputingSim;
+import org.fog.placement.algorithm.util.AlgorithmUtils;
 
 /**
  * Class in which constraints are defined and analyzed both for single- or multiple-objective optimization
@@ -106,7 +107,7 @@ public class Constraints {
 			violations += Constants.REFERENCE_COST;
 		}
 		
-		if(violations != 0 && Config.PRINT_ALGORITHM_ITER)
+		if(violations != 0 && Config.PRINT_ALGORITHM_CONSTRAINTS)
 			System.out.println("Solution has at least one module placed which is exceeding the machine resources");
 		
 		return violations;
@@ -129,7 +130,7 @@ public class Constraints {
 			}
 		}
 		
-		if(violations != 0 && Config.PRINT_ALGORITHM_ITER)
+		if(violations != 0 && Config.PRINT_ALGORITHM_CONSTRAINTS)
 			System.out.println("Solution does not respect possible deployment");
 		
 		return violations;
@@ -157,7 +158,7 @@ public class Constraints {
 			violations += Constants.REFERENCE_COST;
 		}
 		
-		if(violations != 0 && Config.PRINT_ALGORITHM_ITER)
+		if(violations != 0 && Config.PRINT_ALGORITHM_CONSTRAINTS)
 			System.out.println("Solution has at least one module placed in multiple machines or has not been deployed");
 		
 		return violations;
@@ -195,7 +196,7 @@ public class Constraints {
 			}
 		}
 		
-		if(violations != 0 && Config.PRINT_ALGORITHM_ITER)
+		if(violations != 0 && Config.PRINT_ALGORITHM_CONSTRAINTS)
 			System.out.println("Solution has at least one dependency which is not accomplished by the tuple routing map");
 		
 		return violations;
@@ -238,7 +239,7 @@ public class Constraints {
 			}
 		}
 		
-		if(violations != 0 && Config.PRINT_ALGORITHM_ITER)
+		if(violations != 0 && Config.PRINT_ALGORITHM_CONSTRAINTS)
 			System.out.println("Solution has at least one links which is overloaded by the tuple routing map");
 		
 		return violations;
@@ -258,6 +259,10 @@ public class Constraints {
 		int[][] currentPlacement = algorithm.getCurrentPositionInt();
 		boolean firstOpt = algorithm.isFirstOptimization();
 		
+		if(!firstOpt) {
+			AlgorithmUtils.print("currentPlacement", currentPlacement);
+		}
+		
 		for(int i = 0; i < algorithm.getNumberOfModules(); i++) {
 			int startNodeIndex = Job.findModulePlacement(firstOpt == false ? currentPlacement : modulePlacementMap, i);
 			int destNodeIndex = Job.findModulePlacement(modulePlacementMap, i);
@@ -272,7 +277,7 @@ public class Constraints {
 			}
 		}
 		
-		if(violations != 0 && Config.PRINT_ALGORITHM_ITER)
+		if(violations != 0 && Config.PRINT_ALGORITHM_CONSTRAINTS)
 			System.out.println("Solution has at least one migration which is not accomplished by the migration routing map");
 		
 		return violations;
@@ -296,7 +301,7 @@ public class Constraints {
 			double latency = 0;
 			
 			for(int j = 0; j < algorithm.getNumberOfModules()-1; j++) { // Module index
-				if(loops[i][j] == -1) break;
+				if(loops[i][j+1] == -1) break;
 				
 				latency += computeProcessingLatency(algorithm, modulePlacementMap, loops[i][j], loops[i][j+1]);
 				
@@ -325,19 +330,22 @@ public class Constraints {
 				violations += Constants.REFERENCE_COST;
 			}
 			
-			if(Config.PRINT_ALGORITHM_ITER) {
+			if(Config.PRINT_ALGORITHM_CONSTRAINTS) {
 				System.out.print("Loop: [ " );
 				
-				for(int j = 0; j < algorithm.getNumberOfModules()-1; j++) {
-					System.out.print(algorithm.getmName()[j] + " -> ");
+				for(int j = 0; j < algorithm.getNumberOfModules(); j++) {
+					if(j == algorithm.getNumberOfModules() - 1 || loops[i][j+1] == -1) {
+						System.out.print(algorithm.getmName()[loops[i][j]] + " ]");
+						break;
+					}
+					System.out.print(algorithm.getmName()[loops[i][j]] + " -> ");
 				}
-				System.out.print(algorithm.getmName()[algorithm.getNumberOfModules()-1] + " ]");
 				
 				System.out.print("\t Worst case latency: " + latency + " sec\t Deadline: " + algorithm.getLoopsDeadline()[i] + " sec\n");
 			}
 		}
 		
-		if(violations != 0 && Config.PRINT_ALGORITHM_ITER)
+		if(violations != 0 && Config.PRINT_ALGORITHM_CONSTRAINTS)
 			System.out.println("Solution has at least one loop which is not accomplished\n\n");
 		
 		return violations;

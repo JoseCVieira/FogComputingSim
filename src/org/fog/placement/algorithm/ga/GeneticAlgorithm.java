@@ -106,7 +106,7 @@ public class GeneticAlgorithm extends Algorithm {
 				
 				getValueIterMap().put(iteration, bestCost);
     			
-				if(Config.PRINT_ALGORITHM_ITER)
+				if(Config.PRINT_ALGORITHM_BEST_ITER)
     				System.out.println("iteration: " + iteration + " value: " + bestCost);
     		}
     		

@@ -330,8 +330,10 @@ public abstract class Algorithm {
 				int nodeIndex = getNodeIndexByNodeId(nodeId);
 				
 				for(int j  = 0; j < NR_NODES; j++) {
-					if(j == nodeIndex) continue;
-					possibleDeployment[j][i] = 0;
+					if(j != nodeIndex)
+						possibleDeployment[j][i] = 0;
+					else
+						currentPlacement[j][i] = 1;
 				}
 				
 				i++;
@@ -523,9 +525,9 @@ public abstract class Algorithm {
 		}
 		
 		tmp = 0;
-		int tmp2 = 0;
 		for(Application application : applications) {
 			for(AppLoop loop : application.getLoops()) {
+				int tmp2 = 0;
 				for(String moduleName : loop.getModules()) {
 					int modIndex = getModuleIndexByModuleName(moduleName);
 					loops[tmp][tmp2++] = modIndex;

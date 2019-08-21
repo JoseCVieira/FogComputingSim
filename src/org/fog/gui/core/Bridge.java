@@ -92,11 +92,11 @@ public class Bridge {
 				Node fogDevice = new Node(nodeName, level, mips, ram, strg, rateMips, rateRam, rateStorage, rateBw, rateEnergy, idlePower,
 						busyPower, movement, application, distribution);
 				graph.addNode(fogDevice);
-			}		
+			}
 			
 			JSONArray links = (JSONArray) doc.get("links");
 			@SuppressWarnings("unchecked")
-			Iterator<JSONObject> linksIter =links.iterator(); 
+			Iterator<JSONObject> linksIter =links.iterator();
 			while(linksIter.hasNext()){
 				JSONObject link = linksIter.next();
 				String src = (String) link.get("source");  

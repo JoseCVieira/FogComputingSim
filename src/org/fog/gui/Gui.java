@@ -18,6 +18,7 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.fog.gui.dialog.DisplayApplications;
+import org.fog.gui.dialog.DisplayRandom;
 import org.fog.gui.dialog.DisplaySettings;
 import org.fog.gui.core.Bridge;
 import org.fog.gui.core.Node;
@@ -134,14 +135,21 @@ public class Gui extends JFrame {
 		    }
 		};
 		
+		ActionListener randomListener = new ActionListener() {
+		    public void actionPerformed(ActionEvent e) {
+		    	new DisplayRandom(physicalGraph, Gui.this);
+		    	physicalCanvas.repaint();
+		    	verifyRun();
+		    }
+		};
+		
 		ActionListener importPhyTopoListener = new ActionListener() {
 		    public void actionPerformed(ActionEvent e) {
 		    	String fileName = importFile("json");
 		    	
 		    	if(fileName != null && fileName.length() != 0) {
 		    		try {
-		    			Graph phyGraph= Bridge.jsonToGraph(fileName);
-				    	physicalGraph = phyGraph;
+				    	physicalGraph = Bridge.jsonToGraph(fileName);
 				    	physicalCanvas.setGraph(physicalGraph);
 				    	physicalCanvas.repaint();
 					} catch (Exception e1) {
@@ -187,6 +195,7 @@ public class Gui extends JFrame {
         ImageIcon iFogDevice = new ImageIcon(getClass().getResource("/images/fog.png"));
         ImageIcon iLink = new ImageIcon(getClass().getResource("/images/link.png"));
         ImageIcon iApp = new ImageIcon(getClass().getResource("/images/app.png"));
+        ImageIcon random = new ImageIcon(getClass().getResource("/images/random.png"));
         ImageIcon iHOpen = new ImageIcon(getClass().getResource("/images/load.png"));
         ImageIcon iHSave = new ImageIcon(getClass().getResource("/images/save.png"));
         ImageIcon run = new ImageIcon(getClass().getResource("/images/play.png"));
@@ -199,10 +208,12 @@ public class Gui extends JFrame {
         btnLink.setToolTipText("Add Link");
         final JButton btnApp = new JButton(iApp);
         btnApp.setToolTipText("Add Application");
+        final JButton btnRandom = new JButton(random);
+        btnRandom.setToolTipText("Random topology");
         final JButton btnHopen = new JButton(iHOpen);
-        btnHopen.setToolTipText("Open Scenario");
+        btnHopen.setToolTipText("Open topology");
         final JButton btnHsave = new JButton(iHSave);
-        btnHsave.setToolTipText("Save Scenario");
+        btnHsave.setToolTipText("Save topology");
         final JButton btnSettings  = new JButton(settings);
         btnSettings.setToolTipText("Simulation settings");
         
@@ -217,6 +228,7 @@ public class Gui extends JFrame {
         btnFogDevice.addActionListener(addFogDeviceListener);
         btnLink.addActionListener(addLinkListener);
         btnApp.addActionListener(addAppListener);
+        btnRandom.addActionListener(randomListener);
         btnHopen.addActionListener(importPhyTopoListener);
         btnHsave.addActionListener(savePhyTopoListener);
         btnRun.addActionListener(runListener);
@@ -232,7 +244,8 @@ public class Gui extends JFrame {
  	    GraphicsDevice[] gs = ge.getScreenDevices();
  	    DisplayMode dm = gs[0].getDisplayMode();
         
-        toolbar.addSeparator(new Dimension(dm.getWidth()/3, 0));
+        toolbar.addSeparator(new Dimension((int) (dm.getWidth()/3.2), 0));
+        toolbar.add(btnRandom);
         toolbar.add(btnHopen);
         toolbar.add(btnHsave);
         toolbar.add(btnRun);

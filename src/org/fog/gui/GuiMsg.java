@@ -59,7 +59,8 @@ public class GuiMsg {
 	public static final String TipTupleOut = "The name/label of the output tuple";
 	public static final String TipTupleProb = "The probability of the outuput tuple being generated upon the execution of the input one";
 	
-	public static final String TipSettPrintAlgIter = "Defines whether the details (e.g., cost of the best solution and if it's valid) between iterations are printed";
+	public static final String TipSettPrintAlgIter = "Defines whether the best value is printed between iterations are printed";
+	public static final String TipSettPrintAlgConst = "Defines whether the details of the constraints of each iteration are printed";
 	public static final String TipSettPrintAlgRes = "Defines whether the final result of the algorithm (i.e., the best solution) is printed";
 	public static final String TipSettPlotAlgRes = "Defines whether the iteration-value map is plotted";
 	public static final String TipSettDebug = "Defines whether the simulation runs in debug mode (i.e., prints the debug logs defined in the original version of iFogSim)";
@@ -67,6 +68,15 @@ public class GuiMsg {
 	public static final String TipSettCost = "Defines whether the simulation should print logs about the costs and resource usage";
 	public static final String TipSettDynamic = "Defines whether the simulation is dynamic (i.e., mobile nodes actualy move around)";
 	public static final String TipSettMigration = "Defines whether the simulation is allowed to perform migrations of VMs";
+	
+	public static final String TipRandNrFog = "Defines number of fog devices within the random topology";
+	public static final String TipRandMaxLat = "Defines the maximum latency for each link";
+	public static final String TipRandMaxBw = "Defines the maximum bandwidth available in each link";
+	public static final String TipRandConnect = "Defines the probability of creating links (if a node is not connected it is a mobile node)";
+	public static final String TipRandClient = "Defines the probability of a node being a client (has one application)";
+	public static final String TipRandResDev = "Defines the resource (mips, ram, etc) deviation for the normal distribution";
+	public static final String TipRandEnDev = "Defines the energy consumption deviation for the normal distribution";
+	public static final String TipRandCostDev = "Defines the cost of resource (mips, ram, etc) usage consumption deviation for the normal distribution";
 	
 	/**
 	 * Concatenate the missing error message to the provided string.

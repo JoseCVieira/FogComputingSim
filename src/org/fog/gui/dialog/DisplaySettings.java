@@ -28,13 +28,12 @@ import org.fog.gui.GuiMsg;
  */
 public class DisplaySettings extends JDialog {
 	private static final long serialVersionUID = 4794808969864918000L;
-	private static final int WIDTH = 300;
-	private static final int HEIGHT = 300;
+	private static final int WIDTH = 400;
+	private static final int HEIGHT = 330;
 	
 	/**
 	 * Creates a dialog to display and edit the simulation settings.
 	 * 
-	 * @param graph the object which holds the current topology
 	 * @param frame the current context 
 	 */
 	public DisplaySettings(final JFrame frame) {
@@ -61,86 +60,96 @@ public class DisplaySettings extends JDialog {
 		JPanel inputPanelWrapper = new JPanel();
 		inputPanelWrapper.setLayout(new BoxLayout(inputPanelWrapper, BoxLayout.PAGE_AXIS));
 		
-	    JCheckBox checkbox1 = new JCheckBox("Print algorithm iterations");
+	    JCheckBox checkbox1 = new JCheckBox("Print algorithm best iterations");
 	    checkbox1.setToolTipText(GuiMsg.TipSettPrintAlgIter);
-	    checkbox1.setSelected(Config.PRINT_ALGORITHM_ITER);
+	    checkbox1.setSelected(Config.PRINT_ALGORITHM_BEST_ITER);
 	    
-	    JCheckBox checkbox2 = new JCheckBox("Print algorithm results");
-	    checkbox2.setToolTipText(GuiMsg.TipSettPrintAlgRes);
-	    checkbox2.setSelected(Config.PRINT_ALGORITHM_RESULTS);
 	    
-	    JCheckBox checkbox3 = new JCheckBox("Plot algorithm results");
-	    checkbox3.setToolTipText(GuiMsg.TipSettPlotAlgRes);
-	    checkbox3.setSelected(Config.PLOT_ALGORITHM_RESULTS);
+	    JCheckBox checkbox2 = new JCheckBox("Print algorithm iteration contraints");
+	    checkbox2.setToolTipText(GuiMsg.TipSettPrintAlgConst);
+	    checkbox2.setSelected(Config.PRINT_ALGORITHM_CONSTRAINTS);
 	    
-	    JCheckBox checkbox4 = new JCheckBox("Debug mode");
-	    checkbox4.setToolTipText(GuiMsg.TipSettDebug);
-	    checkbox4.setSelected(Config.DEBUG_MODE);
+	    JCheckBox checkbox3 = new JCheckBox("Print algorithm results");
+	    checkbox3.setToolTipText(GuiMsg.TipSettPrintAlgRes);
+	    checkbox3.setSelected(Config.PRINT_ALGORITHM_RESULTS);
 	    
-	    JCheckBox checkbox5 = new JCheckBox("Print details");
-	    checkbox5.setToolTipText(GuiMsg.TipSettDetails);
-	    checkbox5.setSelected(Config.PRINT_DETAILS);
+	    JCheckBox checkbox4 = new JCheckBox("Plot algorithm results");
+	    checkbox4.setToolTipText(GuiMsg.TipSettPlotAlgRes);
+	    checkbox4.setSelected(Config.PLOT_ALGORITHM_RESULTS);
 	    
-	    JCheckBox checkbox6 = new JCheckBox("Print cost details");
-	    checkbox6.setToolTipText(GuiMsg.TipSettCost);
-	    checkbox6.setSelected(Config.PRINT_COST_DETAILS);
+	    JCheckBox checkbox5 = new JCheckBox("Debug mode");
+	    checkbox5.setToolTipText(GuiMsg.TipSettDebug);
+	    checkbox5.setSelected(Config.DEBUG_MODE);
 	    
-	    JCheckBox checkbox7 = new JCheckBox("Dynamic simulation");
-	    checkbox7.setToolTipText(GuiMsg.TipSettDynamic);
-	    checkbox7.setSelected(Config.DYNAMIC_SIMULATION);
+	    JCheckBox checkbox6 = new JCheckBox("Print details");
+	    checkbox6.setToolTipText(GuiMsg.TipSettDetails);
+	    checkbox6.setSelected(Config.PRINT_DETAILS);
 	    
-	    JCheckBox checkbox8 = new JCheckBox("Allow migration");
-	    checkbox8.setToolTipText(GuiMsg.TipSettMigration);
-	    checkbox8.setSelected(Config.ALLOW_MIGRATION);
+	    JCheckBox checkbox7 = new JCheckBox("Print cost details");
+	    checkbox7.setToolTipText(GuiMsg.TipSettCost);
+	    checkbox7.setSelected(Config.PRINT_COST_DETAILS);
+	    
+	    JCheckBox checkbox8 = new JCheckBox("Dynamic simulation");
+	    checkbox8.setToolTipText(GuiMsg.TipSettDynamic);
+	    checkbox8.setSelected(Config.DYNAMIC_SIMULATION);
+	    
+	    JCheckBox checkbox9 = new JCheckBox("Allow migration");
+	    checkbox9.setToolTipText(GuiMsg.TipSettMigration);
+	    checkbox9.setSelected(Config.ALLOW_MIGRATION);
 	    
 	    checkbox1.addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent e) {
-            	Config.PRINT_ALGORITHM_ITER = e.getStateChange() == 1 ? true : false;
+            	Config.PRINT_ALGORITHM_BEST_ITER = e.getStateChange() == 1 ? true : false;
             }
-         });
+	    });
 	    
 	    checkbox2.addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent e) {
-            	Config.PRINT_ALGORITHM_RESULTS = e.getStateChange() == 1 ? true : false;
+            	Config.PRINT_ALGORITHM_CONSTRAINTS = e.getStateChange() == 1 ? true : false;
             }
-         });
+	    });
 	    
 	    checkbox3.addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent e) {
-            	Config.PLOT_ALGORITHM_RESULTS = e.getStateChange() == 1 ? true : false;
+            	Config.PRINT_ALGORITHM_RESULTS = e.getStateChange() == 1 ? true : false;
             }
-         });
+        });
 	    
 	    checkbox4.addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent e) {
-            	Config.DEBUG_MODE = e.getStateChange() == 1 ? true : false;
+            	Config.PLOT_ALGORITHM_RESULTS = e.getStateChange() == 1 ? true : false;
             }
-         });
+        });
 	    
 	    checkbox5.addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent e) {
-            	Config.PRINT_DETAILS = e.getStateChange() == 1 ? true : false;
+            	Config.DEBUG_MODE = e.getStateChange() == 1 ? true : false;
             }
-         });
+        });
 	    
 	    checkbox6.addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent e) {
-            	Config.PRINT_COST_DETAILS = e.getStateChange() == 1 ? true : false;
+            	Config.PRINT_DETAILS = e.getStateChange() == 1 ? true : false;
             }
-         });
+        });
 	    
 	    checkbox7.addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent e) {
-            	Config.DYNAMIC_SIMULATION = e.getStateChange() == 1 ? true : false;
+            	Config.PRINT_COST_DETAILS = e.getStateChange() == 1 ? true : false;
             }
-         });
+        });
 	    
 	    checkbox8.addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent e) {
+            	Config.DYNAMIC_SIMULATION = e.getStateChange() == 1 ? true : false;
+            }
+        });
+	    
+	    checkbox9.addItemListener(new ItemListener() {
+            public void itemStateChanged(ItemEvent e) {
             	Config.ALLOW_MIGRATION = e.getStateChange() == 1 ? true : false;
             }
-         });
-	    
+        });
 	    
         inputPanelWrapper.add(checkbox1);
         inputPanelWrapper.add(checkbox2);
@@ -150,6 +159,7 @@ public class DisplaySettings extends JDialog {
         inputPanelWrapper.add(checkbox6);
         inputPanelWrapper.add(checkbox7);
         inputPanelWrapper.add(checkbox8);
+        inputPanelWrapper.add(checkbox9);
         
 		return inputPanelWrapper;
 	}

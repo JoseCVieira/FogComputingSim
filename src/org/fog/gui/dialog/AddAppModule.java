@@ -23,7 +23,7 @@ import org.apache.commons.math3.util.Pair;
 import org.fog.application.AppEdge;
 import org.fog.application.AppModule;
 import org.fog.application.Application;
-import org.fog.gui.GuiConstants;
+import org.fog.gui.GuiConfig;
 import org.fog.gui.GuiMsg;
 import org.fog.gui.GuiUtils;
 import org.fog.gui.core.SpringUtilities;
@@ -199,7 +199,7 @@ public class AddAppModule extends JDialog {
         springPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         
         String nameOp = module == null ? "" : module.getName();
-        String ramOp = module == null ? Integer.toString(GuiConstants.MODULE_RAM) : Integer.toString(module.getRam());
+        String ramOp = module == null ? Integer.toString(GuiConfig.MODULE_RAM) : Integer.toString(module.getRam());
         String clientOp = "", globalOp = "";
         
         if(module != null) {

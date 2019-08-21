@@ -98,7 +98,7 @@ public class Util {
 	}
 	
 	/**
-	 * Gets a random number in the range of the parameters.
+	 * Gets a random integer number in the range of the parameters.
 	 * 
 	 * @param min the minimum random number
 	 * @param max the maximum random number
@@ -108,6 +108,18 @@ public class Util {
         Random r = new Random();
         return min + r.nextInt(max - min + 1);
     }
+	
+	/**
+	 * Gets a random double number in the range of the parameters.
+	 * 
+	 * @param min the minimum random number
+	 * @param max the maximum random number
+	 * @return the random number
+	 */
+	public static double rand(final double min, final double max) {
+		Random r = new Random();
+		return min + (max - min) * r.nextDouble();
+	}
 	
 	/**
 	 * Gets a random number in the range of the normal distribution.

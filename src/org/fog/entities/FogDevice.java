@@ -698,7 +698,9 @@ public class FogDevice extends PowerDatacenter {
 	}
 	
 	/**
-	 * Updates position and randomly change movement characteristics except for static nodes
+	 * Updates position and randomly change movement characteristics except for static nodes.
+	 * Note that, currently, it is used a square to define the region where nodes can move in (this, of course, can be removed).
+	 * If this method is running in an infinite loop, maybe the nodes were created outside the square region.
 	 */
 	private void updatePeriodicMovement() {
 		movement.updateLocation();
@@ -706,6 +708,7 @@ public class FogDevice extends PowerDatacenter {
 		// Define next direction and velocity
 		// Only updates for mobile nodes. Having fixed connections means that this node is a fixed one
 		if(!isStaticNode()) {
+			int counter = 0;
 			Random random = new Random();
 			
 			double changeDirProb = Config.PROB_CHANGE_DIRECTION;
@@ -737,7 +740,9 @@ public class FogDevice extends PowerDatacenter {
 					changeDirProb = 1;
 					changeVelProb = 1;
 				}
-					
+				
+				if(++counter > 100)
+					FogComputingSim.err("It looks like the update movement method is running in an infinite loop");
 			}
 			
 			// Update connections bandwidth for mobile connections based on their distance

@@ -54,7 +54,7 @@ public class RandomAlgorithm extends Algorithm {
     			getValueIterMap().put(iteration, bestCost);
     			bestSolution = new Job(job);
     			
-    			if(Config.PRINT_ALGORITHM_ITER)
+    			if(Config.PRINT_ALGORITHM_BEST_ITER)
     				System.out.println("Iteration: " + iteration + " value: " + bestCost);
 			}
 			

@@ -114,9 +114,8 @@ public class Job {
 			}
 		}
 		
-		
 		// Migration routing map
-		for(int i = 0; i < nrModules; i++) {
+		for(int i = 0; i < nrModules; i++) {			
 			int from = Job.findModulePlacement(algorithm.isFirstOptimization() ? modulePlacementMap : algorithm.getCurrentPositionInt(), i);
 			migrationRoutingMap[i][0] = from;
 			iter = 1;

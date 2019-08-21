@@ -194,7 +194,7 @@ public class BruteForce extends Algorithm {
 				bestSolution = new Job(job);
     			getValueIterMap().put(iteration, bestCost);
     			
-    			if(Config.PRINT_ALGORITHM_ITER)
+    			if(Config.PRINT_ALGORITHM_BEST_ITER)
     				System.out.println("Iteration: " + iteration + " value: " + bestCost);
 			}
 			

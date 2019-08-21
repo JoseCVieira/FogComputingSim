@@ -11,7 +11,7 @@ import org.fog.entities.Sensor;
 import org.fog.placement.algorithm.Algorithm;
 import org.fog.placement.algorithm.Job;
 import org.fog.placement.algorithm.bf.BruteForce;
-import org.fog.placement.algorithm.lp.MultiObjectiveLinearProgramming;
+import org.fog.placement.algorithm.lp.LinearProgramming;
 import org.fog.placement.algorithm.ga.GeneticAlgorithm;
 import org.fog.placement.algorithm.random.RandomAlgorithm;
 import org.fog.placement.algorithm.util.AlgorithmUtils;
@@ -66,7 +66,7 @@ public class ControllerAlgorithm {
 			switch (algorithmOp) {
 				case MOLP:
 					algorithmName = "Multiobjective Linear Programming";
-					algorithm = new MultiObjectiveLinearProgramming(fogDevices, appList, sensors, actuators);
+					algorithm = new LinearProgramming(fogDevices, appList, sensors, actuators);
 					break;
 				/*case MOGA:
 					algorithmName = "Multiobjective Genetic Algorithm";
@@ -89,7 +89,9 @@ public class ControllerAlgorithm {
 			}
 		}
 		
-		System.out.println("Running the optimization algorithm: " + algorithmName + ".");
+		if(Config.PRINT_DETAILS)
+			System.out.println("Running the optimization algorithm: " + algorithmName + ".");
+		
 		solution = algorithm.execute();
 		
 		if(solution == null || !solution.isValid())

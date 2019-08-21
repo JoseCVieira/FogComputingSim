@@ -24,7 +24,7 @@ import javax.swing.SpringLayout;
 import javax.swing.border.TitledBorder;
 
 import org.fog.application.Application;
-import org.fog.gui.GuiConstants;
+import org.fog.gui.GuiConfig;
 import org.fog.gui.GuiMsg;
 import org.fog.gui.GuiUtils;
 import org.fog.gui.core.Node;
@@ -345,18 +345,18 @@ public class AddFogDevice extends JDialog {
 		for(int i = 0; i <= graph.getMaxLevel() + 1; i++)
 			levels.add(Integer.toString(i));
 		
-		String nameVal = fog == null ? GuiConstants.FOG_NAME : fog.getName();
+		String nameVal = fog == null ? GuiConfig.FOG_NAME : fog.getName();
 		String levelVal = fog == null ? "" : Integer.toString(fog.getLevel());
-		String mipsVal = fog == null ? Double.toString(GuiConstants.MIPS) : Double.toString(fog.getMips());
-		String ramVal = fog == null ? Long.toString(GuiConstants.RAM) : Long.toString(fog.getRam());
-		String storageVal = fog == null ? Long.toString(GuiConstants.STRG) : Long.toString(fog.getStorage());
-		String rateMipsVal = fog == null ? Double.toString(GuiConstants.RATE_MIPS) : Double.toString(fog.getRateMips());
-		String rateRamVal = fog == null ? Double.toString(GuiConstants.RATE_RAM) : Double.toString(fog.getRateRam());
-		String rateStrgVal = fog == null ? Double.toString(GuiConstants.RATE_STRG) : Double.toString(fog.getRateStorage());
-		String rateBwVal = fog == null ? Double.toString(GuiConstants.RATE_BW) : Double.toString(fog.getRateBw());
-		String rateEnVal = fog == null ? Double.toString(GuiConstants.RATE_EN) : Double.toString(fog.getRateEnergy());
-		String BusyPwVal = fog == null ? Double.toString(GuiConstants.BUSY_POWER) : Double.toString(fog.getBusyPower());
-		String IdlePwVal = fog == null ? Double.toString(GuiConstants.IDLE_POWER) : Double.toString(fog.getIdlePower());
+		String mipsVal = fog == null ? Double.toString(GuiConfig.MIPS) : Double.toString(fog.getMips());
+		String ramVal = fog == null ? Long.toString(GuiConfig.RAM) : Long.toString(fog.getRam());
+		String storageVal = fog == null ? Long.toString(GuiConfig.STRG) : Long.toString(fog.getStorage());
+		String rateMipsVal = fog == null ? Double.toString(GuiConfig.RATE_MIPS) : Double.toString(fog.getRateMips());
+		String rateRamVal = fog == null ? Double.toString(GuiConfig.RATE_RAM) : Double.toString(fog.getRateRam());
+		String rateStrgVal = fog == null ? Double.toString(GuiConfig.RATE_STRG) : Double.toString(fog.getRateStorage());
+		String rateBwVal = fog == null ? Double.toString(GuiConfig.RATE_BW) : Double.toString(fog.getRateBw());
+		String rateEnVal = fog == null ? Double.toString(GuiConfig.RATE_EN) : Double.toString(fog.getRateEnergy());
+		String BusyPwVal = fog == null ? Double.toString(GuiConfig.BUSY_POWER) : Double.toString(fog.getBusyPower());
+		String IdlePwVal = fog == null ? Double.toString(GuiConfig.IDLE_POWER) : Double.toString(fog.getIdlePower());
 		String xPosVal = fog == null ? "0.0" : Double.toString(fog.getMovement().getLocation().getX());
 		String yPosVal = fog == null ? "0.0" : Double.toString(fog.getMovement().getLocation().getY());
 		String dirVal = fog == null ? "" : Movement.S_DIRECTIONS[fog.getMovement().getDirection()];

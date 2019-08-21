@@ -21,7 +21,6 @@ import org.fog.gui.core.RunGUI;
 import org.fog.placement.Controller;
 import org.fog.placement.ControllerAlgorithm;
 import org.fog.test.DCNSFog;
-import org.fog.test.RandomTopology;
 import org.fog.test.TEMPFog;
 import org.fog.test.VRGameFog;
 import org.fog.utils.Logger;
@@ -37,11 +36,10 @@ import org.fog.utils.Util;
 public class FogComputingSim {
 	private static final int EXIT = 0;
 	private static final int GUI = 1;
-	private static final int RANDOM = 2;
-	private static final int VRGAME = 3;
-	private static final int DCNS = 4;
-	private static final int TEMP = 5;
-	private static final int FILE = 6;
+	private static final int VRGAME = 2;
+	private static final int DCNS = 3;
+	private static final int TEMP = 4;
+	private static final int FILE = 5;
 	
 	private static List<Application> applications;
 	private static List<FogDevice> fogDevices;
@@ -149,11 +147,10 @@ public class FogComputingSim {
 		System.out.println("|                                                      |");
 	    System.out.println("| Options:                                             |");
 	    System.out.println("|       1. GUI                                         |");
-	    System.out.println("|       2. Random Topology                             |");
-	    System.out.println("|       3. VRGameFog - iFogSim Example                 |");
-	    System.out.println("|       4. DCNSFog   - iFogSim Example                 |");
-	    System.out.println("|       5. TEMPFog   - iFogSim Example                 |");
-	    System.out.println("|       6. Read JSON file (/topologies/<file_name>)    |");
+	    System.out.println("|       2. VRGameFog - iFogSim Example                 |");
+	    System.out.println("|       3. DCNSFog   - iFogSim Example                 |");
+	    System.out.println("|       4. TEMPFog   - iFogSim Example                 |");
+	    System.out.println("|       5. Read JSON file (/topologies/<file_name>)    |");
 	    System.out.println("|       0. Back                                        |");
 	    System.out.println("|                                                      |");
 	    System.out.println("————————————————————————————————————————————————————————");
@@ -180,9 +177,7 @@ public class FogComputingSim {
 						Util.promptEnterKey("Press \"ENTER\" to continue...");
 						topology = gui.getRunGUI();
 					}
-					break;
-				case RANDOM:
-					topology = new RandomTopology();
+					
 					break;
 				case VRGAME:
 					topology = new VRGameFog();
@@ -230,7 +225,7 @@ public class FogComputingSim {
 	@SuppressWarnings("resource")
 	private static String menuFile() {
 		Path path = FileSystems.getDefault().getPath(".");
-		String dir = path + "/topologies/";
+		String dir = path + "/topologies/neww/";
 		
 		System.out.println("Topologies found inside " + dir + ":");
 		
@@ -282,7 +277,7 @@ public class FogComputingSim {
 		    }
 		}			        
         
-        return path + "/topologies/" + listOfFiles[fileIndex].getName();
+        return dir + listOfFiles[fileIndex].getName();
 	}
 	
 	/**

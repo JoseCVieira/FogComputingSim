@@ -208,6 +208,11 @@ public class Graph implements Serializable {
 		return maxLevel;
 	}
 	
+	public void clean() {
+		devicesList = new HashMap<Node, List<Link>>();
+		appList = new ArrayList<Application>();
+	}
+	
 	@Override
 	public String toString() {
 		return "Graph [devicesList=" + devicesList + "]";

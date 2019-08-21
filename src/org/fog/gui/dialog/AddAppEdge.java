@@ -26,7 +26,7 @@ import org.apache.commons.math3.util.Pair;
 import org.fog.application.AppEdge;
 import org.fog.application.AppModule;
 import org.fog.application.Application;
-import org.fog.gui.GuiConstants;
+import org.fog.gui.GuiConfig;
 import org.fog.gui.GuiMsg;
 import org.fog.gui.GuiUtils;
 import org.fog.gui.GuiUtils.AppModulesCellRenderer;
@@ -119,9 +119,9 @@ public class AddAppEdge extends JDialog {
         AppModulesCellRenderer renderer = new AppModulesCellRenderer();
         
         String edgeOp = "", periodicOp = "", sensorOp = "", actuatorOp = "", tupleTypeOp = "";
-        String periodicityOp = Double.toString(GuiConstants.EDGE_PERIODICITY);
-        String tupleCpuLengthOp = Double.toString(GuiConstants.EDGE_CPU_LENGTH);
-        String tupleNwLengthOp = Double.toString(GuiConstants.EDGE_NW_LENGTH);
+        String periodicityOp = Double.toString(GuiConfig.EDGE_PERIODICITY);
+        String tupleCpuLengthOp = Double.toString(GuiConfig.EDGE_CPU_LENGTH);
+        String tupleNwLengthOp = Double.toString(GuiConfig.EDGE_NW_LENGTH);
         AppModule fromOp = null, toOp = null;
         if(edge != null) {
 			if(edge.getEdgeType() == AppEdge.ACTUATOR) {

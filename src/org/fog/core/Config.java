@@ -12,8 +12,11 @@ public class Config {
 	
 	// General ------------------------------------------------
 	
-	/** Defines whether the details (e.g., cost of the best solution and if it's valid) between iterations are printed */
-	public static boolean PRINT_ALGORITHM_ITER = false;
+	/** Defines whether the best value is printed between iterations are printed */
+	public static boolean PRINT_ALGORITHM_BEST_ITER = true;
+	
+	/** Defines whether the details of the constraints of each iteration are printed */
+	public static boolean PRINT_ALGORITHM_CONSTRAINTS = false;
 	
 	/** Defines whether the final result of the algorithm (i.e., the best solution) is printed */
 	public static boolean PRINT_ALGORITHM_RESULTS = true;

@@ -21,7 +21,7 @@ public class ApplicationsExample {
 	 * Creates several example applications to test the simulator.
 	 */
 	@SuppressWarnings("serial")
-	public static void createExampleApplications() {		
+	public static void createExampleApplications() {
 		Application application = new Application("VRGame");
 		application.addAppModule("client", 100, true, false);
 		application.addAppModule("calculator", 100, false, false);
@@ -149,6 +149,13 @@ public class ApplicationsExample {
 	 */
 	public static int getNumberOfApplicationsExample() {
 		return exampleApplications.size();
+	}
+	
+	/**
+	 * Removes all applications.
+	 */
+	public static void clean() {
+		exampleApplications.clear();
 	}
 	
 }
