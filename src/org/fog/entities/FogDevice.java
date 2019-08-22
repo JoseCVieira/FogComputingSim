@@ -679,7 +679,7 @@ public class FogDevice extends PowerDatacenter {
 	 * @param tuple the tuple to be sent
 	 */
 	protected void sendToSelf(Tuple tuple){
-		send(getId(), CloudSim.getMinTimeBetweenEvents(), FogEvents.TUPLE_ARRIVAL, tuple);
+		sendNow(getId(), FogEvents.TUPLE_ARRIVAL, tuple);
 	}
 	
 	/**

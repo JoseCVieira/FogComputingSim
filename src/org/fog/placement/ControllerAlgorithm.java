@@ -90,7 +90,7 @@ public class ControllerAlgorithm {
 		}
 		
 		if(Config.PRINT_DETAILS)
-			System.out.println("Running the optimization algorithm: " + algorithmName + ".");
+			System.out.println("\n\nRunning the optimization algorithm: " + algorithmName + ".");
 		
 		solution = algorithm.execute();
 		

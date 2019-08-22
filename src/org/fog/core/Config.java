@@ -36,8 +36,8 @@ public class Config {
 	public static final int[] priorities = new int[] {
 			1,		// Operational cost
 			1,		// Power cost
-			1,		// Processing cost
-			2,		// Latency cost
+			2,		// Processing cost
+			1,		// Latency cost
 			1,		// Bandwidth cost
 			1		// Migration cost
 	};

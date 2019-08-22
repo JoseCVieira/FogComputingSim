@@ -1,6 +1,5 @@
 package org.fog.placement.algorithm;
 
-import org.cloudbus.cloudsim.core.CloudSim;
 import org.fog.core.Config;
 import org.fog.core.Constants;
 import org.fog.core.FogComputingSim;
@@ -304,15 +303,6 @@ public class Constraints {
 				if(loops[i][j+1] == -1) break;
 				
 				latency += computeProcessingLatency(algorithm, modulePlacementMap, loops[i][j], loops[i][j+1]);
-				
-				/* If its not the first and the last one in the loop, sum:
-				 * - Small delay of tuple processing (CloudSim implemented this way)
-				 * - Delay between the end of tuple processing and the generation of the next one
-				 */
-				if(j != 0 && j != algorithm.getNumberOfModules()-1) {
-					latency += 2*CloudSim.getMinTimeBetweenEvents();
-				}
-				
 				latency += computeDependencyLatency(algorithm, modulePlacementMap, tupleRoutingMap, loops[i][j], loops[i][j+1]);
 				
 				boolean alreadyComputed = false;

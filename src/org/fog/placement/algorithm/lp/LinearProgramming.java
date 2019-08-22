@@ -2,7 +2,6 @@ package org.fog.placement.algorithm.lp;
 
 import java.util.List;
 
-import org.cloudbus.cloudsim.core.CloudSim;
 import org.fog.application.Application;
 import org.fog.core.Config;
 import org.fog.core.Constants;
@@ -90,7 +89,7 @@ public class LinearProgramming extends Algorithm {
 				for(int j = 0; j < nrModules; j++) {
 					placementVar[i][j] = cplex.intVar(0, 1);
 					
-					double pw = (getfBusyPw()[i]-getfIdlePw()[i])*(getmMips()[j]/getfMips()[i] + CloudSim.getMinTimeBetweenEvents());
+					double pw = (getfBusyPw()[i]-getfIdlePw()[i])*(getmMips()[j]/getfMips()[i]);
 					double op = getfMipsPrice()[i]*getmMips()[j] + getfRamPrice()[i]*getmRam()[j] + getfStrgPrice()[i]*getmStrg()[j] + pw*getfEnPrice()[i];
 					double pr = getmMips()[j]/getfMips()[i];
 					
