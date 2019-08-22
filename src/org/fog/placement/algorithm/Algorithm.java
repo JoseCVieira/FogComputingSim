@@ -19,7 +19,6 @@ import org.fog.application.Application;
 import org.fog.application.selectivity.FractionalSelectivity;
 import org.fog.core.Config;
 import org.fog.core.Constants;
-import org.fog.core.FogComputingSim;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
 import org.fog.entities.FogDeviceCharacteristics;
@@ -570,44 +569,33 @@ public abstract class Algorithm {
 	}
 	
 	/**
-	 * Updates the mobile connections velocity based on the mobile bandwidth and path loss models defined.
+	 * Updates both the connections latency and velocity.
 	 * 
 	 * @param fogDevices the list containing all fog devices within the fog network
 	 */
-	public void updateMobileConnectionsVelocity(final List<FogDevice> fogDevices) {		
+	public void updateConnectionCharacteristcs(final List<FogDevice> fogDevices) {
 		for(int i = 0; i < NR_NODES; i++) {
-			
-			// Fixed links have constant bandwidth
-			if(fTxPw[i] == 0) continue;
-			
 			for(int j = 0; j < NR_NODES; j++) {
-				if(j == i) continue;
-				
-				// If it is a mobile communication, then compute current communication velocity
-				FogDevice f1 = null, f2 = null;
-				for(FogDevice f : fogDevices) {
-					if(f.getId() == fId[i]) f1 = f;
-					else if(f.getId() == fId[j]) f2 = f;
+				if(i != j) {
+					fBandwidthMap[i][j] = 0;
+					fLatencyMap[i][j] = Constants.INF;
+				}else {
+					fBandwidthMap[i][j] = Constants.INF;
+					fLatencyMap[i][j] = 0;
 				}
+			}
+		}
+		
+		for(FogDevice fogDevice : fogDevices) {
+			int fogIndex = getNodeIndexByNodeId(fogDevice.getId());
+			
+			for(int neighborId : fogDevice.getBandwidthMap().keySet()) {
+				int neighborIndex = getNodeIndexByNodeId(neighborId);
+				double bandwidth = fogDevice.getBandwidthMap().get(neighborId);
+				double latency = fogDevice.getLatencyMap().get(neighborId);
 				
-				if(f1 == null || f2 == null) FogComputingSim.err("Should not happen (Algorithm)");
-				
-				double distance = Location.computeDistance(f1, f2);
-				double rxPower = MobilePathLossModel.computeReceivedPower(distance);
-				Map<String, Double> map = MobileBandwidthModel.computeCommunicationBandwidth(1, rxPower);
-				
-				double bandwidth = 0.0;
-				for(String m : map.keySet()) {
-					bandwidth = map.get(m);
-				}
-				
-				int f1Index = getNodeIndexByNodeId(f1.getId());
-				int f2Index = getNodeIndexByNodeId(f2.getId());
-				
-				if(f1Index == -1 || f2Index == -1) FogComputingSim.err("Should not happen (Algorithm)");
-				
-				fBandwidthMap[f1Index][f2Index] = bandwidth;
-				fBandwidthMap[f2Index][f1Index] = bandwidth;
+				fBandwidthMap[fogIndex][neighborIndex] = bandwidth;
+				fLatencyMap[fogIndex][neighborIndex] = latency;
 			}
 		}
 	}

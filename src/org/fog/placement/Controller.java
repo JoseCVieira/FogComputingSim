@@ -85,7 +85,7 @@ public class Controller extends SimEntity {
 		appLaunchDelays = new HashMap<String, Integer>();
 		appModulePlacementPolicy = new HashMap<String, ModulePlacement>();
 		
-		setFogDevices(fogDevices);
+		this.fogDevices = fogDevices;
 		this.appList = applications;
 		this.sensors = sensors;
 		this.actuators = actuators;
@@ -220,10 +220,16 @@ public class Controller extends SimEntity {
 	 * the module placement, tuple routing and migration routing tables if needed.
 	 */
 	public void updateTopology() {
-		// Computes the handovers which occurred since the previous algorithm execution
-		Map<FogDevice, Map<FogDevice, FogDevice>> handovers = computeHandovers();
+		Map<FogDevice, Map<FogDevice, FogDevice>> handovers;
 		int[][] previousModulePlacement = null;
 		boolean first = false;
+		
+		// Updates both the algorithm bandwidth and latency map
+		if(algorithm != null)
+			algorithm.updateConnectionCharacteristcs(fogDevices);
+		
+		// Computes the handovers which occurred since the previous algorithm execution
+		handovers = computeHandovers();
 		
 		// Schedules the next reconfiguration of the topology
 		send(getId(), Config.RECONFIG_PERIOD, FogEvents.UPDATE_TOPOLOGY);
@@ -243,7 +249,6 @@ public class Controller extends SimEntity {
 			
 		// Else, if it's not the first execution check if there were some handovers and if the users selected a dynamic simulation
 		}else if(!handovers.isEmpty() && Config.DYNAMIC_SIMULATION) {
-			algorithm.updateMobileConnectionsVelocity(fogDevices);
 			previousModulePlacement = solution.getModulePlacementMap();
 			
 			// If the user choose to allow to perform migrations

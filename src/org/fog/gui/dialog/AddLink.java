@@ -32,6 +32,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 
+import org.fog.core.Config;
 import org.fog.gui.GuiUtils;
 import org.fog.gui.GuiUtils.NodeCellRenderer;
 import org.fog.gui.core.Node;
@@ -176,6 +177,7 @@ public class AddLink extends JDialog {
 		
 		jPanel.add(new JLabel("  Bandwidth [B/s]: "));
 		bandwidth = new JTextField();
+		bandwidth.setText(Double.toString(Config.FIXED_COMMUNICATION_BW));
 		configureInput(bandwidth);
 		jPanel.add(bandwidth);
 
@@ -205,8 +207,6 @@ public class AddLink extends JDialog {
 						ComboBoxModel<String> sourceNodeModel = new DefaultComboBoxModel(graph.getDevicesList().keySet().toArray());
 						sourceNode.setModel(sourceNodeModel);
 						sourceNodeModel.setSelectedItem(null);
-						latency.setText("");
-						bandwidth.setText("");
 						configureTable(jtable);
 					}
 				}else
