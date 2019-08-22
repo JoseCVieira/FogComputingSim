@@ -64,10 +64,10 @@ public class LinearProgramming extends Algorithm {
 		try {
 			// Define model
 			IloCplex cplex = new IloCplex();
-			cplex.setParam(IloCplex.Param.MIP.Tolerances.MIPGap, 0.05);
+			/*cplex.setParam(IloCplex.Param.MIP.Tolerances.MIPGap, 0.05);
 			cplex.setParam(IloCplex.Param.MIP.Strategy.HeuristicFreq, -1);
 			cplex.setParam(IloCplex.Param.MIP.Strategy.Probe, 3);
-			cplex.setParam(IloCplex.Param.TimeLimit, 5);
+			cplex.setParam(IloCplex.Param.TimeLimit, 5);*/
 			
 			int nrNodes = getNumberOfNodes();
 			int nrModules = getNumberOfModules();
