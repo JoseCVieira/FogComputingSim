@@ -1,6 +1,7 @@
 package org.fog.core;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
@@ -56,6 +57,9 @@ public class FogComputingSim {
 		// Initialize CloudSim
 		CloudSim.init(Calendar.getInstance());
 		
+		// Create the output folder if it does not exist
+		createOutputFolder();
+		
 		// Create the topology to be tested and select the algorithm to be used
 		int option = -1;
 		while(option == -1 || applications == null) {
@@ -87,6 +91,23 @@ public class FogComputingSim {
 		CloudSim.stopSimulation();
 		System.out.println("Simulation finished.");
 		System.exit(0);
+	}
+	
+	/**
+	 * Creates the output folder if it does not exists.
+	 */
+	private static void createOutputFolder() {
+		Path path = FileSystems.getDefault().getPath(".");
+		String filePath = path + "/output/";
+		
+		File file = new File(filePath);
+		try {
+			// If the named file does not exist create it
+			file.createNewFile();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	/**
@@ -225,7 +246,7 @@ public class FogComputingSim {
 	@SuppressWarnings("resource")
 	private static String menuFile() {
 		Path path = FileSystems.getDefault().getPath(".");
-		String dir = path + "/topologies/neww/";
+		String dir = path + "/topologies/";
 		
 		System.out.println("Topologies found inside " + dir + ":");
 		

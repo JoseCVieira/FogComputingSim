@@ -10,6 +10,7 @@ import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.placement.algorithm.Algorithm;
 import org.fog.placement.algorithm.Job;
+import org.fog.placement.algorithm.MultiObjectiveJob;
 
 import ilog.concert.*;
 import ilog.cplex.*;
@@ -143,16 +144,15 @@ public class LinearProgramming extends Algorithm {
 			IloObjective bwCost = cplex.minimize(bwObjective);
 			IloObjective mgCost = cplex.minimize(mgObjective);
 			
-			IloNumExpr[] objArray = new IloNumExpr[] {
-					opCost.getExpr(),
-					pwCost.getExpr(),
-					prCost.getExpr(),
-					ltCost.getExpr(),
-					bwCost.getExpr(),
-					mgCost.getExpr()
-			};
+			IloNumExpr[] objArray = new IloNumExpr[Config.NR_OBJECTIVES];
+			objArray[Config.OPERATIONAL_COST] = opCost.getExpr();
+			objArray[Config.POWER_COST] = pwCost.getExpr();
+			objArray[Config.PROCESSING_COST] = prCost.getExpr();
+			objArray[Config.LATENCY_COST] = ltCost.getExpr();
+			objArray[Config.BANDWIDTH_COST] = bwCost.getExpr();
+			objArray[Config.MIGRATION_COST] = mgCost.getExpr();
 			
-			cplex.add(cplex.minimize(cplex.staticLex(objArray, Config.weights, Config.priorities, Config.absTols, Config.relTols, null)));
+			cplex.add(cplex.minimize(cplex.staticLex(objArray, null, Config.priorities, null, null, null)));
 			
 			// Display option
 			if(Config.PRINT_DETAILS)
@@ -190,7 +190,20 @@ public class LinearProgramming extends Algorithm {
 					}
 				}
 				
-				Job solution = new Job(this, null, modulePlacementMap, tupleRoutingMap, migrationRoutingMap);
+				System.out.println(cplex.getValue(opObjective));
+				System.out.println(cplex.getValue(pwObjective));
+				System.out.println(cplex.getValue(prObjective));
+				System.out.println(cplex.getValue(ltObjective));
+				System.out.println(cplex.getValue(bwObjective));
+				System.out.println(cplex.getValue(mgObjective));
+				
+				MultiObjectiveJob solution = new MultiObjectiveJob(this, modulePlacementMap, tupleRoutingMap, migrationRoutingMap);
+				solution.setDetailedCost(Config.OPERATIONAL_COST, cplex.getValue(opObjective));
+				solution.setDetailedCost(Config.POWER_COST, cplex.getValue(pwObjective));
+				solution.setDetailedCost(Config.PROCESSING_COST, cplex.getValue(prObjective));
+				solution.setDetailedCost(Config.LATENCY_COST, cplex.getValue(ltObjective));
+				solution.setDetailedCost(Config.BANDWIDTH_COST, cplex.getValue(bwObjective));
+				solution.setDetailedCost(Config.MIGRATION_COST, cplex.getValue(mgObjective));
 				
 				cplex.end();
 				return solution;

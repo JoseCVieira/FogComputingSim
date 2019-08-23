@@ -24,52 +24,48 @@ public class Config {
 	/** Defines whether the iteration-value map is plotted */
 	public static boolean PLOT_ALGORITHM_RESULTS = false;
 	
+	/** Defines whether the output values are written to the excel file */
+	public static boolean EXPORT_RESULTS_EXCEL = true;
+	
 	/** Defines the percentage of the bandwidth available in the links which is used for transmitting tuples between modules */
 	public static final double BW_PERCENTAGE_TUPLES = 0.8;
+	
+	/** Defines the number of defined objectives inside the multiple objective problem */
+	public static final int NR_OBJECTIVES = 6;
+	
+	/** The index of each objective */
+	public static final int OPERATIONAL_COST = 0;
+	public static final int POWER_COST = 1;
+	public static final int PROCESSING_COST = 2;
+	public static final int LATENCY_COST = 3;
+	public static final int BANDWIDTH_COST = 4;
+	public static final int MIGRATION_COST = 5;
 	
 	/** 
 	 * Order of importance for multiple objective optimization
 	 * Note: The CPLEX multiobjective optimization algorithm sorts the objectives by decreasing priority value.
 	 * 		 If several objectives have the same priority, they are blended in a single objective using the
 	 * 	 	 weight attributes provided.
+	 * 
+	 * Note that for the current problem it makes no sense to sum different costs, thus their priorities must be all different.
 	 */
 	public static final int[] priorities = new int[] {
-			1,		// Operational cost
-			1,		// Power cost
-			2,		// Processing cost
-			1,		// Latency cost
-			1,		// Bandwidth cost
+			4,		// Operational cost
+			3,		// Power cost
+			5,		// Processing cost
+			6,		// Latency cost
+			2,		// Bandwidth cost
 			1		// Migration cost
 	};
 	
-	/** Weights used for the weight sum in case of same priority objectives */
-	public static final double[] weights = new double[] {
-			1.0,	// Operational cost
-			1.0,	// Power cost
-			1.0,	// Processing cost
-			1.0,	// Latency cost
-			1.0,	// Bandwidth cost
-			1.0		// Migration cost
-	};
-	
-	/** Allow a small degradation in the first objective. AbsTols represents a list of absolute tolerances */
-	public static final double[] absTols = new double[] {
-			0.0,	// Operational cost
-			0.0,	// Power cost
-			0.0,	// Processing cost
-			0.0,	// Latency cost
-			0.0,	// Bandwidth cost
-			0.0		// Migration cost
-	};
-	
-	/** Allow a small degradation in the first objective. RelTols represents a list of relative tolerances */
-	public static final double[] relTols = new double[] {
-			0.0,	// Operational cost
-			0.0,	// Power cost
-			0.0,	// Processing cost
-			0.0,	// Latency cost
-			0.0,	// Bandwidth cost
-			0.0		// Migration cost
+	/** The names of the objectives (used to export the results to the excel file) */
+	public static final String[] objectiveNames = new String[] {
+			"Oper.",
+			"Pwr.", 
+			"Proc.",
+			"Lat.", 
+			"Bw.",
+			"Mig."
 	};
 	
 	/** Absolute error value in which is considered that two solutions are equal */

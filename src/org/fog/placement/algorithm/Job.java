@@ -15,19 +15,26 @@ import org.fog.utils.Util;
  */
 public class Job {
 	/** Matrix representing the application module placement table (binary) */
-	private int[][] modulePlacementMap;
+	protected int[][] modulePlacementMap;
 	
 	/** Matrix representing the tuple routing table (each row is a dependency between different pair of nodes) */
-	private int[][] tupleRoutingMap;
+	protected int[][] tupleRoutingMap;
 	
 	/** Matrix representing the virtual machine migration routing table */
-	private int[][] migrationRoutingMap;
+	protected int[][] migrationRoutingMap;
 	
 	/** Result of the cost function */
-	private double cost;
+	protected double cost;
 	
 	/** Defines whether the solution is valid (respects all constraints) */
-	private boolean valid;
+	protected boolean valid;
+	
+	/**
+	 * Creates a new job for subclasses.
+	 */
+	public Job() {
+		// Do nothing
+	}
 	
 	/**
 	 * Creates a copy of a solution.
@@ -67,85 +74,7 @@ public class Job {
 		this.migrationRoutingMap = migrationRoutingMap;
 		cf.analyzeSolution(algorithm, this);
 	}
-	
-	/**
-	 * Creates a solution based on the application module placement, tuple routing, and virtual machine migration
-	 * routing tables (all of which being binary tables).
-	 * 
-	 * @param algorithm the object which holds all the information needed to run the optimization algorithm
-	 * @param cf the object which contains the methods to analyze the cost and the constrains of the solution; can be
-	 * null (e.g., if it was calculated via CPLEX, there is no need to verify the constraints again neither to compute
-	 * the result of the cost function; this way the solution is set to valid automatically)
-	 * @param modulePlacementMap the module placement matrix (binary)
-	 * @param tupleRoutingVectorMap the tuple routing matrix (binary)
-	 * @param migrationRoutingVectorMap the migration routing matrix (binary)
-	 */
-	public Job(Algorithm algorithm, CostFunction cf, int[][] modulePlacementMap, int[][][] tupleRoutingVectorMap, int[][][] migrationRoutingVectorMap) {
-		int nrDependencies = tupleRoutingVectorMap.length;
-		int nrNodes = algorithm.getNumberOfNodes();
-		int nrModules = algorithm.getNumberOfModules();
-		int[][] tupleRoutingMap = new int[nrDependencies][nrNodes];
-		int[][] migrationRoutingMap = new int[nrModules][nrNodes];
-		
-		int iter;
-		
-		// Tuple routing map		
-		for(int i = 0; i < nrDependencies; i++) {
-			int from = Job.findModulePlacement(modulePlacementMap, algorithm.getStartModDependency(i));
-			tupleRoutingMap[i][0] = from;
-			iter = 1;
-			
-			boolean found = true;
-			while(found) {
-				found = false;
-				
-				for(int j = 0; j < nrNodes; j++) {
-					if(tupleRoutingVectorMap[i][from][j] == 1) {
-						tupleRoutingMap[i][iter++] = j;
-						from = j;
-						j = nrNodes;
-						found = true;
-					}
-				}
-			}
-			
-			for(int j = iter; j < nrNodes; j++) {
-				tupleRoutingMap[i][j] = from;
-			}
-		}
-		
-		// Migration routing map
-		for(int i = 0; i < nrModules; i++) {			
-			int from = Job.findModulePlacement(algorithm.isFirstOptimization() ? modulePlacementMap : algorithm.getCurrentPositionInt(), i);
-			migrationRoutingMap[i][0] = from;
-			iter = 1;
-			
-			boolean found = true;
-			while(found) {
-				found = false;
-				
-				for(int j = 0; j < nrNodes; j++) {
-					if(migrationRoutingVectorMap[i][from][j] == 1) {
-						migrationRoutingMap[i][iter++] = j;
-						from = j;
-						j = nrNodes;
-						found = true;
-					}
-				}
-			}
-			
-			for(int j = iter; j < nrNodes; j++) {
-				migrationRoutingMap[i][j] = from;
-			}
-		}
-		
-		this.modulePlacementMap = modulePlacementMap;
-		this.tupleRoutingMap = tupleRoutingMap;
-		this.migrationRoutingMap = migrationRoutingMap;
-		if(cf != null) cf.analyzeSolution(algorithm, this);
-		else this.valid = true;
-	}
-	
+
 	/**
 	 * Generates a random algorithm solution.
 	 * 

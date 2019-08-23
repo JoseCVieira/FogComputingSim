@@ -28,14 +28,13 @@ import org.fog.placement.Controller;
 import org.fog.core.Config;
 import org.fog.core.Constants;
 import org.fog.core.FogComputingSim;
-import org.fog.utils.Analysis;
 import org.fog.utils.FogEvents;
 import org.fog.utils.FogUtils;
 import org.fog.utils.Location;
 import org.fog.utils.MobileBandwidthModel;
 import org.fog.utils.MobilePathLossModel;
 import org.fog.utils.Movement;
-import org.fog.utils.NetworkUsageMonitor;
+import org.fog.utils.NetworkMonitor;
 import org.fog.utils.TimeKeeper;
 import org.fog.utils.Util;
 
@@ -486,10 +485,10 @@ public class FogDevice extends PowerDatacenter {
 			if(Config.PRINT_DETAILS)
 				FogComputingSim.print("[" + getName() + "] Is rejecting tuple w/ destiny: " + tuple.getDestModuleName());
 			
-			Analysis.incrementPacketDrop();
+			NetworkMonitor.incrementPacketDrop();
 			return;
 		}else
-			Analysis.incrementPacketSuccess();
+			NetworkMonitor.incrementPacketSuccess();
 		
 
 		if(deployedModules.contains(tuple.getDestModuleName())) {
@@ -656,7 +655,7 @@ public class FogDevice extends PowerDatacenter {
 		send(getId(), networkDelay, FogEvents.UPDATE_TUPLE_QUEUE, destId);
 		send(destId, networkDelay + latency, FogEvents.TUPLE_ARRIVAL, tuple);
 		
-		NetworkUsageMonitor.sendingTuple(latency, bandwidth, tuple.getCloudletFileSize());
+		NetworkMonitor.sendingTuple(bandwidth, tuple.getCloudletFileSize());
 		updateEnergyConsumption();
 	}
 	

@@ -1,5 +1,6 @@
 package org.fog.placement;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.fog.application.Application;
@@ -15,6 +16,7 @@ import org.fog.placement.algorithm.lp.LinearProgramming;
 import org.fog.placement.algorithm.ga.GeneticAlgorithm;
 import org.fog.placement.algorithm.random.RandomAlgorithm;
 import org.fog.placement.algorithm.util.AlgorithmUtils;
+import org.fog.placement.algorithm.util.ExcelUtils;
 
 /**
  * Class which is responsible for choosing and running the optimization algorithm in order to
@@ -65,7 +67,7 @@ public class ControllerAlgorithm {
 		if(algorithm == null) {
 			switch (algorithmOp) {
 				case MOLP:
-					algorithmName = "Multiobjective Linear Programming";
+					algorithmName = "Multi-objective Linear Programming";
 					algorithm = new LinearProgramming(fogDevices, appList, sensors, actuators);
 					break;
 				/*case MOGA:
@@ -102,6 +104,14 @@ public class ControllerAlgorithm {
 		
 		if(Config.PLOT_ALGORITHM_RESULTS)
 			OutputControllerResults.plotResult(algorithm, algorithmName);
+		
+		if(Config.EXPORT_RESULTS_EXCEL) {
+			try {
+				ExcelUtils.writeExcel(solution, algorithmName);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	/**

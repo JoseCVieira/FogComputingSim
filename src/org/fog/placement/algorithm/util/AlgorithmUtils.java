@@ -10,6 +10,7 @@ import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.placement.algorithm.Algorithm;
 import org.fog.placement.algorithm.Job;
+import org.fog.placement.algorithm.MultiObjectiveJob;
 import org.fog.utils.Util;
 
 /**
@@ -343,7 +344,7 @@ public class AlgorithmUtils {
 	 */
 	public static void printAlgorithmResults(final Algorithm al, final Job job) {
 		System.out.println("\n\n*******************************************************");
-		System.out.println("\t\tALGORITHM OUTPUT (Cost = " + job.getCost() + "):");
+		System.out.println("\t\tALGORITHM OUTPUT (Cost = " + (job instanceof MultiObjectiveJob ? "NA" : job.getCost()) + "):");
 		System.out.println("*******************************************************\n");
 		
 		System.out.println("**************** MODULE PLACEMENT MAP *****************\n");

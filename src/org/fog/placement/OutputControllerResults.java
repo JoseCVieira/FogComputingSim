@@ -1,5 +1,6 @@
 package org.fog.placement;
 
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.Calendar;
 
@@ -8,9 +9,9 @@ import org.fog.application.Application;
 import org.fog.core.Config;
 import org.fog.entities.FogDevice;
 import org.fog.placement.algorithm.Algorithm;
+import org.fog.placement.algorithm.util.ExcelUtils;
 import org.fog.placement.algorithm.util.MatlabChartUtils;
-import org.fog.utils.Analysis;
-import org.fog.utils.NetworkUsageMonitor;
+import org.fog.utils.NetworkMonitor;
 import org.fog.utils.TimeKeeper;
 import org.fog.utils.Util;
 
@@ -35,7 +36,15 @@ public class OutputControllerResults {
 		printEnergyDetails();
 		printCostDetails();
 		printNetworkUsageDetails();
-		printPacketDetails();
+		printNetworkDetails(controller);
+		
+		if(Config.EXPORT_RESULTS_EXCEL) {
+			try {
+				ExcelUtils.writeExcel(controller);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	/**
@@ -46,7 +55,7 @@ public class OutputControllerResults {
 		
 		System.out.println("\n");
 		newDetailsField(2, '=');
-		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "EXECUTION TIME") + "|");
+		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "EXECUTION TIME (s)") + "|");
 		newDetailsField(2, '-');
 		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), String.valueOf(Calendar.getInstance().getTimeInMillis() -
 				TimeKeeper.getInstance().getSimulationStartTime())) + "|");
@@ -54,7 +63,7 @@ public class OutputControllerResults {
 		
 		System.out.println("\n");
 		newDetailsField(2, '=');
-		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "APPLICATION LOOP DELAYS") + "|");
+		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "APPLICATION LOOP DELAYS (s)") + "|");
 		newDetailsField(2, '-');
 		for(Integer loopId : TimeKeeper.getInstance().getLoopIdToTupleIds().keySet()) {
 			System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), getStringForLoopId(loopId) + " ---> "+
@@ -64,12 +73,13 @@ public class OutputControllerResults {
 
 		System.out.println("\n");
 		newDetailsField(2, '=');
-		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "TUPLE CPU EXECUTION DELAY") + "|");
+		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "TUPLE CPU EXECUTION DELAY (s)") + "|");
 		newDetailsField(2, '-');
-		for(String tupleType : TimeKeeper.getInstance().getTupleTypeToAverageCpuTime().keySet())
+		for(String tupleType : TimeKeeper.getInstance().getTupleTypeToAverageCpuTime().keySet()) {
 			System.out.print("|" + Util.centerString(MAX_COLUMN_SIZE, tupleType) + "|" +
 					Util.centerString(MAX_COLUMN_SIZE,
 							df.format(TimeKeeper.getInstance().getTupleTypeToAverageCpuTime().get(tupleType)).toString()) + "|\n");
+		}
 		newDetailsField(2, '=');
 	}
 	
@@ -82,7 +92,7 @@ public class OutputControllerResults {
 		
 		System.out.println("\n");
 		newDetailsField(2, '=');
-		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "ENERGY CONSUMED") + "|");
+		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "ENERGY CONSUMED (W)") + "|");
 		newDetailsField(2, '-');
 		System.out.print("|" + Util.centerString(MAX_COLUMN_SIZE/5-1, "ID") + "|" +
 				Util.centerString(MAX_COLUMN_SIZE-MAX_COLUMN_SIZE/5, "NAME") + "|" +
@@ -108,7 +118,7 @@ public class OutputControllerResults {
 		
 		System.out.println("\n");
 		newDetailsField(2, '=');
-		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "COST OF EXECUTION") + "|");
+		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "COST OF EXECUTION (€)") + "|");
 		newDetailsField(2, '-');
 		System.out.print("|" + Util.centerString(MAX_COLUMN_SIZE/5-1, "ID") + "|" +
 				Util.centerString(MAX_COLUMN_SIZE-MAX_COLUMN_SIZE/5, "NAME") + "|" +
@@ -129,27 +139,32 @@ public class OutputControllerResults {
 	 * Prints the network usage details obtained in the simulation execution.
 	 */
 	private void printNetworkUsageDetails() {
+		DecimalFormat df = new DecimalFormat("0.00000000");
 		System.out.println("\n");
 		newDetailsField(2, '=');
-		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "TOTAL NETWORK USAGE") + "|");
+		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "NETWORK USAGE (%)") + "|");
 		newDetailsField(2, '-');
 		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "" +
-				NetworkUsageMonitor.getNetworkUsage()/Config.MAX_SIMULATION_TIME) + "|");
+				df.format(NetworkMonitor.getNetworkUsage()/Config.MAX_SIMULATION_TIME)) + "|");
 		newDetailsField(2, '=');
 	}
 	
 	/**
 	 * Prints both the number of packet drop and packet successfully delivered in order to check the QoS degradation.
 	 */
-	private static void printPacketDetails() {
+	private static void printNetworkDetails(Controller controller) {
 		System.out.println("\n");
 		newDetailsField(2, '=');
-		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "PACKET COUTERS") + "|");
+		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "NETWORK DETAILS") + "|");
 		newDetailsField(2, '-');
-			System.out.print("|" + Util.centerString(MAX_COLUMN_SIZE, "Success") + "|" +
-					Util.centerString(MAX_COLUMN_SIZE, Integer.toString(Analysis.getPacketSuccess())) + "|\n");
-			System.out.print("|" + Util.centerString(MAX_COLUMN_SIZE, "Drop") + "|" +
-					Util.centerString(MAX_COLUMN_SIZE, Integer.toString(Analysis.getPacketDrop())) + "|\n");
+			System.out.print("|" + Util.centerString(MAX_COLUMN_SIZE, "Packet success counter") + "|" +
+					Util.centerString(MAX_COLUMN_SIZE, Integer.toString(NetworkMonitor.getPacketSuccess())) + "|\n");
+			System.out.print("|" + Util.centerString(MAX_COLUMN_SIZE, "Packet drop counter") + "|" +
+					Util.centerString(MAX_COLUMN_SIZE, Integer.toString(NetworkMonitor.getPacketDrop())) + "|\n");
+			System.out.print("|" + Util.centerString(MAX_COLUMN_SIZE, "Handover counter") + "|" +
+					Util.centerString(MAX_COLUMN_SIZE, Integer.toString(controller.getNrHandovers())) + "|\n");
+			System.out.print("|" + Util.centerString(MAX_COLUMN_SIZE, "Migration counter") + "|" +
+					Util.centerString(MAX_COLUMN_SIZE, Integer.toString(controller.getNrMigrations())) + "|\n");
 		newDetailsField(2, '=');
 	}
 	

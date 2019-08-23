@@ -67,6 +67,12 @@ public class Controller extends SimEntity {
 	/** Object which holds the results of the optimization algorithm */
 	private Job solution;
 	
+	/** Number of migrations performed during the whole simulation */
+	private int nrMigrations;
+	
+	/** Number of handovers performed during the whole simulation */
+	private int nrHandovers;
+
 	/**
 	 * Creates a new controller.
 	 * 
@@ -282,6 +288,8 @@ public class Controller extends SimEntity {
 				
 				createConnection(mobile, to);
 				removeConnection(mobile, from);
+				
+				nrHandovers++;
 			}
 			
 			// Migrate modules
@@ -488,13 +496,13 @@ public class Controller extends SimEntity {
 				FogDevice from = getFogDeviceByName(algorithm.getfName()[previousPlacement]);
 				FogDevice to = getFogDeviceByName(algorithm.getfName()[currentPlacement]);
 				
-				if(Config.PRINT_DETAILS)
-					FogComputingSim.print("Migratig module: " + module.getName() +  " from: " + from.getName() + " to: " + to.getName());
-				
 				Application application = getApplicationByModule(module);
 				
 				if(application == null)
 					FogComputingSim.err("Should not happen (Controller)");
+				
+				if(Config.PRINT_DETAILS)
+					FogComputingSim.print("Migratig module: " + module.getName() +  " from: " + from.getName() + " to: " + to.getName());
 				
 				Map<FogDevice, Map<Application, AppModule>> map = new HashMap<FogDevice, Map<Application,AppModule>>();
 				Map<Application, AppModule> appMap = new HashMap<Application, AppModule>();
@@ -503,6 +511,8 @@ public class Controller extends SimEntity {
 				
 				// notifies the fog device to perform migration
 				sendNow(from.getId(), FogEvents.MIGRATION, map);
+				
+				nrMigrations++;
 			}
 		}
 	}
@@ -650,6 +660,24 @@ public class Controller extends SimEntity {
 	 */
 	public void setApplications(Map<String, Application> applications) {
 		this.applications = applications;
+	}
+	
+	/**
+	 * Gets the number of migrations performed during the whole simulation.
+	 * 
+	 * @return the number of migrations performed during the whole simulation
+	 */
+	public int getNrMigrations() {
+		return nrMigrations;
+	}
+	
+	/**
+	 * Gets the number of nrHandovers performed during the whole simulation.
+	 * 
+	 * @return the number of nrHandovers performed during the whole simulation
+	 */
+	public int getNrHandovers() {
+		return nrHandovers;
 	}
 	
 }
