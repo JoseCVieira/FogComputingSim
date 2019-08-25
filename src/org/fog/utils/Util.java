@@ -1,7 +1,10 @@
 package org.fog.utils;
 
+import java.math.BigDecimal;
 import java.util.Random;
 import java.util.Scanner;
+
+import org.fog.core.FogComputingSim;
 
 /**
  * Class which defines some utility methods used along the program.
@@ -32,7 +35,8 @@ public class Util {
 		int v;
 		
 		try {
-			v = Integer.parseInt(value);
+			BigDecimal bd = new BigDecimal(value);
+			v = bd.intValue();
 		} catch (NumberFormatException e1) {
 			v = -1;
 		}
@@ -131,7 +135,15 @@ public class Util {
 	public static double normalRand(final double mean, final double dev) {
 		Random r = new Random();
 		double randomNumber = -1;
-		while(randomNumber < 0) randomNumber = r.nextGaussian()*dev + mean;
+		int counter = 1;
+		
+		while(randomNumber < 0) {
+			randomNumber = r.nextGaussian()*dev + mean;
+			
+			if(++counter > 100)
+				FogComputingSim.err("It looks like the normal random number generator method is running in an infinite loop");
+		}
+		
 		return randomNumber;
 	}
 	

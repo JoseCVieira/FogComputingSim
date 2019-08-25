@@ -29,7 +29,7 @@ import org.fog.gui.GuiMsg;
 public class DisplaySettings extends JDialog {
 	private static final long serialVersionUID = 4794808969864918000L;
 	private static final int WIDTH = 400;
-	private static final int HEIGHT = 330;
+	private static final int HEIGHT = 350;
 	
 	/**
 	 * Creates a dialog to display and edit the simulation settings.
@@ -77,25 +77,29 @@ public class DisplaySettings extends JDialog {
 	    checkbox4.setToolTipText(GuiMsg.TipSettPlotAlgRes);
 	    checkbox4.setSelected(Config.PLOT_ALGORITHM_RESULTS);
 	    
-	    JCheckBox checkbox5 = new JCheckBox("Debug mode");
-	    checkbox5.setToolTipText(GuiMsg.TipSettDebug);
-	    checkbox5.setSelected(Config.DEBUG_MODE);
+	    JCheckBox checkbox5 = new JCheckBox("Export results to excel");
+	    checkbox5.setToolTipText(GuiMsg.TipSettExcel);
+	    checkbox5.setSelected(Config.EXPORT_RESULTS_EXCEL);
 	    
-	    JCheckBox checkbox6 = new JCheckBox("Print details");
-	    checkbox6.setToolTipText(GuiMsg.TipSettDetails);
-	    checkbox6.setSelected(Config.PRINT_DETAILS);
+	    JCheckBox checkbox6 = new JCheckBox("Debug mode");
+	    checkbox6.setToolTipText(GuiMsg.TipSettDebug);
+	    checkbox6.setSelected(Config.DEBUG_MODE);
 	    
-	    JCheckBox checkbox7 = new JCheckBox("Print cost details");
-	    checkbox7.setToolTipText(GuiMsg.TipSettCost);
-	    checkbox7.setSelected(Config.PRINT_COST_DETAILS);
+	    JCheckBox checkbox7 = new JCheckBox("Print details");
+	    checkbox7.setToolTipText(GuiMsg.TipSettDetails);
+	    checkbox7.setSelected(Config.PRINT_DETAILS);
 	    
-	    JCheckBox checkbox8 = new JCheckBox("Dynamic simulation");
-	    checkbox8.setToolTipText(GuiMsg.TipSettDynamic);
-	    checkbox8.setSelected(Config.DYNAMIC_SIMULATION);
+	    JCheckBox checkbox8 = new JCheckBox("Print cost details");
+	    checkbox8.setToolTipText(GuiMsg.TipSettCost);
+	    checkbox8.setSelected(Config.PRINT_COST_DETAILS);
 	    
-	    JCheckBox checkbox9 = new JCheckBox("Allow migration");
-	    checkbox9.setToolTipText(GuiMsg.TipSettMigration);
-	    checkbox9.setSelected(Config.ALLOW_MIGRATION);
+	    JCheckBox checkbox9 = new JCheckBox("Dynamic simulation");
+	    checkbox9.setToolTipText(GuiMsg.TipSettDynamic);
+	    checkbox9.setSelected(Config.DYNAMIC_SIMULATION);
+	    
+	    JCheckBox checkbox10 = new JCheckBox("Allow migration");
+	    checkbox10.setToolTipText(GuiMsg.TipSettMigration);
+	    checkbox10.setSelected(Config.ALLOW_MIGRATION);
 	    
 	    checkbox1.addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent e) {
@@ -123,29 +127,35 @@ public class DisplaySettings extends JDialog {
 	    
 	    checkbox5.addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent e) {
-            	Config.DEBUG_MODE = e.getStateChange() == 1 ? true : false;
+            	Config.EXPORT_RESULTS_EXCEL = e.getStateChange() == 1 ? true : false;
             }
         });
 	    
 	    checkbox6.addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent e) {
-            	Config.PRINT_DETAILS = e.getStateChange() == 1 ? true : false;
+            	Config.DEBUG_MODE = e.getStateChange() == 1 ? true : false;
             }
         });
 	    
 	    checkbox7.addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent e) {
-            	Config.PRINT_COST_DETAILS = e.getStateChange() == 1 ? true : false;
+            	Config.PRINT_DETAILS = e.getStateChange() == 1 ? true : false;
             }
         });
 	    
 	    checkbox8.addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent e) {
-            	Config.DYNAMIC_SIMULATION = e.getStateChange() == 1 ? true : false;
+            	Config.PRINT_COST_DETAILS = e.getStateChange() == 1 ? true : false;
             }
         });
 	    
 	    checkbox9.addItemListener(new ItemListener() {
+            public void itemStateChanged(ItemEvent e) {
+            	Config.DYNAMIC_SIMULATION = e.getStateChange() == 1 ? true : false;
+            }
+        });
+	    
+	    checkbox10.addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent e) {
             	Config.ALLOW_MIGRATION = e.getStateChange() == 1 ? true : false;
             }
@@ -160,6 +170,7 @@ public class DisplaySettings extends JDialog {
         inputPanelWrapper.add(checkbox7);
         inputPanelWrapper.add(checkbox8);
         inputPanelWrapper.add(checkbox9);
+        inputPanelWrapper.add(checkbox10);
         
 		return inputPanelWrapper;
 	}

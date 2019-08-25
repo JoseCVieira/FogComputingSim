@@ -345,16 +345,16 @@ public class AddFogDevice extends JDialog {
 		for(int i = 0; i <= graph.getMaxLevel() + 1; i++)
 			levels.add(Integer.toString(i));
 		
-		String nameVal = fog == null ? GuiConfig.FOG_NAME : fog.getName();
+		String nameVal = fog == null ? "Node" : fog.getName();
 		String levelVal = fog == null ? "" : Integer.toString(fog.getLevel());
-		String mipsVal = fog == null ? Double.toString(GuiConfig.MIPS) : Double.toString(fog.getMips());
-		String ramVal = fog == null ? Long.toString(GuiConfig.RAM) : Long.toString(fog.getRam());
-		String storageVal = fog == null ? Long.toString(GuiConfig.STRG) : Long.toString(fog.getStorage());
-		String rateMipsVal = fog == null ? Double.toString(GuiConfig.RATE_MIPS) : Double.toString(fog.getRateMips());
-		String rateRamVal = fog == null ? Double.toString(GuiConfig.RATE_RAM) : Double.toString(fog.getRateRam());
-		String rateStrgVal = fog == null ? Double.toString(GuiConfig.RATE_STRG) : Double.toString(fog.getRateStorage());
-		String rateBwVal = fog == null ? Double.toString(GuiConfig.RATE_BW) : Double.toString(fog.getRateBw());
-		String rateEnVal = fog == null ? Double.toString(GuiConfig.RATE_EN) : Double.toString(fog.getRateEnergy());
+		String mipsVal = fog == null ? Double.toString(GuiConfig.MIPS_MEAN) : Double.toString(fog.getMips());
+		String ramVal = fog == null ? Long.toString(GuiConfig.RAM_MEAN) : Long.toString(fog.getRam());
+		String storageVal = fog == null ? Long.toString(GuiConfig.STRG_MEAN) : Long.toString(fog.getStorage());
+		String rateMipsVal = fog == null ? Double.toString(GuiConfig.RATE_MIPS_MEAN) : Double.toString(fog.getRateMips());
+		String rateRamVal = fog == null ? Double.toString(GuiConfig.RATE_RAM_MEAN) : Double.toString(fog.getRateRam());
+		String rateStrgVal = fog == null ? Double.toString(GuiConfig.RATE_STRG_MEAN) : Double.toString(fog.getRateStorage());
+		String rateBwVal = fog == null ? Double.toString(GuiConfig.RATE_BW_MEAN) : Double.toString(fog.getRateBw());
+		String rateEnVal = fog == null ? Double.toString(GuiConfig.RATE_EN_MEAN) : Double.toString(fog.getRateEnergy());
 		String BusyPwVal = fog == null ? Double.toString(GuiConfig.BUSY_POWER) : Double.toString(fog.getBusyPower());
 		String IdlePwVal = fog == null ? Double.toString(GuiConfig.IDLE_POWER) : Double.toString(fog.getIdlePower());
 		String xPosVal = fog == null ? "0.0" : Double.toString(fog.getMovement().getLocation().getX());
