@@ -17,6 +17,7 @@ import org.fog.placement.algorithm.ga.GeneticAlgorithm;
 import org.fog.placement.algorithm.random.RandomAlgorithm;
 import org.fog.placement.algorithm.util.AlgorithmUtils;
 import org.fog.placement.algorithm.util.ExcelUtils;
+import org.fog.placement.algorithm.util.OutputControllerResults;
 
 /**
  * Class which is responsible for choosing and running the optimization algorithm in order to

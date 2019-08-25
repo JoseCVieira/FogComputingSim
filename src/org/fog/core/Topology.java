@@ -87,11 +87,11 @@ public abstract class Topology {
 	 * @param bw the network resource units available at the node
 	 * @param bPw the busy power value (power consumption while using the full processing capacity of the node)
 	 * @param iPw the idle power value (power consumption while using no processing resources at the node)
-	 * @param costPerMips the monetary cost (€/MIPS) of processing resources usage
-	 * @param costPerMem the monetary cost (€/Bytes) of memory usage
-	 * @param costPerStorage the monetary cost (€/Bytes) of storage usage
-	 * @param costPerBw the monetary cost (€/Bytes) of bandwidth usage in at any link which the node is the source
-	 * @param costPerEnergy the monetary cost (€/W) of energy spent at the node
+	 * @param costPerMips the monetary cost [€] of processing resources usage
+	 * @param costPerMem the monetary cost [€] of memory usage
+	 * @param costPerStorage the monetary cost [€] of storage usage
+	 * @param costPerBw the monetary cost [€] of bandwidth usage in at any link which the node is the source
+	 * @param costPerEnergy the monetary cost [€] of energy spent at the node
 	 * @param movement the movement of the node
 	 * @param client if the node is a client
 	 * @return the fog device

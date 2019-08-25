@@ -1,4 +1,4 @@
-package org.fog.placement;
+package org.fog.placement.algorithm.util;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -8,9 +8,8 @@ import org.fog.application.AppLoop;
 import org.fog.application.Application;
 import org.fog.core.Config;
 import org.fog.entities.FogDevice;
+import org.fog.placement.Controller;
 import org.fog.placement.algorithm.Algorithm;
-import org.fog.placement.algorithm.util.ExcelUtils;
-import org.fog.placement.algorithm.util.MatlabChartUtils;
 import org.fog.utils.NetworkMonitor;
 import org.fog.utils.TimeKeeper;
 import org.fog.utils.Util;
@@ -55,7 +54,7 @@ public class OutputControllerResults {
 		
 		System.out.println("\n");
 		newDetailsField(2, '=');
-		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "EXECUTION TIME (s)") + "|");
+		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "EXECUTION TIME [s]") + "|");
 		newDetailsField(2, '-');
 		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), String.valueOf(Calendar.getInstance().getTimeInMillis() -
 				TimeKeeper.getInstance().getSimulationStartTime())) + "|");
@@ -63,7 +62,7 @@ public class OutputControllerResults {
 		
 		System.out.println("\n");
 		newDetailsField(2, '=');
-		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "APPLICATION LOOP DELAYS (s)") + "|");
+		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "APPLICATION LOOP DELAYS [s]") + "|");
 		newDetailsField(2, '-');
 		for(Integer loopId : TimeKeeper.getInstance().getLoopIdToTupleIds().keySet()) {
 			System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), getStringForLoopId(loopId) + " ---> "+
@@ -73,7 +72,7 @@ public class OutputControllerResults {
 
 		System.out.println("\n");
 		newDetailsField(2, '=');
-		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "TUPLE CPU EXECUTION DELAY (s)") + "|");
+		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "TUPLE CPU EXECUTION DELAY [s]") + "|");
 		newDetailsField(2, '-');
 		for(String tupleType : TimeKeeper.getInstance().getTupleTypeToAverageCpuTime().keySet()) {
 			System.out.print("|" + Util.centerString(MAX_COLUMN_SIZE, tupleType) + "|" +
@@ -92,7 +91,7 @@ public class OutputControllerResults {
 		
 		System.out.println("\n");
 		newDetailsField(2, '=');
-		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "ENERGY CONSUMED (W)") + "|");
+		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "ENERGY CONSUMED [W]") + "|");
 		newDetailsField(2, '-');
 		System.out.print("|" + Util.centerString(MAX_COLUMN_SIZE/5-1, "ID") + "|" +
 				Util.centerString(MAX_COLUMN_SIZE-MAX_COLUMN_SIZE/5, "NAME") + "|" +
@@ -118,7 +117,7 @@ public class OutputControllerResults {
 		
 		System.out.println("\n");
 		newDetailsField(2, '=');
-		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "COST OF EXECUTION (€)") + "|");
+		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "COST OF EXECUTION [€]") + "|");
 		newDetailsField(2, '-');
 		System.out.print("|" + Util.centerString(MAX_COLUMN_SIZE/5-1, "ID") + "|" +
 				Util.centerString(MAX_COLUMN_SIZE-MAX_COLUMN_SIZE/5, "NAME") + "|" +
@@ -142,7 +141,7 @@ public class OutputControllerResults {
 		DecimalFormat df = new DecimalFormat("0.00000000");
 		System.out.println("\n");
 		newDetailsField(2, '=');
-		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "NETWORK USAGE (%)") + "|");
+		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "NETWORK USAGE TIME [%]") + "|");
 		newDetailsField(2, '-');
 		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "" +
 				df.format(NetworkMonitor.getNetworkUsage()/Config.MAX_SIMULATION_TIME)) + "|");

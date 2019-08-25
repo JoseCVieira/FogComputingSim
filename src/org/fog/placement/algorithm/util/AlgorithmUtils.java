@@ -140,19 +140,19 @@ public class AlgorithmUtils {
 				if(fogDevice.getName().equals(al.getfName()[i]))
 					fDevice = fogDevice;
 			
-			System.out.println(Util.leftString(26, "Id: ") + fDevice.getId());
-			System.out.println(Util.leftString(26, "Name: ") + al.getfName()[i]);
-			System.out.println(Util.leftString(26, "Mips [MIPS]: ") + al.getfMips()[i]);
-			System.out.println(Util.leftString(26, "Ram [B]: ") + al.getfRam()[i]);
-			System.out.println(Util.leftString(26, "Storage [B]: ") + al.getfStrg()[i]);
-			System.out.println(Util.leftString(26, "Mips price [€/MIPS]: ") + al.getfMipsPrice()[i]);
-			System.out.println(Util.leftString(26, "Ram price [€/B]: ") + al.getfRamPrice()[i]);
-			System.out.println(Util.leftString(26, "Storage price [€/B]: ") + al.getfStrgPrice()[i]);
-			System.out.println(Util.leftString(26, "Bandwidth price [€/B/s]: ") + al.getfBwPrice()[i]);
-			System.out.println(Util.leftString(26, "Energy price [€/W]: ") + al.getfEnPrice()[i]);
-			System.out.println(Util.leftString(26, "Busy power [W]: ") + al.getfBusyPw()[i]);
-			System.out.println(Util.leftString(26, "Idle power [W]: ") + al.getfIdlePw()[i]);
-			System.out.println(Util.leftString(26, "Transmission power [W]: ") + al.getfTxPw()[i]);
+			System.out.println(Util.leftString(24, "Id: ") + fDevice.getId());
+			System.out.println(Util.leftString(24, "Name: ") + al.getfName()[i]);
+			System.out.println(Util.leftString(24, "Mips [MIPS]: ") + al.getfMips()[i]);
+			System.out.println(Util.leftString(24, "Ram [Byte]: ") + al.getfRam()[i]);
+			System.out.println(Util.leftString(24, "Storage [Byte]: ") + al.getfStrg()[i]);
+			System.out.println(Util.leftString(24, "Mips price [€]: ") + al.getfMipsPrice()[i]);
+			System.out.println(Util.leftString(24, "Ram price [€]: ") + al.getfRamPrice()[i]);
+			System.out.println(Util.leftString(24, "Storage price [€]: ") + al.getfStrgPrice()[i]);
+			System.out.println(Util.leftString(24, "Bandwidth price [€]: ") + al.getfBwPrice()[i]);
+			System.out.println(Util.leftString(24, "Energy price [€]: ") + al.getfEnPrice()[i]);
+			System.out.println(Util.leftString(24, "Busy power [W]: ") + al.getfBusyPw()[i]);
+			System.out.println(Util.leftString(24, "Idle power [W]: ") + al.getfIdlePw()[i]);
+			System.out.println(Util.leftString(24, "Transmission power [W]: ") + al.getfTxPw()[i]);
 			
 			if(i < fogDevices.size() -1)
 				System.out.println();
@@ -164,17 +164,17 @@ public class AlgorithmUtils {
 		System.out.println("*******************************************************\n");
 		
 		for(int i = 0; i < al.getNumberOfModules(); i++) {
-			System.out.println(Util.leftString(15, "Name: ") + al.getmName()[i]);
-			System.out.println(Util.leftString(15, "Mips [MIPS]: ") + al.getmMips()[i]);
-			System.out.println(Util.leftString(15, "Ram [B]: ") + al.getmRam()[i]);
-			System.out.println(Util.leftString(15, "Strorage [B]: ") + al.getmStrg()[i]);
+			System.out.println(Util.leftString(17, "Name: ") + al.getmName()[i]);
+			System.out.println(Util.leftString(17, "Mips [MIPS]: ") + al.getmMips()[i]);
+			System.out.println(Util.leftString(17, "Ram [Byte]: ") + al.getmRam()[i]);
+			System.out.println(Util.leftString(17, "Strorage [Byte]: ") + al.getmStrg()[i]);
 			
 			if(i < al.getNumberOfModules() -1)
 				System.out.println();
 		}
 		
 		System.out.println("\n*******************************************************");
-		System.out.println("\t\tBANDWIDTH MAP (Between modules) [MB/s]:");
+		System.out.println("\t\tBANDWIDTH MAP (Between modules) [MByte/s]:");
 		System.out.println("*******************************************************\n");
 		
 		System.out.format(Util.centerString(20, " "));
@@ -232,7 +232,7 @@ public class AlgorithmUtils {
 		}
 		
 		System.out.println("\n*******************************************************");
-		System.out.println("\t\tNETWORK MAP (Between modules) [B]:");
+		System.out.println("\t\tNETWORK MAP (Between modules) [Byte]:");
 		System.out.println("*******************************************************\n");
 		
 		System.out.format(Util.centerString(20, " "));
@@ -270,7 +270,7 @@ public class AlgorithmUtils {
 		}
 		
 		System.out.println("\n*******************************************************");
-		System.out.println("\t\tBANDWIDTH MAP (Between nodes) [MB/s]:");
+		System.out.println("\t\tBANDWIDTH MAP (Between nodes) [MByte/s]:");
 		System.out.println("*******************************************************\n");
 		
 		System.out.format(Util.centerString(20, " "));
@@ -326,9 +326,9 @@ public class AlgorithmUtils {
 			}
 			
 			if(al.getLoopsDeadline()[i] != Constants.INF)
-				System.out.format("::::" + Util.centerString(25, ("Deadline: " + al.getLoopsDeadline()[i])));
+				System.out.format("::::" + Util.centerString(25, ("Deadline: " + al.getLoopsDeadline()[i])) + "\n");
 			else
-				System.out.format("::::" + Util.centerString(25, ("Deadline: INF" )));
+				System.out.format("::::" + Util.centerString(25, ("Deadline: INF" )) + "\n");
 		}
 		
 		System.out.println("\n\n\n\n---------------------------------------------------------------------------------------- '' ----------------------------------------------------------------------------------------");

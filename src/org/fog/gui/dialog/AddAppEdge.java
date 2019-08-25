@@ -165,7 +165,7 @@ public class AddAppEdge extends JDialog {
 		periodic = GuiUtils.createDropDown(springPanel, periodic, "Periodic: ", periodicModel, periodicOp, GuiMsg.TipEdgePeri);
 		periodicity = GuiUtils.createInput(springPanel, periodicity, "Periodicity [s]: ", periodicityOp, GuiMsg.TipEdgePeriod);
 		tupleCpuLength = GuiUtils.createInput(springPanel, tupleCpuLength, "Tuple CPU length [MI]: ", tupleCpuLengthOp, GuiMsg.TipEdgeCPU);
-		tupleNwLength = GuiUtils.createInput(springPanel, tupleNwLength, "Tuple NW length [Bytes]: ", tupleNwLengthOp, GuiMsg.TipEdgeNW);
+		tupleNwLength = GuiUtils.createInput(springPanel, tupleNwLength, "Tuple NW length [Byte]: ", tupleNwLengthOp, GuiMsg.TipEdgeNW);
 		tupleType = GuiUtils.createInput(springPanel, tupleType, "Tuple type: ", tupleTypeOp, GuiMsg.TipEdgeTupleType);
 		
 		sourceNode.setRenderer(renderer);

@@ -48,8 +48,8 @@ public class AddApplication extends JDialog {
 	private static final long serialVersionUID = 4794808969864918000L;
 	private static final int WIDTH = 1500;
 	private static final int HEIGHT = 1000;
-	private static final String[] COLUMN_MODULES = {"Name", "Ram [B]", "Client Module", "Global Module", "Edit"};
-	private static final String[] COLUMN_EDGES = {"Source", "Destination", "Tuple CPU [MI]", "Tuple NW [B]",
+	private static final String[] COLUMN_MODULES = {"Name", "Ram [Byte]", "Client Module", "Global Module", "Edit"};
+	private static final String[] COLUMN_EDGES = {"Source", "Destination", "Tuple CPU [MI]", "Tuple NW [Byte]",
 			"Tuple Type", "Edge Type", "Periodicity [s]", "Edit"};
 	private static final String[] COLUMN_TUPLES = {"Module Name", "Input Tuple Type", "Output Tuple Type",
 			"Selectivity", "Edit"};

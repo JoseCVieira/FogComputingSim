@@ -114,7 +114,7 @@ public class Config {
 	public static final int HANDOVER_THRESHOLD = 75;
 	
 	/** Defines the bandwidth available in fixed link */
-	public static final double FIXED_COMMUNICATION_BW = 50*1024*1024;	// 50MB
+	public static final double FIXED_COMMUNICATION_BW = 50*1024*1024;	// 50 MBytes
 	
 	/** Defines the time needed to perform the setup of the VM after the migration is completed */
 	public static final double SETUP_VM_TIME = 20;

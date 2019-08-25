@@ -21,6 +21,7 @@ import org.fog.entities.Sensor;
 import org.fog.entities.Tuple;
 import org.fog.placement.algorithm.Algorithm;
 import org.fog.placement.algorithm.Job;
+import org.fog.placement.algorithm.util.OutputControllerResults;
 import org.fog.utils.FogEvents;
 import org.fog.utils.Location;
 import org.fog.utils.MobileBandwidthModel;

@@ -211,7 +211,7 @@ public class AddAppModule extends JDialog {
         ComboBoxModel<String> globalModuleModel = new DefaultComboBoxModel(booleanOp);
         
         moduleName = GuiUtils.createInput(springPanel, moduleName, "Name: ", nameOp, GuiMsg.TipModName);
-        moduleRam = GuiUtils.createInput(springPanel, moduleRam, "Ram [Bytes]: ", ramOp, GuiMsg.TipModRam);
+        moduleRam = GuiUtils.createInput(springPanel, moduleRam, "Ram [Byte]: ", ramOp, GuiMsg.TipModRam);
         clientModule = GuiUtils.createDropDown(springPanel, clientModule, "Client module: ", clientModuleModel, clientOp, GuiMsg.TipModClient);
         globalModule = GuiUtils.createDropDown(springPanel, globalModule, "Global module: ", globalModuleModel, globalOp, GuiMsg.TipModGlobal);        
         

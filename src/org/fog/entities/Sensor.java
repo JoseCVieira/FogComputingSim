@@ -22,7 +22,7 @@ import org.fog.utils.distribution.Distribution;
  * @since  July, 2019
  */
 public class Sensor extends SimEntity{
-	/** File size (in byte) of this cloudlet AFTER finish executing by a PowerDatacenter */
+	/** File size [Byte] of this cloudlet AFTER finish executing by a PowerDatacenter */
 	private static final long OUTPUT_SIZE = 3;
 	
 	/** Application id in which it is sensing */

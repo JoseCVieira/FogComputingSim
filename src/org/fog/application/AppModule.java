@@ -46,7 +46,7 @@ public class AppModule extends PowerVm {
 	 * @param appId the application id
 	 * @param userId the user id
 	 * @param mips the processing resource units necessary to the application module
-	 * @param ram the memory resource units necessary to the application module
+	 * @param ram the memory resource units [Byte] necessary to the application module
 	 * @param bw the network resource units necessary to the application module
 	 * @param size the storage resource units necessary to the application module
 	 * @param vmm the virtual machine monitor

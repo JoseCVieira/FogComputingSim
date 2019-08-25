@@ -144,12 +144,12 @@ public class ExcelUtils {
 	    	Row row = sheet.createRow(rowIndex++);
 	    	
 	    	createTitleCell(sheet, row, cellIndex++, 65, "Simul. Id");
-	    	createTitleCell(sheet, row, cellIndex++, 150, "Execution time (s)");
-		    createTitleCell(sheet, row, cellIndex++, 190, "Application Loop delays (s)");
-		    createTitleCell(sheet, row, cellIndex++, 190, "Tuple CPU execution delay (s)");
-		    createTitleCell(sheet, row, cellIndex++, 190, "Energy consumed (W)");
-		    createTitleCell(sheet, row, cellIndex++, 190, "Cost of execution (€)");
-		    createTitleCell(sheet, row, cellIndex++, 190, "Network usage (%)");
+	    	createTitleCell(sheet, row, cellIndex++, 150, "Execution time [s]");
+		    createTitleCell(sheet, row, cellIndex++, 190, "Application Loop delays [s]");
+		    createTitleCell(sheet, row, cellIndex++, 190, "Tuple CPU execution delay [s]");
+		    createTitleCell(sheet, row, cellIndex++, 190, "Energy consumed [W]");
+		    createTitleCell(sheet, row, cellIndex++, 190, "Cost of execution [€]");
+		    createTitleCell(sheet, row, cellIndex++, 190, "Network usage [%]");
 		    createTitleCell(sheet, row, cellIndex++, 125, "# packet success");
 		    createTitleCell(sheet, row, cellIndex++, 125, "# packet drop");
 		    createTitleCell(sheet, row, cellIndex++, 125, "# handovers");

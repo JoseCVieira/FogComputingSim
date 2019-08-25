@@ -190,13 +190,6 @@ public class LinearProgramming extends Algorithm {
 					}
 				}
 				
-				System.out.println(cplex.getValue(opObjective));
-				System.out.println(cplex.getValue(pwObjective));
-				System.out.println(cplex.getValue(prObjective));
-				System.out.println(cplex.getValue(ltObjective));
-				System.out.println(cplex.getValue(bwObjective));
-				System.out.println(cplex.getValue(mgObjective));
-				
 				MultiObjectiveJob solution = new MultiObjectiveJob(this, modulePlacementMap, tupleRoutingMap, migrationRoutingMap);
 				solution.setDetailedCost(Config.OPERATIONAL_COST, cplex.getValue(opObjective));
 				solution.setDetailedCost(Config.POWER_COST, cplex.getValue(pwObjective));

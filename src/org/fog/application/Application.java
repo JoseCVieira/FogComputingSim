@@ -50,7 +50,7 @@ public class Application {
 	 * Adds an application module to the application.
 	 * 
 	 * @param moduleName the module name
-	 * @param ram the ram size (Bytes) needed to run this module
+	 * @param ram the ram size [Byte] needed to run this module
 	 */
 	public void addAppModule(String moduleName, int ram, boolean clientModule, boolean glogbalModule) {
 		int mips = 0;
@@ -100,7 +100,7 @@ public class Application {
 	 * @param source the name of source application module
 	 * @param destination the name of destination application module
 	 * @param tupleCpuLength the CPU length (in MIPS) of tuples carried by the application edge
-	 * @param tupleNwLength the network length (in kilobytes) of tuples carried by the application edge
+	 * @param tupleNwLength the network length [Byte] of tuples carried by the application edge
 	 * @param tupleType the type of tuples carried by the application edge
 	 * @param edgeType the origin or the destination of the edge
 	 */
@@ -146,7 +146,7 @@ public class Application {
 	 * @param destination the name of destination application module
 	 * @param periodicity the periodicity of the application edge
 	 * @param tupleCpuLength the CPU length (in MIPS) of tuples carried by the application edge
-	 * @param tupleNwLength the network length (in kilobytes) of tuples carried by the application edge
+	 * @param tupleNwLength the network length [Byte] of tuples carried by the application edge
 	 * @param tupleType the type of tuples carried by the application edge
 	 * @param edgeType the origin or the destination of the edge
 	 * 

@@ -13,10 +13,10 @@ import org.cloudbus.cloudsim.Host;
  */
 public class FogDeviceCharacteristics extends DatacenterCharacteristics {
 	
-	/** Monetary cost per processing units (€/MIPS). */
+	/** Monetary cost per processing units [€] */
 	private double costPerMips;
 	
-	/** Monetary cost per energy spent (€/W). */
+	/** Monetary cost per energy spent [€] */
 	private double costPerEnergy;
 	
 	/**
@@ -27,11 +27,11 @@ public class FogDeviceCharacteristics extends DatacenterCharacteristics {
 	 * @param vmm the virtual machine monitor used
 	 * @param host object which executes actions related to management of virtual machines (e.g., creation and destruction)
 	 * @param timeZone local time zone of a user that owns this reservation
-	 * @param costPerMips the monetary cost per processing resource units (€/MIPS)
-	 * @param costPerMem the monetary cost per memory resource units (€/Bytes)
-	 * @param costPerStorage the monetary cost per storage resource units (€/Bytes)
-	 * @param costPerBw the monetary cost per network resource units (€/Bytes)
-	 * @param costPerEnergy the monetary cost per energy units (€/W)
+	 * @param costPerMips the monetary cost per processing resource units [€]
+	 * @param costPerMem the monetary cost per memory resource units [€]
+	 * @param costPerStorage the monetary cost per storage resource units [€]
+	 * @param costPerBw the monetary cost per network resource units [€]
+	 * @param costPerEnergy the monetary cost per energy units [€]
 	 */	
 	@SuppressWarnings("serial")
 	public FogDeviceCharacteristics(String architecture, String os, String vmm, Host host, double timeZone, double costPerMips,
@@ -43,7 +43,7 @@ public class FogDeviceCharacteristics extends DatacenterCharacteristics {
 	}
 	
 	/**
-	 * Gets the monetary cost per processing units (€/MIPS).
+	 * Gets the monetary cost per processing units [€].
 	 * 
 	 * @return the monetary cost per processing units
 	 */
@@ -52,7 +52,7 @@ public class FogDeviceCharacteristics extends DatacenterCharacteristics {
 	}
 	
 	/**
-	 * Sets the monetary cost per processing units (€/MIPS).
+	 * Sets the monetary cost per processing units [€].
 	 * 
 	 * @param costPerMips the monetary cost per processing units
 	 */
@@ -61,7 +61,7 @@ public class FogDeviceCharacteristics extends DatacenterCharacteristics {
 	}
 	
 	/**
-	 * Gets the monetary cost per energy spent (€/W).
+	 * Gets the monetary cost per energy spent [€].
 	 * 
 	 * @return the monetary cost per energy spent
 	 */
@@ -70,7 +70,7 @@ public class FogDeviceCharacteristics extends DatacenterCharacteristics {
 	}
 	
 	/**
-	 * Sets the monetary cost per energy spent (€/W).
+	 * Sets the monetary cost per energy spent [€].
 	 * 
 	 * @param costPerEnergy the monetary cost per energy spent
 	 */

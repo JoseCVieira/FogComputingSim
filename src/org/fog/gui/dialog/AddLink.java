@@ -51,7 +51,7 @@ public class AddLink extends JDialog {
 	private static final long serialVersionUID = 4794808969864918000L;
 	private static final int WIDTH = 1500;
 	private static final int HEIGHT = 1000;
-	private static final String[] COLUMNS = {"From/To", "From/To", "Latency [s]", "Bandwidth [B/s]", "Remove"};
+	private static final String[] COLUMNS = {"From/To", "From/To", "Latency [s]", "Bandwidth [Byte/s]", "Remove"};
 	
 	/** Object which holds the current topology */
 	private final Graph graph;
@@ -175,7 +175,7 @@ public class AddLink extends JDialog {
 		configureInput(latency);
 		jPanel.add(latency);
 		
-		jPanel.add(new JLabel("  Bandwidth [B/s]: "));
+		jPanel.add(new JLabel("  Bandwidth [Byte/s]: "));
 		bandwidth = new JTextField();
 		bandwidth.setText(Double.toString(Config.FIXED_COMMUNICATION_BW));
 		configureInput(bandwidth);

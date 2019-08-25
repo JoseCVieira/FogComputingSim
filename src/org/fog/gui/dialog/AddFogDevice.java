@@ -368,13 +368,13 @@ public class AddFogDevice extends JDialog {
 		deviceName = GuiUtils.createInput(jPanel, deviceName, "Name: ", nameVal, GuiMsg.TipDevName);
 		level = GuiUtils.createDropDown(jPanel, level, "Level: ", levelModel, levelVal, GuiMsg.TipDevLevel);
 		mips = GuiUtils.createInput(jPanel, mips, "Mips [MIPS]: ", mipsVal, GuiMsg.TipDevMips);
-		ram = GuiUtils.createInput(jPanel, ram, "Ram [Bytes]: ", ramVal, GuiMsg.TipDevRam);
-		storage = GuiUtils.createInput(jPanel, storage, "Storage [Bytes]: ", storageVal, GuiMsg.TipDevStrg);
-		rateMips = GuiUtils.createInput(jPanel, rateMips, "Mips price [€/s per MIPS]: ", rateMipsVal, GuiMsg.TipDevMipsPrice);
-		rateRam = GuiUtils.createInput(jPanel, rateRam, "Ram price [€/s per Byte]: ", rateRamVal, GuiMsg.TipDevRamPrice);
-		rateStorage = GuiUtils.createInput(jPanel, rateStorage, "Storage price [€/s per Byte]: ", rateStrgVal, GuiMsg.TipDevStrgPrice);
-		rateBw = GuiUtils.createInput(jPanel, rateBw, "Bandwidth price [€/s per Byte/s]: ", rateBwVal, GuiMsg.TipDevBwPrice);
-		rateEn = GuiUtils.createInput(jPanel, rateEn, "Energy price [€/s per W]: ", rateEnVal, GuiMsg.TipDevEnPrice);
+		ram = GuiUtils.createInput(jPanel, ram, "Ram [Byte]: ", ramVal, GuiMsg.TipDevRam);
+		storage = GuiUtils.createInput(jPanel, storage, "Storage [Byte]: ", storageVal, GuiMsg.TipDevStrg);
+		rateMips = GuiUtils.createInput(jPanel, rateMips, "Mips price [€]: ", rateMipsVal, GuiMsg.TipDevMipsPrice);
+		rateRam = GuiUtils.createInput(jPanel, rateRam, "Ram price [€]: ", rateRamVal, GuiMsg.TipDevRamPrice);
+		rateStorage = GuiUtils.createInput(jPanel, rateStorage, "Storage price [€]: ", rateStrgVal, GuiMsg.TipDevStrgPrice);
+		rateBw = GuiUtils.createInput(jPanel, rateBw, "Bandwidth price [€]: ", rateBwVal, GuiMsg.TipDevBwPrice);
+		rateEn = GuiUtils.createInput(jPanel, rateEn, "Energy price [€]: ", rateEnVal, GuiMsg.TipDevEnPrice);
 		busyPower = GuiUtils.createInput(jPanel, busyPower, "Busy power [W]: ", BusyPwVal, GuiMsg.TipDevBusyPw);
 		idlePower = GuiUtils.createInput(jPanel, idlePower, "Idle power [W]: ", IdlePwVal, GuiMsg.TipDevIdlePw);
 		posX = GuiUtils.createInput(jPanel, posX, "X Coordinate [m]: ", xPosVal, GuiMsg.TipDevXCoord);
@@ -479,11 +479,11 @@ public class AddFogDevice extends JDialog {
 			}
 		});
 		
-		normalMean = GuiUtils.createInput(jPanel, normalMean, "Mean: ", nMeanVal, GuiMsg.TipDevnMean);
-		normalStdDev = GuiUtils.createInput(jPanel, normalStdDev, "StdDev: ", nStdDevVal, GuiMsg.TipDevnStd);
-		uniformLowerBound = GuiUtils.createInput(jPanel, uniformLowerBound, "Min: ", uLowerVal, GuiMsg.TipDevuLow);
-		uniformUpperBound = GuiUtils.createInput(jPanel, uniformUpperBound, "Max: ", uUpperVal, GuiMsg.TipDevuUp);
-		deterministicValue = GuiUtils.createInput(jPanel, deterministicValue, "Value: ", detVal, GuiMsg.TipDevdVal);
+		normalMean = GuiUtils.createInput(jPanel, normalMean, "Mean [s]: ", nMeanVal, GuiMsg.TipDevnMean);
+		normalStdDev = GuiUtils.createInput(jPanel, normalStdDev, "StdDev [s]: ", nStdDevVal, GuiMsg.TipDevnStd);
+		uniformLowerBound = GuiUtils.createInput(jPanel, uniformLowerBound, "Min [s]: ", uLowerVal, GuiMsg.TipDevuLow);
+		uniformUpperBound = GuiUtils.createInput(jPanel, uniformUpperBound, "Max [s]: ", uUpperVal, GuiMsg.TipDevuUp);
+		deterministicValue = GuiUtils.createInput(jPanel, deterministicValue, "Det. value [s]: ", detVal, GuiMsg.TipDevdVal);
 
 		String item = "";
 		if(fog != null && fog.getDistribution() != null) {

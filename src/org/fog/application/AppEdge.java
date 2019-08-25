@@ -21,7 +21,7 @@ public class AppEdge {
 	/** CPU length (in MIPS) of tuples carried by the application edge */
 	private double tupleCpuLength;
 	
-	/** Network length (in kilobytes) of tuples carried by the application edge */
+	/** Network length [Byte] of tuples carried by the application edge */
 	private double tupleNwLength;
 	
 	/** Type of tuples carried by the application edge */
@@ -42,7 +42,7 @@ public class AppEdge {
 	 * @param source the name of source application module
 	 * @param destination the name of destination application module
 	 * @param tupleCpuLength the CPU length (in MIPS) of tuples carried by the application edge
-	 * @param tupleNwLength the network length (in bytes) of tuples carried by the application edge
+	 * @param tupleNwLength the network length [Byte] of tuples carried by the application edge
 	 * @param tupleType the type of tuples carried by the application edge
 	 * @param edgeType the origin or the destination of the edge
 	 */
@@ -64,7 +64,7 @@ public class AppEdge {
 	 * @param destination the name of destination application module
 	 * @param periodicity the periodicity of the application edge
 	 * @param tupleCpuLength the CPU length (in MIPS) of tuples carried by the application edge
-	 * @param tupleNwLength the network length (in bytes) of tuples carried by the application edge
+	 * @param tupleNwLength the network length [Byte] of tuples carried by the application edge
 	 * @param tupleType the type of tuples carried by the application edge
 	 * @param edgeType the origin or the destination of the edge
 	 */
@@ -86,7 +86,7 @@ public class AppEdge {
 	 * @param source the name of source application module
 	 * @param destination the name of destination application module
 	 * @param tupleCpuLength the CPU length (in MIPS) of tuples carried by the application edge
-	 * @param tupleNwLength the network length (in bytes) of tuples carried by the application edge
+	 * @param tupleNwLength the network length [Byte] of tuples carried by the application edge
 	 * @param tupleType the type of tuples carried by the application edge
 	 * @param edgeType the origin or the destination of the edge
 	 */
@@ -108,7 +108,7 @@ public class AppEdge {
 	 * @param destination the name of destination application module
 	 * @param periodicity the periodicity of the application edge
 	 * @param tupleCpuLength the CPU length (in MIPS) of tuples carried by the application edge
-	 * @param tupleNwLength the network length (in bytes) of tuples carried by the application edge
+	 * @param tupleNwLength the network length [Byte] of tuples carried by the application edge
 	 * @param tupleType the type of tuples carried by the application edge
 	 * @param edgeType the origin or the destination of the edge
 	 */
@@ -179,18 +179,18 @@ public class AppEdge {
 	}
 	
 	/**
-	 * Gets the network length (in kilobytes) of tuples carried by the application edge.
+	 * Gets the network length [Byte] of tuples carried by the application edge.
 	 * 
-	 * @return the network length (in kilobytes) of tuples carried by the application edge
+	 * @return the network length of tuples carried by the application edge
 	 */
 	public double getTupleNwLength() {
 		return tupleNwLength;
 	}
 	
 	/**
-	 * Sets the network length (in kilobytes) of tuples carried by the application edge.
+	 * Sets the network length [Byte] of tuples carried by the application edge.
 	 * 
-	 * @param tupleNwLength the network length (in kilobytes) of tuples carried by the application edge
+	 * @param tupleNwLength the network length of tuples carried by the application edge
 	 */
 	public void setTupleNwLength(double tupleNwLength) {
 		this.tupleNwLength = tupleNwLength;

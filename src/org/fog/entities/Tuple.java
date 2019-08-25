@@ -50,8 +50,8 @@ public class Tuple extends Cloudlet{
 	 * @param cloudletId the unique ID of this Cloudlet
 	 * @param loudletLength the length or size (in MI) of this cloudlet to be executed in a PowerDatacenter
 	 * @param pesNumber the pes number
-	 * @param cloudletFileSize the file size (in byte) of this cloudlet BEFORE submitting to a PowerDatacenter
-	 * @param cloudletOutputSize the file size (in byte) of this cloudlet AFTER finish executing by a PowerDatacenter
+	 * @param cloudletFileSize the file size [Byte] of this cloudlet BEFORE submitting to a PowerDatacenter
+	 * @param cloudletOutputSize the file size [Byte] of this cloudlet AFTER finish executing by a PowerDatacenter
 	 * @param utilizationModelCpu the utilization model cpu
 	 * @param utilizationModelRam the utilization model ram
 	 * @param utilizationModelBw the utilization model bw
