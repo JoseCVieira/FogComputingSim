@@ -49,6 +49,7 @@ public class DisplayRandom extends JDialog {
 	private static final int WIDTH = 900;
 	private static final int HEIGHT = 900;
 	
+	/** Object which holds the current topology */
 	Graph physicalGraph;
 	
 	private JTextField jTextNrFogDev;
@@ -106,7 +107,7 @@ public class DisplayRandom extends JDialog {
 	}
 
 	/**
-	 * Creates the editable random topology settings.
+	 * Creates the editable random topology input settings.
 	 * 
 	 * @return the panel containing the input settings
 	 */
@@ -121,6 +122,11 @@ public class DisplayRandom extends JDialog {
 		return jPanel;
 	}
 	
+	/**
+	 * Creates the general input settings.
+	 * 
+	 * @return the panel containing the input settings
+	 */
 	private JPanel createGeneralInput() {
 		JPanel jPanel = new JPanel(new SpringLayout());
 		jPanel.setBorder(new TitledBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY), "General"));
@@ -138,6 +144,11 @@ public class DisplayRandom extends JDialog {
 		return jPanel;
 	}
 	
+	/**
+	 * Creates the network input settings.
+	 * 
+	 * @return the panel containing the input settings
+	 */
 	private JPanel createNetworkInput() {
 		JPanel jPanel = new JPanel(new SpringLayout());
 		jPanel.setBorder(new TitledBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY), "Network"));
@@ -157,6 +168,11 @@ public class DisplayRandom extends JDialog {
 		return jPanel;
 	}
 	
+	/**
+	 * Creates the devices input settings.
+	 * 
+	 * @return the panel containing the input settings
+	 */
 	private JPanel createDeviceInput() {
 		JPanel jPanel = new JPanel(new SpringLayout());
 		jPanel.setBorder(new TitledBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY), "Devices"));
@@ -170,6 +186,11 @@ public class DisplayRandom extends JDialog {
 		return jPanel;
 	}
 	
+	/**
+	 * Creates the device resources input settings.
+	 * 
+	 * @return the panel containing the input settings
+	 */
 	private JPanel createDeviceResourceInput() {
 		JPanel jPanel = new JPanel(new SpringLayout());
 		jPanel.setBorder(new TitledBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY), "Resources"));
@@ -197,6 +218,11 @@ public class DisplayRandom extends JDialog {
 		return jPanel;
 	}
 	
+	/**
+	 * Creates the device prices input settings.
+	 * 
+	 * @return the panel containing the input settings
+	 */
 	private JPanel createDevicePriceInput() {
 		JPanel jPanel = new JPanel(new SpringLayout());
 		jPanel.setBorder(new TitledBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY), "Prices"));
@@ -232,6 +258,11 @@ public class DisplayRandom extends JDialog {
 		return jPanel;
 	}
 	
+	/**
+	 * Creates the device power input settings.
+	 * 
+	 * @return the panel containing the input settings
+	 */
 	private JPanel createDevicePowerInput() {
 		JPanel jPanel = new JPanel(new SpringLayout());
 		jPanel.setBorder(new TitledBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY), "Power"));
@@ -313,7 +344,7 @@ public class DisplayRandom extends JDialog {
             	if (!Util.validString(jTextIdlePw.getText()))		error_msg += GuiMsg.errMissing("Device idle power mean");
             	if (!Util.validString(jTextEnergyDev.getText()))	error_msg += GuiMsg.errMissing("Energy deviation");
             	
-            	if((nrFogDev = Util.stringToInt(jTextNrFogDev.getText())) < 0)				error_msg += GuiMsg.errFormat("Number of fog devices");
+            	if((nrFogDev = Util.stringToInt(jTextNrFogDev.getText())) < 2)				error_msg += "Number of fog devices must be higher than 1";
             	if((connProb = Util.stringToProbability(jTextConnProb.getText())) < 0)		error_msg += "\nConnection prob. should be a number between [0.0; 1.0]";
             	if((clientProb = Util.stringToProbability(jTextClientProb.getText())) < 0)	error_msg += "\nClient prob. should be a number between [0.0; 1.0]";
             	
@@ -376,7 +407,7 @@ public class DisplayRandom extends JDialog {
             		physicalGraph.clean();
             		
             		createApplications();
-            		createFogDevices();
+            		createFogDevicesNetwork();
             		connectDevices();
             		
             		setVisible(false);
@@ -396,6 +427,9 @@ public class DisplayRandom extends JDialog {
 		return buttonPanel;
 	}
 	
+	/**
+	 * Creates the predefined example applications which clients may deploy into the fog network.
+	 */
 	private void createApplications() {
 		ApplicationsExample.createExampleApplications();
 		
@@ -407,7 +441,10 @@ public class DisplayRandom extends JDialog {
 		
 	}
 	
-	private void createFogDevices() {
+	/**
+	 * Creates the fog devices within the fog network based on the user defined input values.
+	 */
+	private void createFogDevicesNetwork() {
 		// Create the cloud device (cloud is seen as a single node)
 		physicalGraph.addNode(generateNode("Cloud", 0, false));
 		
@@ -450,6 +487,14 @@ public class DisplayRandom extends JDialog {
 		}
 	}
 	
+	/**
+	 * Generates a fog node based on the user defined input values. 
+	 * 
+	 * @param name the name of the fog node
+	 * @param level the GUI level where it is located
+	 * @param client the variable which indicates whether the node is a client or not
+	 * @return the new fog device
+	 */
 	private Node generateNode(String name, int level, boolean client) {
 		double mips = Util.normalRand(decadencyFactor(GuiConfig.MIPS_MEAN, level), decadencyFactor(GuiConfig.MIPS_DEV, level));
 		int ram = (int) Util.normalRand(decadencyFactor(GuiConfig.RAM_MEAN, level), decadencyFactor(GuiConfig.RAM_DEV, level));
@@ -482,10 +527,24 @@ public class DisplayRandom extends JDialog {
 		return new Node(name, level, mips, ram, strg, rateMips, rateRam, rateStrg, rateBw, rateEn, iPw, bPw, movement, appName, distribution);
 	}
 	
+	/**
+	 * Computes a given value based on the initial value as well as the GUI level in which the node is
+	 * located and the level decadency factor. This is used to create an hierarchical network where
+	 * nodes at the top have more resources than the ones above.
+	 * 
+	 * @param value the initial value
+	 * @param level the level in which the node is located
+	 * @return the result value
+	 */
 	private double decadencyFactor(double value, int level) {
 		return value/((level+1)*GuiConfig.LEVEL_DECADENCY);
 	}
 	
+	/**
+	 * Generates the connections between nodes. In this case, there is always one fixed network which is fully connected.
+	 * The nodes which are not connected are mobile nodes. The connections between them and the central fixed network
+	 * are created and managed during the simulation.
+	 */
 	private void connectDevices() {
 		ArrayList<Node> notConnctedDevices = getListFromSet(physicalGraph.getDevicesList().keySet());
 		Node cloud = getFromList(notConnctedDevices, "Cloud");
@@ -533,6 +592,13 @@ public class DisplayRandom extends JDialog {
 		}
 	}
 	
+	/**
+	 * Gets a specific node from the list of nodes based on its name.
+	 * 
+	 * @param nodes the list of fog nodes
+	 * @param name the name of the fog node
+	 * @return the node with that name
+	 */
 	private Node getFromList(ArrayList<Node> nodes, String name) {
 		for(Node f : nodes) {
 			if(f.getName().equals(name)) return f;
@@ -541,6 +607,12 @@ public class DisplayRandom extends JDialog {
 		return null;
 	}
 	
+	/**
+	 * Creates a list of nodes based on a set of nodes.
+	 * 
+	 * @param nodes the set of nodes
+	 * @return the list of nodes
+	 */
 	private ArrayList<Node> getListFromSet(Set<Node> nodes) {
 		ArrayList<Node> returnList = new ArrayList<Node>();
 		
