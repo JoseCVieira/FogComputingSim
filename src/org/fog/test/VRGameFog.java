@@ -24,10 +24,10 @@ import org.fog.utils.distribution.Distribution;
  */
 public class VRGameFog extends Topology {
 	/** Number of fog node gateways which are responsible to connect the clients to the fog network */
-	private static final int numOfDepts = 1;
+	private static final int numOfDepts = 4;
 	
 	/** Number of mobile users connected to each fog node gateway */
-	private static final int numOfMobilesPerDept = 1;
+	private static final int numOfMobilesPerDept = 6;
 	
 	/** Parameter which defines the time interval between tuples sent by the sensors */
 	private static final double EEG_TRANSMISSION_TIME = 5.1;

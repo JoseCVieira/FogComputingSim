@@ -45,25 +45,24 @@ public class SingleObjectiveCostFunction extends CostFunction {
 				}
 		}
 		
-		// Energy consumption
+		double power = 0;
 		for(int i = 0; i < algorithm.getNumberOfNodes(); i++) {
 			for(int j = 0; j < algorithm.getNumberOfModules(); j++){
-				cost += modulePlacementMap[i][j]*(algorithm.getfBusyPw()[i]-algorithm.getfIdlePw()[i]) *
-						(algorithm.getmMips()[j]/algorithm.getfMips()[i]);
+				power = modulePlacementMap[i][j]*(algorithm.getfBusyPw()[i]-algorithm.getfIdlePw()[i]) * (algorithm.getmMips()[j]/algorithm.getfMips()[i]);
+				cost += power*algorithm.getfPwPrice()[i];
 			}
 		}
 		
 		for(int i = 0; i < algorithm.getNumberOfDependencies(); i++) {
-			double dependencies = algorithm.getmDependencyMap()[algorithm.getStartModDependency(i)][algorithm.getFinalModDependency(i)];
 			double bwNeeded = algorithm.getmBandwidthMap()[algorithm.getStartModDependency(i)][algorithm.getFinalModDependency(i)];
 			
 			for(int j = 1; j < algorithm.getNumberOfNodes(); j++) {
 				if(tupleRoutingMap[i][j-1] != tupleRoutingMap[i][j]) {
-					double txCost = algorithm.getfTxPw()[tupleRoutingMap[i][j-1]]*algorithm.getfPwPrice()[tupleRoutingMap[i][j-1]];
+					double txPower = algorithm.getfTxPw()[tupleRoutingMap[i][j-1]]*algorithm.getfPwPrice()[tupleRoutingMap[i][j-1]];
 					double bwAvailable = algorithm.getfBandwidthMap()[tupleRoutingMap[i][j-1]][tupleRoutingMap[i][j]] * Config.BW_PERCENTAGE_TUPLES;
 					
-					cost += algorithm.getfLatencyMap()[tupleRoutingMap[i][j-1]][tupleRoutingMap[i][j]]*dependencies*txCost;
-					cost += bwNeeded/(bwAvailable + Constants.EPSILON)*txCost;
+					power = bwNeeded/(bwAvailable + Constants.EPSILON)*txPower;
+					cost += power*algorithm.getfPwPrice()[tupleRoutingMap[i][j-1]];
 				}
 			}
 		}

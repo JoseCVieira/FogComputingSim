@@ -71,9 +71,9 @@ public class ControllerAlgorithm {
 					algorithmName = "Multi-objective Linear Programming";
 					algorithm = new LinearProgramming(fogDevices, appList, sensors, actuators);
 					break;
-				/*case MOGA:
-					algorithmName = "Multiobjective Genetic Algorithm";
-					algorithm = new MultiObjectiveGeneticAlgorithm(fogDevices, appList, sensors, actuators);
+				case MOGA:
+					/*algorithmName = "Multi-objective Genetic Algorithm";
+					algorithm = new NSGA2(fogDevices, appList, sensors, actuators);
 					break;*/
 				case GA:
 					algorithmName = "Genetic Algorithm";

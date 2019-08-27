@@ -191,31 +191,31 @@ public class ExcelUtils {
 	    
 	    int cellIndex = START;
 	    
-	    createCell(sheet, row, cellIndex++, Integer.toString(SIMULATION_ID));
-	    createCell(sheet, row, cellIndex++, algName);
+	    createCell(sheet, row, cellIndex++, Integer.toString(SIMULATION_ID), HorizontalAlignment.CENTER);
+	    createCell(sheet, row, cellIndex++, algName, HorizontalAlignment.CENTER);
 	    
 	    DecimalFormat df = new DecimalFormat("0.00000");
 	    if(solution instanceof MultiObjectiveJob) {
 	    	MultiObjectiveJob sol = (MultiObjectiveJob) solution;
 		    for(int i = 0; i < Config.NR_OBJECTIVES; i++) {
-		    	 createCell(sheet, row, cellIndex++, Integer.toString(Config.priorities[i]));
+		    	 createCell(sheet, row, cellIndex++, Integer.toString(Config.priorities[i]), HorizontalAlignment.CENTER);
 		    }
 		    
 		    for(int i = 0; i < Config.NR_OBJECTIVES; i++) {
-		    	createCell(sheet, row, cellIndex++, df.format(sol.getDetailedCost(i)));
+		    	createCell(sheet, row, cellIndex++, df.format(sol.getDetailedCost(i)), HorizontalAlignment.RIGHT);
 		    }
 		    
-		    createCell(sheet, row, cellIndex++, "NA");
+		    createCell(sheet, row, cellIndex++, "NA", HorizontalAlignment.CENTER);
 	    }else {
 	    	for(int i = 0; i < Config.NR_OBJECTIVES*2; i++) {
-	    		createCell(sheet, row, cellIndex++, "NA");
+	    		createCell(sheet, row, cellIndex++, "NA", HorizontalAlignment.CENTER);
 	    	}
 	    	
-	    	createCell(sheet, row, cellIndex++, df.format(solution.getCost()));
+	    	createCell(sheet, row, cellIndex++, df.format(solution.getCost()), HorizontalAlignment.RIGHT);
 	    }
 	    
 	    String timeStamp = new SimpleDateFormat("HH:mm:ss @ dd.MM.yyyy", Locale.US).format(new Date());
-	    createCell(sheet, row, cellIndex++, timeStamp);
+	    createCell(sheet, row, cellIndex++, timeStamp, HorizontalAlignment.CENTER);
 	}
 	
 	/**
@@ -232,10 +232,10 @@ public class ExcelUtils {
 	    
 		int cellIndex = START;
 		
-		createCell(sheet, row, cellIndex++, Integer.toString(SIMULATION_ID));
+		createCell(sheet, row, cellIndex++, Integer.toString(SIMULATION_ID), HorizontalAlignment.CENTER);
 		
 		String value = Long.toString(Calendar.getInstance().getTimeInMillis() - TimeKeeper.getInstance().getSimulationStartTime());
-		createCell(sheet, row, cellIndex++, value);
+		createCell(sheet, row, cellIndex++, value, HorizontalAlignment.CENTER);
 	    
 	    double total = 0;
 	    DecimalFormat df = new DecimalFormat("0.00");
@@ -243,33 +243,33 @@ public class ExcelUtils {
 	    	total += TimeKeeper.getInstance().getLoopIdToCurrentAverage().get(loopId);
 		}
 	    
-	    createCell(sheet, row, cellIndex++, Double.toString(total));
+	    createCell(sheet, row, cellIndex++, df.format(total), HorizontalAlignment.RIGHT);
 	    
 	    total = 0;
 	    for(String tupleType : TimeKeeper.getInstance().getTupleTypeToAverageCpuTime().keySet()) {
 	    	total += TimeKeeper.getInstance().getTupleTypeToAverageCpuTime().get(tupleType);
 		}
-	    createCell(sheet, row, cellIndex++, Double.toString(total));
+	    createCell(sheet, row, cellIndex++, df.format(total), HorizontalAlignment.RIGHT);
 	    
 	    total = 0;
 	    for(FogDevice fogDevice : controller.getFogDevices()) {
 	    	total += fogDevice.getEnergyConsumption();
 		}
-	    createCell(sheet, row, cellIndex++, Double.toString(total));
+	    createCell(sheet, row, cellIndex++, df.format(total), HorizontalAlignment.RIGHT);
 	    
 	    total = 0;
 	    for(FogDevice fogDevice : controller.getFogDevices()) {
 	    	total += fogDevice.getTotalCost();
 		}
-	    createCell(sheet, row, cellIndex++, Double.toString(total));
+	    createCell(sheet, row, cellIndex++, df.format(total), HorizontalAlignment.RIGHT);
 	    
 	    df = new DecimalFormat("0.00000000");
-	    createCell(sheet, row, cellIndex++, df.format(NetworkMonitor.getNetworkUsage()/Config.MAX_SIMULATION_TIME));
+	    createCell(sheet, row, cellIndex++, df.format(NetworkMonitor.getNetworkUsage()/Config.MAX_SIMULATION_TIME), HorizontalAlignment.CENTER);
 	    
-	    createCell(sheet, row, cellIndex++, Integer.toString(NetworkMonitor.getPacketSuccess()));
-	    createCell(sheet, row, cellIndex++, Integer.toString(NetworkMonitor.getPacketDrop()));
-	    createCell(sheet, row, cellIndex++, Integer.toString(controller.getNrHandovers()));
-	    createCell(sheet, row, cellIndex++, Integer.toString(controller.getNrMigrations()));
+	    createCell(sheet, row, cellIndex++, Integer.toString(NetworkMonitor.getPacketSuccess()), HorizontalAlignment.CENTER);
+	    createCell(sheet, row, cellIndex++, Integer.toString(NetworkMonitor.getPacketDrop()), HorizontalAlignment.CENTER);
+	    createCell(sheet, row, cellIndex++, Integer.toString(controller.getNrHandovers()), HorizontalAlignment.CENTER);
+	    createCell(sheet, row, cellIndex++, Integer.toString(controller.getNrMigrations()), HorizontalAlignment.CENTER);
 	}
 	
 	
@@ -300,9 +300,9 @@ public class ExcelUtils {
 	 * @param index the cell index
 	 * @param value the text to be written inside the cell
 	 */
-	private static void createCell(Sheet sheet, Row row, int index, String value) {
+	private static void createCell(Sheet sheet, Row row, int index, String value, HorizontalAlignment h) {
 		CellStyle cellStyle = row.getSheet().getWorkbook().createCellStyle();
-	    cellStyle.setAlignment(HorizontalAlignment.CENTER);
+	    cellStyle.setAlignment(h);
 	    
 	    Cell cell = row.createCell(index);
 	    cell.setCellValue(value);
