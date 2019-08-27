@@ -50,12 +50,12 @@ public class Config {
 	 * Note that for the current problem it makes no sense to sum different costs, thus their priorities must be all different.
 	 */
 	public static final int[] priorities = new int[] {
-			4,		// Operational cost
-			3,		// Power cost
-			5,		// Processing cost
-			6,		// Latency cost
-			2,		// Bandwidth cost
-			1		// Migration cost
+			5,		// Operational cost
+			4,		// Power cost
+			3,		// Processing cost
+			2,		// Latency cost
+			6,		// Bandwidth cost
+			6		// Migration cost
 	};
 	
 	/** The names of the objectives (used to export the results to the excel file) */
@@ -105,7 +105,7 @@ public class Config {
 	public static boolean PRINT_COST_DETAILS = false;
 	
 	/** Defines whether the simulation is dynamic (i.e., mobile nodes actualy move around) */
-	public static boolean DYNAMIC_SIMULATION = true;
+	public static boolean DYNAMIC_SIMULATION = false;
 	
 	/** Defines whether the simulation is allowed to perform migrations of VMs */
 	public static boolean ALLOW_MIGRATION = true;

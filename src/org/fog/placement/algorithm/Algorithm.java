@@ -68,7 +68,7 @@ public abstract class Algorithm {
 	private double fBwPrice[];
 	
 	/** Vector holding the price of energy consumption in each fog device */
-	private double fEnPrice[];
+	private double fPwPrice[];
 	
 	// Node characteristics -----------------------------------
 	
@@ -133,6 +133,9 @@ public abstract class Algorithm {
 	
 	/** Matrix holding the tuple CPU sizes between each two modules */
 	private double[][] mCPUMap;
+	
+	/** Vector holding the number of tuples which each module will receive to process */
+	private int[] mNrTuples;
 	
 	// Node to Module -----------------------------------------
 	
@@ -231,7 +234,7 @@ public abstract class Algorithm {
 		fRamPrice = new double[NR_NODES];
 		fStrgPrice = new double[NR_NODES];
 		fBwPrice = new double[NR_NODES];
-		fEnPrice = new double[NR_NODES];
+		fPwPrice = new double[NR_NODES];
 		
 		mName = new String[NR_MODULES];
 		mMips = new double[NR_MODULES];
@@ -248,6 +251,7 @@ public abstract class Algorithm {
 		mBandwidthMap = new double[NR_MODULES][NR_MODULES];
 		mNWMap = new double[NR_MODULES][NR_MODULES];
 		mCPUMap = new double[NR_MODULES][NR_MODULES];
+		mNrTuples = new int[NR_MODULES];
 	}
 	
 	// ------------------------------------------------------ Parse functions start --------------------------------------------------------
@@ -279,7 +283,7 @@ public abstract class Algorithm {
 			fRamPrice[i] = characteristics.getCostPerMem();
 			fStrgPrice[i] = characteristics.getCostPerStorage();
 			fBwPrice[i] = characteristics.getCostPerBw();
-			fEnPrice[i++] = characteristics.getCostPerEnergy();
+			fPwPrice[i++] = characteristics.getCostPerPower();
 		}
 	}
 	
@@ -414,6 +418,7 @@ public abstract class Algorithm {
 								appModule.setMips(appModule.getMips() + probability*appEdge.getTupleCpuLength()/interval);
 								mMips[edgeDestIndex] += probability*appEdge.getTupleCpuLength()/interval;
 								mCPUMap[edgeSourceIndex][edgeDestIndex] += appEdge.getTupleCpuLength();
+								mNrTuples[edgeDestIndex]++;
 								
 								if(!isSensorTuple(sensors, appEdge.getTupleType())) {
 									appModule.setBw((long) (appModule.getBw() + probability*appEdge.getTupleNwLength()/interval));
@@ -839,8 +844,8 @@ public abstract class Algorithm {
 	 * 
 	 * @return the vector holding the price of energy consumption in each fog device
 	 */
-	public double[] getfEnPrice() {
-		return fEnPrice;
+	public double[] getfPwPrice() {
+		return fPwPrice;
 	}
 	
 	/**
@@ -1003,6 +1008,15 @@ public abstract class Algorithm {
 	 */
 	public double[][] getmCPUMap(){
 		return mCPUMap;
+	}
+	
+	/**
+	 * Gets the vector holding the number of tuples which each module will receive to process.
+	 * 
+	 * @return the vector holding the number of tuples which each module will receive to process
+	 */
+	public int[] getmNrTuples() {
+		return mNrTuples;
 	}
 	
 	/**

@@ -149,7 +149,7 @@ public class AlgorithmUtils {
 			System.out.println(Util.leftString(24, "Ram price [€]: ") + al.getfRamPrice()[i]);
 			System.out.println(Util.leftString(24, "Storage price [€]: ") + al.getfStrgPrice()[i]);
 			System.out.println(Util.leftString(24, "Bandwidth price [€]: ") + al.getfBwPrice()[i]);
-			System.out.println(Util.leftString(24, "Energy price [€]: ") + al.getfEnPrice()[i]);
+			System.out.println(Util.leftString(24, "Energy price [€]: ") + al.getfPwPrice()[i]);
 			System.out.println(Util.leftString(24, "Busy power [W]: ") + al.getfBusyPw()[i]);
 			System.out.println(Util.leftString(24, "Idle power [W]: ") + al.getfIdlePw()[i]);
 			System.out.println(Util.leftString(24, "Transmission power [W]: ") + al.getfTxPw()[i]);

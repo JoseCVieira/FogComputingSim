@@ -421,7 +421,7 @@ public class FogDevice extends PowerDatacenter {
 		newcost += timeDif*lastRamUtilization*getHost().getRam()*characteristics.getCostPerMem();
 		newcost += timeDif*lastStorageUtilization*getHost().getStorage()*characteristics.getCostPerStorage();
 		newcost += timeDif*lastBwUtilization*totalBwAvailable*characteristics.getCostPerBw();
-		newcost += energyConsumption*characteristics.getCostPerEnergy();
+		newcost += energyConsumption*characteristics.getCostPerPower();
 		newcost += timeDif*characteristics.getCostPerSecond();
 		setTotalCost(newcost);
 		

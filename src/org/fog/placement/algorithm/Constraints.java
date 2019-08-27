@@ -300,11 +300,6 @@ public class Constraints {
 			double latency = 0;
 			
 			for(int j = 0; j < algorithm.getNumberOfModules()-1; j++) { // Module index
-				if(loops[i][j+1] == -1) break;
-				
-				latency += computeProcessingLatency(algorithm, modulePlacementMap, loops[i][j], loops[i][j+1]);
-				latency += computeDependencyLatency(algorithm, modulePlacementMap, tupleRoutingMap, loops[i][j], loops[i][j+1]);
-				
 				boolean alreadyComputed = false;
 				for (int k = 0; k < j; k++) {
 					if(loops[i][j] == loops[i][k]) {
@@ -315,6 +310,11 @@ public class Constraints {
 				
 				if(!alreadyComputed)
 					latency += computeMigrationLatency(algorithm, migrationRoutingMap, loops[i][j]);
+				
+				if(loops[i][j+1] == -1) break;
+				
+				latency += computeProcessingLatency(algorithm, modulePlacementMap, loops[i][j], loops[i][j+1]);
+				latency += computeDependencyLatency(algorithm, modulePlacementMap, tupleRoutingMap, loops[i][j], loops[i][j+1]);
 				
 				if(latency <= algorithm.getLoopsDeadline()[i]) continue;
 				violations += Constants.REFERENCE_COST;
@@ -357,11 +357,7 @@ public class Constraints {
 		for(int i = 0; i < algorithm.getNumberOfModules(); i++) {
 			if(algorithm.getmMips()[i] == 0) continue; // Sensor and actuator modules does not count
 			if(Job.findModulePlacement(modulePlacementMap, i) != nodeIndex) continue; // Only matter the ones deployed in the same node
-			
-			for(int j = 0; j < algorithm.getNumberOfModules(); j++) {
-				if(algorithm.getmCPUMap()[j][i] == 0) continue;
-				maxTuples++;
-			}
+			maxTuples += algorithm.getmNrTuples()[i];
 		}
 		
 		return algorithm.getmCPUMap()[moduleIndex1][moduleIndex2]/(algorithm.getfMips()[nodeIndex]/maxTuples);

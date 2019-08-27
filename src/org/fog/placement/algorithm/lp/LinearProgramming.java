@@ -60,7 +60,7 @@ public class LinearProgramming extends Algorithm {
 		return bestSolution;
 	}
 	
-	public Job solve() {		
+	public Job solve() {
 		try {
 			// Define model
 			IloCplex cplex = new IloCplex();
@@ -90,9 +90,9 @@ public class LinearProgramming extends Algorithm {
 				for(int j = 0; j < nrModules; j++) {
 					placementVar[i][j] = cplex.intVar(0, 1);
 					
-					double pw = (getfBusyPw()[i]-getfIdlePw()[i])*(getmMips()[j]/getfMips()[i]);
-					double op = getfMipsPrice()[i]*getmMips()[j] + getfRamPrice()[i]*getmRam()[j] + getfStrgPrice()[i]*getmStrg()[j] + pw*getfEnPrice()[i];
 					double pr = getmMips()[j]/getfMips()[i];
+					double pw = (getfBusyPw()[i]-getfIdlePw()[i])*pr;
+					double op = getfMipsPrice()[i]*getmMips()[j] + getfRamPrice()[i]*getmRam()[j] + getfStrgPrice()[i]*getmStrg()[j] + pw*getfPwPrice()[i];
 					
 					opObjective = cplex.sum(opObjective, cplex.prod(placementVar[i][j], op));	// Operational cost
 					pwObjective = cplex.sum(pwObjective, cplex.prod(placementVar[i][j], pw));	// Power cost
@@ -101,17 +101,17 @@ public class LinearProgramming extends Algorithm {
 			}
 			
 			for(int i = 0; i < nrDependencies; i++) {
-				double dependencies = getmDependencyMap()[getStartModDependency(i)][getFinalModDependency(i)];
-				double bwNeeded = getmBandwidthMap()[getStartModDependency(i)][getFinalModDependency(i)];
+				double dependency = getmDependencyMap()[getStartModDependency(i)][getFinalModDependency(i)];
+				double bandwidth = getmBandwidthMap()[getStartModDependency(i)][getFinalModDependency(i)];
 				
 				for(int j = 0; j < nrNodes; j++) {
 					for(int z = 0; z < nrNodes; z++) {
 						tupleRoutingVar[i][j][z] = cplex.intVar(0, 1);
 						
-						double lt = getfLatencyMap()[j][z]*dependencies;
-						double bw = bwNeeded/((getfBandwidthMap()[j][z] + Constants.EPSILON)*Config.BW_PERCENTAGE_TUPLES);
-						double op = getfBwPrice()[j]*bwNeeded;
+						double lt = getfLatencyMap()[j][z]*dependency;
+						double bw = bandwidth/(getfBandwidthMap()[j][z]*Config.BW_PERCENTAGE_TUPLES + Constants.EPSILON);
 						double pw = bw*getfTxPw()[j];
+						double op = pw*getfPwPrice()[j] + bandwidth*getfBwPrice()[j];
 						
 						ltObjective = cplex.sum(ltObjective, cplex.prod(tupleRoutingVar[i][j][z], lt));	// Latency cost
 						bwObjective = cplex.sum(bwObjective, cplex.prod(tupleRoutingVar[i][j][z], bw));	// Bandwidth cost
@@ -128,7 +128,7 @@ public class LinearProgramming extends Algorithm {
 					for(int z = 0; z < nrNodes; z++) {
 						migrationRoutingVar[i][j][z] = cplex.intVar(0, 1);
 						
-						double mg = getfLatencyMap()[j][z] + size/((getfBandwidthMap()[j][z] + Constants.EPSILON)*(1-Config.BW_PERCENTAGE_TUPLES));
+						double mg = getfLatencyMap()[j][z] + size/(getfBandwidthMap()[j][z]*(1-Config.BW_PERCENTAGE_TUPLES) + Constants.EPSILON);
 						
 						mgObjective = cplex.sum(mgObjective, cplex.prod(migrationRoutingVar[i][j][z], mg));	// Migration cost
 					}
@@ -161,7 +161,9 @@ public class LinearProgramming extends Algorithm {
 				cplex.setOut(null);
 			
 			// Solve
+			cplex.setParam(IloCplex.Param.Barrier.QCPConvergeTol, 1e-10);
 			if (cplex.solve()) {
+				System.out.println("Solution status: " + cplex.getStatus());
 				
 				int[][] modulePlacementMap = new int[nrNodes][nrModules];
 				int[][][] tupleRoutingMap = new int[nrDependencies][nrNodes][nrNodes];
@@ -222,10 +224,10 @@ public class LinearProgramming extends Algorithm {
 	 * @param migrationRoutingVar the matrix which contains the routing for each module migration (binary)
 	 */
 	private void defineConstraints(IloCplex cplex, final IloNumVar[][] placementVar,
-			final IloNumVar[][][] tupleRoutingVar, final IloNumVar[][][] migrationRoutingVar) {		
+			final IloNumVar[][][] tupleRoutingVar, final IloNumVar[][][] migrationRoutingVar) {
 		defineResourcesExceeded(cplex, placementVar);
 		definePossiblePlacement(cplex, placementVar);
-		defineMultiplePlacement(cplex, placementVar);
+		defineSinglePlacement(cplex, placementVar);
 		defineBandwidth(cplex, tupleRoutingVar);
 		defineDependencies(cplex, placementVar, tupleRoutingVar);
 		defineMigration(cplex, placementVar, migrationRoutingVar);
@@ -297,7 +299,7 @@ public class LinearProgramming extends Algorithm {
 	 * @param al object the which contains all information about the topology and which algorithm was used
 	 * @param placementVar the matrix which represents the next module placement
 	 */
-	private void defineMultiplePlacement(IloCplex cplex, final IloNumVar[][] placementVar) {
+	private void defineSinglePlacement(IloCplex cplex, final IloNumVar[][] placementVar) {
 		int nrNodes = getNumberOfNodes();
 		int nrModules = getNumberOfModules();
 		

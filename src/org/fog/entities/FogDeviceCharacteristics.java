@@ -16,8 +16,8 @@ public class FogDeviceCharacteristics extends DatacenterCharacteristics {
 	/** Monetary cost per processing units [€] */
 	private double costPerMips;
 	
-	/** Monetary cost per energy spent [€] */
-	private double costPerEnergy;
+	/** Monetary cost per power [€] */
+	private double costPerPower;
 	
 	/**
 	 * Creates a new fog device characteristics.
@@ -39,7 +39,7 @@ public class FogDeviceCharacteristics extends DatacenterCharacteristics {
 		super(architecture, os, vmm, new ArrayList<Host>(){{add(host);}}, timeZone, 0, costPerMem, costPerStorage, costPerBw);
 		
 		setCostPerMips(costPerMips);
-		setCostPerEnergy(costPerEnergy);
+		setCostPerPower(costPerEnergy);
 	}
 	
 	/**
@@ -61,21 +61,21 @@ public class FogDeviceCharacteristics extends DatacenterCharacteristics {
 	}
 	
 	/**
-	 * Gets the monetary cost per energy spent [€].
+	 * Gets the monetary cost per power [€].
 	 * 
-	 * @return the monetary cost per energy spent
+	 * @return the monetary cost per power
 	 */
-	public double getCostPerEnergy() {
-		return costPerEnergy;
+	public double getCostPerPower() {
+		return costPerPower;
 	}
 	
 	/**
-	 * Sets the monetary cost per energy spent [€].
+	 * Sets the monetary cost per power [€].
 	 * 
-	 * @param costPerEnergy the monetary cost per energy spent
+	 * @param costPerEnergy the monetary cost per power
 	 */
-	public void setCostPerEnergy(double costPerEnergy) {
-		this.costPerEnergy = costPerEnergy;
+	public void setCostPerPower(double costPerPower) {
+		this.costPerPower = costPerPower;
 	}
 
 }

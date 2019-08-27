@@ -59,7 +59,7 @@ public class SingleObjectiveCostFunction extends CostFunction {
 			
 			for(int j = 1; j < algorithm.getNumberOfNodes(); j++) {
 				if(tupleRoutingMap[i][j-1] != tupleRoutingMap[i][j]) {
-					double txCost = algorithm.getfTxPw()[tupleRoutingMap[i][j-1]]*algorithm.getfEnPrice()[tupleRoutingMap[i][j-1]];
+					double txCost = algorithm.getfTxPw()[tupleRoutingMap[i][j-1]]*algorithm.getfPwPrice()[tupleRoutingMap[i][j-1]];
 					double bwAvailable = algorithm.getfBandwidthMap()[tupleRoutingMap[i][j-1]][tupleRoutingMap[i][j]] * Config.BW_PERCENTAGE_TUPLES;
 					
 					cost += algorithm.getfLatencyMap()[tupleRoutingMap[i][j-1]][tupleRoutingMap[i][j]]*dependencies*txCost;
