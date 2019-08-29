@@ -1,3 +1,5 @@
 *.class
 /output/*
 /bin/*
+/bin/
+/src/org/fog/core/Config.java
