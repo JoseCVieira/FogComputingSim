@@ -10,7 +10,6 @@ import java.util.Random;
 import org.apache.commons.math3.util.Pair;
 import org.cloudbus.cloudsim.Cloudlet;
 import org.cloudbus.cloudsim.Host;
-import org.cloudbus.cloudsim.Log;
 import org.cloudbus.cloudsim.Storage;
 import org.cloudbus.cloudsim.UtilizationModelFull;
 import org.cloudbus.cloudsim.Vm;
@@ -35,6 +34,7 @@ import org.fog.utils.MobileBandwidthModel;
 import org.fog.utils.MobilePathLossModel;
 import org.fog.utils.Movement;
 import org.fog.utils.NetworkMonitor;
+import org.fog.utils.ProcessorMonitor;
 import org.fog.utils.TimeKeeper;
 import org.fog.utils.Util;
 
@@ -97,6 +97,9 @@ public class FogDevice extends PowerDatacenter {
 	/** Object representing its movement */
 	private Movement movement;
 	
+	/** Object which holds the CPU tuple queue as well as the counters for the ordered and processed MIs */
+	ProcessorMonitor processorMonitor;
+
 	/**
 	 * Creates a new fog device.
 	 * 
@@ -121,6 +124,7 @@ public class FogDevice extends PowerDatacenter {
 		setVmRoutingTable(new HashMap<String, Integer>());
 		setTupleQueue(new HashMap<Integer, Queue<Pair<Tuple,Integer>>>());
 		setTupleLinkBusy(new HashMap<Integer, Boolean>());
+		setProcessorMonitor(new ProcessorMonitor());
 		
 		setVmAllocationPolicy(vmAllocationPolicy);
 		setSchedulingInterval(schedulingInterval);
@@ -223,7 +227,6 @@ public class FogDevice extends PowerDatacenter {
 		Tuple tuple = controller.getApplications().get(srcModule.getAppId()).createTuple(edge, dstModule.getUserId());
 		updateTimingsOnSending(tuple);
 		sendToSelf(tuple);
-		
 		send(getId(), edge.getPeriodicity(), FogEvents.SEND_PERIODIC_TUPLE, edge);
 	}
 	
@@ -235,47 +238,15 @@ public class FogDevice extends PowerDatacenter {
 	protected double updateCloudetProcessingWithoutSchedulingFutureEventsForce() {
 		double currentTime = CloudSim.clock();
 		double minTime = Double.MAX_VALUE;
-		double timeDiff = currentTime - getLastProcessTime();
-		double timeFrameDatacenterEnergy = 0.0;
 
 		for (PowerHost host : this.<PowerHost> getHostList()) {
-			Log.printLine();
-
 			double time = host.updateVmsProcessing(currentTime); // inform VMs to update processing
 			
 			if (time < minTime)
 				minTime = time;
-
-			Log.formatLine("%.2f: [Host #%d] utilization is %.2f%%", currentTime, host.getId(),
-					host.getUtilizationOfCpu() * 100);
 		}
-
-		if (timeDiff > 0) {
-			Log.formatLine("\nEnergy consumption for the last time frame from %.2f to %.2f:",
-					getLastProcessTime(), currentTime);
-
-			for (PowerHost host : this.<PowerHost> getHostList()) {
-				double previousUtilizationOfCpu = host.getPreviousUtilizationOfCpu();
-				double utilizationOfCpu = host.getUtilizationOfCpu();
-				double timeFrameHostEnergy = host.getEnergyLinearInterpolation(
-						previousUtilizationOfCpu, utilizationOfCpu, timeDiff);
-				timeFrameDatacenterEnergy += timeFrameHostEnergy;
-
-				Log.printLine();
-				Log.formatLine("%.2f: [Host #%d] utilization at %.2f was %.2f%%, now is %.2f%%",
-						currentTime, host.getId(), getLastProcessTime(), previousUtilizationOfCpu * 100,
-						utilizationOfCpu * 100);
-				Log.formatLine("%.2f: [Host #%d] energy is %.2f W*sec", currentTime,
-						host.getId(), timeFrameHostEnergy);
-			}
-
-			Log.formatLine("\n%.2f: Data center's energy is %.2f W*sec\n", currentTime, timeFrameDatacenterEnergy);
-		}
-
-		setPower(getPower() + timeFrameDatacenterEnergy);
+		
 		checkCloudletCompletion();
-		Log.printLine();
-
 		setLastProcessTime(currentTime);
 		return minTime;
 	}
@@ -288,29 +259,28 @@ public class FogDevice extends PowerDatacenter {
 		List<? extends Host> list = getVmAllocationPolicy().getHostList();
 		for (int i = 0; i < list.size(); i++) {
 			Host host = list.get(i);
+			
 			for (Vm vm : host.getVmList()) {
 				while (vm.getCloudletScheduler().isFinishedCloudlets()) {
 					Cloudlet cl = vm.getCloudletScheduler().getNextFinishedCloudlet();
-					
 					if (cl != null) {
 						cloudletCompleted = true;
 						Tuple tuple = (Tuple)cl;
-						TimeKeeper.getInstance().tupleEndedExecution(tuple);
-						
-						Application application = controller.getApplications().get(tuple.getAppId());
 						
 						if(Config.PRINT_DETAILS)
 							FogComputingSim.print("[" + getName() + "] Completed execution of tuple: " + tuple.getCloudletId() + " on " + tuple.getDestModuleName());
 						
-						List<Tuple> resultantTuples = application.getResultantTuples(tuple.getDestModuleName(), tuple, vm.getId());
+						updateCPUTupleQueue(null);
 						
+						TimeKeeper.getInstance().tupleEndedExecution(tuple);
+						Application application = controller.getApplications().get(tuple.getAppId());
+						List<Tuple> resultantTuples = application.getResultantTuples(tuple.getDestModuleName(), tuple, vm.getId());
 						for(Tuple resTuple : resultantTuples){
 							resTuple.setModuleCopyMap(new HashMap<String, Integer>(tuple.getModuleCopyMap()));
 							resTuple.getModuleCopyMap().put(((AppModule)vm).getName(), vm.getId());
 							updateTimingsOnSending(resTuple);
 							sendToSelf(resTuple);
 						}
-						
 						sendNow(cl.getUserId(), CloudSimTags.CLOUDLET_RETURN, cl);
 					}
 				}
@@ -326,7 +296,7 @@ public class FogDevice extends PowerDatacenter {
 	 * 
 	 * @param resTuple the received tuple
 	 */
-	protected void updateTimingsOnSending(Tuple resTuple) {
+	private void updateTimingsOnSending(Tuple resTuple) {
 		String srcModule = resTuple.getSrcModuleName();
 		String destModule = resTuple.getDestModuleName();
 		
@@ -349,9 +319,11 @@ public class FogDevice extends PowerDatacenter {
 	 * 
 	 * @param incomingOperator the application module name
 	 */
-	protected void updateAllocatedMips(String incomingOperator) {
+	private void updateAllocatedMips(String incomingOperator) {
+		updateEnergyConsumption();
+		
 		getHost().getVmScheduler().deallocatePesForAllVms();
-		for(final Vm vm : getHost().getVmList()){
+		for(final Vm vm : getHost().getVmList()) {
 			if(vm.getCloudletScheduler().runningCloudlets() > 0 || ((AppModule)vm).getName().equals(incomingOperator)){
 				getHost().getVmScheduler().allocatePesForVm(vm, new ArrayList<Double>(){
 					protected static final long serialVersionUID = 1L;
@@ -401,18 +373,22 @@ public class FogDevice extends PowerDatacenter {
 		
 		double timeNow = CloudSim.clock();
 		double timeDif = timeNow-lastUtilizationUpdateTime;
+		processorMonitor.addProcessedMI(timeDif*lastMipsUtilization*getHost().getTotalMips());
 		
 		double energyConsumption = timeDif*getHost().getPowerModel().getPower(lastMipsUtilization);
 		
-		// If its a mobile node, we apply the energy consumption model: Pr = Pt/(4 π d^(γ))
-		if(!isStaticNode()) {
+		// If its a mobile node, we apply the mobile energy consumption model
+		/*if(!isStaticNode()) {
 			for(int neighborId : tupleLinkBusy.keySet()) {
 				if(!tupleLinkBusy.get(neighborId)) continue;
 				energyConsumption += timeDif*MobilePathLossModel.TX_POWER;
 			}
-		}
+		}*/
 		
 		setEnergyConsumption(getEnergyConsumption() + energyConsumption);
+		
+		if(Config.PRINT_DETAILS)
+		System.out.println("Name: " + getName() + " En: " + getEnergyConsumption() + " Pw: " + getHost().getPowerModel().getPower(1));
 		
 		FogDeviceCharacteristics characteristics = (FogDeviceCharacteristics) getCharacteristics();
 		
@@ -429,7 +405,6 @@ public class FogDevice extends PowerDatacenter {
 		lastBwUtilization = totalBwAllocated/totalBwAvailable;
 		lastStorageUtilization = totalStorageAllocated/getHost().getStorage();
 		lastMipsUtilization = totalMipsAllocated/getHost().getTotalMips();
-		
 		lastUtilizationUpdateTime = timeNow;
 		
 		if(Config.PRINT_COST_DETAILS) printCost();
@@ -440,11 +415,16 @@ public class FogDevice extends PowerDatacenter {
 	 * 
 	 * @param ev the event that just occurred
 	 */
-	protected void processAppSubmit(SimEvent ev) {
+	private void processAppSubmit(SimEvent ev) {
 		Application app = (Application)ev.getData();
 		controller.getApplications().put(app.getAppId(), app);
 	}
-
+	
+	/**
+	 * Processes the arrival of a tuple.
+	 * 
+	 * @param ev the event that just occurred containing the tuple
+	 */
 	protected void processTupleArrival(SimEvent ev) {
 		Tuple tuple = (Tuple)ev.getData();
 		
@@ -487,8 +467,7 @@ public class FogDevice extends PowerDatacenter {
 			
 			NetworkMonitor.incrementPacketDrop();
 			return;
-		}else
-			NetworkMonitor.incrementPacketSuccess();
+		}
 		
 
 		if(deployedModules.contains(tuple.getDestModuleName())) {
@@ -505,8 +484,9 @@ public class FogDevice extends PowerDatacenter {
 
 			tuple.setVmId(vmId);
 			updateTimingsOnReceipt(tuple);
-			executeTuple(ev, tuple.getDestModuleName());
-		}else{
+			updateCPUTupleQueue(ev);
+			NetworkMonitor.incrementPacketSuccess();
+		}else {
 			communication = new HashMap<String, String>();
 			communication.put(tuple.getSrcModuleName(), tuple.getDestModuleName());
 			
@@ -525,7 +505,7 @@ public class FogDevice extends PowerDatacenter {
 	 * 
 	 * @param tuple the received tuple
 	 */
-	protected void updateTimingsOnReceipt(Tuple tuple) {
+	private void updateTimingsOnReceipt(Tuple tuple) {
 		Application app = controller.getApplications().get(tuple.getAppId());
 		String srcModule = tuple.getSrcModuleName();
 		String destModule = tuple.getDestModuleName();
@@ -557,41 +537,16 @@ public class FogDevice extends PowerDatacenter {
 	}
 	
 	/**
-	 * Executes the received tuple.
-	 * 
-	 * @param ev the event that just occurred containing the tuple
-	 * @param moduleName the module name (virtual machine) where it will be processed
-	 */
-	protected void executeTuple(SimEvent ev, String moduleName) {
-		Tuple tuple = (Tuple)ev.getData();
-		
-		if(Config.PRINT_DETAILS)
-			FogComputingSim.print("[" + getName() + "] Started execution of tuple: " + tuple.getCloudletId() + " on " + tuple.getDestModuleName());
-		
-		AppModule dstModule = getModuleByName(tuple.getDestModuleName());
-		tuple.setUserId(dstModule.getUserId());
-		
-		TimeKeeper.getInstance().tupleStartedExecution(tuple);
-		updateAllocatedMips(moduleName);
-		processCloudletSubmit(ev, false);
-		updateAllocatedMips(moduleName);
-	}
-	
-	/**
 	 * Processes the event of module arrival.
 	 * 
 	 * @param ev the event that just occurred containing the application module
 	 */
-	protected void processModuleArrival(SimEvent ev){
+	private void processModuleArrival(SimEvent ev) {
 		AppModule module = (AppModule)ev.getData();
 		
 		deployedModules.add(module.getName());
-
 		processVmCreate(ev, false);
-		
-		if(Config.PRINT_DETAILS)
-			FogComputingSim.print("Creating " + module.getName() + " on device " + getName());
-		
+		FogComputingSim.print("Creating " + module.getName() + " on device " + getName());
 		module.setBeingInstantiated(false);
 		initializePeriodicTuples(module);
 		
@@ -621,7 +576,7 @@ public class FogDevice extends PowerDatacenter {
 	 * 
 	 * @param ev the event that just occurred containing the link destination id
 	 */
-	protected void updateTupleQueue(SimEvent ev){
+	private void updateTupleQueue(SimEvent ev){
 		Integer destId = (Integer)ev.getData();
 		
 		// It can be null after some handover is completed. This can happen because, some connections were removed and routing
@@ -644,7 +599,7 @@ public class FogDevice extends PowerDatacenter {
 	 * @param tuple the tuple to be sent
 	 * @param destId the link destination id
 	 */
-	protected void sendFreeLink(Tuple tuple, int destId){		
+	private void sendFreeLink(Tuple tuple, int destId){		
 		updateEnergyConsumption();
 		getTupleLinkBusy().put(destId, true);
 		
@@ -671,7 +626,7 @@ public class FogDevice extends PowerDatacenter {
 		else
 			getTupleQueue().get(id).add(new Pair<Tuple, Integer>(tuple, id));
 	}
-	
+
 	/**
 	 * Sends a tuple to it self.
 	 * 
@@ -682,18 +637,39 @@ public class FogDevice extends PowerDatacenter {
 	}
 	
 	/**
-	 * Prints a detailed report related to the current resource usage and costs.
+	 * Executes the next tuple in the list if the CPU is not busy.
+	 * 
+	 * @param ev the event that just occurred containing the tuple
+	 * @param moduleName the module name (virtual machine) where it will be processed
 	 */
-	private void printCost() {
-		System.out.println("\n================================================================================");
-		System.out.println("Resource usage report of " + getName() + ":\n");
-		System.out.println("MIPS   	(%): " + String.format( "%.3f", lastMipsUtilization));
-		System.out.println("RAM    	(%): " + String.format( "%.3f", lastRamUtilization));
-		System.out.println("STRG   	(%): " + String.format( "%.3f", lastStorageUtilization));
-		System.out.println("BW     	(%): " + String.format( "%.3f", lastBwUtilization));
-		System.out.println("Cost    (€): " + String.format( "%.3f", getTotalCost()));
-		System.out.println("Energy 	(W): " + String.format( "%.3f", getEnergyConsumption()));
-		System.out.println("================================================================================\n");
+	private void updateCPUTupleQueue(SimEvent ev) {
+		if(ev != null)
+			processorMonitor.addTupleToQueue(ev);
+		else
+			processorMonitor.setCPUBusy(false);
+		
+		if(!processorMonitor.isCPUBusy() && !processorMonitor.isEmptyTupleQueue()){
+			processorMonitor.setCPUBusy(true);
+			
+			ev = processorMonitor.getPopTupleFromQueue();
+			Tuple tuple = (Tuple) ev.getData();
+			
+			if(Config.PRINT_DETAILS)
+				FogComputingSim.print("[" + getName() + "] Started execution of tuple: " + tuple.getCloudletId() + " on " + tuple.getDestModuleName());
+			
+			processorMonitor.addOrderedMI(((Cloudlet)ev.getData()).getCloudletLength());
+			
+			AppModule dstModule = getModuleByName(tuple.getDestModuleName());
+			tuple.setUserId(dstModule.getUserId());
+			
+			TimeKeeper.getInstance().tupleStartedExecution(tuple);
+			updateAllocatedMips(tuple.getDestModuleName());
+			processCloudletSubmit(ev, false);
+			updateAllocatedMips(tuple.getDestModuleName());
+			
+		}else if(processorMonitor.isEmptyTupleQueue()) {
+			processorMonitor.setCPUBusy(false);
+		}
 	}
 	
 	/**
@@ -923,6 +899,21 @@ public class FogDevice extends PowerDatacenter {
 	}
 	
 	/**
+	 * Prints a detailed report related to the current resource usage and costs.
+	 */
+	private void printCost() {
+		System.out.println("\n================================================================================");
+		System.out.println("Resource usage report of " + getName() + ":\n");
+		System.out.println("MIPS   	(%): " + String.format( "%.3f", lastMipsUtilization));
+		System.out.println("RAM    	(%): " + String.format( "%.3f", lastRamUtilization));
+		System.out.println("STRG   	(%): " + String.format( "%.3f", lastStorageUtilization));
+		System.out.println("BW     	(%): " + String.format( "%.3f", lastBwUtilization));
+		System.out.println("Cost    (€): " + String.format( "%.3f", getTotalCost()));
+		System.out.println("Energy 	(W): " + String.format( "%.3f", getEnergyConsumption()));
+		System.out.println("================================================================================\n");
+	}
+	
+	/**
 	 * Gets the host.
 	 * 
 	 * @return the host
@@ -1143,6 +1134,24 @@ public class FogDevice extends PowerDatacenter {
 	 */
 	public boolean isStaticNode() {
 		return !getFixedNeighborsIds().isEmpty();
+	}
+	
+	/**
+	 * Gets the object which holds the CPU tuple queue as well as the counters for the ordered and processed MIs.
+	 * 
+	 * @return the object which holds the CPU tuple queue as well as the counters for the ordered and processed MIs
+	 */
+	public ProcessorMonitor getProcessorMonitor() {
+		return processorMonitor;
+	}
+	
+	/**
+	 * Sets the object which holds the CPU tuple queue as well as the counters for the ordered and processed MIs.
+	 * 
+	 * @param processorMonitor the object which holds the CPU tuple queue as well as the counters for the ordered and processed MIs
+	 */
+	public void setProcessorMonitor(ProcessorMonitor processorMonitor) {
+		this.processorMonitor = processorMonitor;
 	}
 	
 }

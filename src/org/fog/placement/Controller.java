@@ -141,6 +141,10 @@ public class Controller extends SimEntity {
 			updateVmPosition(ev);
 			break;
 		case FogEvents.STOP_SIMULATION:
+			for(FogDevice fogDevice : fogDevices) {
+				sendNow(fogDevice.getId(), FogEvents.RESOURCE_MGMT);
+			}
+			
 			CloudSim.stopSimulation();
 			new OutputControllerResults(this);
 			
