@@ -318,7 +318,7 @@ public class FogComputingSim {
 	 * @param str the message to be printed
 	 */
 	public static void print(final String str) {
-		DecimalFormat df = new DecimalFormat("0.00");
+		DecimalFormat df = new DecimalFormat("0.0000");
 		String clock = Util.centerString(13, df.format(CloudSim.clock()));
 		System.out.println("Clock=" + clock + "-> " + str);
 	}

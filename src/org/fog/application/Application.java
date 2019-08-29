@@ -270,7 +270,7 @@ public class Application {
 	 */
 	public Tuple createTuple(AppEdge edge, int nodeId) {
 		Tuple tuple = new Tuple(appId, FogUtils.generateTupleId(), (long) (edge.getTupleCpuLength()), 1, (long) (edge.getTupleNwLength()),
-				100, new UtilizationModelFull(), new UtilizationModelFull(), new UtilizationModelFull());
+				0, new UtilizationModelFull(), new UtilizationModelFull(), new UtilizationModelFull());
 		
 		tuple.setUserId(nodeId);
 		tuple.setAppId(getAppId());
