@@ -50,8 +50,8 @@ public class Config {
 	 * Note that for the current problem it makes no sense to sum different costs, thus their priorities must be all different.
 	 */
 	public static final int[] priorities = new int[] {
-			5,		// Operational cost
-			6,		// Power cost
+			6,		// Operational cost
+			5,		// Power cost
 			4,		// Processing cost
 			3,		// Latency cost
 			2,		// Bandwidth cost
@@ -132,8 +132,8 @@ public class Config {
 	public static final double PROB_MAX_VELOCITY = 0.1667;
 	public static final double PROB_MED_VELOCITY = 0.6667;
 	public static final double PROB_MIN_VELOCITY = 0.1667;
-	public static final double MAX_VELOCITY = 33.3333;				// 33.3333 m/s = 120 km/h 	-> high speed car
-	public static final double MED_VELOCITY = 13.8889;				// 13.8889 m/s = 50 km/h  	-> slow speed car
-	public static final double MIN_VELOCITY = 1.34000;				// 1.34 m/s					-> average walking speed
+	public static final double MAX_VELOCITY = 33.3333;	// 33.3333 m/s = 120 km/h 	-> high speed car
+	public static final double MED_VELOCITY = 13.8889;	// 13.8889 m/s = 50 km/h  	-> slow speed car
+	public static final double MIN_VELOCITY = 1.34000;	// 1.34 m/s					-> average walking speed
 	
 }
