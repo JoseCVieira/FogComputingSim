@@ -10,16 +10,32 @@ import org.fog.entities.Tuple;
 public class TimeKeeper {
 	private static TimeKeeper instance;
 	private long simulationStartTime;
-	private int count; 
+	private int count;
+	
 	private Map<Integer, Double> emitTimes;
-	private Map<Integer, Double> endTimes;
-	private Map<Integer, List<Integer>> loopIdToTupleIds;
 	private Map<Integer, Double> tupleIdToCpuStartTime;
 	private Map<String, Double> tupleTypeToAverageCpuTime;
 	private Map<String, Integer> tupleTypeToExecutedTupleCount;
 	
+	private Map<Integer, List<Integer>> loopIdToTupleIds;
+	private Map<String, Map<Double, Integer>> loopIdToCurrentNwLatAverage;
+	private Map<String, Map<Double, Integer>> loopIdToCurrentNwBwAverage;
 	private Map<Integer, Double> loopIdToCurrentAverage;
+	private Map<Integer, Double> loopIdToCurrentNetworkAverage;
 	private Map<Integer, Integer> loopIdToCurrentNum;
+	
+	private TimeKeeper(){
+		count = 1;
+		setEmitTimes(new HashMap<Integer, Double>());
+		setLoopIdToTupleIds(new HashMap<Integer, List<Integer>>());
+		setTupleTypeToAverageCpuTime(new HashMap<String, Double>());
+		setTupleTypeToExecutedTupleCount(new HashMap<String, Integer>());
+		setTupleIdToCpuStartTime(new HashMap<Integer, Double>());
+		setLoopIdToCurrentAverage(new HashMap<Integer, Double>());
+		setLoopIdToCurrentNum(new HashMap<Integer, Integer>());
+		setLoopIdToCurrentNwLatAverage(new HashMap<String, Map<Double,Integer>>());
+		setLoopIdToCurrentNwBwAverage(new HashMap<String, Map<Double,Integer>>());
+	}
 	
 	public static TimeKeeper getInstance(){
 		if(instance == null)
@@ -50,28 +66,49 @@ public class TimeKeeper {
 		}
 	}
 	
-	public Map<Integer, List<Integer>> loopIdToTupleIds(){
-		return getInstance().getLoopIdToTupleIds();
+	public void startedTransmissionOfTuple(String tupleType, double lat, double bw, double size) {
+		if(!loopIdToCurrentNwLatAverage.containsKey(tupleType)) {
+			Map<Double, Integer> map = new HashMap<Double, Integer>();
+			map.put(lat, 0);
+			loopIdToCurrentNwLatAverage.put(tupleType, map);
+			
+			map = new HashMap<Double, Integer>();
+			map.put(size/bw, 0);
+			loopIdToCurrentNwBwAverage.put(tupleType, map);
+		}else {
+			Map<Double, Integer> map = loopIdToCurrentNwLatAverage.get(tupleType);
+			double totalLat = map.entrySet().iterator().next().getKey();
+			int counter = map.entrySet().iterator().next().getValue();
+			
+			map = new HashMap<Double, Integer>();
+			map.put(totalLat + lat, counter);
+			loopIdToCurrentNwLatAverage.put(tupleType, map);
+			
+			map = loopIdToCurrentNwBwAverage.get(tupleType);
+			double totalBw = map.entrySet().iterator().next().getKey();
+			
+			map = new HashMap<Double, Integer>();
+			map.put(totalBw + (size/bw), counter);
+			loopIdToCurrentNwBwAverage.put(tupleType, map);
+		}
 	}
 	
-	private TimeKeeper(){
-		count = 1;
-		setEmitTimes(new HashMap<Integer, Double>());
-		setEndTimes(new HashMap<Integer, Double>());
-		setLoopIdToTupleIds(new HashMap<Integer, List<Integer>>());
-		setTupleTypeToAverageCpuTime(new HashMap<String, Double>());
-		setTupleTypeToExecutedTupleCount(new HashMap<String, Integer>());
-		setTupleIdToCpuStartTime(new HashMap<Integer, Double>());
-		setLoopIdToCurrentAverage(new HashMap<Integer, Double>());
-		setLoopIdToCurrentNum(new HashMap<Integer, Integer>());
-	}
-	
-	public int getCount() {
-		return count;
-	}
-
-	public void setCount(int count) {
-		this.count = count;
+	public void receivedTuple(String tupleType) {
+		if(!loopIdToCurrentNwLatAverage.containsKey(tupleType)) return;
+		
+		Map<Double, Integer> map = loopIdToCurrentNwLatAverage.get(tupleType);
+		double totalLat = map.entrySet().iterator().next().getKey();
+		int counter = map.entrySet().iterator().next().getValue();
+		
+		map = new HashMap<Double, Integer>();
+		map.put(totalLat, counter+1);
+		loopIdToCurrentNwLatAverage.put(tupleType, map);
+		
+		map = loopIdToCurrentNwBwAverage.get(tupleType);
+		double totalBw = map.entrySet().iterator().next().getKey();
+		map = new HashMap<Double, Integer>();
+		map.put(totalBw, counter+1);
+		loopIdToCurrentNwBwAverage.put(tupleType, map);
 	}
 
 	public Map<Integer, Double> getEmitTimes() {
@@ -80,14 +117,6 @@ public class TimeKeeper {
 
 	public void setEmitTimes(Map<Integer, Double> emitTimes) {
 		this.emitTimes = emitTimes;
-	}
-
-	public Map<Integer, Double> getEndTimes() {
-		return endTimes;
-	}
-
-	public void setEndTimes(Map<Integer, Double> endTimes) {
-		this.endTimes = endTimes;
 	}
 
 	public Map<Integer, List<Integer>> getLoopIdToTupleIds() {
@@ -138,6 +167,30 @@ public class TimeKeeper {
 
 	public void setLoopIdToCurrentAverage(Map<Integer, Double> loopIdToCurrentAverage) {
 		this.loopIdToCurrentAverage = loopIdToCurrentAverage;
+	}
+	
+	public  Map<String, Map<Double, Integer>> getLoopIdToCurrentNwLatAverage() {
+		return loopIdToCurrentNwLatAverage;
+	}
+
+	public void setLoopIdToCurrentNwLatAverage( Map<String, Map<Double, Integer>> loopIdToCurrentNwLatAverage) {
+		this.loopIdToCurrentNwLatAverage = loopIdToCurrentNwLatAverage;
+	}
+	
+	public  Map<String, Map<Double, Integer>> getLoopIdToCurrentNwBwAverage() {
+		return loopIdToCurrentNwBwAverage;
+	}
+
+	public void setLoopIdToCurrentNwBwAverage( Map<String, Map<Double, Integer>> loopIdToCurrentNwBwAverage) {
+		this.loopIdToCurrentNwBwAverage = loopIdToCurrentNwBwAverage;
+	}
+	
+	public Map<Integer, Double> getLoopIdToCurrentNetworkAverage() {
+		return loopIdToCurrentNetworkAverage;
+	}
+
+	public void setLoopIdToCurrentNetworkAverage(Map<Integer, Double> loopIdToCurrentNetworkAverage) {
+		this.loopIdToCurrentNetworkAverage = loopIdToCurrentNetworkAverage;
 	}
 
 	public Map<Integer, Integer> getLoopIdToCurrentNum() {

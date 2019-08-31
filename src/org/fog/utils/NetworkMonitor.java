@@ -1,5 +1,7 @@
 package org.fog.utils;
 
+import org.fog.entities.Tuple;
+
 /**
  * Class which defines the model used to compute the network usage (given in seconds) to use transmit both by tuples
  * and virtual machines between nodes. It is responsible for counting both the number of packages dropped and
@@ -9,7 +11,7 @@ package org.fog.utils;
  * @since  July, 2019
  */
 public class NetworkMonitor {
-	/** The elapsed time in which the network was busy sending tuples */
+	/** The total efficient time in which the network was busy sending tuples [s] */
 	private static double networkUsage = 0.0;
 	
 	/** The number of tuples dropped */
@@ -24,8 +26,8 @@ public class NetworkMonitor {
 	 * @param bandwidth the bandwidth available in the link
 	 * @param tupleNwSize the size of the tuple to be transmitted
 	 */
-	public static void sendingTuple(final double bandwidth, final double tupleNwSize){
-		networkUsage += tupleNwSize/bandwidth;
+	public static void sendingTuple(final double bandwidth, final Tuple tuple) {
+		networkUsage += tuple.getCloudletFileSize()/bandwidth;
 	}
 	
 	/**

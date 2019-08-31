@@ -8,10 +8,13 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -20,6 +23,9 @@ import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.fog.application.AppEdge;
+import org.fog.application.AppLoop;
+import org.fog.application.Application;
 import org.fog.core.Config;
 import org.fog.entities.FogDevice;
 import org.fog.placement.Controller;
@@ -144,16 +150,20 @@ public class ExcelUtils {
 	    	Row row = sheet.createRow(rowIndex++);
 	    	
 	    	createTitleCell(sheet, row, cellIndex++, 65, "Simul. Id");
-	    	createTitleCell(sheet, row, cellIndex++, 150, "Execution time [s]");
-		    createTitleCell(sheet, row, cellIndex++, 190, "Application Loop delays [s]");
-		    createTitleCell(sheet, row, cellIndex++, 190, "Tuple CPU execution delay [s]");
-		    createTitleCell(sheet, row, cellIndex++, 190, "Energy consumed [W]");
-		    createTitleCell(sheet, row, cellIndex++, 190, "Cost of execution [€]");
-		    createTitleCell(sheet, row, cellIndex++, 190, "Network usage [%]");
-		    createTitleCell(sheet, row, cellIndex++, 125, "# packet success");
-		    createTitleCell(sheet, row, cellIndex++, 125, "# packet drop");
-		    createTitleCell(sheet, row, cellIndex++, 125, "# handovers");
-		    createTitleCell(sheet, row, cellIndex++, 125, "# migrations");
+	    	createTitleCell(sheet, row, cellIndex++, 140, "Execution time [s]");
+		    createTitleCell(sheet, row, cellIndex++, 125, "CPU delay [s]");
+		    createTitleCell(sheet, row, cellIndex++, 125, "LAT delay [s]");
+		    createTitleCell(sheet, row, cellIndex++, 125, "BW delay [s]");
+		    createTitleCell(sheet, row, cellIndex++, 125, "Total delay [s]");
+		    createTitleCell(sheet, row, cellIndex++, 125, "Energy [W]");
+		    createTitleCell(sheet, row, cellIndex++, 125, "Ordered MI [MI]");
+		    createTitleCell(sheet, row, cellIndex++, 125, "Processed MI [MI]");
+		    createTitleCell(sheet, row, cellIndex++, 125, "Cost [€]");
+		    createTitleCell(sheet, row, cellIndex++, 125, "Network usage [s]");
+		    createTitleCell(sheet, row, cellIndex++, 90, "# pkt success");
+		    createTitleCell(sheet, row, cellIndex++, 90, "# pkt drop");
+		    createTitleCell(sheet, row, cellIndex++, 90, "# handover");
+		    createTitleCell(sheet, row, cellIndex++, 90, "# migration");
 		    
 		// Create a separator
 	    }else {
@@ -229,47 +239,99 @@ public class ExcelUtils {
 		Row row = sheet.createRow(rowIndex);
 		CellStyle cellStyle = row.getSheet().getWorkbook().createCellStyle();
 	    cellStyle.setAlignment(HorizontalAlignment.CENTER);
+	    DecimalFormat df = new DecimalFormat("0.000");
 	    
 		int cellIndex = START;
 		
+		// ID
 		createCell(sheet, row, cellIndex++, Integer.toString(SIMULATION_ID), HorizontalAlignment.CENTER);
 		
+		// Elapsed time
 		String value = Long.toString(Calendar.getInstance().getTimeInMillis() - TimeKeeper.getInstance().getSimulationStartTime());
 		createCell(sheet, row, cellIndex++, value, HorizontalAlignment.CENTER);
 	    
-	    double total = 0;
-	    DecimalFormat df = new DecimalFormat("0.00");
-	    for(Integer loopId : TimeKeeper.getInstance().getLoopIdToTupleIds().keySet()) {
-	    	total += TimeKeeper.getInstance().getLoopIdToCurrentAverage().get(loopId);
+		// Loops delays
+		double cpu = 0;
+		double lat = 0;
+		double bw = 0;
+		double total = 0;
+		for(Integer loopId : TimeKeeper.getInstance().getLoopIdToTupleIds().keySet()) {
+			List<String> modules = getListForLoopId(controller, loopId);
+			
+			for(int i = 0; i < modules.size()-1; i++) {
+				String startModule = modules.get(i);
+				String destModule = modules.get(i+1);
+				
+				for(String tupleType : getTupleTypeForDependency(controller, startModule, destModule)) {
+					if(TimeKeeper.getInstance().getTupleTypeToAverageCpuTime().containsKey(tupleType))
+						cpu += TimeKeeper.getInstance().getTupleTypeToAverageCpuTime().get(tupleType);
+				}
+			}
+			
+			for(int i = 0; i < modules.size()-1; i++) {
+				String startModule = modules.get(i);
+				String destModule = modules.get(i+1);
+				
+				for(String tupleType : getTupleTypeForDependency(controller, startModule, destModule)) {
+					if(TimeKeeper.getInstance().getLoopIdToCurrentNwLatAverage().containsKey(tupleType)) {
+						Map<Double, Integer> map = TimeKeeper.getInstance().getLoopIdToCurrentNwLatAverage().get(tupleType);
+						double totalLat = map.entrySet().iterator().next().getKey();
+						int counter = map.entrySet().iterator().next().getValue();
+						lat += totalLat/counter;
+						
+						map = TimeKeeper.getInstance().getLoopIdToCurrentNwBwAverage().get(tupleType);
+						double totalBw = map.entrySet().iterator().next().getKey();
+						bw += totalBw/counter;
+					}
+				}
+			}
+			
+			total += TimeKeeper.getInstance().getLoopIdToCurrentAverage().get(loopId);
 		}
+		
+		df = new DecimalFormat("0.######E0");
+		String bwf = df.format(bw);
+		df = new DecimalFormat("0.000");
+		
+		createCell(sheet, row, cellIndex++, df.format(cpu), HorizontalAlignment.RIGHT);
+		createCell(sheet, row, cellIndex++, df.format(lat), HorizontalAlignment.RIGHT);
+		createCell(sheet, row, cellIndex++, bwf, HorizontalAlignment.RIGHT);
+		createCell(sheet, row, cellIndex++, df.format(total), HorizontalAlignment.RIGHT);
 	    
-	    createCell(sheet, row, cellIndex++, df.format(total), HorizontalAlignment.RIGHT);
-	    
-	    total = 0;
-	    for(String tupleType : TimeKeeper.getInstance().getTupleTypeToAverageCpuTime().keySet()) {
-	    	total += TimeKeeper.getInstance().getTupleTypeToAverageCpuTime().get(tupleType);
-		}
-	    createCell(sheet, row, cellIndex++, df.format(total), HorizontalAlignment.RIGHT);
-	    
+	    // Energy
 	    total = 0;
 	    for(FogDevice fogDevice : controller.getFogDevices()) {
 	    	total += fogDevice.getEnergyConsumption();
 		}
 	    createCell(sheet, row, cellIndex++, df.format(total), HorizontalAlignment.RIGHT);
 	    
+	    // Ordered MIs
+	    total = 0;
+	    for(FogDevice fogDevice : controller.getFogDevices()) {
+	    	total += fogDevice.getProcessorMonitor().getOrderedMI();
+		}
+	    createCell(sheet, row, cellIndex++, df.format(total), HorizontalAlignment.RIGHT);
+	    
+	    // Processed MIs
+	    total = 0;
+	    for(FogDevice fogDevice : controller.getFogDevices()) {
+	    	total += fogDevice.getProcessorMonitor().getProcessedMI();
+		}
+	    createCell(sheet, row, cellIndex++, df.format(total), HorizontalAlignment.RIGHT);
+	    
+	    // Cost
 	    total = 0;
 	    for(FogDevice fogDevice : controller.getFogDevices()) {
 	    	total += fogDevice.getTotalCost();
 		}
 	    createCell(sheet, row, cellIndex++, df.format(total), HorizontalAlignment.RIGHT);
 	    
-	    df = new DecimalFormat("0.00000000");
-	    createCell(sheet, row, cellIndex++, df.format(NetworkMonitor.getNetworkUsage()/Config.MAX_SIMULATION_TIME), HorizontalAlignment.CENTER);
-	    
-	    createCell(sheet, row, cellIndex++, Integer.toString(NetworkMonitor.getPacketSuccess()), HorizontalAlignment.CENTER);
-	    createCell(sheet, row, cellIndex++, Integer.toString(NetworkMonitor.getPacketDrop()), HorizontalAlignment.CENTER);
-	    createCell(sheet, row, cellIndex++, Integer.toString(controller.getNrHandovers()), HorizontalAlignment.CENTER);
-	    createCell(sheet, row, cellIndex++, Integer.toString(controller.getNrMigrations()), HorizontalAlignment.CENTER);
+	    // Network details
+	    createCell(sheet, row, cellIndex++, df.format(NetworkMonitor.getNetworkUsage()), HorizontalAlignment.RIGHT);
+	    createCell(sheet, row, cellIndex++, Integer.toString(NetworkMonitor.getPacketSuccess()), HorizontalAlignment.RIGHT);
+	    createCell(sheet, row, cellIndex++, Integer.toString(NetworkMonitor.getPacketDrop()), HorizontalAlignment.RIGHT);
+	    createCell(sheet, row, cellIndex++, Integer.toString(controller.getNrHandovers()), HorizontalAlignment.RIGHT);
+	    createCell(sheet, row, cellIndex++, Integer.toString(controller.getNrMigrations()), HorizontalAlignment.RIGHT);
 	}
 	
 	
@@ -336,6 +398,31 @@ public class ExcelUtils {
 		}
 		
 		return index;
+	}
+	
+	private static List<String> getListForLoopId(Controller controller, int loopId) {
+		for(String appId : controller.getApplications().keySet()){
+			Application app = controller.getApplications().get(appId);
+			for(AppLoop loop : app.getLoops()){
+				if(loop.getLoopId() == loopId)
+					return loop.getModules();
+			}
+		}
+		return null;
+	}
+	
+	private static List<String> getTupleTypeForDependency(Controller controller, String startModule, String destModule) {
+		List<String> tupleTypes = new ArrayList<String>();
+		
+		for(String appId : controller.getApplications().keySet()){
+			Application app = controller.getApplications().get(appId);
+			for(AppEdge appEdge : app.getEdges()){
+				if(!appEdge.getSource().equals(startModule) || !appEdge.getDestination().equals(destModule)) continue;
+				if(tupleTypes.contains(appEdge.getTupleType())) continue;
+				tupleTypes.add(appEdge.getTupleType());
+			}
+		}
+		return tupleTypes;
 	}
 	
 }

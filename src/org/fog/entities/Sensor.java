@@ -9,6 +9,7 @@ import org.cloudbus.cloudsim.core.SimEvent;
 import org.fog.application.AppEdge;
 import org.fog.application.AppLoop;
 import org.fog.application.Application;
+import org.fog.core.Constants;
 import org.fog.utils.FogEvents;
 import org.fog.utils.FogUtils;
 import org.fog.utils.Logger;
@@ -115,7 +116,7 @@ public class Sensor extends SimEntity{
 		tuple.setTupleType(getTupleType());
 		tuple.setDestModuleName(_edge.getDestination());
 		tuple.setSrcModuleName(getSensorName());
-		tuple.setActualTupleId(updateTimings(getSensorName(), tuple.getDestModuleName()));
+		tuple.setActualTupleId(updateTimings(getSensorName(), tuple.getDestModuleName(), getLatency(), getTupleType(), nwLength));
 		
 		Logger.debug(getName(), "Sending tuple with tupleId = " + tuple.getCloudletId());
 		send(gatewayDeviceId, getLatency(), FogEvents.TUPLE_ARRIVAL, tuple);
@@ -128,7 +129,9 @@ public class Sensor extends SimEntity{
 	 * @param dest destination module of the application edge
 	 * @return >= 0 if it has found the edge, otherwise -1
 	 */
-	private int updateTimings(String src, String dest){
+	private int updateTimings(String src, String dest, double lat, String tupleType, double nwLength){
+		TimeKeeper.getInstance().startedTransmissionOfTuple(tupleType, lat, Constants.INF, nwLength);
+		
 		Application application = getApp();
 		for(AppLoop loop : application.getLoops()){
 			if(loop.hasEdge(src, dest)){

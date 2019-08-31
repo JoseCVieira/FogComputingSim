@@ -318,9 +318,9 @@ public class AddAppEdge extends JDialog {
 				
 				
 				if(error_msg == ""){
-					int iEdgeType = 1; // SENSOR
-					if(((String)edgeType.getSelectedItem()).equals("ACTUATOR")) iEdgeType = 2;
-					if(((String)edgeType.getSelectedItem()).equals("MODULE")) iEdgeType = 3;
+					int iEdgeType = AppEdge.SENSOR;
+					if(((String)edgeType.getSelectedItem()).equals("ACTUATOR")) iEdgeType = AppEdge.ACTUATOR;
+					if(((String)edgeType.getSelectedItem()).equals("MODULE")) iEdgeType = AppEdge.MODULE;
 					
 					if(edge != null) {
 						// Edit the periodic application edge

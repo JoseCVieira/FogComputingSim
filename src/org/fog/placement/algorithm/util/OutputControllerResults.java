@@ -2,8 +2,12 @@ package org.fog.placement.algorithm.util;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
+import java.util.Map;
 
+import org.fog.application.AppEdge;
 import org.fog.application.AppLoop;
 import org.fog.application.Application;
 import org.fog.core.Config;
@@ -15,13 +19,15 @@ import org.fog.utils.TimeKeeper;
 import org.fog.utils.Util;
 
 public class OutputControllerResults {
-	private static final int MAX_COLUMN_SIZE = 50;
+	private static final int MAX_COLUMN_SIZE = 75;
 	
 	/** Object which holds the information needed to display the simulation results */
 	private Controller controller;
 	
 	/** Defines whether the plot was displayed to the user. If it's true, the program does no terminates until the user presses the ENTER key */
 	public static boolean isDisplayingPlot = false;
+	
+	private static DecimalFormat df = new DecimalFormat("0.000");
 	
 	/**
 	 * Prints the results obtained in the simulation execution.
@@ -32,11 +38,12 @@ public class OutputControllerResults {
 		this.controller = controller;
 		
 		printTimeDetails();
+		printLoopDetails();
 		printEnergyDetails();
+		printCPUDetails();
 		printCostDetails();
-		printCPUDetails(controller);
 		printNetworkUsageDetails();
-		printNetworkDetails(controller);
+		printNetworkDetails();
 		
 		if(Config.EXPORT_RESULTS_EXCEL) {
 			try {
@@ -51,34 +58,76 @@ public class OutputControllerResults {
 	 * Prints the time details obtained in the simulation execution.
 	 */
 	private void printTimeDetails() {
-		DecimalFormat df = new DecimalFormat("0.00");
+		long time = Calendar.getInstance().getTimeInMillis() - TimeKeeper.getInstance().getSimulationStartTime();
 		
-		System.out.println("\n");
+		printTitle("EXECUTION TIME [s]");
+		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), String.valueOf(time)) + "|");
 		newDetailsField(2, '=');
-		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "EXECUTION TIME [s]") + "|");
-		newDetailsField(2, '-');
-		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), String.valueOf(Calendar.getInstance().getTimeInMillis() -
-				TimeKeeper.getInstance().getSimulationStartTime())) + "|");
-		newDetailsField(2, '=');
+	}
+	
+	/**
+	 * Prints the loops timing details obtained in the simulation execution.
+	 */
+	private void printLoopDetails() {
+		int col1 = MAX_COLUMN_SIZE*6/5-3;
+		int col2 = MAX_COLUMN_SIZE/5;
+		int col3 = MAX_COLUMN_SIZE/5;
+		int col4 = MAX_COLUMN_SIZE/5;
+		int col5 = MAX_COLUMN_SIZE/5;
 		
-		System.out.println("\n");
-		newDetailsField(2, '=');
-		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "APPLICATION LOOP DELAYS [s]") + "|");
+		printTitle("APPLICATION LOOP DELAYS [s]");
+		System.out.print("|" + Util.centerString(col1, "LOOP") + "|" + Util.centerString(col2, "CPU") + "|" + Util.centerString(col3, "LATENCY") + "|" + Util.centerString(col4, "BANDWIDTH") + "|" + Util.centerString(col5, "TOTAL") + "|\n");
 		newDetailsField(2, '-');
+		
 		for(Integer loopId : TimeKeeper.getInstance().getLoopIdToTupleIds().keySet()) {
-			System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), getStringForLoopId(loopId) + " ---> "+
-					df.format(TimeKeeper.getInstance().getLoopIdToCurrentAverage().get(loopId)).toString()) + "|");
+			String name = getStringForLoopId(loopId);
+			List<String> modules = getListForLoopId(loopId);
+			double cpu = 0;
+			double lat = 0;
+			double bw = 0;		
+			
+			for(int i = 0; i < modules.size()-1; i++) {
+				String startModule = modules.get(i);
+				String destModule = modules.get(i+1);
+				
+				for(String tupleType : getTupleTypeForDependency(startModule, destModule)) {
+					if(TimeKeeper.getInstance().getTupleTypeToAverageCpuTime().containsKey(tupleType))
+						cpu += TimeKeeper.getInstance().getTupleTypeToAverageCpuTime().get(tupleType);
+				}
+			}
+			
+			for(int i = 0; i < modules.size()-1; i++) {
+				String startModule = modules.get(i);
+				String destModule = modules.get(i+1);
+				
+				for(String tupleType : getTupleTypeForDependency(startModule, destModule)) {
+					if(TimeKeeper.getInstance().getLoopIdToCurrentNwLatAverage().containsKey(tupleType)) {
+						Map<Double, Integer> map = TimeKeeper.getInstance().getLoopIdToCurrentNwLatAverage().get(tupleType);
+						double totalLat = map.entrySet().iterator().next().getKey();
+						int counter = map.entrySet().iterator().next().getValue();
+						lat += totalLat/counter;
+						
+						map = TimeKeeper.getInstance().getLoopIdToCurrentNwBwAverage().get(tupleType);
+						double totalBw = map.entrySet().iterator().next().getKey();
+						bw += totalBw/counter;
+					}
+				}
+			}
+			
+			df = new DecimalFormat("0.######E0");
+			String bwf = df.format(bw);
+			df = new DecimalFormat("0.000");
+			String total = df.format(TimeKeeper.getInstance().getLoopIdToCurrentAverage().get(loopId));
+			
+			System.out.print("|" + Util.centerString(col1, name) + "|" + Util.centerString(col2, df.format(cpu)) + "|" +
+			Util.centerString(col3, df.format(lat)) + "|" + Util.centerString(col4, bwf) + "|" + Util.centerString(col5, total) + "|\n");
 		}
 		newDetailsField(2, '=');
-
-		System.out.println("\n");
-		newDetailsField(2, '=');
-		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "TUPLE CPU EXECUTION DELAY [s]") + "|");
-		newDetailsField(2, '-');
+		
+		printTitle("TUPLE CPU EXECUTION DELAY [s]");
 		for(String tupleType : TimeKeeper.getInstance().getTupleTypeToAverageCpuTime().keySet()) {
-			System.out.print("|" + Util.centerString(MAX_COLUMN_SIZE, tupleType) + "|" +
-					Util.centerString(MAX_COLUMN_SIZE,
-							df.format(TimeKeeper.getInstance().getTupleTypeToAverageCpuTime().get(tupleType)).toString()) + "|\n");
+			String delay = df.format(TimeKeeper.getInstance().getTupleTypeToAverageCpuTime().get(tupleType));
+			System.out.print("|" + Util.centerString(MAX_COLUMN_SIZE, tupleType) + "|" + Util.centerString(MAX_COLUMN_SIZE, delay) + "|\n");
 		}
 		newDetailsField(2, '=');
 	}
@@ -87,25 +136,58 @@ public class OutputControllerResults {
 	 * Prints the energy details obtained in the simulation execution.
 	 */
 	private void printEnergyDetails() {
-		DecimalFormat df = new DecimalFormat("0.00");
-		Double aux = 0.0;
+		double total = 0;
+		int col1 = MAX_COLUMN_SIZE/5-1;
+		int col2 = MAX_COLUMN_SIZE-MAX_COLUMN_SIZE/5;
+		int col3 = MAX_COLUMN_SIZE;
 		
-		System.out.println("\n");
-		newDetailsField(2, '=');
-		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "ENERGY CONSUMED [W]") + "|");
+		printTitle("ENERGY CONSUMED [W]");
+		System.out.print("|" + Util.centerString(col1, "ID") + "|" + Util.centerString(col2, "NAME") + "|" + Util.centerString(col3, "VALUE") + "|\n");
 		newDetailsField(2, '-');
-		System.out.print("|" + Util.centerString(MAX_COLUMN_SIZE/5-1, "ID") + "|" +
-				Util.centerString(MAX_COLUMN_SIZE-MAX_COLUMN_SIZE/5, "NAME") + "|" +
-				Util.centerString(MAX_COLUMN_SIZE, "VALUE") + "|\n");
-		newDetailsField(2, '-');
+		
 		for(FogDevice fogDevice : controller.getFogDevices()) {
-			aux += fogDevice.getEnergyConsumption();
-			System.out.print("|" + Util.centerString(MAX_COLUMN_SIZE/5-1, String.valueOf(fogDevice.getId())) + "|" +
-					Util.centerString(MAX_COLUMN_SIZE-MAX_COLUMN_SIZE/5, fogDevice.getName()) + "|" +
-					Util.centerString(MAX_COLUMN_SIZE, df.format(fogDevice.getEnergyConsumption())) + "|\n");
+			String id = Integer.toString(fogDevice.getId());
+			String name = fogDevice.getName();
+			String energy = df.format(fogDevice.getEnergyConsumption());
+			System.out.print("|" + Util.centerString(col1, id) + "|" + Util.centerString(col2, name) + "|" + Util.centerString(col3, energy) + "|\n");
+			total += fogDevice.getEnergyConsumption();
 		}
 		newDetailsField(2, '-');
-		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "TOTAL = " + df.format(aux)) + "|");
+		
+		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "TOTAL = " + df.format(total)) + "|");
+		newDetailsField(2, '=');
+	}
+	
+	/**
+	 * Prints both counters for the ordered and processed MIs.
+	 */
+	private void printCPUDetails() {
+		double totalOdered = 0;
+		double totalProcessed = 0;
+		int col1 = MAX_COLUMN_SIZE/5-1;
+		int col2 = MAX_COLUMN_SIZE-MAX_COLUMN_SIZE/5;
+		int col3 = MAX_COLUMN_SIZE-MAX_COLUMN_SIZE/2;
+		int col4 = MAX_COLUMN_SIZE-MAX_COLUMN_SIZE/2-2;
+		
+		printTitle("PROCESSOR [MI]");
+		System.out.print("|" + Util.centerString(col1, "ID") + "|" + Util.centerString(col2, "NAME") + "|" + Util.centerString(col3, "ORDERED") + "|" + Util.centerString(col4, "PROCESSED") + "|\n");
+		newDetailsField(2, '-');
+		
+		for(FogDevice fogDevice : controller.getFogDevices()) {
+			String id = Integer.toString(fogDevice.getId());
+			String name = fogDevice.getName();
+			String odered = df.format(fogDevice.getProcessorMonitor().getOrderedMI());
+			String processed = df.format(fogDevice.getProcessorMonitor().getProcessedMI());
+			System.out.print("|" + Util.centerString(col1, id) + "|" + Util.centerString(col2, name) + "|" + Util.centerString(col3, odered) + "|" + Util.centerString(col4, processed) + "|\n");
+			totalOdered += fogDevice.getProcessorMonitor().getOrderedMI();
+			totalProcessed += fogDevice.getProcessorMonitor().getProcessedMI();
+		}
+		newDetailsField(2, '-');
+		
+		String tOdered = df.format(totalOdered);
+		String tProcessed = df.format(totalProcessed);
+		
+		System.out.print("|" + Util.centerString(col1+col2+1, "TOTAL") + "|" + Util.centerString(col3, tOdered) + "|" + Util.centerString(col4, tProcessed) + "|\n");
 		newDetailsField(2, '=');
 	}
 	
@@ -113,25 +195,25 @@ public class OutputControllerResults {
 	 * Prints the monetary cost details obtained in the simulation execution.
 	 */
 	private void printCostDetails() {
-		DecimalFormat df = new DecimalFormat("0.00"); 
-		Double aux = 0.0;
+		double total = 0;
+		int col1 = MAX_COLUMN_SIZE/5-1;
+		int col2 = MAX_COLUMN_SIZE-MAX_COLUMN_SIZE/5;
+		int col3 = MAX_COLUMN_SIZE;
 		
-		System.out.println("\n");
-		newDetailsField(2, '=');
-		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "COST OF EXECUTION [€]") + "|");
+		printTitle("COST OF EXECUTION [€]");
+		System.out.print("|" + Util.centerString(col1, "ID") + "|" + Util.centerString(col2, "NAME") + "|" + Util.centerString(col3, "VALUE") + "|\n");
 		newDetailsField(2, '-');
-		System.out.print("|" + Util.centerString(MAX_COLUMN_SIZE/5-1, "ID") + "|" +
-				Util.centerString(MAX_COLUMN_SIZE-MAX_COLUMN_SIZE/5, "NAME") + "|" +
-				Util.centerString(MAX_COLUMN_SIZE, "VALUE") + "|\n");
-		newDetailsField(2, '-');
+		
 		for(FogDevice fogDevice : controller.getFogDevices()) {
-			aux += fogDevice.getTotalCost();
-			System.out.print("|" + Util.centerString(MAX_COLUMN_SIZE/5-1, String.valueOf(fogDevice.getId())) + "|" +
-					Util.centerString(MAX_COLUMN_SIZE-MAX_COLUMN_SIZE/5, fogDevice.getName()) + "|" +
-					Util.centerString(MAX_COLUMN_SIZE,df.format(fogDevice.getTotalCost())) + "|\n");
+			String id = Integer.toString(fogDevice.getId());
+			String name = fogDevice.getName();
+			String cost = df.format(fogDevice.getTotalCost());
+			System.out.print("|" + Util.centerString(col1, id) + "|" + Util.centerString(col2, name) + "|" + Util.centerString(col3, cost) + "|\n");
+			total += fogDevice.getTotalCost();
 		}
 		newDetailsField(2, '-');
-		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "TOTAL = " + df.format(aux)) + "|");
+		
+		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "TOTAL = " + df.format(total)) + "|");
 		newDetailsField(2, '=');
 	}
 	
@@ -139,20 +221,27 @@ public class OutputControllerResults {
 	 * Prints the network usage details obtained in the simulation execution.
 	 */
 	private void printNetworkUsageDetails() {
-		DecimalFormat df = new DecimalFormat("0.00000000");
+		double value = NetworkMonitor.getNetworkUsage();
+		
+		printTitle("NETWORK USAGE TIME [s]");
+		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "" + df.format(value)) + "|");
+		newDetailsField(2, '=');
+	}
+	
+	/**
+	 * Prints the tile of the table
+	 */
+	private void printTitle(String title) {
 		System.out.println("\n");
 		newDetailsField(2, '=');
-		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "NETWORK USAGE TIME [%]") + "|");
+		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), title) + "|");
 		newDetailsField(2, '-');
-		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "" +
-				df.format(NetworkMonitor.getNetworkUsage()/Config.MAX_SIMULATION_TIME)) + "|");
-		newDetailsField(2, '=');
 	}
 	
 	/**
 	 * Prints both the number of packet drop and packet successfully delivered in order to check the QoS degradation.
 	 */
-	private static void printNetworkDetails(Controller controller) {
+	private void printNetworkDetails() {
 		System.out.println("\n");
 		newDetailsField(2, '=');
 		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "NETWORK DETAILS") + "|");
@@ -166,37 +255,6 @@ public class OutputControllerResults {
 			System.out.print("|" + Util.centerString(MAX_COLUMN_SIZE, "Migration counter") + "|" +
 					Util.centerString(MAX_COLUMN_SIZE, Integer.toString(controller.getNrMigrations())) + "|\n");
 		newDetailsField(2, '=');
-	}
-	
-	private static void printCPUDetails(Controller controller) {
-		DecimalFormat df = new DecimalFormat("0.00"); 
-		Double aux = 0.0, totalOdered = 0.0, totalProcessed = 0.0;
-		
-		System.out.println("\n");
-		newDetailsField(2, '=');
-		System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+1), "PROCESSOR [MI]") + "|");
-		newDetailsField(2, '-');
-		System.out.print("|" + Util.centerString(MAX_COLUMN_SIZE/5-1, "ID") + "|" +
-				Util.centerString(MAX_COLUMN_SIZE-MAX_COLUMN_SIZE/3+1, "NAME") + "|" +
-				Util.centerString(MAX_COLUMN_SIZE-MAX_COLUMN_SIZE/2+2, "ORDERED") + "|" +
-				Util.centerString(MAX_COLUMN_SIZE-MAX_COLUMN_SIZE/2+2, "PROCESSED") + "|\n");
-		newDetailsField(2, '-');
-		for(FogDevice fogDevice : controller.getFogDevices()) {
-			aux += fogDevice.getTotalCost();
-			System.out.print("|" + Util.centerString(MAX_COLUMN_SIZE/5-1, String.valueOf(fogDevice.getId())) + "|" +
-					Util.centerString(MAX_COLUMN_SIZE-MAX_COLUMN_SIZE/3+1, fogDevice.getName()) + "|" +
-					Util.centerString(MAX_COLUMN_SIZE-MAX_COLUMN_SIZE/2+2, df.format(fogDevice.getProcessorMonitor().getOrderedMI())) + "|" +
-					Util.centerString(MAX_COLUMN_SIZE-MAX_COLUMN_SIZE/2+2, df.format(fogDevice.getProcessorMonitor().getProcessedMI())) + "|\n");
-			totalOdered += fogDevice.getProcessorMonitor().getOrderedMI();
-			totalProcessed += fogDevice.getProcessorMonitor().getProcessedMI();
-		}
-		newDetailsField(2, '-');
-		//System.out.println("|" + Util.centerString((MAX_COLUMN_SIZE*2+MAX_COLUMN_SIZE/5), "TOTAL = " + df.format(aux)) + "|");
-		System.out.print("|" + Util.centerString(MAX_COLUMN_SIZE/5+MAX_COLUMN_SIZE-MAX_COLUMN_SIZE/3+1, "TOTAL") + "|" +
-				Util.centerString(MAX_COLUMN_SIZE-MAX_COLUMN_SIZE/2+2, df.format(totalOdered)) + "|" +
-				Util.centerString(MAX_COLUMN_SIZE-MAX_COLUMN_SIZE/2+2, df.format(totalProcessed)) + "|\n");
-		newDetailsField(2, '=');
-		
 	}
 	
 	/**
@@ -217,7 +275,7 @@ public class OutputControllerResults {
 	 * @param loopId the id of the loop
 	 * @return the parsed loop string
 	 */
-	private String getStringForLoopId(int loopId){
+	private String getStringForLoopId(int loopId) {
 		for(String appId : controller.getApplications().keySet()){
 			Application app = controller.getApplications().get(appId);
 			for(AppLoop loop : app.getLoops()){
@@ -226,6 +284,31 @@ public class OutputControllerResults {
 			}
 		}
 		return null;
+	}
+	
+	private List<String> getListForLoopId(int loopId) {
+		for(String appId : controller.getApplications().keySet()){
+			Application app = controller.getApplications().get(appId);
+			for(AppLoop loop : app.getLoops()){
+				if(loop.getLoopId() == loopId)
+					return loop.getModules();
+			}
+		}
+		return null;
+	}
+	
+	private List<String> getTupleTypeForDependency(String startModule, String destModule) {
+		List<String> tupleTypes = new ArrayList<String>();
+		
+		for(String appId : controller.getApplications().keySet()){
+			Application app = controller.getApplications().get(appId);
+			for(AppEdge appEdge : app.getEdges()){
+				if(!appEdge.getSource().equals(startModule) || !appEdge.getDestination().equals(destModule)) continue;
+				if(tupleTypes.contains(appEdge.getTupleType())) continue;
+				tupleTypes.add(appEdge.getTupleType());
+			}
+		}
+		return tupleTypes;
 	}
 	
 	/**

@@ -275,7 +275,7 @@ public class FogDevice extends PowerDatacenter {
 						TimeKeeper.getInstance().tupleEndedExecution(tuple);
 						Application application = controller.getApplications().get(tuple.getAppId());
 						List<Tuple> resultantTuples = application.getResultantTuples(tuple.getDestModuleName(), tuple, vm.getId());
-						for(Tuple resTuple : resultantTuples){
+						for(Tuple resTuple : resultantTuples) {
 							resTuple.setModuleCopyMap(new HashMap<String, Integer>(tuple.getModuleCopyMap()));
 							resTuple.getModuleCopyMap().put(((AppModule)vm).getName(), vm.getId());
 							updateTimingsOnSending(resTuple);
@@ -300,8 +300,8 @@ public class FogDevice extends PowerDatacenter {
 		String srcModule = resTuple.getSrcModuleName();
 		String destModule = resTuple.getDestModuleName();
 		
-		for(AppLoop loop : controller.getApplications().get(resTuple.getAppId()).getLoops()){
-			if(loop.hasEdge(srcModule, destModule) && loop.isStartModule(srcModule)){
+		for(AppLoop loop : controller.getApplications().get(resTuple.getAppId()).getLoops()) {
+			if(loop.hasEdge(srcModule, destModule) && loop.isStartModule(srcModule)) {
 				int tupleId = TimeKeeper.getInstance().getUniqueId();
 				resTuple.setActualTupleId(tupleId);
 				
@@ -467,8 +467,7 @@ public class FogDevice extends PowerDatacenter {
 			
 			NetworkMonitor.incrementPacketDrop();
 			return;
-		}
-		
+		}		
 
 		if(deployedModules.contains(tuple.getDestModuleName())) {
 			int vmId = -1;			
@@ -481,11 +480,12 @@ public class FogDevice extends PowerDatacenter {
 			if(vmId < 0 || (tuple.getModuleCopyMap().containsKey(tuple.getDestModuleName()) && 
 					tuple.getModuleCopyMap().get(tuple.getDestModuleName()) != vmId))
 				return;
-
+			
 			tuple.setVmId(vmId);
 			updateTimingsOnReceipt(tuple);
 			updateCPUTupleQueue(ev);
 			NetworkMonitor.incrementPacketSuccess();
+			TimeKeeper.getInstance().receivedTuple(tuple.getTupleType());
 		}else {
 			communication = new HashMap<String, String>();
 			communication.put(tuple.getSrcModuleName(), tuple.getDestModuleName());
@@ -610,8 +610,9 @@ public class FogDevice extends PowerDatacenter {
 		send(getId(), networkDelay, FogEvents.UPDATE_TUPLE_QUEUE, destId);
 		send(destId, networkDelay + latency, FogEvents.TUPLE_ARRIVAL, tuple);
 		
-		NetworkMonitor.sendingTuple(bandwidth, tuple.getCloudletFileSize());
 		updateEnergyConsumption();
+		NetworkMonitor.sendingTuple(bandwidth, tuple);
+		TimeKeeper.getInstance().startedTransmissionOfTuple(tuple.getTupleType(), latency, bandwidth, (double)tuple.getCloudletFileSize());
 	}
 	
 	/**
@@ -643,9 +644,11 @@ public class FogDevice extends PowerDatacenter {
 	 * @param moduleName the module name (virtual machine) where it will be processed
 	 */
 	private void updateCPUTupleQueue(SimEvent ev) {
-		if(ev != null)
+		if(ev != null) {
+			Tuple tuple = (Tuple) ev.getData();
 			processorMonitor.addTupleToQueue(ev);
-		else
+			TimeKeeper.getInstance().tupleStartedExecution(tuple);
+		}else
 			processorMonitor.setCPUBusy(false);
 		
 		if(!processorMonitor.isCPUBusy() && !processorMonitor.isEmptyTupleQueue()){
@@ -662,7 +665,6 @@ public class FogDevice extends PowerDatacenter {
 			AppModule dstModule = getModuleByName(tuple.getDestModuleName());
 			tuple.setUserId(dstModule.getUserId());
 			
-			TimeKeeper.getInstance().tupleStartedExecution(tuple);
 			updateAllocatedMips(tuple.getDestModuleName());
 			processCloudletSubmit(ev, false);
 			updateAllocatedMips(tuple.getDestModuleName());

@@ -69,7 +69,7 @@ public class VRGameFog extends Topology {
 		
 		// Repeat the process for the next nodes
 		for(int i = 0; i < numOfDepts; i++) {			
-			movement = new Movement(0.0, Movement.EAST, new Location(500, 500));
+			movement = new Movement(0.0, Movement.EAST, new Location(1000/(i+1), 1000/(i+1)));
 			FogDevice dept = createFogDevice("d-"+i, 2800, 4000, 1000000, 10000, 107.339, 83.4333, 0.01, 0.05, 0.001, 0.05, 0.05, movement, false);
 			
 			fogDevices.add(dept);
@@ -79,7 +79,7 @@ public class VRGameFog extends Topology {
 			for(int j = 0; j < numOfMobilesPerDept; j++){
 				int direction = Util.rand(Movement.EAST, Movement.SOUTHEAST);
 				
-				movement = new Movement(1.0, direction, new Location(750, 750));
+				movement = new Movement(1.0, direction, new Location(1000/(i+1), 1000/(i+1)));
 				FogDevice mobile = createFogDevice("m-"+i+"-"+j, 1000, 1000, 1000000, 10000, 87.53, 82.44, 0.01, 0.05, 0.001, 0.05, 0.05, movement, true);
 				
 				fogDevices.add(mobile);
@@ -93,7 +93,7 @@ public class VRGameFog extends Topology {
 	 */
 	@Override
 	protected void createClients() {
-		Application app = ApplicationsExample.getAppExampleByName("VRGame_MP");
+		Application app = ApplicationsExample.getAppExampleByName("VRGame");
 		String sensorName = "EEG:";
 		String actuatorName = "DISPLAY:";
 		

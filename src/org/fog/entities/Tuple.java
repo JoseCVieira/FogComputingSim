@@ -199,6 +199,7 @@ public class Tuple extends Cloudlet{
 		String str = "\nappId: " + appId + "\n"+
 		"tupleType: " + tupleType + "\n"+
 		"TupleCpuLength: " + getCloudletLength() + "\n"+
+		"TupleNWLength: " + getCloudletFileSize() + "\n"+
 		"destModuleName: " + destModuleName + "\n"+
 		"srcModuleName: " + srcModuleName + "\n"+
 		"actualTupleId: " + actualTupleId + "\n"+
