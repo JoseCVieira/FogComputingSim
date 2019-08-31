@@ -485,7 +485,7 @@ public class FogDevice extends PowerDatacenter {
 			updateTimingsOnReceipt(tuple);
 			updateCPUTupleQueue(ev);
 			NetworkMonitor.incrementPacketSuccess();
-			TimeKeeper.getInstance().receivedTuple(tuple.getTupleType());
+			TimeKeeper.getInstance().receivedTuple(tuple);
 		}else {
 			communication = new HashMap<String, String>();
 			communication.put(tuple.getSrcModuleName(), tuple.getDestModuleName());
@@ -612,7 +612,7 @@ public class FogDevice extends PowerDatacenter {
 		
 		updateEnergyConsumption();
 		NetworkMonitor.sendingTuple(bandwidth, tuple);
-		TimeKeeper.getInstance().startedTransmissionOfTuple(tuple.getTupleType(), latency, bandwidth, (double)tuple.getCloudletFileSize());
+		TimeKeeper.getInstance().startedTransmissionOfTuple(tuple, latency, bandwidth);
 	}
 	
 	/**

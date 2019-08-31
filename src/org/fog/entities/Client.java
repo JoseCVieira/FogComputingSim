@@ -98,7 +98,7 @@ public class Client extends FogDevice {
 			
 			if(tuple.getDestModuleName().equals(actuatorType)){
 				send(actuatorId, delay, FogEvents.TUPLE_ARRIVAL, tuple);
-				TimeKeeper.getInstance().startedTransmissionOfTuple(tuple.getTupleType(), delay, Constants.INF, tuple.getCloudletFileSize());
+				TimeKeeper.getInstance().startedTransmissionOfTuple(tuple, delay, Constants.INF);
 				return;
 			}
 		}

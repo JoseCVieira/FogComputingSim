@@ -116,7 +116,7 @@ public class Sensor extends SimEntity{
 		tuple.setTupleType(getTupleType());
 		tuple.setDestModuleName(_edge.getDestination());
 		tuple.setSrcModuleName(getSensorName());
-		tuple.setActualTupleId(updateTimings(getSensorName(), tuple.getDestModuleName(), getLatency(), getTupleType(), nwLength));
+		tuple.setActualTupleId(updateTimings(getSensorName(), tuple.getDestModuleName(), getLatency(), tuple));
 		
 		Logger.debug(getName(), "Sending tuple with tupleId = " + tuple.getCloudletId());
 		send(gatewayDeviceId, getLatency(), FogEvents.TUPLE_ARRIVAL, tuple);
@@ -129,8 +129,8 @@ public class Sensor extends SimEntity{
 	 * @param dest destination module of the application edge
 	 * @return >= 0 if it has found the edge, otherwise -1
 	 */
-	private int updateTimings(String src, String dest, double lat, String tupleType, double nwLength){
-		TimeKeeper.getInstance().startedTransmissionOfTuple(tupleType, lat, Constants.INF, nwLength);
+	private int updateTimings(String src, String dest, double lat, Tuple tuple){
+		TimeKeeper.getInstance().startedTransmissionOfTuple(tuple, lat, Constants.INF);
 		
 		Application application = getApp();
 		for(AppLoop loop : application.getLoops()){
