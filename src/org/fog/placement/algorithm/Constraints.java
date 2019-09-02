@@ -9,7 +9,7 @@ import org.fog.placement.algorithm.util.AlgorithmUtils;
 
 /**
  * Class in which constraints are defined and analyzed both for single- or multiple-objective optimization
- * problems (except for problems defined using frameworks such as CPLEX and NSGA2). Violated constraints
+ * problems (except for problems defined using frameworks such as CPLEX). Violated constraints
  * are multiplied by Constants.REFERENCE_COST in order to allow an easier conversion for the evolutionary
  * algorithms.
  * 

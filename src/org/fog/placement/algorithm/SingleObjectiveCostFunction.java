@@ -39,10 +39,11 @@ public class SingleObjectiveCostFunction extends CostFunction {
 		for(int i = 0; i < algorithm.getNumberOfDependencies(); i++) {
 			double bwNeeded = algorithm.getmBandwidthMap()[algorithm.getStartModDependency(i)][algorithm.getFinalModDependency(i)];
 			
-			for(int j = 1; j < algorithm.getNumberOfNodes(); j++)
+			for(int j = 1; j < algorithm.getNumberOfNodes(); j++) {
 				if(tupleRoutingMap[i][j] != tupleRoutingMap[i][j-1]) {
 					cost += algorithm.getfBwPrice()[tupleRoutingMap[i][j-1]]*bwNeeded;
 				}
+			}
 		}
 		
 		double power = 0;

@@ -161,10 +161,7 @@ public class LinearProgramming extends Algorithm {
 				cplex.setOut(null);
 			
 			// Solve
-			cplex.setParam(IloCplex.Param.Barrier.QCPConvergeTol, 1e-10);
-			if (cplex.solve()) {
-				System.out.println("Solution status: " + cplex.getStatus());
-				
+			if (cplex.solve()) {				
 				int[][] modulePlacementMap = new int[nrNodes][nrModules];
 				int[][][] tupleRoutingMap = new int[nrDependencies][nrNodes][nrNodes];
 				int[][][] migrationRoutingMap = new int[nrModules][nrNodes][nrNodes];
