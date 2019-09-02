@@ -14,6 +14,7 @@ import org.fog.placement.algorithm.util.AlgorithmUtils;
 import org.fog.placement.algorithm.Job;
 import org.fog.placement.algorithm.bf.BruteForce;
 import org.fog.placement.algorithm.lp.LinearProgramming;
+import org.fog.placement.algorithm.nsga2.NSGA2;
 import org.fog.placement.algorithm.ga.GeneticAlgorithm;
 import org.fog.placement.algorithm.random.RandomAlgorithm;
 import org.fog.utils.ExcelUtils;
@@ -71,10 +72,10 @@ public class ControllerAlgorithm {
 					algorithmName = "Multi-objective Linear Programming";
 					algorithm = new LinearProgramming(fogDevices, appList, sensors, actuators);
 					break;
-				/*case MOGA:
-					algorithmName = "Multi-objective Genetic Algorithm";
+				case MOGA:
+					algorithmName = "Non Dominated Sorting Genetic Algorithm";
 					algorithm = new NSGA2(fogDevices, appList, sensors, actuators);
-					break;*/
+					break;
 				case GA:
 					algorithmName = "Genetic Algorithm";
 					algorithm = new GeneticAlgorithm(fogDevices, appList, sensors, actuators);
