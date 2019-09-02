@@ -2,6 +2,7 @@ package org.fog.entities;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -98,7 +99,10 @@ public class FogDevice extends PowerDatacenter {
 	private Movement movement;
 	
 	/** Object which holds the CPU tuple queue as well as the counters for the ordered and processed MIs */
-	ProcessorMonitor processorMonitor;
+	private ProcessorMonitor processorMonitor;
+	
+	/** Queue (FIFO) which holds all VMs to be migrated */
+	private Queue<SimEvent> scheduleMigrationList;
 
 	/**
 	 * Creates a new fog device.
@@ -125,6 +129,7 @@ public class FogDevice extends PowerDatacenter {
 		setTupleQueue(new HashMap<Integer, Queue<Pair<Tuple,Integer>>>());
 		setTupleLinkBusy(new HashMap<Integer, Boolean>());
 		setProcessorMonitor(new ProcessorMonitor());
+		scheduleMigrationList = new LinkedList<SimEvent>();
 		
 		setVmAllocationPolicy(vmAllocationPolicy);
 		setSchedulingInterval(schedulingInterval);
@@ -176,7 +181,7 @@ public class FogDevice extends PowerDatacenter {
 			removeLink((Integer) ev.getData());
 			break;
 		case FogEvents.MIGRATION:
-			migration(ev);
+			scheduleMigration(ev);
 			break;
 		case FogEvents.FINISH_MIGRATION:
 			finishMigration(ev);
@@ -227,6 +232,9 @@ public class FogDevice extends PowerDatacenter {
 		Tuple tuple = controller.getApplications().get(srcModule.getAppId()).createTuple(edge, dstModule.getUserId());
 		updateTimingsOnSending(tuple);
 		sendToSelf(tuple);
+		TimeKeeper.getInstance().startedTransmissionOfTuple(tuple, 0, Constants.INF);
+		TimeKeeper.getInstance().tryingTransmissionOfTuple(tuple);
+		
 		send(getId(), edge.getPeriodicity(), FogEvents.SEND_PERIODIC_TUPLE, edge);
 	}
 	
@@ -260,17 +268,18 @@ public class FogDevice extends PowerDatacenter {
 		for (int i = 0; i < list.size(); i++) {
 			Host host = list.get(i);
 			
-			for (Vm vm : host.getVmList()) {
+			List<Vm> vms = new ArrayList<Vm>();
+			vms.addAll(host.getVmList());
+			
+			for (Vm vm : vms) {
 				while (vm.getCloudletScheduler().isFinishedCloudlets()) {
 					Cloudlet cl = vm.getCloudletScheduler().getNextFinishedCloudlet();
 					if (cl != null) {
 						cloudletCompleted = true;
-						Tuple tuple = (Tuple)cl;
+						Tuple tuple = (Tuple) cl;
 						
 						if(Config.PRINT_DETAILS)
 							FogComputingSim.print("[" + getName() + "] Completed execution of tuple: " + tuple.getCloudletId() + " on " + tuple.getDestModuleName());
-						
-						updateCPUTupleQueue(null);
 						
 						TimeKeeper.getInstance().tupleEndedExecution(tuple);
 						Application application = controller.getApplications().get(tuple.getAppId());
@@ -287,8 +296,10 @@ public class FogDevice extends PowerDatacenter {
 			}
 		}
 		
-		if(cloudletCompleted)
+		if(cloudletCompleted) {
 			updateAllocatedMips(null);
+			updateCPUTupleQueue(null);
+		}
 	}
 	
 	/**
@@ -373,7 +384,7 @@ public class FogDevice extends PowerDatacenter {
 		
 		double timeNow = CloudSim.clock();
 		double timeDif = timeNow-lastUtilizationUpdateTime;
-		processorMonitor.addProcessedMI(timeDif*lastMipsUtilization*getHost().getTotalMips());
+		processorMonitor.addProcessedMI((long) (timeDif*lastMipsUtilization*getHost().getTotalMips()));
 		
 		double energyConsumption = timeDif*getHost().getPowerModel().getPower(lastMipsUtilization);
 		
@@ -388,7 +399,7 @@ public class FogDevice extends PowerDatacenter {
 		setEnergyConsumption(getEnergyConsumption() + energyConsumption);
 		
 		if(Config.PRINT_DETAILS)
-		System.out.println("Name: " + getName() + " En: " + getEnergyConsumption() + " Pw: " + getHost().getPowerModel().getPower(1));
+			System.out.println("Name: " + getName() + " En: " + getEnergyConsumption() + " Pw: " + getHost().getPowerModel().getPower(1));
 		
 		FogDeviceCharacteristics characteristics = (FogDeviceCharacteristics) getCharacteristics();
 		
@@ -440,6 +451,7 @@ public class FogDevice extends PowerDatacenter {
 				map.put(tmp.getApplication(), tmp.getVm());
 				
 				send(getId(), 0, FogEvents.FINISH_MIGRATION, tmp.getVm());
+				TimeKeeper.getInstance().receivedTuple(tuple);
 			}else {
 				if(Config.PRINT_DETAILS)
 					FogComputingSim.print("[" + getName() + "] received and is forwarding the vm: " + tmp.getVm().getName() + " to: " + vmRoutingTable.get(tmp.getVm().getName()));
@@ -466,6 +478,7 @@ public class FogDevice extends PowerDatacenter {
 				FogComputingSim.print("[" + getName() + "] Is rejecting tuple w/ destiny: " + tuple.getDestModuleName());
 			
 			NetworkMonitor.incrementPacketDrop();
+			TimeKeeper.getInstance().lostTuple(tuple);
 			return;
 		}		
 
@@ -622,6 +635,8 @@ public class FogDevice extends PowerDatacenter {
 	 * @param destId the link destination id
 	 */
 	protected void sendTo(Tuple tuple, int id) {
+		TimeKeeper.getInstance().tryingTransmissionOfTuple(tuple);
+		
 		if(!getTupleLinkBusy().get(id))
 			sendFreeLink(tuple, id);
 		else
@@ -648,8 +663,10 @@ public class FogDevice extends PowerDatacenter {
 			Tuple tuple = (Tuple) ev.getData();
 			processorMonitor.addTupleToQueue(ev);
 			TimeKeeper.getInstance().tupleStartedExecution(tuple);
-		}else
+		}else {
 			processorMonitor.setCPUBusy(false);
+			performScheduledMigrations();
+		}
 		
 		if(!processorMonitor.isCPUBusy() && !processorMonitor.isEmptyTupleQueue()){
 			processorMonitor.setCPUBusy(true);
@@ -657,8 +674,18 @@ public class FogDevice extends PowerDatacenter {
 			ev = processorMonitor.getPopTupleFromQueue();
 			Tuple tuple = (Tuple) ev.getData();
 			
+			if(!deployedModules.contains(tuple.getDestModuleName())) {
+				if(Config.PRINT_DETAILS)
+					System.out.println("["+getName()+"] is rejecting tuple to module: " + tuple.getDestModuleName());
+				
+				NetworkMonitor.incrementPacketDrop();
+				TimeKeeper.getInstance().lostTuple(tuple);
+				updateCPUTupleQueue(null);
+				return;
+			}
+			
 			if(Config.PRINT_DETAILS)
-				FogComputingSim.print("[" + getName() + "] Started execution of tuple: " + tuple.getCloudletId() + " on " + tuple.getDestModuleName());
+				FogComputingSim.print("[" + getName() + "] Started execution of tuple: " + tuple.getCloudletId() + " on " + tuple.getDestModuleName() + " size: " + tuple.getCloudletLength());
 			
 			processorMonitor.addOrderedMI(((Cloudlet)ev.getData()).getCloudletLength());
 			
@@ -772,53 +799,56 @@ public class FogDevice extends PowerDatacenter {
 	}
 	
 	/**
-	 * Performs a migration of an application module (virtual machine).
+	 * Adds a new VM migration to the queue.
 	 * 
-	 * @param ev the event that just occurred containing the application module, the application and the destination node (migration destination)
+	 * @param ev the event which contains the migration information
+	 */
+	private void scheduleMigration(SimEvent ev) {
+		scheduleMigrationList.add(ev);
+		if(processorMonitor.isCPUBusy()) return;
+		performScheduledMigrations();
+	}
+	
+	/**
+	 * Performs all migration inside the queue.
 	 */
 	@SuppressWarnings("unchecked")
-	private void migration(SimEvent ev) {
-		Map<FogDevice, Map<Application, AppModule>> map = (Map<FogDevice, Map<Application, AppModule>>)ev.getData();
-		
-		Map<Application, AppModule> appMap = null;
-		Application application = null;
-		AppModule vm = null;
-		FogDevice to = null;
-		
-		for(FogDevice fogDevice : map.keySet()) {
-			to = fogDevice;
-			appMap = map.get(fogDevice);
+	private void performScheduledMigrations() {
+		while(!scheduleMigrationList.isEmpty()) {
+			Map<FogDevice, Map<Application, AppModule>> map = (Map<FogDevice, Map<Application, AppModule>>)scheduleMigrationList.poll().getData();
+			Map<Application, AppModule> appMap = map.entrySet().iterator().next().getValue();
+			Application application = appMap.entrySet().iterator().next().getKey();
+			AppModule vm = appMap.entrySet().iterator().next().getValue();
+			FogDevice to = map.entrySet().iterator().next().getKey();
 			
-			for(Application app : appMap.keySet()) {
-				application = app;
-				vm = appMap.get(app);
+			if(vmRoutingTable.containsKey(vm.getName())) {
+				Map<String, Object> migrate = new HashMap<String, Object>();
+				migrate.put("vm", vm);
+				migrate.put("host", to.getHost());
+				
+				double totalSize = vm.getRam() + vm.getSize();
+				
+				vm.setInMigration(true);
+				getVmAllocationPolicy().deallocateHostForVm(vm);
+				getHost().getVmList().remove(vm);
+				getVmList().remove(vm);
+				deployedModules.remove(vm.getName());
+				
+				TupleVM tuple = new TupleVM(application.getAppId(), FogUtils.generateTupleId(), 0, 1, (long) totalSize, 0,
+						new UtilizationModelFull(), new UtilizationModelFull(), new UtilizationModelFull(), vm, application);
+				tuple.setActualTupleId(TimeKeeper.getInstance().getUniqueId());
+				tuple.setTupleType(vm.getName());
+				
+				sendTo(tuple, vmRoutingTable.get(vm.getName()));
+				
+				if(Config.PRINT_DETAILS)
+					FogComputingSim.print("[" + getName() + "] started the migration of the vm: " + vm.getName() + " toward the machine: " + to.getName());
+				
+				Map<AppModule, Integer> vmPosition = new HashMap<AppModule, Integer>();
+				vmPosition.put(vm, vmRoutingTable.get(vm.getName()));
+				sendNow(controller.getId(), FogEvents.UPDATE_VM_POSITION, vmPosition);
 			}
 		}
-		
-		Map<String, Object> migrate = new HashMap<String, Object>();
-		migrate.put("vm", vm);
-		migrate.put("host", to.getHost());
-		
-		double totalSize = vm.getRam() + vm.getSize();
-		
-		vm.setInMigration(true);
-		
-		TupleVM tuple = new TupleVM(application.getAppId(), FogUtils.generateTupleId(), 0, 1, (long) totalSize, 0,
-				new UtilizationModelFull(), new UtilizationModelFull(), new UtilizationModelFull(), vm, application);
-		
-		sendTo(tuple, vmRoutingTable.get(vm.getName()));
-		
-		if(Config.PRINT_DETAILS)
-			FogComputingSim.print("[" + getName() + "] started the migration of the vm: " + vm.getName() + " toward the machine: " + to.getName());
-		
-		getVmAllocationPolicy().deallocateHostForVm(vm);
-		getVmList().remove(vm);
-		getHost().getVmList().remove(vm);
-		deployedModules.remove(vm.getName());
-		
-		Map<AppModule, Integer> vmPosition = new HashMap<AppModule, Integer>();
-		vmPosition.put(vm, vmRoutingTable.get(vm.getName()));
-		sendNow(controller.getId(), FogEvents.UPDATE_VM_POSITION, vmPosition);
 	}
 	
 	/**
@@ -828,7 +858,6 @@ public class FogDevice extends PowerDatacenter {
 	 */
 	private void finishMigration(SimEvent ev) {
 		AppModule vm = (AppModule)ev.getData();
-		
 		getHost().removeMigratingInVm(vm);
 		
 		if (!getVmAllocationPolicy().allocateHostForVm(vm, getHost()))
@@ -837,6 +866,7 @@ public class FogDevice extends PowerDatacenter {
 		deployedModules.add(vm.getName());
 		vm.setInMigration(false);
 		vm.setBeingInstantiated(true);
+		getHost().deallocatePesForVm(vm);
 		
 		if(Config.PRINT_DETAILS)
 			FogComputingSim.print("[" + getName() + "] received and is deploying vm: " + vm.getName());
@@ -891,7 +921,7 @@ public class FogDevice extends PowerDatacenter {
 		for(FogDevice fogDevice : controller.getFogDevices()) {
 			for(Vm vm : fogDevice.getHost().getVmList()){
 				if(((AppModule)vm).getName().equals(moduleName)){
-					module=(AppModule)vm;
+					module = (AppModule)vm;
 					break;
 				}
 			}

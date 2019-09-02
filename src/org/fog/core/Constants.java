@@ -8,7 +8,7 @@ package org.fog.core;
  */
 public class Constants {
 	public static final double INF = Double.MAX_VALUE;
-	public static final double EPSILON = 1E-9;
+	public static final double EPSILON = 1E-19;
 	public static final double REFERENCE_COST = Integer.MAX_VALUE;
 	
 	public static final double RESOURCE_MGMT_INTERVAL = 100;
