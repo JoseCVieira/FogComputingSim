@@ -1,4 +1,4 @@
-package org.fog.placement.algorithm.util;
+package org.fog.utils;
 
 import java.awt.BasicStroke;
 import java.awt.Color;

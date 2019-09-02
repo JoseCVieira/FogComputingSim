@@ -3,9 +3,9 @@ package org.fog.utils;
 import org.fog.entities.Tuple;
 
 /**
- * Class which defines the model used to compute the network usage (given in seconds) to use transmit both by tuples
- * and virtual machines between nodes. It is responsible for counting both the number of packages dropped and
- * successfully delivered during the whole simulation.
+ * Class which computes the network usage (given in seconds) in transmit both tuples and virtual machines
+ * between nodes. It is also responsible for counting both the number of packages dropped and successfully
+ * delivered during the whole simulation.
  * 
  * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
  * @since  July, 2019

@@ -1,4 +1,4 @@
-package org.fog.placement.algorithm.util;
+package org.fog.utils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -8,7 +8,6 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
@@ -23,16 +22,11 @@ import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.fog.application.AppEdge;
-import org.fog.application.AppLoop;
-import org.fog.application.Application;
 import org.fog.core.Config;
 import org.fog.entities.FogDevice;
 import org.fog.placement.Controller;
 import org.fog.placement.algorithm.Job;
 import org.fog.placement.algorithm.MultiObjectiveJob;
-import org.fog.utils.NetworkMonitor;
-import org.fog.utils.TimeKeeper;
 
 /**
  * Class which is responsible for exporting both the algorithm and simulation results to the output excel file.
@@ -150,11 +144,11 @@ public class ExcelUtils {
 	    	Row row = sheet.createRow(rowIndex++);
 	    	
 	    	createTitleCell(sheet, row, cellIndex++, 65, "Simul. Id");
-	    	createTitleCell(sheet, row, cellIndex++, 140, "Execution time [s]");
-		    createTitleCell(sheet, row, cellIndex++, 125, "CPU delay [s]");
-		    createTitleCell(sheet, row, cellIndex++, 125, "LAT delay [s]");
-		    createTitleCell(sheet, row, cellIndex++, 125, "BW delay [s]");
-		    createTitleCell(sheet, row, cellIndex++, 125, "Total delay [s]");
+	    	createTitleCell(sheet, row, cellIndex++, 125, "Execution time [s]");
+		    createTitleCell(sheet, row, cellIndex++, 140, "Loops CPU delay [s]");
+		    createTitleCell(sheet, row, cellIndex++, 140, "Loops Lat delay [s]");
+		    createTitleCell(sheet, row, cellIndex++, 140, "Loops Bw delay [s]");
+		    createTitleCell(sheet, row, cellIndex++, 140, "Loops Total delay [s]");
 		    createTitleCell(sheet, row, cellIndex++, 125, "Energy [W]");
 		    createTitleCell(sheet, row, cellIndex++, 125, "Ordered MI [MI]");
 		    createTitleCell(sheet, row, cellIndex++, 125, "Processed MI [MI]");
@@ -256,23 +250,16 @@ public class ExcelUtils {
 		double bw = 0;
 		double total = 0;
 		for(Integer loopId : TimeKeeper.getInstance().getLoopIdToTupleIds().keySet()) {
-			List<String> modules = getListForLoopId(controller, loopId);
+			List<String> modules = SimulationResults.getListForLoopId(controller, loopId);
 			
 			for(int i = 0; i < modules.size()-1; i++) {
 				String startModule = modules.get(i);
 				String destModule = modules.get(i+1);
 				
-				for(String tupleType : getTupleTypeForDependency(controller, startModule, destModule)) {
+				for(String tupleType : SimulationResults.getTupleTypeForDependency(controller, startModule, destModule)) {
 					if(TimeKeeper.getInstance().getTupleTypeToAverageCpuTime().containsKey(tupleType))
 						cpu += TimeKeeper.getInstance().getTupleTypeToAverageCpuTime().get(tupleType);
-				}
-			}
-			
-			for(int i = 0; i < modules.size()-1; i++) {
-				String startModule = modules.get(i);
-				String destModule = modules.get(i+1);
-				
-				for(String tupleType : getTupleTypeForDependency(controller, startModule, destModule)) {
+					
 					if(TimeKeeper.getInstance().getLoopIdToCurrentNwLatAverage().containsKey(tupleType)) {
 						Map<Double, Integer> map = TimeKeeper.getInstance().getLoopIdToCurrentNwLatAverage().get(tupleType);
 						double totalLat = map.entrySet().iterator().next().getKey();
@@ -398,31 +385,6 @@ public class ExcelUtils {
 		}
 		
 		return index;
-	}
-	
-	private static List<String> getListForLoopId(Controller controller, int loopId) {
-		for(String appId : controller.getApplications().keySet()){
-			Application app = controller.getApplications().get(appId);
-			for(AppLoop loop : app.getLoops()){
-				if(loop.getLoopId() == loopId)
-					return loop.getModules();
-			}
-		}
-		return null;
-	}
-	
-	private static List<String> getTupleTypeForDependency(Controller controller, String startModule, String destModule) {
-		List<String> tupleTypes = new ArrayList<String>();
-		
-		for(String appId : controller.getApplications().keySet()){
-			Application app = controller.getApplications().get(appId);
-			for(AppEdge appEdge : app.getEdges()){
-				if(!appEdge.getSource().equals(startModule) || !appEdge.getDestination().equals(destModule)) continue;
-				if(tupleTypes.contains(appEdge.getTupleType())) continue;
-				tupleTypes.add(appEdge.getTupleType());
-			}
-		}
-		return tupleTypes;
 	}
 	
 }

@@ -20,10 +20,10 @@ public class ProcessorMonitor {
 	private boolean isCPUBusy;
 	
 	/** Number of million instructions ordered to be processed by the processor */
-	private double orderedMI;
+	private long orderedMI;
 	
 	/** Number of million instructions processed by the processor */
-	private double processedMI;
+	private long processedMI;
 	
 	/**
 	 * Creates a new processor monitor.
@@ -84,7 +84,7 @@ public class ProcessorMonitor {
 	 * 
 	 * @return the number of million instructions ordered to be processed by the processor
 	 */
-	public double getOrderedMI() {
+	public long getOrderedMI() {
 		return orderedMI;
 	}
 	
@@ -93,7 +93,7 @@ public class ProcessorMonitor {
 	 * 
 	 * @param orderedMI the number of million instructions ordered to be processed by the processor
 	 */
-	public void addOrderedMI(double orderedMI) {
+	public void addOrderedMI(long orderedMI) {
 		this.orderedMI += orderedMI;
 	}
 	
@@ -102,7 +102,7 @@ public class ProcessorMonitor {
 	 * 
 	 * @return the number of million instructions processed by the processor
 	 */
-	public double getProcessedMI() {
+	public long getProcessedMI() {
 		return processedMI;
 	}
 	
@@ -111,7 +111,7 @@ public class ProcessorMonitor {
 	 * 
 	 * @param processedMI the number of million instructions processed by the processor
 	 */
-	public void addProcessedMI(double processedMI) {
+	public void addProcessedMI(long processedMI) {
 		this.processedMI += processedMI;
 	}
 	
