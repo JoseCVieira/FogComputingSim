@@ -10,14 +10,14 @@ import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.placement.algorithm.Algorithm;
+import org.fog.placement.algorithm.util.AlgorithmUtils;
 import org.fog.placement.algorithm.Job;
 import org.fog.placement.algorithm.bf.BruteForce;
 import org.fog.placement.algorithm.lp.LinearProgramming;
 import org.fog.placement.algorithm.ga.GeneticAlgorithm;
 import org.fog.placement.algorithm.random.RandomAlgorithm;
-import org.fog.placement.algorithm.util.AlgorithmUtils;
-import org.fog.placement.algorithm.util.ExcelUtils;
-import org.fog.placement.algorithm.util.OutputControllerResults;
+import org.fog.utils.ExcelUtils;
+import org.fog.utils.MatlabChartUtils;
 
 /**
  * Class which is responsible for choosing and running the optimization algorithm in order to
@@ -71,8 +71,8 @@ public class ControllerAlgorithm {
 					algorithmName = "Multi-objective Linear Programming";
 					algorithm = new LinearProgramming(fogDevices, appList, sensors, actuators);
 					break;
-				case MOGA:
-					/*algorithmName = "Multi-objective Genetic Algorithm";
+				/*case MOGA:
+					algorithmName = "Multi-objective Genetic Algorithm";
 					algorithm = new NSGA2(fogDevices, appList, sensors, actuators);
 					break;*/
 				case GA:
@@ -104,7 +104,7 @@ public class ControllerAlgorithm {
 	    	AlgorithmUtils.printAlgorithmResults(algorithm, solution);
 		
 		if(Config.PLOT_ALGORITHM_RESULTS)
-			OutputControllerResults.plotResult(algorithm, algorithmName);
+			new MatlabChartUtils(algorithm, algorithmName);
 		
 		if(Config.EXPORT_RESULTS_EXCEL) {
 			try {

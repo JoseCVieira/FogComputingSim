@@ -1,5 +1,6 @@
 package org.fog.placement;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -21,11 +22,12 @@ import org.fog.entities.Sensor;
 import org.fog.entities.Tuple;
 import org.fog.placement.algorithm.Algorithm;
 import org.fog.placement.algorithm.Job;
-import org.fog.placement.algorithm.util.OutputControllerResults;
+import org.fog.utils.ExcelUtils;
 import org.fog.utils.FogEvents;
 import org.fog.utils.Location;
 import org.fog.utils.MobileBandwidthModel;
 import org.fog.utils.MobilePathLossModel;
+import org.fog.utils.SimulationResults;
 import org.fog.utils.Util;
 
 /**
@@ -146,9 +148,17 @@ public class Controller extends SimEntity {
 			}
 			
 			CloudSim.stopSimulation();
-			new OutputControllerResults(this);
+			new SimulationResults(this);
 			
-			if(OutputControllerResults.isDisplayingPlot)
+			if(Config.EXPORT_RESULTS_EXCEL) {
+				try {
+					ExcelUtils.writeExcel(this);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			
+			if(Config.PLOT_ALGORITHM_RESULTS)
 				Util.promptEnterKey("Press \"ENTER\" to exit...");
 			
 			System.exit(0);
