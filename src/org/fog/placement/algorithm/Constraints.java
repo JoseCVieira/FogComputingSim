@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import org.fog.core.Config;
 import org.fog.core.Constants;
 import org.fog.core.FogComputingSim;
-import org.fog.placement.algorithm.util.AlgorithmUtils;
 
 /**
  * Class in which constraints are defined and analyzed both for single- or multiple-objective optimization
@@ -105,7 +104,7 @@ public class Constraints {
 			}
 			
 			if(totalMips <= algorithm.getfMips()[i] && totalRam <= algorithm.getfRam()[i] && totalStrg <= algorithm.getfStrg()[i]) continue;
-			violations += Constants.REFERENCE_COST*20;
+			violations += Constants.REFERENCE_COST;
 		}
 		
 		if(violations != 0 && Config.PRINT_ALGORITHM_CONSTRAINTS)
@@ -127,7 +126,7 @@ public class Constraints {
 		for(int i  = 0; i < algorithm.getNumberOfNodes(); i++) {
 			for(int j = 0; j < algorithm.getNumberOfModules(); j++) {
 				if(modulePlacementMap[i][j] <= algorithm.getPossibleDeployment()[i][j]) continue;
-				violations += Constants.REFERENCE_COST*20;
+				violations += Constants.REFERENCE_COST;
 			}
 		}
 		
@@ -185,11 +184,11 @@ public class Constraints {
 				int destNodeIndex = Job.findModulePlacement(modulePlacementMap, j);
 				
 				if(tupleRoutingMap[tmp][0] != startNodeIndex) {
-					violations += Constants.REFERENCE_COST*3;
+					violations += Constants.REFERENCE_COST;
 				}
 				
 				if(tupleRoutingMap[tmp][algorithm.getNumberOfNodes()-1] != destNodeIndex) {
-					violations += Constants.REFERENCE_COST*3;
+					violations += Constants.REFERENCE_COST;
 				}
 				
 				for (int k = 0; k < algorithm.getNumberOfNodes()-1; k++) {
@@ -255,20 +254,16 @@ public class Constraints {
 		int[][] currentPlacement = algorithm.getCurrentPositionInt();
 		boolean firstOpt = algorithm.isFirstOptimization();
 		
-		if(!firstOpt) {
-			AlgorithmUtils.print("currentPlacement", currentPlacement);
-		}
-		
 		for(int i = 0; i < algorithm.getNumberOfModules(); i++) {
 			int startNodeIndex = Job.findModulePlacement(firstOpt == false ? currentPlacement : modulePlacementMap, i);
 			int destNodeIndex = Job.findModulePlacement(modulePlacementMap, i);
 			
 			if(migrationRoutingMap[i][0] != startNodeIndex) {
-				violations += Constants.REFERENCE_COST*3;
+				violations += Constants.REFERENCE_COST;
 			}
 			
 			if(migrationRoutingMap[i][algorithm.getNumberOfNodes()-1] != destNodeIndex) {
-				violations += Constants.REFERENCE_COST*3;
+				violations += Constants.REFERENCE_COST;
 			}
 			
 			for (int k = 0; k < algorithm.getNumberOfNodes()-1; k++) {
@@ -408,7 +403,7 @@ public class Constraints {
 			
 			if(start == end) continue;
 			
-			double bw = algorithm.getfBandwidthMap()[start][end] * Config.BW_PERCENTAGE_TUPLES; // Link bandwidth
+			double bw = algorithm.getfBandwidthMap()[start][end] * Config.BW_PERCENTAGE_TUPLES + Constants.EPSILON; // Link bandwidth
 			double lat = algorithm.getfLatencyMap()[start][end]; // Link latency
 			double totalSize = 0;
 			

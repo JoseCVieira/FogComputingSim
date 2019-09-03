@@ -70,9 +70,9 @@ public class ApplicationsExample {
 		
 		application = new Application("DCNS");
 		application.addAppModule("object_detector", 100, false, false);
-		application.addAppModule("motion_detector", 100, true, false);
+		application.addAppModule("motion_detector", 100, false, false);
 		application.addAppModule("object_tracker", 100, false, false);
-		application.addAppModule("user_interface", 100, false, false);
+		application.addAppModule("user_interface", 100, true, false);
 		
 		application.addAppEdge("CAMERA", "motion_detector", 1000, 20000, "CAMERA", AppEdge.SENSOR);
 		application.addAppEdge("motion_detector", "object_detector", 2000, 2000, "MOTION_VIDEO_STREAM", AppEdge.MODULE);

@@ -49,6 +49,7 @@ public class Problem extends AbstractProblem {
 		double cost = job.getCost()-constraints;
 		solution.setObjective(0, cost);
 		
+		
 		double constraint = Constraints.checkResourcesExceeded(algorithm, modulePlacementMap);
 		constraint += Constraints.checkPossiblePlacement(algorithm, modulePlacementMap);
 		solution.setConstraint(0, constraint);
