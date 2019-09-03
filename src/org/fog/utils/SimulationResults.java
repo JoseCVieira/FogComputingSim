@@ -142,15 +142,17 @@ public class SimulationResults {
 			
 			cpu = TimeKeeper.getInstance().getTupleTypeToAverageCpuTime().get(tupleType);
 			
-			Map<Double, Integer> map = TimeKeeper.getInstance().getLoopIdToCurrentNwLatAverage().get(tupleType);			
-			int counter = map.entrySet().iterator().next().getValue();	
-			lat = map.entrySet().iterator().next().getKey()/counter;
-			
-			map = TimeKeeper.getInstance().getLoopIdToCurrentNwBwAverage().get(tupleType);
-			bw = map.entrySet().iterator().next().getKey();
-			
-			map = TimeKeeper.getInstance().getLoopIdToCurrentNwAverage().get(tupleType);
-			nw = map.entrySet().iterator().next().getKey()/counter;
+			if(TimeKeeper.getInstance().getLoopIdToCurrentNwLatAverage().containsKey(tupleType)) {
+				Map<Double, Integer> map = TimeKeeper.getInstance().getLoopIdToCurrentNwLatAverage().get(tupleType);			
+				int counter = map.entrySet().iterator().next().getValue();	
+				lat = map.entrySet().iterator().next().getKey()/counter;
+				
+				map = TimeKeeper.getInstance().getLoopIdToCurrentNwBwAverage().get(tupleType);
+				bw = map.entrySet().iterator().next().getKey();
+				
+				map = TimeKeeper.getInstance().getLoopIdToCurrentNwAverage().get(tupleType);
+				nw = map.entrySet().iterator().next().getKey()/counter;
+			}
 			
 			String cpuStr = doubleToString(cpu, false);
 			String latStr = doubleToString(lat, false);
@@ -165,6 +167,7 @@ public class SimulationResults {
 			content += "|" + Util.centerString(col2, queueStr);
 			content += "|" + Util.centerString(col2, totalStr) + "|\n";
 		}
+			
 		
 		table("APPLICATION TUPLE DELAYS [s]", content, subtitles);
 	}

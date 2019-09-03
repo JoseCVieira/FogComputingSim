@@ -134,9 +134,6 @@ public abstract class Algorithm {
 	/** Matrix holding the tuple CPU sizes between each two modules */
 	private double[][] mCPUMap;
 	
-	/** Vector holding the number of tuples which each module will receive to process */
-	private int[] mNrTuples;
-	
 	// Node to Module -----------------------------------------
 	
 	/** Matrix holding the possible position of each module (e.g., if is a GUI, it makes sense to only run inside the client node) */
@@ -251,7 +248,6 @@ public abstract class Algorithm {
 		mBandwidthMap = new double[NR_MODULES][NR_MODULES];
 		mNWMap = new double[NR_MODULES][NR_MODULES];
 		mCPUMap = new double[NR_MODULES][NR_MODULES];
-		mNrTuples = new int[NR_MODULES];
 	}
 	
 	// ------------------------------------------------------ Parse functions start --------------------------------------------------------
@@ -418,7 +414,6 @@ public abstract class Algorithm {
 								appModule.setMips(appModule.getMips() + probability*appEdge.getTupleCpuLength()/interval);
 								mMips[edgeDestIndex] += probability*appEdge.getTupleCpuLength()/interval;
 								mCPUMap[edgeSourceIndex][edgeDestIndex] += appEdge.getTupleCpuLength();
-								mNrTuples[edgeDestIndex]++;
 								
 								if(!isSensorTuple(sensors, appEdge.getTupleType())) {
 									appModule.setBw((long) (appModule.getBw() + probability*appEdge.getTupleNwLength()/interval));
@@ -1008,15 +1003,6 @@ public abstract class Algorithm {
 	 */
 	public double[][] getmCPUMap(){
 		return mCPUMap;
-	}
-	
-	/**
-	 * Gets the vector holding the number of tuples which each module will receive to process.
-	 * 
-	 * @return the vector holding the number of tuples which each module will receive to process
-	 */
-	public int[] getmNrTuples() {
-		return mNrTuples;
 	}
 	
 	/**

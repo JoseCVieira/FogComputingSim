@@ -46,7 +46,7 @@ import org.fog.utils.distribution.Distribution;
  */
 public class DisplayRandom extends JDialog {
 	private static final long serialVersionUID = 4794808969864918000L;
-	private static final int WIDTH = 900;
+	private static final int WIDTH = 1050;
 	private static final int HEIGHT = 900;
 	
 	/** Object which holds the current topology */

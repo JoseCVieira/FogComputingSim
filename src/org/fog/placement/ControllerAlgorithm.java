@@ -29,7 +29,7 @@ import org.fog.utils.MatlabChartUtils;
  */
 public class ControllerAlgorithm {
 	public static final int MOLP = 1;
-	public static final int MOGA = 2;
+	public static final int NSGA = 2;
 	public static final int GA = 3;
 	public static final int RAND = 4;
 	public static final int BF = 5;
@@ -72,7 +72,7 @@ public class ControllerAlgorithm {
 					algorithmName = "Multi-objective Linear Programming";
 					algorithm = new LinearProgramming(fogDevices, appList, sensors, actuators);
 					break;
-				case MOGA:
+				case NSGA:
 					algorithmName = "Non Dominated Sorting Genetic Algorithm";
 					algorithm = new NSGA2(fogDevices, appList, sensors, actuators);
 					break;
@@ -109,7 +109,7 @@ public class ControllerAlgorithm {
 		
 		if(Config.EXPORT_RESULTS_EXCEL) {
 			try {
-				ExcelUtils.writeExcel(solution, algorithmName);
+				ExcelUtils.writeExcel(solution, algorithmName, algorithm.getElapsedTime());
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

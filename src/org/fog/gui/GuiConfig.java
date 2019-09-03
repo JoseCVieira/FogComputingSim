@@ -59,34 +59,34 @@ public class GuiConfig {
 	// Device price -------------------------------------------
 	
 	/** Mean of the rate per processing capacity usage normal distribution */
-	public static double RATE_MIPS_MEAN = 1.5855E-11;
+	public static double RATE_MIPS_MEAN = 1.5855E-5;
 	
 	/** Deviation of the rate per processing capacity usage normal distribution */
-	public static double RATE_MIPS_DEV = 1E-12;
+	public static double RATE_MIPS_DEV = 1E-6;
 	
 	/** Mean of the rate per memory usage normal distribution */
-	public static double RATE_RAM_MEAN = 1.14E-11;
+	public static double RATE_RAM_MEAN = 1.14E-5;
 	
 	/** Deviation of the rate per memory usage normal distribution */
-	public static double RATE_RAM_DEV = 1.1E-12;
+	public static double RATE_RAM_DEV = 1.1E-6;
 	
 	/** Mean of the rate per storage usage normal distribution */
-	public static double RATE_STRG_MEAN = 5E-11;
+	public static double RATE_STRG_MEAN = 5E-5;
 	
 	/** Deviation of the rate per storage usage normal distribution */
-	public static double RATE_STRG_DEV = 1.2E-12;
+	public static double RATE_STRG_DEV = 1.2E-6;
 	
 	/** Mean of the rate per network usage normal distribution */
-	public static double RATE_BW_MEAN = 3.9E-11;
+	public static double RATE_BW_MEAN = 3.9E-5;
 	
 	/** Deviation of the rate per network usage normal distribution */
-	public static double RATE_BW_DEV = 1.3E-12;
+	public static double RATE_BW_DEV = 1.3E-6;
 	
 	/** Mean of the rate per energy consumed normal distribution */
-	public static double RATE_EN_MEAN = 5E-11;
+	public static double RATE_EN_MEAN = 5E-5;
 	
 	/** Deviation of the rate per energy consumed normal distribution */
-	public static double RATE_EN_DEV = 1.4E-12;
+	public static double RATE_EN_DEV = 1.4E-6;
 	
 	// Device power -------------------------------------------
 	

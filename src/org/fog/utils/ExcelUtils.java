@@ -52,7 +52,7 @@ public class ExcelUtils {
 	 * @param algName the name of the algorithm used
 	 * @throws IOException if the file does not exists
 	 */
-	public static void writeExcel(Job solution, String algName) throws IOException {
+	public static void writeExcel(Job solution, String algName, long time) throws IOException {
 		File file = new File(filePath);
 		file.createNewFile(); // If the named file does not exist create it
 		
@@ -74,6 +74,7 @@ public class ExcelUtils {
 		    
 		    createTitleCell(sheet, row, cellIndex++, 65, "Simul. Id");
 		    createTitleCell(sheet, row, cellIndex++, 240, "Name");
+		    createTitleCell(sheet, row, cellIndex++, 200, "Execution time [ms]");
 		    
 		    for(int i = 0; i < Config.NR_OBJECTIVES; i++) {
 		    	createTitleCell(sheet, row, cellIndex++, 70, Config.objectiveNames[i] + " prio.");
@@ -90,7 +91,7 @@ public class ExcelUtils {
 		    	SIMULATION_ID = 0;
 		    }
 		    
-		    writeSolution(sheet, rowIndex, solution, algName);
+		    writeSolution(sheet, rowIndex, solution, algName, time);
 		    
 		// Edit the current sheet
 		}else {
@@ -110,7 +111,7 @@ public class ExcelUtils {
         	    cell.setCellStyle(cellStyle);
             }
             
-            writeSolution(sheet, rowIndex, solution, algName);
+            writeSolution(sheet, rowIndex, solution, algName, time);
 
             fileInputStream.close();
 		}
@@ -188,7 +189,9 @@ public class ExcelUtils {
 	 * @param solution the solution to be written
 	 * @param algName the algorithm name used
 	 */
-	private static void writeSolution(Sheet sheet, int rowIndex, Job solution, String algName) {
+	private static void writeSolution(Sheet sheet, int rowIndex, Job solution, String algName, long time) {
+		DecimalFormat df = new DecimalFormat("0.00000");
+		
 		Row row = sheet.createRow(rowIndex);
 		CellStyle cellStyle = row.getSheet().getWorkbook().createCellStyle();
 	    cellStyle.setAlignment(HorizontalAlignment.CENTER);
@@ -197,8 +200,8 @@ public class ExcelUtils {
 	    
 	    createCell(sheet, row, cellIndex++, Integer.toString(SIMULATION_ID), HorizontalAlignment.CENTER);
 	    createCell(sheet, row, cellIndex++, algName, HorizontalAlignment.CENTER);
+	    createCell(sheet, row, cellIndex++, Long.toString(time), HorizontalAlignment.RIGHT);
 	    
-	    DecimalFormat df = new DecimalFormat("0.00000");
 	    if(solution instanceof MultiObjectiveJob) {
 	    	MultiObjectiveJob sol = (MultiObjectiveJob) solution;
 		    for(int i = 0; i < Config.NR_OBJECTIVES; i++) {

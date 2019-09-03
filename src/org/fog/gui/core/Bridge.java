@@ -44,7 +44,7 @@ public class Bridge {
 	public static Graph jsonToGraph(String fileName) {
 		Graph graph = new Graph();
 		
-		try {			
+		try {
 			JSONObject doc = (JSONObject) JSONValue.parse(new FileReader(fileName));
     		JSONArray nodes = (JSONArray) doc.get("nodes");
     		@SuppressWarnings("unchecked")
