@@ -517,7 +517,7 @@ public class Controller extends SimEntity {
 					FogComputingSim.err("Should not happen (Controller)");
 				
 				if(Config.PRINT_DETAILS)
-					FogComputingSim.print("Migratig module: " + module.getName() +  " from: " + from.getName() + " to: " + to.getName());
+					FogComputingSim.print("Migrating module: " + module.getName() +  " from: " + from.getName() + " to: " + to.getName());
 				
 				Map<FogDevice, Map<Application, AppModule>> map = new HashMap<FogDevice, Map<Application,AppModule>>();
 				Map<Application, AppModule> appMap = new HashMap<Application, AppModule>();

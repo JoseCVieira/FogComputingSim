@@ -69,21 +69,21 @@ public class Config {
 	};
 	
 	/** Absolute error value in which is considered that two solutions are equal */
-	public static final double CONVERGENCE_ERROR = 0.01;
+	public static final double CONVERGENCE_ERROR = 0.1;
 	
 	// Genetic algorithm --------------------------------------
 	
 	/** Number of individuals running in the Genetic Algorithm */
-	public static final int POPULATION_SIZE_GA = 30;
+	public static final int POPULATION_SIZE_GA = 15;
 	
 	/** Maximum number of iterations to solve the module placement through genetic algorithm */
-	public static final int MAX_ITER_PLACEMENT_GA = 500;
+	public static final int MAX_ITER_PLACEMENT_GA = 100;
 	
 	/** Maximum number of iterations to solve the tuple routing through genetic algorithm */
 	public static final int MAX_ITER_ROUTING_GA = 10;
 	
 	/** Maximum number of equal cost solutions of module placement through genetic algorithm to stop it */
-	public static final int MAX_ITER_PLACEMENT_CONVERGENCE_GA = 10;
+	public static final int MAX_ITER_PLACEMENT_CONVERGENCE_GA = 3;
 	
 	/** Maximum number of equal cost solutions of tuple routing through genetic algorithm to stop it */
 	public static final int MAX_ITER_ROUTING_CONVERGENCE_GA = 3;
@@ -99,16 +99,16 @@ public class Config {
 	public static boolean DEBUG_MODE = false;
 	
 	/** Defines whether the simulation should print logs about the simulation (e.g., tuple transmission, migrations, processing, etc.) */
-	public static boolean PRINT_DETAILS = true;
+	public static boolean PRINT_DETAILS = false;
 	
 	/** Defines whether the simulation should print logs about the costs and resource usage */
 	public static boolean PRINT_COST_DETAILS = false;
 	
 	/** Defines whether the simulation is dynamic (i.e., mobile nodes actualy move around) */
-	public static boolean DYNAMIC_SIMULATION = true;
+	public static boolean DYNAMIC_SIMULATION = false;
 	
 	/** Defines whether the simulation is allowed to perform migrations of VMs */
-	public static boolean ALLOW_MIGRATION = true;
+	public static boolean ALLOW_MIGRATION = false;
 	
 	/** Defines the threshold used to define if its necessary to perform an handover */
 	public static final int HANDOVER_THRESHOLD = 75;

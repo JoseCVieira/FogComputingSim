@@ -91,10 +91,10 @@ public class GuiConfig {
 	// Device power -------------------------------------------
 	
 	/** Mean of the busy power normal distribution */
-	public static double BUSY_POWER = 127.339;
+	public static double BUSY_POWER = 127.339*16;
 	
 	/** Mean of the idle power normal distribution */
-	public static double IDLE_POWER = 83.4333;
+	public static double IDLE_POWER = 83.4333*16;
 	
 	/** Deviation of the energy normal distribution */
 	public static double ENERGY_DEV = 5;

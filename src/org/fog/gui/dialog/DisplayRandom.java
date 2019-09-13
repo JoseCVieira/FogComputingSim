@@ -500,8 +500,8 @@ public class DisplayRandom extends JDialog {
 		int ram = (int) Util.normalRand(decadencyFactor(GuiConfig.RAM_MEAN, level), decadencyFactor(GuiConfig.RAM_DEV, level));
 		int strg = (int) Util.normalRand(decadencyFactor(GuiConfig.STRG_MEAN, level), decadencyFactor(GuiConfig.STRG_DEV, level));
 		
-		double bPw = Util.normalRand(GuiConfig.BUSY_POWER, GuiConfig.ENERGY_DEV);
-		double iPw = Util.normalRand(GuiConfig.IDLE_POWER, GuiConfig.ENERGY_DEV);
+		double bPw = Util.normalRand(decadencyFactor(GuiConfig.BUSY_POWER, level), decadencyFactor(GuiConfig.ENERGY_DEV, level));
+		double iPw = Util.normalRand(decadencyFactor(GuiConfig.IDLE_POWER, level), decadencyFactor(GuiConfig.ENERGY_DEV, level));
 		
 		double rateMips = Util.normalRand(GuiConfig.RATE_MIPS_MEAN, GuiConfig.RATE_MIPS_DEV);
 		double rateRam = Util.normalRand(GuiConfig.RATE_RAM_MEAN, GuiConfig.RATE_RAM_DEV);

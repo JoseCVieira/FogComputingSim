@@ -279,12 +279,14 @@ public class ExcelUtils {
 			total += TimeKeeper.getInstance().getLoopIdToCurrentAverage().get(loopId);
 		}
 		
-		df = new DecimalFormat("0.######E0");
+		df = new DecimalFormat("0.########E0");
 		String bwf = df.format(bw);
+		df = new DecimalFormat("0.000000");
+		String latf = df.format(lat);
 		df = new DecimalFormat("0.000");
 		
 		createCell(sheet, row, cellIndex++, df.format(cpu), HorizontalAlignment.RIGHT);
-		createCell(sheet, row, cellIndex++, df.format(lat), HorizontalAlignment.RIGHT);
+		createCell(sheet, row, cellIndex++, latf, HorizontalAlignment.RIGHT);
 		createCell(sheet, row, cellIndex++, bwf, HorizontalAlignment.RIGHT);
 		createCell(sheet, row, cellIndex++, df.format(total), HorizontalAlignment.RIGHT);
 	    

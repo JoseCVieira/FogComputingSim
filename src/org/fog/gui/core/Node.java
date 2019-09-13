@@ -15,7 +15,7 @@ import org.fog.utils.distribution.Distribution;
  */
 public class Node implements Serializable {
 	private static final long serialVersionUID = -8635044061126993668L;
-	private static final double BANDWIDTH = 1000; // Currently, bandwidth is defined at the links instead at the nodes, thus is a dummy value
+	private static final double BANDWIDTH = 100000; // Currently, bandwidth is defined at the links instead at the nodes, thus is a dummy value
 	
 	/** Name of the fog device */
 	private String name;
