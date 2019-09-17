@@ -46,8 +46,20 @@ public class RandomAlgorithm extends Algorithm {
 		// Generate the Dijkstra graph
 		generateDijkstraGraph();
 		
+		int convergenceIter = 0;
+		boolean hasConverged = false;
 		while (iteration <= Config.MAX_ITER_RANDOM) {
 			Job job = Job.generateRandomJob(this, new SingleObjectiveCostFunction());
+			
+			// Check the convergence error
+			if(job.getCost() < Constants.REFERENCE_COST) {
+	    		if(Math.abs(bestCost - job.getCost()) <= Config.CONVERGENCE_ERROR) {
+	    			// If it found the same (or similar) solution a given number of times in a row break the loop
+					if(++convergenceIter == Config.MAX_ITER_CONVERGENCE_RANDOM)
+						hasConverged = true;
+				}else
+	    			convergenceIter = 0;
+			}
 			
 			if(bestCost > job.getCost()) {
 				bestCost = job.getCost();
@@ -57,6 +69,8 @@ public class RandomAlgorithm extends Algorithm {
     			if(Config.PRINT_ALGORITHM_BEST_ITER)
     				System.out.println("Iteration: " + iteration + " value: " + bestCost);
 			}
+			
+			if(hasConverged) break;
 			
 			iteration++;
 		}
