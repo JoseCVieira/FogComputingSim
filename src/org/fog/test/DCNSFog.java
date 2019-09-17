@@ -49,7 +49,7 @@ public class DCNSFog extends Topology {
 		Movement movement = new Movement(0.0, Movement.EAST, new Location(0, 0));
 		
 		// Create the cloud device (cloud is seen as a single node)
-		FogDevice cloud = createFogDevice("cloud", 44800, 40000, 1000000, 10000, 16*103, 16*83.25, 0.01, 0.05, 0.001, 0.0, 0.05, movement, false);
+		FogDevice cloud = createFogDevice("cloud", 44800, 40000, 1000000, 10000, 16*103, 16*83.25, 0.01, 0.05, 0.001, 0.0, 0.05, movement);
 		
 		// Add the cloud to the physical topology
 		fogDevices.add(cloud);
@@ -58,7 +58,7 @@ public class DCNSFog extends Topology {
 		movement = new Movement(0.0, Movement.EAST, new Location(0, 250));
 		
 		// Create the proxy device
-		FogDevice proxy = createFogDevice("proxy-server", 2800, 4000, 1000000, 10000, 107.339, 83.4333, 0.0, 0.05, 0.001, 0.0, 0.05, movement, false);
+		FogDevice proxy = createFogDevice("proxy-server", 2800, 4000, 1000000, 10000, 107.339, 83.4333, 0.0, 0.05, 0.001, 0.0, 0.05, movement);
 		
 		// Add the proxy to the physical topology
 		fogDevices.add(proxy);
@@ -72,7 +72,7 @@ public class DCNSFog extends Topology {
 			double posy = Util.rand(250, 500);
 			
 			movement = new Movement(0.0, Movement.EAST, new Location(posx, posy));
-			FogDevice dept = createFogDevice("d-"+i, 2800, 4000, 1000000, 10000, 107.339, 83.4333, 0.0, 0.05, 0.001, 0.0, 0.05, movement, false);
+			FogDevice dept = createFogDevice("d-"+i, 2800, 4000, 1000000, 10000, 107.339, 83.4333, 0.0, 0.05, 0.001, 0.0, 0.05, movement);
 			
 			fogDevices.add(dept);
 			
@@ -85,7 +85,7 @@ public class DCNSFog extends Topology {
 				int direction = Util.rand(Movement.EAST, Movement.SOUTHEAST);
 				
 				movement = new Movement(1.0, direction, new Location(posx, posy));
-				FogDevice mobile = createFogDevice("m-"+i+"-"+j, 1000, 1000, 1000000, 10000, 87.53, 82.44, 0.0, 0.05, 0.001, 0.0, 0.05, movement, true);
+				FogDevice mobile = createClientDevice("m-"+i+"-"+j, 1000, 1000, 1000000, 10000, movement);
 				
 				fogDevices.add(mobile);
 				
