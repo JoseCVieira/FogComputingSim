@@ -40,7 +40,7 @@ public class ApplicationsExample {
 		application.addTupleMapping("calculator", "_SENSOR", "CONCENTRATION", new FractionalSelectivity(1.0));
 		application.addTupleMapping("client", "GLOBAL_GAME_STATE", "GLOBAL_STATE_UPDATE", new FractionalSelectivity(1.0));
 		
-		final AppLoop loop1 = new AppLoop(new ArrayList<String>(){{add("EEG");add("client");add("calculator");add("client");add("DISPLAY");}}, 10);
+		final AppLoop loop1 = new AppLoop(new ArrayList<String>(){{add("EEG");add("client");add("calculator");add("client");add("DISPLAY");}}, 100);
 		List<AppLoop> loops = new ArrayList<AppLoop>(){{add(loop1);}};
 		application.setLoops(loops);
 		exampleApplications.add(application);
@@ -63,7 +63,7 @@ public class ApplicationsExample {
 		application.addTupleMapping("calculator_MP", "_SENSOR_MP", "CONCENTRATION_MP", new FractionalSelectivity(1.0));
 		application.addTupleMapping("client_MP", "GLOBAL_GAME_STATE_MP", "GLOBAL_STATE_UPDATE_MP", new FractionalSelectivity(1.0));
 		
-		final AppLoop loop2 = new AppLoop(new ArrayList<String>(){{add("EEG_MP");add("client_MP");add("calculator_MP");add("client_MP");add("DISPLAY_MP");}}, 1000);
+		final AppLoop loop2 = new AppLoop(new ArrayList<String>(){{add("EEG_MP");add("client_MP");add("calculator_MP");add("client_MP");add("DISPLAY_MP");}}, 15);
 		loops = new ArrayList<AppLoop>(){{add(loop2);}};
 		application.setLoops(loops);
 		exampleApplications.add(application);

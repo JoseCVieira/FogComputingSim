@@ -45,17 +45,14 @@ public class Problem extends AbstractProblem {
 		int[][] migrationRoutingMap = extractModuleRouting(x, nrNodes, nrModules, nrDependencies);
 		
 		Job job = new Job(algorithm, new SingleObjectiveCostFunction(), modulePlacementMap, tupleRoutingMap, migrationRoutingMap);
-		double constraints = Constraints.checkConstraints(algorithm, modulePlacementMap, tupleRoutingMap, migrationRoutingMap);
-		double cost = job.getCost()-constraints;
-		solution.setObjective(0, cost);
-		
+		solution.setObjective(0, new SingleObjectiveCostFunction().computeCost(algorithm, job));
 		
 		double constraint = Constraints.checkResourcesExceeded(algorithm, modulePlacementMap);
 		constraint += Constraints.checkPossiblePlacement(algorithm, modulePlacementMap);
-		solution.setConstraint(0, constraint);
+		solution.setConstraint(0, constraint);		
 		
-		constraint = Constraints.checkDependencies(algorithm, modulePlacementMap, tupleRoutingMap);
-		constraint += Constraints.checkBandwidth(algorithm, tupleRoutingMap);
+		constraint = Constraints.checkBandwidth(algorithm, tupleRoutingMap);
+		constraint += Constraints.checkDependencies(algorithm, modulePlacementMap, tupleRoutingMap);
 		solution.setConstraint(1, constraint);
 		
 		constraint = Constraints.checkMigration(algorithm, modulePlacementMap, migrationRoutingMap);

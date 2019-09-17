@@ -174,7 +174,7 @@ public class AlgorithmUtils {
 		}
 		
 		System.out.println("\n*******************************************************");
-		System.out.println("\t\tBANDWIDTH MAP (Between modules) [MByte/s]:");
+		System.out.println("\t\tBANDWIDTH MAP (Between modules) [B/s]:");
 		System.out.println("*******************************************************\n");
 		
 		System.out.format(Util.centerString(20, " "));
@@ -186,7 +186,7 @@ public class AlgorithmUtils {
 			System.out.format(Util.centerString(20, al.getmName()[i]));
 			for (int j = 0; j < al.getNumberOfModules(); j++) {
 				if(al.getmBandwidthMap()[i][j] != 0)
-					System.out.format(Util.centerString(20, String.format("%.5f", al.getmBandwidthMap()[i][j]/1024/1024)));
+					System.out.format(Util.centerString(20, String.format("%.5f", al.getmBandwidthMap()[i][j])));
 				else
 					System.out.format(Util.centerString(20, "-"));
 			}
@@ -326,9 +326,9 @@ public class AlgorithmUtils {
 			}
 			
 			if(al.getLoopsDeadline()[i] != Constants.INF)
-				System.out.format("::::" + Util.centerString(25, ("Deadline: " + al.getLoopsDeadline()[i])) + "\n");
+				System.out.format(":::: " + Util.centerString(25, ("Deadline: " + al.getLoopsDeadline()[i])) + "\n");
 			else
-				System.out.format("::::" + Util.centerString(25, ("Deadline: INF" )) + "\n");
+				System.out.format(":::: " + Util.centerString(25, ("Deadline: INF" )) + "\n");
 		}
 		
 		System.out.println("\n\n\n\n---------------------------------------------------------------------------------------- '' ----------------------------------------------------------------------------------------");

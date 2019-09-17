@@ -23,7 +23,8 @@ public class MultiObjectiveJob extends Job {
 	 * @param tupleRoutingVectorMap the tuple routing matrix (binary)
 	 * @param migrationRoutingVectorMap the migration routing matrix (binary)
 	 */
-	public MultiObjectiveJob(Algorithm algorithm, int[][] modulePlacementMap, int[][][] tupleRoutingVectorMap, int[][][] migrationRoutingVectorMap) {
+	public MultiObjectiveJob(Algorithm algorithm, int[][] modulePlacementMap, int[][][] tupleRoutingVectorMap,
+			int[][][] migrationRoutingVectorMap) {
 		super();
 		
 		int nrDependencies = tupleRoutingVectorMap.length;
@@ -34,7 +35,7 @@ public class MultiObjectiveJob extends Job {
 		
 		int iter;
 		
-		// Tuple routing map		
+		// Tuple routing map
 		for(int i = 0; i < nrDependencies; i++) {
 			int from = Job.findModulePlacement(modulePlacementMap, algorithm.getStartModDependency(i));
 			tupleRoutingMap[i][0] = from;
@@ -92,18 +93,19 @@ public class MultiObjectiveJob extends Job {
 	}
 	
 	/**
-	 * Gets the vector which contains the details of the cost function.
+	 * Gets the cost of a given cost function.
 	 * 
-	 * @return the vector which contains the details of the cost function
+	 * @param index the index of the cost function
 	 */
 	public double getDetailedCost(int index) {
 		return detailedCost[index];
 	}
 	
 	/**
-	 * Sets the vector which contains the details of the cost function.
+	 * Sets the cost of a given cost function.
 	 * 
-	 * @param detailedCost the vector which contains the details of the cost function.
+	 * @param index the index of the cost function
+	 * @param value the value of the cost function
 	 */
 	public void setDetailedCost(int index, double value) {
 		this.detailedCost[index] = value;

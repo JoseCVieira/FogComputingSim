@@ -65,7 +65,7 @@ public class VRGameFog extends Topology {
 		fogDevices.add(proxy);
 		
 		// Create a connection (link) between the cloud and the proxy and vice versa
-		connectFogDevices(cloud, proxy, 100, 100, Config.FIXED_COMMUNICATION_BW, Config.FIXED_COMMUNICATION_BW);
+		connectFogDevices(cloud, proxy, 2, 2, Config.FIXED_COMMUNICATION_BW, Config.FIXED_COMMUNICATION_BW);
 		
 		// Repeat the process for the next nodes
 		for(int i = 0; i < numOfDepts; i++) {			
@@ -74,7 +74,7 @@ public class VRGameFog extends Topology {
 			
 			fogDevices.add(dept);
 			
-			connectFogDevices(proxy, dept, 50, 50, Config.FIXED_COMMUNICATION_BW, Config.FIXED_COMMUNICATION_BW);
+			connectFogDevices(proxy, dept, 0.5, 0.5, Config.FIXED_COMMUNICATION_BW, Config.FIXED_COMMUNICATION_BW);
 			
 			for(int j = 0; j < numOfMobilesPerDept; j++){
 				int direction = Util.rand(Movement.EAST, Movement.SOUTHEAST);

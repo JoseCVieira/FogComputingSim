@@ -298,17 +298,17 @@ public class Constraints {
 			
 			ArrayList<Integer> computedMigrations = new ArrayList<Integer>();
 			
-			for(int j = 0; j < algorithm.getNumberOfModules()-1; j++) { // Module index
+			for(int j = 0; j < algorithm.getNumberOfModules(); j++) { // Module index
 				
 				if(!computedMigrations.contains(loops[i][j])) {
 					latency += computeMigrationLatency(algorithm, migrationRoutingMap, loops[i][j]);
 					computedMigrations.add(loops[i][j]);
 				}
 				
-				if(loops[i][j+1] == -1) break;
+				if(j == algorithm.getNumberOfModules()-1 || loops[i][j+1] == -1) break;
 				
-				latency += computeProcessingLatency(algorithm, modulePlacementMap, loops[i][j+1]);
-				latency += computeDependencyLatency(algorithm, modulePlacementMap, tupleRoutingMap, loops[i][j], loops[i][j+1]);
+				latency += computeProcessingLatency(algorithm, loops[i][j], loops[i][j+1]);
+				latency += computeDependencyLatency(algorithm, tupleRoutingMap, loops[i][j], loops[i][j+1]);
 				
 				if(latency <= algorithm.getLoopsDeadline()[i]) continue;
 				violations += Constants.REFERENCE_COST;
@@ -319,23 +319,22 @@ public class Constraints {
 		
 		if(Config.PRINT_ALGORITHM_CONSTRAINTS) {
 			if(violations != 0)
-				System.out.println("Solution has at least one loop which is not accomplished");
-			else {
-				int i = 0;
-				for(double lat : loopWorstLat) {
-					System.out.print("Loop " + i + ": [ " );
-					
-					for(int j = 0; j < algorithm.getNumberOfModules(); j++) {
-						if(j == algorithm.getNumberOfModules() - 1 || loops[i][j+1] == -1) {
-							System.out.print(algorithm.getmName()[loops[i][j]] + " ]");
-							break;
-						}
-						System.out.print(algorithm.getmName()[loops[i][j]] + " -> ");
+				System.out.println("Solution has at least one loop deadline which is not accomplished");
+			
+			int i = 0;
+			for(double lat : loopWorstLat) {
+				System.out.print("Loop " + i + ": [ " );
+				
+				for(int j = 0; j < algorithm.getNumberOfModules(); j++) {
+					if(j == algorithm.getNumberOfModules() - 1 || loops[i][j+1] == -1) {
+						System.out.print(algorithm.getmName()[loops[i][j]] + " ]");
+						break;
 					}
-					
-					System.out.print("\t Worst case latency: " + lat + " sec\t Deadline: " + algorithm.getLoopsDeadline()[i] + " sec\n");
-					i++;
+					System.out.print(algorithm.getmName()[loops[i][j]] + " -> ");
 				}
+				
+				System.out.print("\t Worst case latency: " + lat + " sec\t Deadline: " + algorithm.getLoopsDeadline()[i] + " sec\n");
+				i++;
 			}
 			
 			System.out.println("\n");
@@ -348,39 +347,27 @@ public class Constraints {
 	 * Computes the processing latency for the worst case scenario.
 	 * 
 	 * @param algorithm object which contains all information about the topology and which algorithm was used
-	 * @param modulePlacementMap matrix which represents the next module placement
-	 * @param moduleIndex index of the module to be analyzed
+	 * @param moduleIndex1 index of the starting module to be analyzed
+	 * @param moduleIndex2 index of the destination module to be analyzed
 	 * @return the processing latency for the worst case scenario
 	 */
-	public static double computeProcessingLatency(final Algorithm algorithm, final int[][] modulePlacementMap, final int moduleIndex) {
-		if(algorithm.getmMips()[moduleIndex] == 0) return 0;
+	public static double computeProcessingLatency(final Algorithm algorithm, final int moduleIndex1, final int moduleIndex2) {
+		// Sensor and actuator modules does not count
+		if(algorithm.getmMips()[moduleIndex2] == 0) return 0;
 		
-		int nodeIndex = Job.findModulePlacement(modulePlacementMap, moduleIndex);
-		int totalMis = 0;
-		
-		for(int i = 0; i < algorithm.getNumberOfModules(); i++) {
-			if(algorithm.getmMips()[i] == 0) continue; // Sensor and actuator modules does not count
-			if(Job.findModulePlacement(modulePlacementMap, i) != nodeIndex) continue; // Only matter the ones deployed in the same node
-			
-			for(int j = 0; j < algorithm.getNumberOfModules(); j++) {
-				totalMis += algorithm.getmCPUMap()[j][i];
-			}
-		}
-		
-		return totalMis/algorithm.getfMips()[nodeIndex];
+		return algorithm.getmCPUMap()[moduleIndex1][moduleIndex2]/algorithm.getmMips()[moduleIndex2];
 	}
 	
 	/**
 	 * Computes the transmission tuple latency for the worst case scenario between a pair of modules.
 	 * 
 	 * @param algorithm object which contains all information about the topology and which algorithm was used
-	 * @param modulePlacementMap matrix which represents the next module placement
 	 * @param tupleRoutingMap matrix which contains the routing for each module pair dependency
 	 * @param moduleIndex1 index of the starting module to be analyzed
 	 * @param moduleIndex2 index of the destination module to be analyzed
 	 * @return the transmission tuple latency for the worst case scenario between a pair of modules
 	 */
-	public static double computeDependencyLatency(final Algorithm algorithm, final int[][] modulePlacementMap, final int[][] tupleRoutingMap,
+	public static double computeDependencyLatency(final Algorithm algorithm, final int[][] tupleRoutingMap,
 			final int moduleIndex1, final int moduleIndex2) {
 		double latency = 0;
 		int depIndex = -1;
@@ -396,6 +383,9 @@ public class Constraints {
 		if(depIndex == -1)
 			FogComputingSim.err("Should not happen (Constraints)");
 		
+		double bw = algorithm.getmBandwidthMap()[moduleIndex1][moduleIndex2];
+		double nwSize = algorithm.getmNWMap()[moduleIndex1][moduleIndex2];
+		
 		// For each Link, in the tuple routing map sum the total latency
 		for (int i = 0; i < algorithm.getNumberOfNodes() - 1; i++) { // Node index
 			int start = tupleRoutingMap[depIndex][i];
@@ -403,21 +393,9 @@ public class Constraints {
 			
 			if(start == end) continue;
 			
-			double bw = algorithm.getfBandwidthMap()[start][end] * Config.BW_PERCENTAGE_TUPLES + Constants.EPSILON; // Link bandwidth
-			double lat = algorithm.getfLatencyMap()[start][end]; // Link latency
-			double totalSize = 0;
+			double linkLat = algorithm.getfLatencyMap()[start][end];
 			
-			// For each different dependency which uses the same link, sum the size of the dependency
-			for (int j = 0; j < algorithm.getNumberOfDependencies(); j++) { // Dependency index
-				for(int k = 0; k < algorithm.getNumberOfNodes() - 1; k++) {
-					if(tupleRoutingMap[j][k] == start && tupleRoutingMap[j][k+1] == end) {
-						totalSize += algorithm.getmNWMap()[algorithm.getStartModDependency(j)][algorithm.getFinalModDependency(j)];
-					}
-				}
-			}
-			
-			// In the worst case, the dependency in study is the last one to be sent
-			latency += lat + totalSize/bw;
+			latency += linkLat + nwSize/bw;
 		}
 		
 		return latency;
@@ -437,12 +415,19 @@ public class Constraints {
 		double size = algorithm.getmStrg()[moduleIndex] + algorithm.getmRam()[moduleIndex];
 		
 		for (int i = 0; i < algorithm.getNumberOfNodes()-1; i++) {
-			if(migrationRoutingMap[moduleIndex][i] == migrationRoutingMap[moduleIndex][i+1]) continue;
-			double lat = algorithm.getfLatencyMap()[migrationRoutingMap[moduleIndex][i]][migrationRoutingMap[moduleIndex][i+1]];
-			double bw = algorithm.getfBandwidthMap()[migrationRoutingMap[moduleIndex][i]][migrationRoutingMap[moduleIndex][i+1]]*(1-Config.BW_PERCENTAGE_TUPLES);
+			int start = migrationRoutingMap[moduleIndex][i];
+			int end = migrationRoutingMap[moduleIndex][i+1];
 			
-			latency += lat + size/bw + Config.SETUP_VM_TIME;
+			if(start == end) continue;
+			
+			double lat = algorithm.getfLatencyMap()[start][end];
+			double bw = algorithm.getfBandwidthMap()[start][end];
+			
+			latency += lat + size/bw;
 		}
+		
+		if(latency != 0)
+			latency += Config.SETUP_VM_TIME;
 		
 		return latency;
 	}
