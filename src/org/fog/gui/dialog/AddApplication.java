@@ -53,7 +53,7 @@ public class AddApplication extends JDialog {
 			"Tuple Type", "Edge Type", "Periodicity [s]", "Edit"};
 	private static final String[] COLUMN_TUPLES = {"Module Name", "Input Tuple Type", "Output Tuple Type",
 			"Selectivity", "Edit"};
-	private static final String[] COLUMN_LOOPS = {"Loop", "Deadline [s]", "Remove"};
+	private static final String[] COLUMN_LOOPS = {"Loop", "Deadline [s]", "Edit", "Remove"};
 	
 	/** Object which contains the application to be edited or null if its a new one */
 	private Application app;
@@ -407,7 +407,7 @@ public class AddApplication extends JDialog {
 		addLoopBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				new AddAppLoop(frame, app);
+				new AddAppLoop(frame, app, -1);
 				dtmLoops.setDataVector(getLoops(), COLUMN_LOOPS);
 				configureTable(jtableLoops);
 			}
@@ -426,6 +426,10 @@ public class AddApplication extends JDialog {
 			    int columnAtPoint = table.columnAtPoint(e.getPoint());
 			    
 			    if(columnAtPoint == 2) {
+			    	new AddAppLoop(frame, app, rowAtPoint);
+					dtmLoops.setDataVector(getLoops(), COLUMN_LOOPS);
+					configureTable(jtableLoops);
+			    } else if(columnAtPoint == 3) {
 			    	if(GuiUtils.confirm(AddApplication.this, "Do you really want to remove " +
 			    			table.getValueAt(rowAtPoint, 0) + " ?") == JOptionPane.YES_OPTION) {
 			    		
@@ -562,7 +566,7 @@ public class AddApplication extends JDialog {
 		int index = 0;
 		
 		for(AppLoop loop : app.getLoops()) {
-			String[] list = new String[3];
+			String[] list = new String[4];
 			list[0] = "";
 			
 			int i = 0;
@@ -573,7 +577,8 @@ public class AddApplication extends JDialog {
 			}
 			
 			list[1] = Double.toString(loop.getDeadline());
-			list[2] = "✘";
+			list[2] = "✎";
+			list[3] = "✘";
 			lists[index++] = list;
 		}
 		return lists;
@@ -664,11 +669,13 @@ public class AddApplication extends JDialog {
 	 * @param jtable the table with the columns sizes configured
 	 */
 	private void configureTable(JTable jtable) {
+		jtable.getColumn("Edit").setCellRenderer(new GuiUtils.ButtonRenderer());
 		jtable.getColumn("Remove").setCellRenderer(new GuiUtils.ButtonRenderer());
 		
-		jtable.getColumnModel().getColumn(0).setPreferredWidth(WIDTH - 250);
+		jtable.getColumnModel().getColumn(0).setPreferredWidth(WIDTH - 350);
 		jtable.getColumnModel().getColumn(1).setPreferredWidth(150);
 		jtable.getColumnModel().getColumn(2).setPreferredWidth(100);
+		jtable.getColumnModel().getColumn(3).setPreferredWidth(100);
 		
 		jtable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
 	}

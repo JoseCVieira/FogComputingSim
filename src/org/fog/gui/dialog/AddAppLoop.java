@@ -39,7 +39,7 @@ import org.fog.utils.Util;
  */
 public class AddAppLoop extends JDialog {
 	private static final long serialVersionUID = 4794808969864918000L;
-	private static final int WIDTH = 800;
+	private static final int WIDTH = 1000;
 	private static final int HEIGHT = 800;
 	private static final String[] columnNames = {"No", "Name", "Remove"};
 	
@@ -55,6 +55,9 @@ public class AddAppLoop extends JDialog {
 	/** List which contains all the module names of the loop */
 	private List<String> loop;
 	
+	/** Id of the loop. Negative if a new loop is to be added. If is to be edited, is a positive or zero number */
+	private final int loopId;
+	
 	/** Loop deadline (time acceptable by the user for the loop execution in the worst case scenario) */
 	private JTextField deadline;
 	
@@ -63,12 +66,13 @@ public class AddAppLoop extends JDialog {
 	 * 
 	 * @param frame the current context
 	 * @param app the application of the loop
+	 * @param loopId the loop id. Negative if a new loop is to be added. If is to be edited, is a positive or zero number
 	 */
-	public AddAppLoop(final JFrame frame, final Application app) {
+	public AddAppLoop(final JFrame frame, final Application app, final int loopId) {
 		this.app = app;
 		this.frame = frame;
+		this.loopId = loopId;
 		setLayout(new BorderLayout());
-		loop = new ArrayList<String>();
 
 		add(createInputPanel(), BorderLayout.CENTER);
 		add(createButtonPanel(), BorderLayout.PAGE_END);
@@ -88,6 +92,11 @@ public class AddAppLoop extends JDialog {
 	 * @return the panel containing the inputs
 	 */
 	private JPanel createInputPanel() {
+		if(loopId < 0)
+			loop = new ArrayList<String>();
+		else
+			loop = app.getLoops().get(loopId).getModules();
+		
         dtm = new DefaultTableModel(getLoop(), columnNames);
         JTable jtable = new JTable(dtm) {
 			private static final long serialVersionUID = 1L;
@@ -100,7 +109,7 @@ public class AddAppLoop extends JDialog {
 		JPanel inputPanelWrapper = new JPanel();
 		inputPanelWrapper.setLayout(new BoxLayout(inputPanelWrapper, BoxLayout.PAGE_AXIS));
 
-		JButton okBtn = new JButton("Add");
+		JButton okBtn = new JButton("Add module");
 		okBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -115,6 +124,10 @@ public class AddAppLoop extends JDialog {
 		
 		deadline = GuiUtils.createInput(jPanel, deadline, "Loop deadline [s]: ", Double.toString(Constants.INF), GuiMsg.TipLoopDeadline);	
 		inputPanelWrapper.add(jPanel);
+		
+		if(loopId >= 0) {
+			deadline.setText(Double.toString(app.getLoops().get(loopId).getDeadline()));
+		}
 		
 		jPanel = new JPanel();
 		jPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -165,10 +178,10 @@ public class AddAppLoop extends JDialog {
         gbc.anchor = GridBagConstraints.CENTER;
         gbc.fill = GridBagConstraints.HORIZONTAL;
 		
-		JButton okBtn = new JButton("Close");
+		JButton okBtn = new JButton("Add loop");
 		
 		okBtn.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent event) {            	
+            public void actionPerformed(ActionEvent event) {
             	String error_msg = "";
 				double value;
 				
@@ -177,7 +190,13 @@ public class AddAppLoop extends JDialog {
 				if(loop.size() <= 1) error_msg += "A loop is defined at least by two modules";
 				
 				if(error_msg == "") {
-					app.getLoops().add(new AppLoop(loop, value));
+					if(loopId < 0)
+						app.getLoops().add(new AppLoop(loop, value));
+					else {
+						app.getLoops().get(loopId).setModules(loop);
+						app.getLoops().get(loopId).setDeadline(value);
+					}
+					
 					setVisible(false);
 				}else
 					GuiUtils.prompt(AddAppLoop.this, error_msg, "Error");
