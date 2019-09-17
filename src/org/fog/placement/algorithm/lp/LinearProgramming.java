@@ -132,7 +132,15 @@ public class LinearProgramming extends Algorithm {
 					for(int z = 0; z < nrNodes; z++) {
 						migrationRoutingVar[i][j][z] = cplex.intVar(0, 1);
 						
-						double mg = getfLatencyMap()[j][z] + size/(getfBandwidthMap()[j][z]*(1-Config.BW_PERCENTAGE_TUPLES) + Constants.EPSILON);
+						double linkLat = getfLatencyMap()[j][z];
+						double linkBw = getfBandwidthMap()[j][z]*(1-Config.BW_PERCENTAGE_TUPLES) + Constants.EPSILON;
+						double totalDep = 0;
+						
+						for(int l = 0; l < getNumberOfModules(); l++) {
+							totalDep += getmDependencyMap()[l][i];
+						}
+						
+						double mg = (linkLat + size/linkBw)*totalDep;
 						
 						mgObjective = cplex.sum(mgObjective, cplex.prod(migrationRoutingVar[i][j][z], mg));	// Migration cost
 					}
