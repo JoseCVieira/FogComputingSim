@@ -386,6 +386,10 @@ public class FogDevice extends PowerDatacenter {
 		double timeDif = timeNow-lastUtilizationUpdateTime;
 		processorMonitor.addProcessedMI((long) (timeDif*lastMipsUtilization*getHost().getTotalMips()));
 		
+		if(processorMonitor.getProcessedMI() > processorMonitor.getOrderedMI()) {
+			FogComputingSim.err("[" + getName() + "] Processed MI is greater than Ordered MI");
+		}
+		
 		double energyConsumption = timeDif*getHost().getPowerModel().getPower(lastMipsUtilization);
 		
 		// If its a mobile node, we apply the mobile energy consumption model
@@ -397,9 +401,6 @@ public class FogDevice extends PowerDatacenter {
 		}
 		
 		setEnergyConsumption(getEnergyConsumption() + energyConsumption);
-		
-		if(Config.PRINT_DETAILS)
-			System.out.println("Name: " + getName() + " En: " + getEnergyConsumption() + " Pw: " + getHost().getPowerModel().getPower(1));
 		
 		FogDeviceCharacteristics characteristics = (FogDeviceCharacteristics) getCharacteristics();
 		
