@@ -190,7 +190,7 @@ public class AddFogDevice extends JDialog {
 				int ram_= -1, level_= -1, direction_ = -1;
 				double posX_ = -1, posY_ = -1, velocity_ = -1;
 				double normalMean_ = -1, normalStdDev_ = -1, uniformLow_ = -1, uniformUp_ = -1, deterministicVal_ = -1;
-				double mips_= -1, rateMips_ = -1, rateRam_ = -1, rateStorage_ = -1, rateBw_ = -1, rateEn_ = -1, idlePower_ = -1, busyPower_ = -1;
+				double mips_= -1, rateMips_ = 0, rateRam_ = 0, rateStorage_ = 0, rateBw_ = 0, rateEn_ = 0, idlePower_ = 0, busyPower_ = 0;
 				
 				name_ = deviceName.getText();
 				level_ = level.getSelectedIndex();
@@ -209,13 +209,6 @@ public class AddFogDevice extends JDialog {
 				if (!Util.validString(mips.getText())) 			error_msg += GuiMsg.errMissing("Mips");
 				if (!Util.validString(ram.getText())) 			error_msg += GuiMsg.errMissing("Ram");
 				if (!Util.validString(storage.getText())) 		error_msg += GuiMsg.errMissing("Storage");
-				if (!Util.validString(rateMips.getText())) 		error_msg += GuiMsg.errMissing("Mips price");
-				if (!Util.validString(rateRam.getText())) 		error_msg += GuiMsg.errMissing("Ram price");
-				if (!Util.validString(rateStorage.getText())) 	error_msg += GuiMsg.errMissing("Storage price");
-				if (!Util.validString(rateBw.getText())) 		error_msg += GuiMsg.errMissing("Bandwidth price");
-				if (!Util.validString(rateEn.getText())) 		error_msg += GuiMsg.errMissing("Energy price");
-				if (!Util.validString(idlePower.getText())) 	error_msg += GuiMsg.errMissing("Idle Power");
-				if (!Util.validString(busyPower.getText())) 	error_msg += GuiMsg.errMissing("Busy Power");
 				if (!Util.validString(posX.getText())) 			error_msg += GuiMsg.errMissing("X Position");
 				if (!Util.validString(posY.getText())) 			error_msg += GuiMsg.errMissing("Y Position");
 				if (!Util.validString(velocity.getText())) 		error_msg += GuiMsg.errMissing("Velocity");
@@ -225,13 +218,6 @@ public class AddFogDevice extends JDialog {
 				if((mips_ = Util.stringToDouble(mips.getText())) < 0) 				error_msg += GuiMsg.errFormat("Mips");
 				if((ram_ = Util.stringToInt(ram.getText())) < 0) 					error_msg += GuiMsg.errFormat("Ram");
 				if((storage_ = Util.stringToInt(storage.getText())) < 0) 			error_msg += GuiMsg.errFormat("Storage");
-				if((rateMips_ = Util.stringToDouble(rateMips.getText())) < 0) 		error_msg += GuiMsg.errFormat("Mips price");
-				if((rateRam_ = Util.stringToDouble(rateRam.getText())) < 0) 		error_msg += GuiMsg.errFormat("Ram price");
-				if((rateStorage_ = Util.stringToDouble(rateStorage.getText())) < 0) error_msg += GuiMsg.errFormat("Storage price");
-				if((rateBw_ = Util.stringToDouble(rateBw.getText())) < 0) 			error_msg += GuiMsg.errFormat("Bandwidth price");
-				if((rateEn_ = Util.stringToDouble(rateEn.getText())) < 0) 			error_msg += GuiMsg.errFormat("Energy price");
-				if((idlePower_ = Util.stringToDouble(idlePower.getText())) < 0) 	error_msg += GuiMsg.errFormat("Idle Power");
-				if((busyPower_ = Util.stringToDouble(busyPower.getText())) < 0) 	error_msg += GuiMsg.errFormat("Busy Power");
 				if((velocity_ = Util.stringToDouble(velocity.getText())) < 0) 		error_msg += GuiMsg.errFormat("Velocity");
 				
 				posX_ = Util.stringToDouble(posX.getText());
@@ -262,6 +248,22 @@ public class AddFogDevice extends JDialog {
 						if (!Util.validString(value)) 								error_msg += GuiMsg.errMissing("Deterministic value");
 						if((deterministicVal_ = Util.stringToDouble(value)) < 0)	error_msg += GuiMsg.errFormat("Deterministic value");
 					}
+				}else {
+					if (!Util.validString(rateMips.getText())) 		error_msg += GuiMsg.errMissing("Mips price");
+					if (!Util.validString(rateRam.getText())) 		error_msg += GuiMsg.errMissing("Ram price");
+					if (!Util.validString(rateStorage.getText())) 	error_msg += GuiMsg.errMissing("Storage price");
+					if (!Util.validString(rateBw.getText())) 		error_msg += GuiMsg.errMissing("Bandwidth price");
+					if (!Util.validString(rateEn.getText())) 		error_msg += GuiMsg.errMissing("Energy price");
+					if (!Util.validString(idlePower.getText())) 	error_msg += GuiMsg.errMissing("Idle Power");
+					if (!Util.validString(busyPower.getText())) 	error_msg += GuiMsg.errMissing("Busy Power");
+					
+					if((rateMips_ = Util.stringToDouble(rateMips.getText())) < 0) 		error_msg += GuiMsg.errFormat("Mips price");
+					if((rateRam_ = Util.stringToDouble(rateRam.getText())) < 0) 		error_msg += GuiMsg.errFormat("Ram price");
+					if((rateStorage_ = Util.stringToDouble(rateStorage.getText())) < 0) error_msg += GuiMsg.errFormat("Storage price");
+					if((rateBw_ = Util.stringToDouble(rateBw.getText())) < 0) 			error_msg += GuiMsg.errFormat("Bandwidth price");
+					if((rateEn_ = Util.stringToDouble(rateEn.getText())) < 0) 			error_msg += GuiMsg.errFormat("Energy price");
+					if((idlePower_ = Util.stringToDouble(idlePower.getText())) < 0) 	error_msg += GuiMsg.errFormat("Idle Power");
+					if((busyPower_ = Util.stringToDouble(busyPower.getText())) < 0) 	error_msg += GuiMsg.errFormat("Busy Power");
 				}
 				
 				if(error_msg.isEmpty()) {
@@ -380,7 +382,7 @@ public class AddFogDevice extends JDialog {
 		posX = GuiUtils.createInput(jPanel, posX, "X Coordinate [m]: ", xPosVal, GuiMsg.TipDevXCoord);
 		posY = GuiUtils.createInput(jPanel, posY, "Y Coordinate [m]: ", yPosVal, GuiMsg.TipDevYCoord);
 		direction = GuiUtils.createDropDown(jPanel, direction, "Direction: ", directionModel, dirVal, GuiMsg.TipDevDir);
-		velocity = GuiUtils.createInput(jPanel, velocity, "Velocity [m/s]: ", velVal, GuiMsg.TipDevVel);		
+		velocity = GuiUtils.createInput(jPanel, velocity, "Velocity [m/s]: ", velVal, GuiMsg.TipDevVel);
 		
 		SpringUtilities.makeCompactGrid(jPanel, 16, 2, 6, 6, 6, 6);
 		
@@ -403,10 +405,11 @@ public class AddFogDevice extends JDialog {
 		jPanel.add(jPanelSensor);
 		
 		if (application != null) {
-			if (!((String)application.getSelectedItem()).isEmpty())
-				jPanelSensor.setVisible(true);
-			else
-				jPanelSensor.setVisible(false);
+			if (!((String)application.getSelectedItem()).isEmpty()) {
+				updatePanel(true);
+			}else {
+				updatePanel(false);
+			}
 		}
 		
 		SpringUtilities.makeCompactGrid(jPanel, 2, 1, 6, 6, 6, 6);
@@ -439,9 +442,9 @@ public class AddFogDevice extends JDialog {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (((String)application.getSelectedItem()).isEmpty()) {
-					jPanelSensor.setVisible(false);
+					updatePanel(false);
 				}else {
-					jPanelSensor.setVisible(true);
+					updatePanel(true);
 				}
 			}
 		});
@@ -475,7 +478,7 @@ public class AddFogDevice extends JDialog {
 				
 				JComboBox ctype = (JComboBox)e.getSource();
 				String item = (String)ctype.getSelectedItem();
-				updatePanel(item);
+				updateSensorPanel(item);
 			}
 		});
 		
@@ -502,7 +505,7 @@ public class AddFogDevice extends JDialog {
 			distribution.setSelectedIndex(0);
 		}
 		
-		updatePanel(item);
+		updateSensorPanel(item);
 		
 		SpringUtilities.makeCompactGrid(jPanel, 6, 2, 6, 6, 6, 6);
 		
@@ -513,32 +516,47 @@ public class AddFogDevice extends JDialog {
 	 * 
 	 * @param item the name of the sensor distribution
 	 */
-    private void updatePanel(String item) {
+    private void updateSensorPanel(String item) {
 		switch(item){
-		case "Normal":
-			normalMean.setVisible(true);
-			normalStdDev.setVisible(true);
-			uniformLowerBound.setVisible(false);
-			uniformUpperBound.setVisible(false);
-			deterministicValue.setVisible(false);
-			break;
-		case "Uniform":
-			normalMean.setVisible(false);
-			normalStdDev.setVisible(false);
-			uniformLowerBound.setVisible(true);
-			uniformUpperBound.setVisible(true);
-			deterministicValue.setVisible(false);
-			break;
-		case "Deterministic":
-			normalMean.setVisible(false);
-			normalStdDev.setVisible(false);
-			uniformLowerBound.setVisible(false);
-			uniformUpperBound.setVisible(false);
-			deterministicValue.setVisible(true);
-			break;
-		default:
-			break;
+			case "Normal":
+				normalMean.setVisible(true);
+				normalStdDev.setVisible(true);
+				uniformLowerBound.setVisible(false);
+				uniformUpperBound.setVisible(false);
+				deterministicValue.setVisible(false);
+				break;
+			case "Uniform":
+				normalMean.setVisible(false);
+				normalStdDev.setVisible(false);
+				uniformLowerBound.setVisible(true);
+				uniformUpperBound.setVisible(true);
+				deterministicValue.setVisible(false);
+				break;
+			case "Deterministic":
+				normalMean.setVisible(false);
+				normalStdDev.setVisible(false);
+				uniformLowerBound.setVisible(false);
+				uniformUpperBound.setVisible(false);
+				deterministicValue.setVisible(true);
+				break;
+			default:
+				break;
 		}
 	}
 	
+    /**
+     * Updates the inputs visibility based on a given boolean variable (which defines the type of node).
+     * 
+     * @param hasApplication true if the user selected an application for the node (is a client), otherwise false
+     */
+    private void updatePanel(boolean hasApplication) {
+    	jPanelSensor.setVisible(hasApplication);
+		rateMips.setVisible(!hasApplication);
+		rateRam.setVisible(!hasApplication);
+		rateStorage.setVisible(!hasApplication);
+		rateBw.setVisible(!hasApplication);
+		rateEn.setVisible(!hasApplication);
+		idlePower.setVisible(!hasApplication);
+		busyPower.setVisible(!hasApplication);
+    }
 }

@@ -500,22 +500,23 @@ public class DisplayRandom extends JDialog {
 		int ram = (int) Util.normalRand(decadencyFactor(GuiConfig.RAM_MEAN, level), decadencyFactor(GuiConfig.RAM_DEV, level));
 		int strg = (int) Util.normalRand(decadencyFactor(GuiConfig.STRG_MEAN, level), decadencyFactor(GuiConfig.STRG_DEV, level));
 		
-		double bPw = Util.normalRand(decadencyFactor(GuiConfig.BUSY_POWER, level), decadencyFactor(GuiConfig.ENERGY_DEV, level));
-		double iPw = Util.normalRand(decadencyFactor(GuiConfig.IDLE_POWER, level), decadencyFactor(GuiConfig.ENERGY_DEV, level));
-		
-		double rateMips = Util.normalRand(GuiConfig.RATE_MIPS_MEAN, GuiConfig.RATE_MIPS_DEV);
-		double rateRam = Util.normalRand(GuiConfig.RATE_RAM_MEAN, GuiConfig.RATE_RAM_DEV);
-		double rateStrg = Util.normalRand(GuiConfig.RATE_STRG_MEAN, GuiConfig.RATE_STRG_DEV);
-		double rateBw = Util.normalRand(GuiConfig.RATE_BW_MEAN, GuiConfig.RATE_BW_DEV);
-		double rateEn = Util.normalRand(GuiConfig.RATE_EN_MEAN, GuiConfig.RATE_EN_DEV);
-		
 		Distribution distribution = null;
 		String appName = "";
+		double rateMips = 0, rateRam = 0, rateStrg = 0, rateBw = 0, rateEn = 0, bPw = 0, iPw = 0;
 		if(client) {
 			distribution = new DeterministicDistribution(Util.normalRand(GuiConfig.SENSOR_DESTRIBUTION, 1.0));
 			
 			int appIndex = new Random().nextInt(physicalGraph.getAppList().size());
 			appName = physicalGraph.getAppList().get(appIndex).getAppId();
+		}else {
+			rateMips = Util.normalRand(GuiConfig.RATE_MIPS_MEAN, GuiConfig.RATE_MIPS_DEV);
+			rateRam = Util.normalRand(GuiConfig.RATE_RAM_MEAN, GuiConfig.RATE_RAM_DEV);
+			rateStrg = Util.normalRand(GuiConfig.RATE_STRG_MEAN, GuiConfig.RATE_STRG_DEV);
+			rateBw = Util.normalRand(GuiConfig.RATE_BW_MEAN, GuiConfig.RATE_BW_DEV);
+			rateEn = Util.normalRand(GuiConfig.RATE_EN_MEAN, GuiConfig.RATE_EN_DEV);
+			
+			bPw = Util.normalRand(decadencyFactor(GuiConfig.BUSY_POWER, level), decadencyFactor(GuiConfig.ENERGY_DEV, level));
+			iPw = Util.normalRand(decadencyFactor(GuiConfig.IDLE_POWER, level), decadencyFactor(GuiConfig.ENERGY_DEV, level));
 		}
 		
 		double posx = Util.rand(0, Config.SQUARE_SIDE);

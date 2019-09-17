@@ -94,11 +94,10 @@ public abstract class Topology {
 	 * @param costPerBw the monetary cost [€] of bandwidth usage in at any link which the node is the source
 	 * @param costPerEnergy the monetary cost [€] of energy spent at the node
 	 * @param movement the movement of the node
-	 * @param client if the node is a client
 	 * @return the fog device
 	 */
 	protected static FogDevice createFogDevice(String name, double mips, int ram, long strg, long bw, double bPw, double iPw, double costPerMips,
-			double costPerMem, double costPerStorage, double costPerBw, double costPerEnergy, Movement movement, boolean client) {
+			double costPerMem, double costPerStorage, double costPerBw, double costPerEnergy, Movement movement) {
 		List<Pe> processingElementsList = new ArrayList<Pe>();
 		processingElementsList.add(new Pe(0, new PeProvisioner(mips)));
 
@@ -120,12 +119,49 @@ public abstract class Topology {
 				costPerMips, costPerMem, costPerStorage, costPerBw, costPerEnergy);
 		
 		try {
-			if(!client)
-				return new FogDevice(name, characteristics, new AppModuleAllocationPolicy(hostList), new LinkedList<Storage>(),
-						Constants.SCHEDULING_INTERVAL, movement);
-			else 
-				return new Client(name, characteristics, new AppModuleAllocationPolicy(hostList), new LinkedList<Storage>(),
-						Constants.SCHEDULING_INTERVAL, movement);
+			return new FogDevice(name, characteristics, new AppModuleAllocationPolicy(hostList), new LinkedList<Storage>(),
+					Constants.SCHEDULING_INTERVAL, movement);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	/**
+	 * Create a new client device.
+	 * 
+	 * @param name the name of the node
+	 * @param mips the processing resource units available at the node
+	 * @param ram the memory resource units available at the node
+	 * @param strg the storage resource units available at the node
+	 * @param bw the network resource units available at the node
+	 * @param movement the movement of the node
+	 * @return the client device
+	 */
+	protected static FogDevice createClientDevice(String name, double mips, int ram, long strg, long bw, Movement movement) {
+		List<Pe> processingElementsList = new ArrayList<Pe>();
+		processingElementsList.add(new Pe(0, new PeProvisioner(mips)));
+
+		PowerHost host = new PowerHost(
+				FogUtils.generateEntityId(),
+				new RamProvisioner(ram),
+				new BwProvisioner(bw),
+				strg,
+				processingElementsList,
+				new VmSchedulerTimeSharedOverbookingEnergy(processingElementsList),
+				new FogLinearPowerModel(0, 0)
+			);
+
+		List<Host> hostList = new ArrayList<Host>();
+		hostList.add(host);
+
+		FogDeviceCharacteristics characteristics = new FogDeviceCharacteristics(Constants.FOG_DEVICE_ARCH,
+				Constants.FOG_DEVICE_OS, Constants.FOG_DEVICE_VMM, host, Constants.FOG_DEVICE_TIMEZONE,
+				0, 0, 0, 0, 0);
+		
+		try {
+			return new Client(name, characteristics, new AppModuleAllocationPolicy(hostList), new LinkedList<Storage>(),
+					Constants.SCHEDULING_INTERVAL, movement);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;

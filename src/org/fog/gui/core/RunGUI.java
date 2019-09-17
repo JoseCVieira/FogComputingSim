@@ -95,8 +95,11 @@ public class RunGUI extends Topology {
 		Movement movement = fog.getMovement();
 		boolean client = fog.getApplication().equals("") ? false : true;
 		
-		return createFogDevice(name, mips, ram, strg, bw, bPw, iPw, costPerMips,
-				costPerMem,costPerStorage, costPerBw, costPerEnergy, movement, client);
+		if(!client)
+			return createFogDevice(name, mips, ram, strg, bw, bPw, iPw, costPerMips,
+					costPerMem,costPerStorage, costPerBw, costPerEnergy, movement);
+		else
+			return createClientDevice(name, costPerMips, ram, strg, bw, movement);
 	}
 	
 	/**
