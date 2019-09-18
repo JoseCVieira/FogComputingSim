@@ -27,8 +27,11 @@ public class Config {
 	/** Defines whether the output values are written to the excel file */
 	public static boolean EXPORT_RESULTS_EXCEL = true;
 	
-	/** Defines the percentage of the bandwidth available in the links which is used for transmitting tuples between modules */
-	public static final double BW_PERCENTAGE_TUPLES = 0.8;
+	/** Defines the percentage of available resources for "normal" operations, the remaining resources are allocated for control operations and migrations */
+	public static final double MIPS_PERCENTAGE_UTIL = 0.95;
+	public static final double MEM_PERCENTAGE_UTIL = 0.95;
+	public static final double STRG_PERCENTAGE_UTIL = 0.95;
+	public static final double BW_PERCENTAGE_UTIL = 0.8;
 	
 	/** Defines the number of defined objectives inside the multiple objective problem */
 	public static final int NR_OBJECTIVES = 5;

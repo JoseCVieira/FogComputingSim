@@ -230,7 +230,7 @@ public class Constraints {
 		
 		for(int i = 0; i < algorithm.getNumberOfNodes(); i++) {
 			for(int j = 0; j < algorithm.getNumberOfNodes(); j++) {
-				if(bwUsage[i][j] <= algorithm.getfBandwidthMap()[i][j] * Config.BW_PERCENTAGE_TUPLES) continue;
+				if(bwUsage[i][j] <= algorithm.getfBandwidthMap()[i][j] * Config.BW_PERCENTAGE_UTIL) continue;
 				violations += Constants.REFERENCE_COST;
 			}
 		}
@@ -394,7 +394,7 @@ public class Constraints {
 			
 			if(start == end) continue;
 			
-			double bw = algorithm.getfBandwidthMap()[start][end] * Config.BW_PERCENTAGE_TUPLES + Constants.EPSILON; // Link bandwidth
+			double bw = algorithm.getfBandwidthMap()[start][end] * Config.BW_PERCENTAGE_UTIL + Constants.EPSILON; // Link bandwidth
 			double lat = algorithm.getfLatencyMap()[start][end]; // Link latency
 			double totalSize = 0;
 
