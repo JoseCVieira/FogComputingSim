@@ -80,7 +80,7 @@ public class LinearProgramming extends Algorithm {
 			IloNumVar[][][] tupleRoutingVar = new IloNumVar[getNumberOfDependencies()][nrNodes][nrNodes];
 			IloNumVar[][][] migrationRoutingVar = new IloNumVar[nrModules][nrNodes][nrNodes];
 			
-			IloNumExpr[] latency = new IloNumExpr[getLoops().length];
+			//IloNumExpr[] latency = new IloNumExpr[getLoops().length];
 			
 			// Define objectives
 			IloNumExpr opObjective = cplex.numExpr();
@@ -132,22 +132,20 @@ public class LinearProgramming extends Algorithm {
 					for(int z = 0; z < nrNodes; z++) {
 						migrationRoutingVar[i][j][z] = cplex.intVar(0, 1);
 						
-						double linkLat = getfLatencyMap()[j][z];
 						double linkBw = getfBandwidthMap()[j][z]*(1-Config.BW_PERCENTAGE_TUPLES) + Constants.EPSILON;
 						double totalDep = 0;
-						
 						for(int l = 0; l < getNumberOfModules(); l++) {
 							totalDep += getmDependencyMap()[l][i];
 						}
 						
-						double mg = (linkLat + size/linkBw)*totalDep;
+						double mg = size/linkBw*totalDep;
 						
 						mgObjective = cplex.sum(mgObjective, cplex.prod(migrationRoutingVar[i][j][z], mg));	// Migration cost
 					}
 				}
 			}
 			
-			defineConstraints(cplex, placementVar, tupleRoutingVar, migrationRoutingVar, latency);
+			defineConstraints(cplex, placementVar, tupleRoutingVar, migrationRoutingVar/*, latency*/);
 			
 			IloObjective opCost = cplex.minimize(opObjective);
 			IloObjective pwCost = cplex.minimize(pwObjective);
@@ -209,7 +207,7 @@ public class LinearProgramming extends Algorithm {
 				solution.setDetailedCost(Config.BANDWIDTH_COST, cplex.getValue(bwObjective));
 				solution.setDetailedCost(Config.MIGRATION_COST, cplex.getValue(mgObjective));
 				
-				if(Config.PRINT_ALGORITHM_CONSTRAINTS) {
+				/*if(Config.PRINT_ALGORITHM_CONSTRAINTS) {
 					for(int i = 0; i < getLoops().length; i++) {
 						System.out.print("\nLoop " + i + ": [ " );
 						
@@ -223,7 +221,7 @@ public class LinearProgramming extends Algorithm {
 						
 						System.out.print("\t Worst case latency: " + cplex.getValue(latency[i]) + " sec\t Deadline: " + getLoopsDeadline()[i] + " sec\n");
 					}
-				}
+				}*/
 				
 				cplex.end();
 				return solution;
@@ -249,14 +247,14 @@ public class LinearProgramming extends Algorithm {
 	 * @param migrationRoutingVar the matrix which contains the routing for each module migration (binary)
 	 */
 	private void defineConstraints(IloCplex cplex, final IloNumVar[][] placementVar,
-			final IloNumVar[][][] tupleRoutingVar, final IloNumVar[][][] migrationRoutingVar, IloNumExpr[] latency) {
+			final IloNumVar[][][] tupleRoutingVar, final IloNumVar[][][] migrationRoutingVar/*, IloNumExpr[] latency*/) {
 		defineResourcesExceeded(cplex, placementVar);
 		definePossiblePlacement(cplex, placementVar);
 		defineSinglePlacement(cplex, placementVar);
 		defineBandwidth(cplex, tupleRoutingVar);
 		defineDependencies(cplex, placementVar, tupleRoutingVar);
 		defineMigration(cplex, placementVar, migrationRoutingVar);
-		defineDeadlines(cplex, placementVar, tupleRoutingVar, migrationRoutingVar, latency);
+		//defineDeadlines(cplex, placementVar, tupleRoutingVar, migrationRoutingVar, latency);
 	}
 	
 	/**
