@@ -31,15 +31,14 @@ public class Config {
 	public static final double BW_PERCENTAGE_TUPLES = 0.8;
 	
 	/** Defines the number of defined objectives inside the multiple objective problem */
-	public static final int NR_OBJECTIVES = 6;
+	public static final int NR_OBJECTIVES = 5;
 	
 	/** The index of each objective */
 	public static final int OPERATIONAL_COST = 0;
 	public static final int POWER_COST = 1;
 	public static final int PROCESSING_COST = 2;
-	public static final int LATENCY_COST = 3;
-	public static final int BANDWIDTH_COST = 4;
-	public static final int MIGRATION_COST = 5;
+	public static final int BANDWIDTH_COST = 3;
+	public static final int MIGRATION_COST = 4;
 	
 	/** 
 	 * Order of importance for multiple objective optimization
@@ -50,10 +49,9 @@ public class Config {
 	 * Note that for the current problem it makes no sense to sum different costs, thus their priorities must be all different.
 	 */
 	public static final int[] priorities = new int[] {
-			3,		// Operational cost
-			5,		// Power cost
-			4,		// Processing cost
-			6,		// Latency cost
+			5,		// Operational cost
+			4,		// Power cost
+			3,		// Processing cost
 			2,		// Bandwidth cost
 			1		// Migration cost
 	};
@@ -63,7 +61,6 @@ public class Config {
 			1.0,	// Operational cost
 			1.0,	// Power cost
 			1.0,	// Processing cost
-			1.0,	// Latency cost
 			1.0,	// Bandwidth cost
 			1.0		// Migration cost
 	};
@@ -73,7 +70,6 @@ public class Config {
 			0.0,	// Operational cost
 			0.0,	// Power cost
 			0.0,	// Processing cost
-			0.0,	// Latency cost
 			0.0,	// Bandwidth cost
 			0.0		// Migration cost
 	};
@@ -83,7 +79,6 @@ public class Config {
 			0.0,	// Operational cost
 			0.0,	// Power cost
 			0.0,	// Processing cost
-			0.0,	// Latency cost
 			0.0,	// Bandwidth cost
 			0.0		// Migration cost
 	};

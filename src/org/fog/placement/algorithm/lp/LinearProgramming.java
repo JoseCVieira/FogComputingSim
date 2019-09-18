@@ -86,7 +86,6 @@ public class LinearProgramming extends Algorithm {
 			IloNumExpr opObjective = cplex.numExpr();
 			IloNumExpr pwObjective = cplex.numExpr();
 			IloNumExpr prObjective = cplex.numExpr();
-			IloNumExpr ltObjective = cplex.numExpr();
 			IloNumExpr bwObjective = cplex.numExpr();
 			IloNumExpr mgObjective = cplex.numExpr();
 			
@@ -105,19 +104,16 @@ public class LinearProgramming extends Algorithm {
 			}
 			
 			for(int i = 0; i < nrDependencies; i++) {
-				double dependency = getmDependencyMap()[getStartModDependency(i)][getFinalModDependency(i)];
 				double bandwidth = getmBandwidthMap()[getStartModDependency(i)][getFinalModDependency(i)];
 				
 				for(int j = 0; j < nrNodes; j++) {
 					for(int z = 0; z < nrNodes; z++) {
 						tupleRoutingVar[i][j][z] = cplex.intVar(0, 1);
 						
-						double lt = getfLatencyMap()[j][z]*dependency;
 						double bw = bandwidth/(getfBandwidthMap()[j][z]*Config.BW_PERCENTAGE_TUPLES + Constants.EPSILON);
 						double pw = bw*getfTxPw()[j];
 						double op = pw*getfPwPrice()[j] + bandwidth*getfBwPrice()[j];
 						
-						ltObjective = cplex.sum(ltObjective, cplex.prod(tupleRoutingVar[i][j][z], lt));	// Latency cost
 						bwObjective = cplex.sum(bwObjective, cplex.prod(tupleRoutingVar[i][j][z], bw));	// Bandwidth cost
 						opObjective = cplex.sum(opObjective, cplex.prod(tupleRoutingVar[i][j][z], op));	// Operational cost
 						pwObjective = cplex.sum(pwObjective, cplex.prod(tupleRoutingVar[i][j][z], pw));	// Power cost						
@@ -150,7 +146,6 @@ public class LinearProgramming extends Algorithm {
 			IloObjective opCost = cplex.minimize(opObjective);
 			IloObjective pwCost = cplex.minimize(pwObjective);
 			IloObjective prCost = cplex.minimize(prObjective);
-			IloObjective ltCost = cplex.minimize(ltObjective);
 			IloObjective bwCost = cplex.minimize(bwObjective);
 			IloObjective mgCost = cplex.minimize(mgObjective);
 			
@@ -158,7 +153,6 @@ public class LinearProgramming extends Algorithm {
 			objArray[Config.OPERATIONAL_COST] = opCost.getExpr();
 			objArray[Config.POWER_COST] = pwCost.getExpr();
 			objArray[Config.PROCESSING_COST] = prCost.getExpr();
-			objArray[Config.LATENCY_COST] = ltCost.getExpr();
 			objArray[Config.BANDWIDTH_COST] = bwCost.getExpr();
 			objArray[Config.MIGRATION_COST] = mgCost.getExpr();
 			
@@ -203,7 +197,6 @@ public class LinearProgramming extends Algorithm {
 				solution.setDetailedCost(Config.OPERATIONAL_COST, cplex.getValue(opObjective));
 				solution.setDetailedCost(Config.POWER_COST, cplex.getValue(pwObjective));
 				solution.setDetailedCost(Config.PROCESSING_COST, cplex.getValue(prObjective));
-				solution.setDetailedCost(Config.LATENCY_COST, cplex.getValue(ltObjective));
 				solution.setDetailedCost(Config.BANDWIDTH_COST, cplex.getValue(bwObjective));
 				solution.setDetailedCost(Config.MIGRATION_COST, cplex.getValue(mgObjective));
 				
