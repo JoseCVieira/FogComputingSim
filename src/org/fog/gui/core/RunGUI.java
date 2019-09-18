@@ -99,7 +99,7 @@ public class RunGUI extends Topology {
 			return createFogDevice(name, mips, ram, strg, bw, bPw, iPw, costPerMips,
 					costPerMem,costPerStorage, costPerBw, costPerEnergy, movement);
 		else
-			return createClientDevice(name, costPerMips, ram, strg, bw, movement);
+			return createClientDevice(name, mips, ram, strg, bw, movement);
 	}
 	
 	/**
