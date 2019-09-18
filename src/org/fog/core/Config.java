@@ -91,7 +91,6 @@ public class Config {
 			"Oper.",
 			"Pwr.", 
 			"Proc.",
-			"Lat.", 
 			"Bw.",
 			"Mig."
 	};

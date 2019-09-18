@@ -104,7 +104,12 @@ public class Constraints {
 				totalStrg += modulePlacementMap[i][j] * algorithm.getmStrg()[j];
 			}
 			
-			if(totalMips <= algorithm.getfMips()[i] && totalRam <= algorithm.getfRam()[i] && totalStrg <= algorithm.getfStrg()[i]) continue;
+			boolean exceeded = false;
+			if(totalMips > algorithm.getfMips()[i] * Config.MIPS_PERCENTAGE_UTIL) exceeded = true;
+			if(totalRam > algorithm.getfRam()[i] * Config.MEM_PERCENTAGE_UTIL) exceeded = true;
+			if(totalStrg > algorithm.getfStrg()[i] * Config.STRG_PERCENTAGE_UTIL) exceeded = true;
+			
+			if(!exceeded) continue;
 			violations += Constants.REFERENCE_COST;
 		}
 		
