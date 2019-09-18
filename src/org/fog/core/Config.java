@@ -34,14 +34,13 @@ public class Config {
 	public static final double BW_PERCENTAGE_UTIL = 0.8;
 	
 	/** Defines the number of defined objectives inside the multiple objective problem */
-	public static final int NR_OBJECTIVES = 5;
+	public static final int NR_OBJECTIVES = 4;
 	
 	/** The index of each objective */
-	public static final int OPERATIONAL_COST = 0;
-	public static final int POWER_COST = 1;
-	public static final int PROCESSING_COST = 2;
-	public static final int BANDWIDTH_COST = 3;
-	public static final int MIGRATION_COST = 4;
+	public static final int POWER_COST = 0;
+	public static final int PROCESSING_COST = 1;
+	public static final int BANDWIDTH_COST = 2;
+	public static final int MIGRATION_COST = 3;
 	
 	/** 
 	 * Order of importance for multiple objective optimization
@@ -52,7 +51,6 @@ public class Config {
 	 * Note that for the current problem it makes no sense to sum different costs, thus their priorities must be all different.
 	 */
 	public static final int[] priorities = new int[] {
-			5,		// Operational cost
 			4,		// Power cost
 			3,		// Processing cost
 			2,		// Bandwidth cost
@@ -61,7 +59,6 @@ public class Config {
 	
 	/** Weights used for the weight sum in case of same priority objectives */
 	public static final double[] weights = new double[] {
-			1.0,	// Operational cost
 			1.0,	// Power cost
 			1.0,	// Processing cost
 			1.0,	// Bandwidth cost
@@ -70,7 +67,6 @@ public class Config {
 
 	/** Allow a small degradation in the first objective. AbsTols represents a list of absolute tolerances */
 	public static final double[] absTols = new double[] {
-			0.0,	// Operational cost
 			0.0,	// Power cost
 			0.0,	// Processing cost
 			0.0,	// Bandwidth cost
@@ -79,7 +75,6 @@ public class Config {
 
 	/** Allow a small degradation in the first objective. RelTols represents a list of relative tolerances */
 	public static final double[] relTols = new double[] {
-			0.0,	// Operational cost
 			0.0,	// Power cost
 			0.0,	// Processing cost
 			0.0,	// Bandwidth cost
@@ -88,7 +83,6 @@ public class Config {
 	
 	/** The names of the objectives (used to export the results to the excel file) */
 	public static final String[] objectiveNames = new String[] {
-			"Oper.",
 			"Pwr.", 
 			"Proc.",
 			"Bw.",
@@ -125,7 +119,8 @@ public class Config {
 	
 	// ------------------------------------------------------------ Simulation -------------------------------------------------------------
 	
-	// Simulation
+	// Simulation ---------------------------------------------
+	
 	/** Defines whether the simulation runs in debug mode (i.e., prints the debug logs defined in the original version of iFogSim) */
 	public static boolean DEBUG_MODE = false;
 	

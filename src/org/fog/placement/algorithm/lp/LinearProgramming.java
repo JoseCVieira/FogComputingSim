@@ -79,7 +79,6 @@ public class LinearProgramming extends Algorithm {
 			IloNumVar[][][] migrationRoutingVar = new IloNumVar[nrModules][nrNodes][nrNodes];
 			
 			// Define objectives
-			IloNumExpr opObjective = cplex.numExpr();
 			IloNumExpr pwObjective = cplex.numExpr();
 			IloNumExpr prObjective = cplex.numExpr();
 			IloNumExpr bwObjective = cplex.numExpr();
@@ -91,9 +90,7 @@ public class LinearProgramming extends Algorithm {
 					
 					double pr = getmMips()[j]/getfMips()[i];
 					double pw = (getfBusyPw()[i]-getfIdlePw()[i])*pr;
-					double op = getfMipsPrice()[i]*getmMips()[j] + getfRamPrice()[i]*getmRam()[j] + getfStrgPrice()[i]*getmStrg()[j] + pw*getfPwPrice()[i];
 					
-					opObjective = cplex.sum(opObjective, cplex.prod(placementVar[i][j], op));	// Operational cost
 					pwObjective = cplex.sum(pwObjective, cplex.prod(placementVar[i][j], pw));	// Power cost
 					prObjective = cplex.sum(prObjective, cplex.prod(placementVar[i][j], pr));	// Processing cost	
 				}
@@ -108,10 +105,8 @@ public class LinearProgramming extends Algorithm {
 						
 						double bw = bandwidth/(getfBandwidthMap()[j][z]*Config.BW_PERCENTAGE_UTIL + Constants.EPSILON);
 						double pw = bw*getfTxPw()[j];
-						double op = pw*getfPwPrice()[j] + bandwidth*getfBwPrice()[j];
 						
 						bwObjective = cplex.sum(bwObjective, cplex.prod(tupleRoutingVar[i][j][z], bw));	// Bandwidth cost
-						opObjective = cplex.sum(opObjective, cplex.prod(tupleRoutingVar[i][j][z], op));	// Operational cost
 						pwObjective = cplex.sum(pwObjective, cplex.prod(tupleRoutingVar[i][j][z], pw));	// Power cost						
 					}
 				}
@@ -139,14 +134,12 @@ public class LinearProgramming extends Algorithm {
 			
 			defineConstraints(cplex, placementVar, tupleRoutingVar, migrationRoutingVar);
 			
-			IloObjective opCost = cplex.minimize(opObjective);
 			IloObjective pwCost = cplex.minimize(pwObjective);
 			IloObjective prCost = cplex.minimize(prObjective);
 			IloObjective bwCost = cplex.minimize(bwObjective);
 			IloObjective mgCost = cplex.minimize(mgObjective);
 			
 			IloNumExpr[] objArray = new IloNumExpr[Config.NR_OBJECTIVES];
-			objArray[Config.OPERATIONAL_COST] = opCost.getExpr();
 			objArray[Config.POWER_COST] = pwCost.getExpr();
 			objArray[Config.PROCESSING_COST] = prCost.getExpr();
 			objArray[Config.BANDWIDTH_COST] = bwCost.getExpr();
@@ -190,7 +183,6 @@ public class LinearProgramming extends Algorithm {
 				}
 				
 				MultiObjectiveJob solution = new MultiObjectiveJob(this, modulePlacementMap, tupleRoutingMap, migrationRoutingMap);
-				solution.setDetailedCost(Config.OPERATIONAL_COST, cplex.getValue(opObjective));
 				solution.setDetailedCost(Config.POWER_COST, cplex.getValue(pwObjective));
 				solution.setDetailedCost(Config.PROCESSING_COST, cplex.getValue(prObjective));
 				solution.setDetailedCost(Config.BANDWIDTH_COST, cplex.getValue(bwObjective));
