@@ -162,7 +162,7 @@ public class LinearProgramming extends Algorithm {
 			objArray[Config.BANDWIDTH_COST] = bwCost.getExpr();
 			objArray[Config.MIGRATION_COST] = mgCost.getExpr();
 			
-			cplex.add(cplex.minimize(cplex.staticLex(objArray, null, Config.priorities, null, null, null)));
+			cplex.add(cplex.minimize(cplex.staticLex(objArray, Config.weights, Config.priorities, Config.absTols, Config.relTols, null)));
 			
 			// Display option
 			if(Config.PRINT_DETAILS)

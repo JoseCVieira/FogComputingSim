@@ -50,12 +50,42 @@ public class Config {
 	 * Note that for the current problem it makes no sense to sum different costs, thus their priorities must be all different.
 	 */
 	public static final int[] priorities = new int[] {
-			6,		// Operational cost
+			3,		// Operational cost
 			5,		// Power cost
 			4,		// Processing cost
-			3,		// Latency cost
+			6,		// Latency cost
 			2,		// Bandwidth cost
 			1		// Migration cost
+	};
+	
+	/** Weights used for the weight sum in case of same priority objectives */
+	public static final double[] weights = new double[] {
+			1.0,	// Operational cost
+			1.0,	// Power cost
+			1.0,	// Processing cost
+			1.0,	// Latency cost
+			1.0,	// Bandwidth cost
+			1.0		// Migration cost
+	};
+
+	/** Allow a small degradation in the first objective. AbsTols represents a list of absolute tolerances */
+	public static final double[] absTols = new double[] {
+			0.0,	// Operational cost
+			0.0,	// Power cost
+			0.0,	// Processing cost
+			0.0,	// Latency cost
+			0.0,	// Bandwidth cost
+			0.0		// Migration cost
+	};
+
+	/** Allow a small degradation in the first objective. RelTols represents a list of relative tolerances */
+	public static final double[] relTols = new double[] {
+			0.0,	// Operational cost
+			0.0,	// Power cost
+			0.0,	// Processing cost
+			0.0,	// Latency cost
+			0.0,	// Bandwidth cost
+			0.0		// Migration cost
 	};
 	
 	/** The names of the objectives (used to export the results to the excel file) */
@@ -90,7 +120,11 @@ public class Config {
 	
 	// Random algorithm ---------------------------------------
 	
-	public static final int MAX_ITER_RANDOM = 10000;
+	/** Maximum number of iterations to solve the problem through random algorithm */
+	public static final int MAX_ITER_RANDOM = 100000;
+	
+	/** Maximum number of equal cost solutions of the problem through random algorithm to stop it */
+	public static final int MAX_ITER_CONVERGENCE_RANDOM = 10;
 	
 	// ------------------------------------------------------------ Simulation -------------------------------------------------------------
 	
@@ -99,16 +133,16 @@ public class Config {
 	public static boolean DEBUG_MODE = false;
 	
 	/** Defines whether the simulation should print logs about the simulation (e.g., tuple transmission, migrations, processing, etc.) */
-	public static boolean PRINT_DETAILS = false;
+	public static boolean PRINT_DETAILS = true;
 	
 	/** Defines whether the simulation should print logs about the costs and resource usage */
 	public static boolean PRINT_COST_DETAILS = false;
 	
 	/** Defines whether the simulation is dynamic (i.e., mobile nodes actualy move around) */
-	public static boolean DYNAMIC_SIMULATION = false;
+	public static boolean DYNAMIC_SIMULATION = true;
 	
 	/** Defines whether the simulation is allowed to perform migrations of VMs */
-	public static boolean ALLOW_MIGRATION = false;
+	public static boolean ALLOW_MIGRATION = true;
 	
 	/** Defines the threshold used to define if its necessary to perform an handover */
 	public static final int HANDOVER_THRESHOLD = 75;
