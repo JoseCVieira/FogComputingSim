@@ -3,14 +3,12 @@ package org.fog.placement.algorithm.bf;
 import java.util.List;
 
 import org.fog.application.Application;
-import org.fog.core.Config;
 import org.fog.core.Constants;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.placement.algorithm.Algorithm;
-import org.fog.placement.algorithm.Job;
-import org.fog.placement.algorithm.SingleObjectiveCostFunction;
+import org.fog.placement.algorithm.Solution;
 
 /**
  * Class in which defines and executes the brute force algorithm.
@@ -20,10 +18,7 @@ import org.fog.placement.algorithm.SingleObjectiveCostFunction;
  */
 public class BruteForce extends Algorithm {
 	/** Best solution found by the algorithm */
-	private Job bestSolution;
-	
-	/** Best cost found by the algorithm */
-	private double bestCost;
+	private Solution bestSolution;
 	
 	/** Current iteration of the algorithm */
 	private int iteration;
@@ -45,9 +40,8 @@ public class BruteForce extends Algorithm {
 	 * @return the best solution; can be null
 	 */
 	@Override
-	public Job execute() {
+	public Solution execute() {
 		iteration = 0;
-		bestCost = Constants.REFERENCE_COST;
 		bestSolution = null;
 		getValueIterMap().clear();
 		
@@ -99,8 +93,8 @@ public class BruteForce extends Algorithm {
 				for(int j = 0; j < getNumberOfModules(); j++) {
 					for(int z = 0; z < getNumberOfModules(); z++) {
 						if(getmDependencyMap()[j][z] != 0) {
-							tupleRoutingMap[tmp][0] = Job.findModulePlacement(modulePlacementMap, j);
-							tupleRoutingMap[tmp++][getNumberOfNodes()-1] = Job.findModulePlacement(modulePlacementMap, z);
+							tupleRoutingMap[tmp][0] = Solution.findModulePlacement(modulePlacementMap, j);
+							tupleRoutingMap[tmp++][getNumberOfNodes()-1] = Solution.findModulePlacement(modulePlacementMap, z);
 						}
 					}
 				}
@@ -108,8 +102,8 @@ public class BruteForce extends Algorithm {
 		        int[][] migrationRoutingMap = new int[getNumberOfModules()][getNumberOfNodes()];
 		        
 				for(int j = 0; j < getNumberOfModules(); j++) {
-					migrationRoutingMap[j][0] = Job.findModulePlacement(isFirstOptimization() ? modulePlacementMap : currentPositionInt, j);
-					migrationRoutingMap[j][getNumberOfNodes()-1] = Job.findModulePlacement(modulePlacementMap, j);
+					migrationRoutingMap[j][0] = Solution.findModulePlacement(isFirstOptimization() ? modulePlacementMap : currentPositionInt, j);
+					migrationRoutingMap[j][getNumberOfNodes()-1] = Solution.findModulePlacement(modulePlacementMap, j);
 				}
 				
 				solveVmRouting(modulePlacementMap, tupleRoutingMap, migrationRoutingMap, 0, 1);
@@ -187,16 +181,10 @@ public class BruteForce extends Algorithm {
 		
 		// If tuple routing matrix is already filled analyze the following solution
 		if(row == max_r + 1 && col == 1) {			
-			Job job = new Job(this, new SingleObjectiveCostFunction(), modulePlacementMap, tupleRoutingMap, migrationRoutingMap);
+			Solution solution = new Solution(this, modulePlacementMap, tupleRoutingMap, migrationRoutingMap);
 			
-			if(job.getCost() < bestCost) {
-				bestCost = job.getCost();
-				bestSolution = new Job(job);
-    			getValueIterMap().put(iteration, bestCost);
-    			
-    			if(Config.PRINT_ALGORITHM_BEST_ITER)
-    				System.out.println("Iteration: " + iteration + " value: " + bestCost);
-			}
+			// Check whether the new individual is the new best solution
+    		bestSolution = Solution.checkBestSolution(this, solution, bestSolution, iteration);
 			
 			iteration++;
 			

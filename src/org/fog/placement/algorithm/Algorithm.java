@@ -110,6 +110,9 @@ public abstract class Algorithm {
 	/** Vector holding the quantity of storage resources needed in each application module */
 	private double mStrg[];
 	
+	/** Vector holding the migration deadline for each application module */
+	private double mMigD[];
+	
 	// Node to Node -------------------------------------------
 	
 	/** Matrix holding the link latency between each two fog nodes */
@@ -164,7 +167,7 @@ public abstract class Algorithm {
 	// Algorithm results --------------------------------------
 	
 	/** Map containing the correspondence between iteration and value in the execution of the optimization algorithm */
-	private Map<Integer, Double> valueIterMap;
+	private Map<Map<Integer, Integer>, Double> valueIterMap;
 	
 	/** Elapsed time during the execution of the optimization algorithm */
 	private long elapsedTime;
@@ -216,7 +219,7 @@ public abstract class Algorithm {
 	 * Initializes all variables with the correct lengths.
 	 */
 	private void init() {
-		valueIterMap = new HashMap<Integer, Double>();
+		valueIterMap = new HashMap<Map<Integer,Integer>, Double>();
 		
 		fId = new int[NR_NODES];
 		fName = new String[NR_NODES];
@@ -237,6 +240,7 @@ public abstract class Algorithm {
 		mMips = new double[NR_MODULES];
 		mRam = new double[NR_MODULES];
 		mStrg = new double[NR_MODULES];
+		mMigD = new double[NR_MODULES];
 		
 		fLatencyMap = new double[NR_NODES][NR_NODES];
 		fBandwidthMap = new double[NR_NODES][NR_NODES];
@@ -303,6 +307,7 @@ public abstract class Algorithm {
 					mName[i] = module.getName();
 					mRam[i] = module.getRam();
 					mStrg[i] = module.getSize();
+					mMigD[i] = module.getMigrationDeadline();
 					
 					if(module.isClientModule()) {
 						String[] parts = module.getName().split("_");
@@ -605,7 +610,7 @@ public abstract class Algorithm {
 	 * 
 	 * @return the best solution; can be null
 	 */
-	public abstract Job execute();
+	public abstract Solution execute();
 	
 	/**
 	 * Checks whether the node is valid. It is valid if, and only if, from the current node index towards the final node index
@@ -781,6 +786,15 @@ public abstract class Algorithm {
 	}
 	
 	/**
+	 * Gets the number of application loops.
+	 * 
+	 * @return the number of application loops
+	 */
+	public int getNumberOfLoops() {
+		return loops.length;
+	}
+	
+	/**
 	 * Checks whether the current optimization is the first one.
 	 * 
 	 * @return true it it is, otherwise false
@@ -949,6 +963,15 @@ public abstract class Algorithm {
 	 */
 	public double[] getmStrg() {
 		return mStrg;
+	}
+	
+	/**
+	 * Gets the the vector holding the migration deadline for each application module.
+	 * 
+	 * @return the vector holding the migration deadline for each application module
+	 */
+	public double[] getmMigD() {
+		return mMigD;
 	}
 	
 	/**
@@ -1127,7 +1150,7 @@ public abstract class Algorithm {
 	 * 
 	 * @return the value/iter map
 	 */
-	public Map<Integer, Double> getValueIterMap() {
+	public Map<Map<Integer,Integer>, Double> getValueIterMap() {
 		return valueIterMap;
 	}
 	

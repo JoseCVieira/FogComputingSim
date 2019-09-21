@@ -1,16 +1,14 @@
-package org.fog.placement.algorithm.random;
+package org.fog.placement.algorithm.rand;
 
 import java.util.List;
 
 import org.fog.application.Application;
 import org.fog.core.Config;
-import org.fog.core.Constants;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.placement.algorithm.Algorithm;
-import org.fog.placement.algorithm.Job;
-import org.fog.placement.algorithm.SingleObjectiveCostFunction;
+import org.fog.placement.algorithm.Solution;
 
 /**
  * Class in which defines and executes the random algorithm.
@@ -19,8 +17,7 @@ import org.fog.placement.algorithm.SingleObjectiveCostFunction;
  * @since  July, 2019
  */
 public class RandomAlgorithm extends Algorithm {
-	private Job bestSolution;
-	private double bestCost;
+	private Solution bestSolution;
 	private int iteration;
 
 	public RandomAlgorithm(List<FogDevice> fogDevices, List<Application> applications,
@@ -34,9 +31,8 @@ public class RandomAlgorithm extends Algorithm {
 	 * @return the best solution; can be null
 	 */
 	@Override
-	public Job execute() {
+	public Solution execute() {
 		iteration = 0;
-		bestCost = Constants.REFERENCE_COST;
 		bestSolution = null;
 		getValueIterMap().clear();
 		
@@ -49,26 +45,18 @@ public class RandomAlgorithm extends Algorithm {
 		int convergenceIter = 0;
 		boolean hasConverged = false;
 		while (iteration <= Config.MAX_ITER_RANDOM) {
-			Job job = Job.generateRandomJob(this, new SingleObjectiveCostFunction());
+			Solution solution = Solution.generateRandomSolution(this);
 			
 			// Check the convergence error
-			if(job.getCost() < Constants.REFERENCE_COST) {
-	    		if(Math.abs(bestCost - job.getCost()) <= Config.CONVERGENCE_ERROR) {
-	    			// If it found the same (or similar) solution a given number of times in a row break the loop
-					if(++convergenceIter == Config.MAX_ITER_CONVERGENCE_RANDOM)
-						hasConverged = true;
-				}else
-	    			convergenceIter = 0;
-			}
+			if(Solution.checkConvergence(solution, bestSolution)) {
+    			// If it found the same (or similar) solution a given number of times in a row break the loop
+				if(++convergenceIter == Config.MAX_ITER_CONVERGENCE_RANDOM)
+					hasConverged = true;
+			}else
+    			convergenceIter = 0;
 			
-			if(bestCost > job.getCost()) {
-				bestCost = job.getCost();
-    			getValueIterMap().put(iteration, bestCost);
-    			bestSolution = new Job(job);
-    			
-    			if(Config.PRINT_ALGORITHM_BEST_ITER)
-    				System.out.println("Iteration: " + iteration + " value: " + bestCost);
-			}
+    		// Check whether the new individual is the new best solution
+    		bestSolution = Solution.checkBestSolution(this, solution, bestSolution, iteration);
 			
 			if(hasConverged) break;
 			

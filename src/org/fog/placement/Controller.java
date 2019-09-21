@@ -21,7 +21,7 @@ import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.entities.Tuple;
 import org.fog.placement.algorithm.Algorithm;
-import org.fog.placement.algorithm.Job;
+import org.fog.placement.algorithm.Solution;
 import org.fog.utils.ExcelUtils;
 import org.fog.utils.FogEvents;
 import org.fog.utils.Location;
@@ -68,7 +68,7 @@ public class Controller extends SimEntity {
 	private Algorithm algorithm;
 	
 	/** Object which holds the results of the optimization algorithm */
-	private Job solution;
+	private Solution solution;
 	
 	/** Number of migrations performed during the whole simulation */
 	private int nrMigrations;
@@ -418,7 +418,6 @@ public class Controller extends SimEntity {
 		double distance = Location.computeDistance(mobile, to);
 		double rxPower = MobilePathLossModel.computeReceivedPower(distance);
 		Map<String, Double> map = MobileBandwidthModel.computeCommunicationBandwidth(1, rxPower);
-		
 		
 		String modulation = map.entrySet().iterator().next().getKey();
 		double bandwidth = map.entrySet().iterator().next().getValue();

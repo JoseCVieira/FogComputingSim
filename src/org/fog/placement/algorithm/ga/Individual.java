@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Random;
 
 import org.fog.core.Constants;
-import org.fog.placement.algorithm.Job;
+import org.fog.placement.algorithm.Solution;
 
 /**
  * Class representing individuals used within the genetic algorithm.
@@ -19,10 +19,7 @@ public class Individual implements Comparable<Individual> {
 	private GeneticAlgorithm ga;
 	
 	/** Object which contains the problem solution for the individual */
-	private Job chromosome;
-	
-	/** Result of the cost function */
-	private double fitness;
+	private Solution chromosome;
 	
 	/**
 	 * Creates a new individual with a given chromosome.
@@ -30,10 +27,9 @@ public class Individual implements Comparable<Individual> {
 	 * @param ga the object which holds all the information needed to run the optimization algorithm
 	 * @param chromosome the problem solution
 	 */
-	Individual(GeneticAlgorithm ga, Job chromosome) {
+	Individual(GeneticAlgorithm ga, Solution chromosome) {
 		this.ga = ga;
 		this.chromosome = chromosome;
-		this.fitness = chromosome.getCost();
 	}
 	
 	/**
@@ -52,10 +48,10 @@ public class Individual implements Comparable<Individual> {
         	
         	// If probability is less than 0.45, insert gene from one of the parents
             if (prob < 0.45)
-            	childModulePlacementMap[Job.findModulePlacement(modulePlacementMap, i)][i] = 1;
+            	childModulePlacementMap[Solution.findModulePlacement(modulePlacementMap, i)][i] = 1;
             // If probability is between 0.45 and 0.90, insert gene from the other parent
             else if (prob < 0.90)
-            	childModulePlacementMap[Job.findModulePlacement(parModulePlacementMap, i)][i] = 1;
+            	childModulePlacementMap[Solution.findModulePlacement(parModulePlacementMap, i)][i] = 1;
             // Otherwise insert random gene(mutate), for maintaining diversity
             else {
             	double[][] possibleDeployment = ga.getPossibleDeployment();
@@ -100,8 +96,8 @@ public class Individual implements Comparable<Individual> {
 				childTupleRoutingMap[i] = Arrays.copyOf(parTupleRoutingMap[i], nrFogNodes);
 			// Otherwise insert random gene(mutate), for maintaining diversity
 			else {
-				childTupleRoutingMap[i][0] = Job.findModulePlacement(modulePlacementMap, ga.getStartModDependency(i));
-				childTupleRoutingMap[i][nrFogNodes-1] = Job.findModulePlacement(modulePlacementMap, ga.getFinalModDependency(i));
+				childTupleRoutingMap[i][0] = Solution.findModulePlacement(modulePlacementMap, ga.getStartModDependency(i));
+				childTupleRoutingMap[i][nrFogNodes-1] = Solution.findModulePlacement(modulePlacementMap, ga.getFinalModDependency(i));
 		        
 				for(int j = 1; j < nrFogNodes - 1; j++) {
 					// If its already the final node, then just fill the remain ones
@@ -154,8 +150,8 @@ public class Individual implements Comparable<Individual> {
 				childMigrationRoutingMap[i] = Arrays.copyOf(parMigrationRoutingMap[i], nrFogNodes);
 			// Otherwise insert random gene(mutate), for maintaining diversity
 			else {
-				childMigrationRoutingMap[i][0] = Job.findModulePlacement(ga.isFirstOptimization() ? modulePlacementMap : currentPositionInt, i);
-				childMigrationRoutingMap[i][nrFogNodes-1] = Job.findModulePlacement(modulePlacementMap, i);
+				childMigrationRoutingMap[i][0] = Solution.findModulePlacement(ga.isFirstOptimization() ? modulePlacementMap : currentPositionInt, i);
+				childMigrationRoutingMap[i][nrFogNodes-1] = Solution.findModulePlacement(modulePlacementMap, i);
 					
 				for(int j = 1; j < nrFogNodes - 1; j++) { // Routing hop index
 					// If its already the final node, then just fill the remain ones
@@ -182,12 +178,9 @@ public class Individual implements Comparable<Individual> {
 		return childMigrationRoutingMap;
 	}
 	
-	/**
-	 * Compares two individuals based on it's fitness value (used to sort arrays of individuals).
-	 */
 	@Override
 	public int compareTo(Individual individual) {
-		return Double.compare(this.getFitness(), individual.getFitness());
+		return getChromosome().compareTo(individual.getChromosome());
 	}
 	
 	/**
@@ -195,17 +188,8 @@ public class Individual implements Comparable<Individual> {
 	 * 
 	 * @return the object which contains the problem solution for the individual
 	 */
-	Job getChromosome() {
+	Solution getChromosome() {
 		return chromosome;
-	}
-	
-	/**
-	 * Gets the result of the cost function.
-	 * 
-	 * @return the result of the cost function
-	 */
-	double getFitness() {
-		return fitness;
 	}
 	
 }

@@ -11,11 +11,11 @@ import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.placement.algorithm.Algorithm;
 import org.fog.placement.algorithm.util.AlgorithmUtils;
-import org.fog.placement.algorithm.Job;
+import org.fog.placement.algorithm.Solution;
 import org.fog.placement.algorithm.bf.BruteForce;
-import org.fog.placement.algorithm.lp.LinearProgramming;
 import org.fog.placement.algorithm.ga.GeneticAlgorithm;
-import org.fog.placement.algorithm.random.RandomAlgorithm;
+import org.fog.placement.algorithm.lp.LinearProgramming;
+import org.fog.placement.algorithm.rand.RandomAlgorithm;
 import org.fog.utils.ExcelUtils;
 import org.fog.utils.MatlabChartUtils;
 
@@ -40,7 +40,7 @@ public class ControllerAlgorithm {
 	private Algorithm algorithm;
 	
 	/** Object which holds the results of the optimization algorithm */
-	private Job solution;
+	private Solution solution;
 	
 	/** Id of the optimization algorithm chosen to be executed */
 	private int algorithmOp;
@@ -75,7 +75,7 @@ public class ControllerAlgorithm {
 					break;
 				case MOGA:
 					/*algorithmName = "Non Dominated Sorting Genetic Algorithm";
-					algorithm = new NSGA2(fogDevices, appList, sensors, actuators);
+					algorithm = new Test(fogDevices, appList, sensors, actuators);
 					break;*/
 				case GA:
 					algorithmName = "Genetic Algorithm";
@@ -105,7 +105,7 @@ public class ControllerAlgorithm {
 		if(Config.PRINT_ALGORITHM_RESULTS)
 	    	AlgorithmUtils.printAlgorithmResults(algorithm, solution);
 		
-		if(Config.PLOT_ALGORITHM_RESULTS)
+		if(Config.PLOT_ALGORITHM_RESULTS && !algorithmName.equals("Multi-objective Linear Programming"))
 			new MatlabChartUtils(algorithm, algorithmName);
 		
 		if(Config.EXPORT_RESULTS_EXCEL) {
@@ -140,7 +140,7 @@ public class ControllerAlgorithm {
 	 * 
 	 * @return the results of the optimization algorithm
 	 */
-	public Job getSolution() {
+	public Solution getSolution() {
 		return solution;
 	}
 	
@@ -149,7 +149,7 @@ public class ControllerAlgorithm {
 	 * 
 	 * @param solution the results of the optimization algorithm
 	 */
-	public void setSolution(Job solution) {
+	public void setSolution(Solution solution) {
 		this.solution = solution;
 	}
 	

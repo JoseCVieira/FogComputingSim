@@ -1,7 +1,5 @@
 package org.fog.placement.algorithm;
 
-import java.util.ArrayList;
-
 import org.fog.core.Config;
 import org.fog.core.Constants;
 import org.fog.core.FogComputingSim;
@@ -20,13 +18,14 @@ public class Constraints {
 	 * Verifies if all constraints are met.
 	 * 
 	 * @param algorithm object which contains all information about the topology and which algorithm was used
-	 * @param modulePlacementMap matrix which represents the next module placement
-	 * @param tupleRoutingMap matrix which contains the routing for each module pair dependency
-	 * @param migrationRoutingMap matrix which contains the routing for each module migration
+	 * @param solution the solution found
 	 * @return the number of violations times a constant
 	 */
-	public static double checkConstraints(final Algorithm algorithm, final int[][] modulePlacementMap,
-			final int[][] tupleRoutingMap, final int[][] migrationRoutingMap) {
+	public static double checkConstraints(final Algorithm algorithm, Solution solution) {
+		int[][] modulePlacementMap = solution.getModulePlacementMap();
+		int[][] tupleRoutingMap = solution.getTupleRoutingMap();
+		int[][] migrationRoutingMap = solution.getMigrationRoutingMap();
+		
 		Constraints.checkVariableSizeType(algorithm, modulePlacementMap, tupleRoutingMap, migrationRoutingMap);
 		
 		double constraint = checkResourcesExceeded(algorithm, modulePlacementMap);
@@ -35,8 +34,8 @@ public class Constraints {
 		constraint += checkDependencies(algorithm, modulePlacementMap, tupleRoutingMap);
 		constraint += checkBandwidth(algorithm, tupleRoutingMap);
 		constraint += checkMigration(algorithm, modulePlacementMap, migrationRoutingMap);
-		constraint += checkLoopDeadlines(algorithm, modulePlacementMap, tupleRoutingMap);
-		constraint += checkMigrationDeadlines(algorithm, modulePlacementMap, migrationRoutingMap);
+		constraint += checkLoopDeadlines(algorithm, solution, modulePlacementMap, tupleRoutingMap);
+		constraint += checkMigrationDeadlines(algorithm, solution, modulePlacementMap, migrationRoutingMap);
 		
 		return constraint;
 	}
@@ -113,9 +112,6 @@ public class Constraints {
 			violations += Constants.REFERENCE_COST;
 		}
 		
-		if(violations != 0 && Config.PRINT_ALGORITHM_CONSTRAINTS)
-			System.out.println("Solution has at least one module placed which is exceeding the machine resources");
-		
 		return violations;
 	}
 	
@@ -135,9 +131,6 @@ public class Constraints {
 				violations += Constants.REFERENCE_COST;
 			}
 		}
-		
-		if(violations != 0 && Config.PRINT_ALGORITHM_CONSTRAINTS)
-			System.out.println("Solution does not respect possible deployment");
 		
 		return violations;
 	}
@@ -164,9 +157,6 @@ public class Constraints {
 			violations += Constants.REFERENCE_COST;
 		}
 		
-		if(violations != 0 && Config.PRINT_ALGORITHM_CONSTRAINTS)
-			System.out.println("Solution has at least one module placed in multiple machines or has not been deployed");
-		
 		return violations;
 	}
 	
@@ -186,8 +176,8 @@ public class Constraints {
 			for(int j = 0; j < algorithm.getNumberOfModules(); j++) {
 				if(algorithm.getmDependencyMap()[i][j] == 0) continue;
 				
-				int startNodeIndex = Job.findModulePlacement(modulePlacementMap, i);
-				int destNodeIndex = Job.findModulePlacement(modulePlacementMap, j);
+				int startNodeIndex = Solution.findModulePlacement(modulePlacementMap, i);
+				int destNodeIndex = Solution.findModulePlacement(modulePlacementMap, j);
 				
 				if(tupleRoutingMap[tmp][0] != startNodeIndex) {
 					violations += Constants.REFERENCE_COST;
@@ -205,9 +195,6 @@ public class Constraints {
 				tmp++;
 			}
 		}
-		
-		if(violations != 0 && Config.PRINT_ALGORITHM_CONSTRAINTS)
-			System.out.println("Solution has at least one dependency which is not accomplished by the tuple routing map");
 		
 		return violations;
 	}
@@ -240,9 +227,6 @@ public class Constraints {
 			}
 		}
 		
-		if(violations != 0 && Config.PRINT_ALGORITHM_CONSTRAINTS)
-			System.out.println("Solution has at least one links which is overloaded by the tuple routing map");
-		
 		return violations;
 	}
 	
@@ -261,8 +245,8 @@ public class Constraints {
 		boolean firstOpt = algorithm.isFirstOptimization();
 		
 		for(int i = 0; i < algorithm.getNumberOfModules(); i++) {
-			int startNodeIndex = Job.findModulePlacement(firstOpt == false ? currentPlacement : modulePlacementMap, i);
-			int destNodeIndex = Job.findModulePlacement(modulePlacementMap, i);
+			int startNodeIndex = Solution.findModulePlacement(firstOpt == false ? currentPlacement : modulePlacementMap, i);
+			int destNodeIndex = Solution.findModulePlacement(modulePlacementMap, i);
 			
 			if(migrationRoutingMap[i][0] != startNodeIndex) {
 				violations += Constants.REFERENCE_COST;
@@ -278,9 +262,6 @@ public class Constraints {
 			}
 		}
 		
-		if(violations != 0 && Config.PRINT_ALGORITHM_CONSTRAINTS)
-			System.out.println("Solution has at least one migration which is not accomplished by the migration routing map");
-		
 		return violations;
 	}
 	
@@ -293,48 +274,25 @@ public class Constraints {
 	 * @param migrationRoutingMap matrix which contains the routing for each module migration
 	 * @return the number of violations times a constant (zero if this constraint has been respected)
 	 */
-	private static double checkLoopDeadlines(final Algorithm algorithm, final int[][] modulePlacementMap, final int[][] tupleRoutingMap) {
+	private static double checkLoopDeadlines(final Algorithm algorithm, Solution solution , final int[][] modulePlacementMap,
+			final int[][] tupleRoutingMap) {
 		double violations = 0;
 		int [][] loops = algorithm.getLoops();
-		ArrayList<Double> loopWorstLat = new ArrayList<Double>();
 		
-		for(int i = 0; i < loops.length; i++) { // Loop index
+		for(int i = 0; i < algorithm.getNumberOfLoops(); i++) { // Loop index
 			double latency = 0;
 			
 			for(int j = 0; j < algorithm.getNumberOfModules() - 1; j++) { // Module index
 				if(loops[i][j+1] == -1) break;
 				
 				latency += computeProcessingLatency(algorithm, modulePlacementMap, loops[i][j+1]);
-				latency += computeDependencyLatency(algorithm, modulePlacementMap, tupleRoutingMap, loops[i][j], loops[i][j+1]);
+				latency += computeDependencyLatency(algorithm, tupleRoutingMap, loops[i][j], loops[i][j+1]);
 				
 				if(latency <= algorithm.getLoopsDeadline()[i]) continue;
 				violations += Constants.REFERENCE_COST;
 			}
 			
-			loopWorstLat.add(latency);
-		}
-		
-		if(Config.PRINT_ALGORITHM_CONSTRAINTS) {
-			if(violations != 0)
-				System.out.println("Solution has at least one loop deadline which is not accomplished");
-			
-			int i = 0;
-			for(double lat : loopWorstLat) {
-				System.out.print("Loop " + i + ": [ " );
-				
-				for(int j = 0; j < algorithm.getNumberOfModules(); j++) {
-					if(j == algorithm.getNumberOfModules() - 1 || loops[i][j+1] == -1) {
-						System.out.print(algorithm.getmName()[loops[i][j]] + " ]");
-						break;
-					}
-					System.out.print(algorithm.getmName()[loops[i][j]] + " -> ");
-				}
-				
-				System.out.print("\t Worst case latency: " + lat + " sec\t Deadline: " + algorithm.getLoopsDeadline()[i] + " sec\n");
-				i++;
-			}
-			
-			System.out.println("\n");
+			solution.setLoopDeadline(i, latency);
 		}
 		
 		return violations;
@@ -351,33 +309,31 @@ public class Constraints {
 	private static double computeProcessingLatency(final Algorithm algorithm, final int[][] modulePlacementMap, final int moduleIndex) {
 		if(algorithm.getmMips()[moduleIndex] == 0) return 0;
 
-		int nodeIndex = Job.findModulePlacement(modulePlacementMap, moduleIndex);
-		int totalMis = 0;
+		int nodeIndex = Solution.findModulePlacement(modulePlacementMap, moduleIndex);
+		double totalMis = 0;
 
 		for(int i = 0; i < algorithm.getNumberOfModules(); i++) {
 			if(algorithm.getmMips()[i] == 0) continue; // Sensor and actuator modules does not count
-			if(Job.findModulePlacement(modulePlacementMap, i) != nodeIndex) continue; // Only matter the ones deployed in the same node
+			if(Solution.findModulePlacement(modulePlacementMap, i) != nodeIndex) continue; // Only matter the ones deployed in the same node
 
 			for(int j = 0; j < algorithm.getNumberOfModules(); j++) {
 				totalMis += algorithm.getmCPUMap()[j][i];
 			}
 		}
 		
-		return totalMis/algorithm.getfMips()[nodeIndex];
+		return totalMis/(algorithm.getfMips()[nodeIndex]*Config.MIPS_PERCENTAGE_UTIL);
 	}
 	
 	/**
 	 * Computes the transmission tuple latency for the worst case scenario between a pair of modules.
 	 * 
 	 * @param algorithm object which contains all information about the topology and which algorithm was used
-	 * @param modulePlacementMap matrix which represents the next module placement
 	 * @param tupleRoutingMap matrix which contains the routing for each module pair dependency
 	 * @param moduleIndex1 index of the starting module to be analyzed
 	 * @param moduleIndex2 index of the destination module to be analyzed
 	 * @return the transmission tuple latency for the worst case scenario between a pair of modules
 	 */
-	private static double computeDependencyLatency(final Algorithm algorithm, final int[][] modulePlacementMap, final int[][] tupleRoutingMap,
-			final int moduleIndex1, final int moduleIndex2) {
+	private static double computeDependencyLatency(final Algorithm algorithm, final int[][] tupleRoutingMap, final int moduleIndex1, final int moduleIndex2) {
 		double latency = 0;
 		int depIndex = -1;
 		
@@ -393,7 +349,7 @@ public class Constraints {
 			FogComputingSim.err("Should not happen (Constraints)");
 		
 		// For each Link, in the tuple routing map sum the total latency
-		for (int i = 0; i < algorithm.getNumberOfNodes() - 1; i++) { // Node index
+		for (int i = 0; i < algorithm.getNumberOfNodes() - 1; i++) {
 			int start = tupleRoutingMap[depIndex][i];
 			int end = tupleRoutingMap[depIndex][i+1];
 			
@@ -428,7 +384,8 @@ public class Constraints {
 	 * @param moduleIndex index of the module to be analyzed
 	 * @return the module migration latency for the worst case scenario
 	 */
-	private static double checkMigrationDeadlines(final Algorithm algorithm, final int[][] modulePlacementMap, final int[][] migrationRoutingMap) {
+	private static double checkMigrationDeadlines(final Algorithm algorithm , Solution solution, final int[][] modulePlacementMap,
+			final int[][] migrationRoutingMap) {
 		double violations = 0;
 		
 		for (int i = 0; i < algorithm.getNumberOfModules(); i++) {
@@ -442,12 +399,16 @@ public class Constraints {
 				if(start == end) continue;
 				
 				double lat = algorithm.getfLatencyMap()[start][end];
-				double bw = algorithm.getfBandwidthMap()[start][end];
+				double bw = algorithm.getfBandwidthMap()[start][end]*(1-Config.BW_PERCENTAGE_UTIL) + Constants.EPSILON;
 				
 				latency += lat + size/bw;
 			}
 			
-			if(latency <= 20) continue;
+			if(latency != 0) latency += Config.SETUP_VM_TIME;
+			
+			solution.setMigrationDeadline(i, latency);
+			
+			if(latency <= algorithm.getmMigD()[i]) continue;
 			violations += Constants.REFERENCE_COST;
 		}
 		
