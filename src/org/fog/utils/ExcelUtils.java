@@ -25,8 +25,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.fog.core.Config;
 import org.fog.entities.FogDevice;
 import org.fog.placement.Controller;
-import org.fog.placement.algorithm.Job;
-import org.fog.placement.algorithm.MultiObjectiveJob;
+import org.fog.placement.algorithm.Solution;
 
 /**
  * Class which is responsible for exporting both the algorithm and simulation results to the output excel file.
@@ -52,7 +51,7 @@ public class ExcelUtils {
 	 * @param algName the name of the algorithm used
 	 * @throws IOException if the file does not exists
 	 */
-	public static void writeExcel(Job solution, String algName, long time) throws IOException {
+	public static void writeExcel(Solution solution, String algName, long time) throws IOException {
 		File file = new File(filePath);
 		file.createNewFile(); // If the named file does not exist create it
 		
@@ -84,7 +83,6 @@ public class ExcelUtils {
 		    	createTitleCell(sheet, row, cellIndex++, 85, Config.objectiveNames[i] + " value");
 		    }
 		    
-		    createTitleCell(sheet, row, cellIndex++, 100, "Total");
 		    createTitleCell(sheet, row, cellIndex++, 150, "Time stamp");
 		    
 		    if(SIMULATION_ID == -1) {
@@ -189,7 +187,7 @@ public class ExcelUtils {
 	 * @param solution the solution to be written
 	 * @param algName the algorithm name used
 	 */
-	private static void writeSolution(Sheet sheet, int rowIndex, Job solution, String algName, long time) {
+	private static void writeSolution(Sheet sheet, int rowIndex, Solution solution, String algName, long time) {
 		DecimalFormat df = new DecimalFormat("0.00000");
 		
 		Row row = sheet.createRow(rowIndex);
@@ -202,23 +200,12 @@ public class ExcelUtils {
 	    createCell(sheet, row, cellIndex++, algName, HorizontalAlignment.CENTER);
 	    createCell(sheet, row, cellIndex++, Long.toString(time), HorizontalAlignment.RIGHT);
 	    
-	    if(solution instanceof MultiObjectiveJob) {
-	    	MultiObjectiveJob sol = (MultiObjectiveJob) solution;
-		    for(int i = 0; i < Config.NR_OBJECTIVES; i++) {
-		    	 createCell(sheet, row, cellIndex++, Integer.toString(Config.priorities[i]), HorizontalAlignment.CENTER);
-		    }
-		    
-		    for(int i = 0; i < Config.NR_OBJECTIVES; i++) {
-		    	createCell(sheet, row, cellIndex++, df.format(sol.getDetailedCost(i)), HorizontalAlignment.RIGHT);
-		    }
-		    
-		    createCell(sheet, row, cellIndex++, "NA", HorizontalAlignment.CENTER);
-	    }else {
-	    	for(int i = 0; i < Config.NR_OBJECTIVES*2; i++) {
-	    		createCell(sheet, row, cellIndex++, "NA", HorizontalAlignment.CENTER);
-	    	}
-	    	
-	    	createCell(sheet, row, cellIndex++, df.format(solution.getCost()), HorizontalAlignment.RIGHT);
+	    for(int i = 0; i < Config.NR_OBJECTIVES; i++) {
+	    	 createCell(sheet, row, cellIndex++, Integer.toString(Config.priorities[i]), HorizontalAlignment.CENTER);
+	    }
+	    
+	    for(int i = 0; i < Config.NR_OBJECTIVES; i++) {
+	    	createCell(sheet, row, cellIndex++, df.format(solution.getDetailedCost(i)), HorizontalAlignment.RIGHT);
 	    }
 	    
 	    String timeStamp = new SimpleDateFormat("HH:mm:ss @ dd.MM.yyyy", Locale.US).format(new Date());
