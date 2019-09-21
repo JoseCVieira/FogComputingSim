@@ -1,6 +1,5 @@
 package org.fog.utils;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Point;
@@ -15,7 +14,7 @@ import javax.swing.JToolTip;
 import javax.swing.Popup;
 import javax.swing.PopupFactory;
 
-import org.fog.core.Constants;
+import org.fog.core.Config;
 import org.fog.placement.algorithm.Algorithm;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartMouseEvent;
@@ -42,15 +41,11 @@ public class MatlabChartUtils extends JFrame implements ChartMouseListener {
 	
 	Popup popup;
 	
-	Map<Integer, Double> valueIterMap;
+	Map<Map<Integer, Integer>, Double> valueIterMap;
 	ChartPanel chartPanel;
 	
 	public MatlabChartUtils(final Algorithm al, final String title) {
 		valueIterMap = al.getValueIterMap();
-		
-		for(Integer i : valueIterMap.keySet()) {
-			System.out.println("Iter: " + i + " Value: " + valueIterMap.get(i));
-		}
 		
     	XYDataset dataset = createDataset();
         JFreeChart chart = createChart(dataset);
@@ -69,20 +64,22 @@ public class MatlabChartUtils extends JFrame implements ChartMouseListener {
     }
 	
     private XYDataset createDataset() {
-        XYSeries series = new XYSeries("BestValue");
-		
-		for(Integer iter : valueIterMap.keySet()) {			
-			double value = valueIterMap.get(iter);
-			
-			if(value >= Constants.REFERENCE_COST)
-				continue;
-			
-			series.add((double) iter, value);
-		}
-        
-        XYSeriesCollection dataset = new XYSeriesCollection();
-        dataset.addSeries(series);
-        
+    	XYSeriesCollection dataset = new XYSeriesCollection();
+    	
+    	for(int i  = 0; i < Config.NR_OBJECTIVES; i++) {
+    		XYSeries series = new XYSeries(Config.objectiveNames[i]);
+    		
+    		for(Map<Integer, Integer> map : valueIterMap.keySet()) {
+    			if(map.entrySet().iterator().next().getKey() != i) continue;
+    			
+    			int iter = map.entrySet().iterator().next().getValue();
+    			double value = valueIterMap.get(map);
+    			series.add((double) iter, value);
+    		}
+    		
+    		dataset.addSeries(series);
+    	}
+    	
         return dataset;
     }
     
@@ -102,8 +99,8 @@ public class MatlabChartUtils extends JFrame implements ChartMouseListener {
         XYPlot plot = chart.getXYPlot();
         
         XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
-        renderer.setSeriesPaint(0, Color.RED);
-        renderer.setSeriesStroke(0, new BasicStroke(1.0f));
+        /*renderer.setSeriesPaint(0, Color.RED);
+        renderer.setSeriesStroke(0, new BasicStroke(1.0f));*/
         
         plot.setRenderer(renderer);
         plot.setBackgroundPaint(Color.white);
@@ -138,7 +135,7 @@ public class MatlabChartUtils extends JFrame implements ChartMouseListener {
 				popup.hide();
 			}
 			
-			new PopUpToolTip(new Point(x, y), chartPanel, "Iter: " + point.getX() + ", Value: " + String.format("%.5f", point.getY()) + "");
+			new PopUpToolTip(new Point(x, y), chartPanel, "Iter: " + (int) point.getX() + ", Value: " + String.format("%.10f", point.getY()) + "");
 			popup.show();
 		}else if(popup != null) {
 			popup.hide();
@@ -153,8 +150,9 @@ public class MatlabChartUtils extends JFrame implements ChartMouseListener {
 		x = (int) p.getX();
 		y = (int) p.getY();
 		
-		for(Integer iter : valueIterMap.keySet()) {		
-			double value = valueIterMap.get(iter);
+		for(Map<Integer, Integer> map : valueIterMap.keySet()) {
+			int iter = map.entrySet().iterator().next().getValue();
+			double value = valueIterMap.get(map);
 			
 			double xx = plot.getDomainAxis().valueToJava2D(iter, dataArea, plot.getDomainAxisEdge());
 		    double yy = plot.getRangeAxis().valueToJava2D(value, dataArea, plot.getRangeAxisEdge());
@@ -162,7 +160,7 @@ public class MatlabChartUtils extends JFrame implements ChartMouseListener {
 		    if(x <= xx + 6 && x >= xx - 6 && y <= yy + 6 && y >= yy - 6) {
 		    	return new Point2D.Double(iter, value);
 		    }
-		}
+		}		
 		return null;
 	}
 	
