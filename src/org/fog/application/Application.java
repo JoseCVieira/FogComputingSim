@@ -50,9 +50,12 @@ public class Application {
 	 * Adds an application module to the application.
 	 * 
 	 * @param moduleName the module name
-	 * @param ram the ram size [Byte] needed to run this module
+	 * @param ram ram the ram size [Byte] needed to run this module
+	 * @param migrationDeadline the maximum allowed time to spend in each migration
+	 * @param clientModule if the application module is a global module
+	 * @param glogbalModule if the application global is a global module
 	 */
-	public void addAppModule(String moduleName, int ram, boolean clientModule, boolean glogbalModule) {
+	public void addAppModule(String moduleName, int ram, double migrationDeadline, boolean clientModule, boolean glogbalModule) {
 		int mips = 0;
 		long size = 10000;
 		long bw = 0;
@@ -61,9 +64,8 @@ public class Application {
 		if(clientModule && glogbalModule)
 			FogComputingSim.err("Modules cannot be simultaneously client module and global module");
 			
-		AppModule module = new AppModule(FogUtils.generateEntityId(), moduleName, appId, -1, 
-			mips, ram, bw, size, vmm, new CloudletSchedulerTimeShared(), new HashMap<Pair<String, String>, SelectivityModel>(),
-			clientModule, glogbalModule);
+		AppModule module = new AppModule(FogUtils.generateEntityId(), moduleName, appId, -1, mips, ram, bw, size, migrationDeadline, vmm,
+				new CloudletSchedulerTimeShared(), new HashMap<Pair<String, String>, SelectivityModel>(), clientModule, glogbalModule);
 		
 		getModules().add(module);
 	}
@@ -81,12 +83,12 @@ public class Application {
 			FogComputingSim.err("Modules cannot be simultaneously client module and global module");
 		
 		if(m.isGlobalModule()) {
-			module = new AppModule(FogUtils.generateEntityId(), m.getName(), appId, nodeId, 
-					m.getMips(), m.getRam(), m.getBw(), m.getSize(), m.getVmm(), new CloudletSchedulerTimeShared(),
+			module = new AppModule(FogUtils.generateEntityId(), m.getName(), appId, nodeId, m.getMips(), m.getRam(), m.getBw(),
+					m.getSize(), m.getMigrationDeadline(), m.getVmm(), new CloudletSchedulerTimeShared(),
 					new HashMap<Pair<String, String>, SelectivityModel>(), m.isClientModule(), m.isGlobalModule());
 		}else {
-			module = new AppModule(FogUtils.generateEntityId(), m.getName() + "_" + nodeId, appId, nodeId, 
-				m.getMips(), m.getRam(), m.getBw(), m.getSize(), m.getVmm(), new CloudletSchedulerTimeShared(),
+			module = new AppModule(FogUtils.generateEntityId(), m.getName() + "_" + nodeId, appId, nodeId, m.getMips(), m.getRam(),
+					m.getBw(), m.getSize(), m.getMigrationDeadline(), m.getVmm(), new CloudletSchedulerTimeShared(),
 				new HashMap<Pair<String, String>, SelectivityModel>(), m.isClientModule(), m.isGlobalModule());
 		}
 		

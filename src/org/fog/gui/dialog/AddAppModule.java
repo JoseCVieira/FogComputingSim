@@ -51,6 +51,9 @@ public class AddAppModule extends JDialog {
 	/** Ram needed to support the module */
 	private JTextField moduleRam;
 	
+	/** Maximum allowed time to spend in each migration */
+	private JTextField moduleMigDeadline;
+	
 	/**
 	 * Denotes if the application module is a client module.
 	 * Client modules only run inside the client device (e.g., Graphical User Interface)
@@ -136,6 +139,7 @@ public class AddAppModule extends JDialog {
 				String error_msg = "", name_ = "";
 				int ram_ = -1;
 				boolean clientModule_ = false, globalModule_ = false;
+				double migrationDeadline_;
 				
 				if (Util.validString(moduleName.getText())) {
 					if(module == null || (module != null && !module.getName().equals(moduleName.getText()))) {		
@@ -150,11 +154,13 @@ public class AddAppModule extends JDialog {
 					error_msg += "Name cannot contain spaces\n";
 				
 				if (!Util.validString(moduleRam.getText())) error_msg += "Missing Ram\n";
+				if (!Util.validString(moduleMigDeadline.getText())) error_msg += "Missing migration deadline\n";
 				if (!Util.validString((String) clientModule.getSelectedItem())) error_msg += GuiMsg.errMissing("Client module");
 				if (!Util.validString((String) globalModule.getSelectedItem())) error_msg += GuiMsg.errMissing("Global module");
 				
 				name_ = moduleName.getText();
 				if((ram_ = Util.stringToInt(moduleRam.getText())) < 0) error_msg += GuiMsg.errFormat("Ram");
+				if((migrationDeadline_ = Util.stringToDouble(moduleMigDeadline.getText())) < 0) error_msg += GuiMsg.errFormat("Migration deadline");
 				
 				if(error_msg == "") {
 					clientModule_ = ((String) clientModule.getSelectedItem()).equals("YES") ? true : false;
@@ -166,9 +172,9 @@ public class AddAppModule extends JDialog {
 				
 				if(error_msg == ""){
 					if(module != null)
-						module.setValues(name_, ram_, clientModule_, globalModule_);
+						module.setValues(name_, ram_, migrationDeadline_, clientModule_, globalModule_);
 					else
-						app.addAppModule(name_, ram_, clientModule_, globalModule_);
+						app.addAppModule(name_, ram_, migrationDeadline_, clientModule_, globalModule_);
 					setVisible(false);
 				}else
 					GuiUtils.prompt(AddAppModule.this, error_msg, "Error");
@@ -200,6 +206,7 @@ public class AddAppModule extends JDialog {
         
         String nameOp = module == null ? "" : module.getName();
         String ramOp = module == null ? Integer.toString(GuiConfig.MODULE_RAM) : Integer.toString(module.getRam());
+        String migDeadlineOp = module == null ? Double.toString(GuiConfig.MODULE_MIG_DEADLINE) : Double.toString(module.getMigrationDeadline());
         String clientOp = "", globalOp = "";
         
         if(module != null) {
@@ -212,11 +219,12 @@ public class AddAppModule extends JDialog {
         
         moduleName = GuiUtils.createInput(springPanel, moduleName, "Name: ", nameOp, GuiMsg.TipModName);
         moduleRam = GuiUtils.createInput(springPanel, moduleRam, "Ram [Byte]: ", ramOp, GuiMsg.TipModRam);
+        moduleMigDeadline = GuiUtils.createInput(springPanel, moduleMigDeadline, "Mig. Deadline [s]: ", migDeadlineOp, GuiMsg.TipModMig);
         clientModule = GuiUtils.createDropDown(springPanel, clientModule, "Client module: ", clientModuleModel, clientOp, GuiMsg.TipModClient);
         globalModule = GuiUtils.createDropDown(springPanel, globalModule, "Global module: ", globalModuleModel, globalOp, GuiMsg.TipModGlobal);        
         
 		//rows, cols, initX, initY, xPad, yPad
-        SpringUtilities.makeCompactGrid(springPanel, 4, 2, 6, 6, 6, 6);
+        SpringUtilities.makeCompactGrid(springPanel, 5, 2, 6, 6, 6, 6);
 		return springPanel;
 	}
 }

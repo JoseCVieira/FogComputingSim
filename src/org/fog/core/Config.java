@@ -16,7 +16,7 @@ public class Config {
 	public static boolean PRINT_ALGORITHM_BEST_ITER = true;
 	
 	/** Defines whether the details of the constraints of each iteration are printed */
-	public static boolean PRINT_ALGORITHM_CONSTRAINTS = false;
+	public static boolean PRINT_ALGORITHM_CONSTRAINTS = true;
 	
 	/** Defines whether the final result of the algorithm (i.e., the best solution) is printed */
 	public static boolean PRINT_ALGORITHM_RESULTS = true;
@@ -25,7 +25,7 @@ public class Config {
 	public static boolean PLOT_ALGORITHM_RESULTS = false;
 	
 	/** Defines whether the output values are written to the excel file */
-	public static boolean EXPORT_RESULTS_EXCEL = true;
+	public static boolean EXPORT_RESULTS_EXCEL = false;
 	
 	/** Defines the percentage of available resources for "normal" operations, the remaining resources are allocated for control operations and migrations */
 	public static final double MIPS_PERCENTAGE_UTIL = 0.95;
@@ -90,7 +90,7 @@ public class Config {
 	};
 	
 	/** Absolute error value in which is considered that two solutions are equal */
-	public static final double CONVERGENCE_ERROR = 0.1;
+	public static final double CONVERGENCE_ERROR = 0.00001;
 	
 	// Genetic algorithm --------------------------------------
 	
@@ -98,16 +98,16 @@ public class Config {
 	public static final int POPULATION_SIZE_GA = 15;
 	
 	/** Maximum number of iterations to solve the module placement through genetic algorithm */
-	public static final int MAX_ITER_PLACEMENT_GA = 100;
+	public static final int MAX_ITER_PLACEMENT_GA = 100000;
 	
 	/** Maximum number of iterations to solve the tuple routing through genetic algorithm */
-	public static final int MAX_ITER_ROUTING_GA = 10;
+	public static final int MAX_ITER_ROUTING_GA = 500;
 	
 	/** Maximum number of equal cost solutions of module placement through genetic algorithm to stop it */
-	public static final int MAX_ITER_PLACEMENT_CONVERGENCE_GA = 3;
+	public static final int MAX_ITER_PLACEMENT_CONVERGENCE_GA = 20;
 	
 	/** Maximum number of equal cost solutions of tuple routing through genetic algorithm to stop it */
-	public static final int MAX_ITER_ROUTING_CONVERGENCE_GA = 3;
+	public static final int MAX_ITER_ROUTING_CONVERGENCE_GA = 20;
 	
 	// Random algorithm ---------------------------------------
 	
@@ -115,7 +115,7 @@ public class Config {
 	public static final int MAX_ITER_RANDOM = 100000;
 	
 	/** Maximum number of equal cost solutions of the problem through random algorithm to stop it */
-	public static final int MAX_ITER_CONVERGENCE_RANDOM = 10;
+	public static final int MAX_ITER_CONVERGENCE_RANDOM = 20;
 	
 	// ------------------------------------------------------------ Simulation -------------------------------------------------------------
 	

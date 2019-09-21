@@ -104,6 +104,9 @@ public class GuiConfig {
 	/** Mean of the memory of the modules normal distribution */
 	public static int MODULE_RAM = 2*1024*1024;
 	
+	/** Maximum allowed time to spend in each migration */
+	public static int MODULE_MIG_DEADLINE = 50;
+	
 	// Application edge ---------------------------------------
 	
 	/** Default CPU length value for the tuples */

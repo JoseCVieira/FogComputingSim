@@ -23,9 +23,9 @@ public class ApplicationsExample {
 	@SuppressWarnings("serial")
 	public static void createExampleApplications() {
 		Application application = new Application("VRGame");
-		application.addAppModule("client", 100, true, false);
-		application.addAppModule("calculator", 100, false, false);
-		application.addAppModule("connector", 100, false, false);
+		application.addAppModule("client", 100, 25, true, false);
+		application.addAppModule("calculator", 100, 30, false, false);
+		application.addAppModule("connector", 100, 30, false, false);
 		
 		application.addAppEdge("EEG", "client", 3000, 500, "EEG", AppEdge.SENSOR);
 		application.addAppEdge("client", "calculator", 3500, 500, "_SENSOR", AppEdge.MODULE);
@@ -40,15 +40,15 @@ public class ApplicationsExample {
 		application.addTupleMapping("calculator", "_SENSOR", "CONCENTRATION", new FractionalSelectivity(1.0));
 		application.addTupleMapping("client", "GLOBAL_GAME_STATE", "GLOBAL_STATE_UPDATE", new FractionalSelectivity(1.0));
 		
-		final AppLoop loop1 = new AppLoop(new ArrayList<String>(){{add("EEG");add("client");add("calculator");add("client");add("DISPLAY");}}, 100);
+		final AppLoop loop1 = new AppLoop(new ArrayList<String>(){{add("EEG");add("client");add("calculator");add("client");add("DISPLAY");}}, 10000);
 		List<AppLoop> loops = new ArrayList<AppLoop>(){{add(loop1);}};
 		application.setLoops(loops);
 		exampleApplications.add(application);
 		
 		application = new Application("VRGame_MP");
-		application.addAppModule("client_MP", 100, true, false);
-		application.addAppModule("calculator_MP", 100, false, false);
-		application.addAppModule("connector_MP", 100, false, true);
+		application.addAppModule("client_MP", 100, 25, true, false);
+		application.addAppModule("calculator_MP", 100, 30, false, false);
+		application.addAppModule("connector_MP", 100, 30, false, true);
 		
 		application.addAppEdge("EEG_MP", "client_MP", 3000, 500, "EEG_MP", AppEdge.SENSOR);
 		application.addAppEdge("client_MP", "calculator_MP", 3500, 500, "_SENSOR_MP", AppEdge.MODULE);
@@ -69,10 +69,10 @@ public class ApplicationsExample {
 		exampleApplications.add(application);
 		
 		application = new Application("DCNS");
-		application.addAppModule("object_detector", 100, false, false);
-		application.addAppModule("motion_detector", 100, false, false);
-		application.addAppModule("object_tracker", 100, false, false);
-		application.addAppModule("user_interface", 100, true, false);
+		application.addAppModule("object_detector", 100, 30, false, false);
+		application.addAppModule("motion_detector", 100, 30, false, false);
+		application.addAppModule("object_tracker", 100, 30, false, false);
+		application.addAppModule("user_interface", 100, 25, true, false);
 		
 		application.addAppEdge("CAMERA", "motion_detector", 1000, 20000, "CAMERA", AppEdge.SENSOR);
 		application.addAppEdge("motion_detector", "object_detector", 2000, 2000, "MOTION_VIDEO_STREAM", AppEdge.MODULE);
@@ -91,9 +91,9 @@ public class ApplicationsExample {
 		exampleApplications.add(application);
 		
 		application = new Application("TEMP");
-		application.addAppModule("client", 100, false, false);
-		application.addAppModule("classifier", 100, false, false);
-		application.addAppModule("tuner", 100, false, false);
+		application.addAppModule("client", 100, 25, false, false);
+		application.addAppModule("classifier", 100, 30, false, false);
+		application.addAppModule("tuner", 100, 30, false, false);
 	
 		application.addAppEdge("TEMP", "client", 1000, 100, "TEMP", AppEdge.SENSOR);
 		application.addAppEdge("client", "classifier", 8000, 100, "_SENSOR", AppEdge.MODULE);

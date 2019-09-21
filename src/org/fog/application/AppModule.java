@@ -35,6 +35,9 @@ public class AppModule extends PowerVm {
 	 */
 	private boolean globalModule;
 	
+	/** Maximum allowed time to spend in each migration */
+	private double migrationDeadline;
+	
 	/** Map of the selectivity models governing the relation between the incoming and outgoing edges */
 	private Map<Pair<String, String>, SelectivityModel> selectivityMap;
 	
@@ -49,13 +52,14 @@ public class AppModule extends PowerVm {
 	 * @param ram the memory resource units [Byte] necessary to the application module
 	 * @param bw the network resource units necessary to the application module
 	 * @param size the storage resource units necessary to the application module
+	 * @param migrationDeadline the maximum allowed time to spend in each migration
 	 * @param vmm the virtual machine monitor
 	 * @param cloudletScheduler the cloudletScheduler policy for cloudlets
 	 * @param selectivityMap the map of the selectivity models governing the relation between the incoming and outgoing edges
 	 * @param clientModule if the application module is a global module
 	 * @param glogbalModule if the application global is a global module
 	 */
-	public AppModule(int id, String name, String appId, int userId, double mips, int ram, long bw, long size,
+	public AppModule(int id, String name, String appId, int userId, double mips, int ram, long bw, long size, double migrationDeadline,
 			String vmm, CloudletScheduler cloudletScheduler, Map<Pair<String, String>, SelectivityModel> selectivityMap,
 			boolean clientModule, boolean glogbalModule) {
 		super(id, userId, mips, 1, ram, bw, size, 1, vmm, cloudletScheduler, 300);
@@ -67,6 +71,7 @@ public class AppModule extends PowerVm {
 		setSelectivityMap(selectivityMap);
 		setClientModule(clientModule);
 		setGlobalModule(glogbalModule);
+		setMigrationDeadline(migrationDeadline);
 	}
 	
 	/**
@@ -84,6 +89,7 @@ public class AppModule extends PowerVm {
 		setSelectivityMap(operator.getSelectivityMap());
 		setClientModule(operator.isClientModule());
 		setGlobalModule(operator.isGlobalModule());
+		setMigrationDeadline(operator.getMigrationDeadline());
 	}
 	
 	/**
@@ -91,14 +97,16 @@ public class AppModule extends PowerVm {
 	 * 
 	 * @param name the application module name
 	 * @param ram the memory resource units necessary to the application module
+	 * @param migrationDeadline the maximum allowed time to spend in each migration
 	 * @param clientModule if the application module is a global module
 	 * @param glogbalModule if the application global is a global module
 	 */
-	public void setValues(String name, int ram, boolean clientModule, boolean glogbalModule) {
+	public void setValues(String name, int ram, double migrationDeadline, boolean clientModule, boolean glogbalModule) {
 		setName(name);
 		setRam(ram);
 		setClientModule(clientModule);
 		setGlobalModule(glogbalModule);
+		setMigrationDeadline(migrationDeadline);
 	}
 	
 	/**
@@ -191,6 +199,14 @@ public class AppModule extends PowerVm {
 		this.globalModule = globalModule;
 	}
 	
+	public double getMigrationDeadline() {
+		return migrationDeadline;
+	}
+
+	public void setMigrationDeadline(double migrationDeadline) {
+		this.migrationDeadline = migrationDeadline;
+	}
+
 	@Override
 	public String toString() {
 		return "AppModule [name=" + name + ", appId=" + appId +"]";
