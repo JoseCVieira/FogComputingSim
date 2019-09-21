@@ -3,14 +3,14 @@ package org.fog.placement.algorithm.util;
 import java.util.List;
 
 import org.fog.application.Application;
+import org.fog.core.Config;
 import org.fog.core.Constants;
 import org.fog.core.FogComputingSim;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.placement.algorithm.Algorithm;
-import org.fog.placement.algorithm.Job;
-import org.fog.placement.algorithm.MultiObjectiveJob;
+import org.fog.placement.algorithm.Solution;
 import org.fog.utils.Util;
 
 /**
@@ -317,7 +317,7 @@ public class AlgorithmUtils {
 		System.out.println("\t\tLOOPS DEADLINE [s]:");
 		System.out.println("*******************************************************\n");
 		
-		for (int i = 0; i < al.getLoops().length; i++) {
+		for (int i = 0; i < al.getNumberOfLoops(); i++) {
 			for (int j = 0; j < al.getNumberOfModules(); j++) {
 				if(al.getLoops()[i][j] == -1) break;
 				
@@ -331,7 +331,7 @@ public class AlgorithmUtils {
 				System.out.format(":::: " + Util.centerString(25, ("Deadline: INF" )) + "\n");
 		}
 		
-		System.out.println("\n\n\n\n---------------------------------------------------------------------------------------- '' ----------------------------------------------------------------------------------------");
+		System.out.println("\n---------------------------------------------------------------------------------------- '' ----------------------------------------------------------------------------------------");
 		System.out.println("                                                                                 ALG. DETAILS END");
 		System.out.println("---------------------------------------------------------------------------------------- '' ----------------------------------------------------------------------------------------");
 	}
@@ -340,16 +340,36 @@ public class AlgorithmUtils {
 	 * Prints the algorithm results.
 	 * 
 	 * @param al the algorithm object
-	 * @param job the final solution
+	 * @param solution the final solution
 	 */
-	public static void printAlgorithmResults(final Algorithm al, final Job job) {
+	public static void printAlgorithmResults(final Algorithm al, final Solution solution) {
 		System.out.println("\n\n*******************************************************");
-		System.out.println("\t\tALGORITHM OUTPUT (Cost = " + (job instanceof MultiObjectiveJob ? "NA" : job.getCost()) + "):");
+		System.out.println("\t\tALGORITHM OUTPUT:");
 		System.out.println("*******************************************************\n");
 		
-		System.out.println("**************** MODULE PLACEMENT MAP *****************\n");
+		printSolution(al, solution, -1);
 		
-		int[][] modulePlacementMap = job.getModulePlacementMap();
+		System.out.println("\n**Algorithm Elapsed time: " + al.getElapsedTime() + " ms**\n\n");		
+	}
+	
+	/**
+	 * Prints a given solution.
+	 * 
+	 * @param al the algorithm object
+	 * @param solution the final solution
+	 */
+	public static void printSolution(final Algorithm al, final Solution solution, int iteration) {
+		int[][] modulePlacementMap = solution.getModulePlacementMap();
+		int[][] routingMap = solution.getTupleRoutingMap();
+		int[][] migrationMap = solution.getMigrationRoutingMap();
+		
+		if(iteration >= 0) {
+			System.out.println("\n\n---------------------------------------------------------------------------------------- '' ----------------------------------------------------------------------------------------");
+			System.out.println("                                                                                New best solution ( iteration: " + iteration + " )");
+			System.out.println("---------------------------------------------------------------------------------------- '' ----------------------------------------------------------------------------------------");
+		}
+		
+		System.out.println("\n****************** MODULE PLACEMENT MAP ********************\n");
 		
 		System.out.format(Util.centerString(20, " "));
 		for (int i = 0; i < al.getNumberOfModules(); i++)
@@ -367,9 +387,7 @@ public class AlgorithmUtils {
 			System.out.println();
 		}
 		
-		System.out.println("\n******************** ROUTING TUPLE MAP  *********************\n");
-		
-		int[][] routingMap = job.getTupleRoutingMap();
+		System.out.println("\n******************** TUPLE ROUTING MAP *********************\n");
 		
 		for (int i = 0; i < routingMap.length; i++) {
 			String startNode = al.getmName()[al.getStartModDependency(i)];
@@ -387,9 +405,7 @@ public class AlgorithmUtils {
 			System.out.println();
 		}
 		
-		System.out.println("\n******************** MIGRATION ROUTING MAP  *********************\n");
-		
-		int[][] migrationMap = job.getMigrationRoutingMap();
+		System.out.println("\n****************** MIGRATION ROUTING MAP *******************\n");
 		
 		for (int i = 0; i < migrationMap.length; i++) {
 			System.out.format(Util.leftString(25, "VM name: " + al.getmName()[i]) + " .......... ");
@@ -403,7 +419,38 @@ public class AlgorithmUtils {
 			System.out.println();
 		}
 		
-		System.out.println("\n**Algorithm Elapsed time: " + al.getElapsedTime() + " ms**\n\n");		
+		System.out.println("\n********************* COST FUNCTIONS ***********************\n");
+		
+		for(int i = 0; i < Config.NR_OBJECTIVES; i++) {
+			System.out.format("Function: " + Util.leftString(10, Config.objectiveNames[i]));
+			System.out.println(" priority: " + Config.priorities[i] + " cost: " + solution.getDetailedCost(i));
+		}
+		
+		System.out.println("\n********************* LOOP DEADLINES ***********************\n");
+		
+		for(int i = 0; i < al.getNumberOfLoops(); i++) {
+			System.out.print("Loop " + i + ": [ " );
+			
+			for(int j = 0; j < al.getNumberOfModules(); j++) {
+				if(j == al.getNumberOfModules() - 1 || al.getLoops()[i][j+1] == -1) {
+					System.out.print(al.getmName()[al.getLoops()[i][j]] + " ] -> ");
+					break;
+				}
+				System.out.print(al.getmName()[al.getLoops()[i][j]] + " -> ");
+			}
+			
+			System.out.print("latency (worst case): " + String.format("%.5f", solution.getLoopDeadline(i)) +
+					" sec, deadline: " + al.getLoopsDeadline()[i] + " sec\n");
+		}
+		
+		System.out.println("\n******************* MIGRATION DEADLINES ********************\n");
+		
+		for(int i = 0; i < al.getNumberOfModules(); i++) {
+			System.out.format("Module: " + Util.centerString(20, al.getmName()[i]));
+			
+			System.out.print(" -> latency (worst case): " + String.format("%.5f", solution.getMigrationDeadline(i)) +
+					" sec, deadline: " + al.getmMigD()[i] + " sec\n");
+		}
 	}
 	
 }
