@@ -76,11 +76,11 @@ public class ExcelUtils {
 		    createTitleCell(sheet, row, cellIndex++, 200, "Execution time [ms]");
 		    
 		    for(int i = 0; i < Config.NR_OBJECTIVES; i++) {
-		    	createTitleCell(sheet, row, cellIndex++, 70, Config.objectiveNames[i] + " prio.");
+		    	createTitleCell(sheet, row, cellIndex++, 100, Config.objectiveNames[i] + " prio.");
 		    }
 		    
 		    for(int i = 0; i < Config.NR_OBJECTIVES; i++) {
-		    	createTitleCell(sheet, row, cellIndex++, 85, Config.objectiveNames[i] + " value");
+		    	createTitleCell(sheet, row, cellIndex++, 110, Config.objectiveNames[i] + " value");
 		    }
 		    
 		    createTitleCell(sheet, row, cellIndex++, 150, "Time stamp");

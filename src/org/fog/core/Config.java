@@ -15,9 +15,6 @@ public class Config {
 	/** Defines whether the best value is printed between iterations are printed */
 	public static boolean PRINT_ALGORITHM_BEST_ITER = true;
 	
-	/** Defines whether the details of the constraints of each iteration are printed */
-	public static boolean PRINT_ALGORITHM_CONSTRAINTS = true;
-	
 	/** Defines whether the final result of the algorithm (i.e., the best solution) is printed */
 	public static boolean PRINT_ALGORITHM_RESULTS = true;
 	
@@ -51,9 +48,9 @@ public class Config {
 	 * Note that for the current problem it makes no sense to sum different costs, thus their priorities must be all different.
 	 */
 	public static final int[] priorities = new int[] {
-			4,		// Power cost
+			2,		// Power cost
 			3,		// Processing cost
-			2,		// Bandwidth cost
+			4,		// Bandwidth cost
 			1		// Migration cost
 	};
 	
@@ -83,10 +80,10 @@ public class Config {
 	
 	/** The names of the objectives (used to export the results to the excel file) */
 	public static final String[] objectiveNames = new String[] {
-			"Pwr.", 
-			"Proc.",
-			"Bw.",
-			"Mig."
+			"Power", 
+			"Processing",
+			"Bandwidth",
+			"Migration"
 	};
 	
 	/** Absolute error value in which is considered that two solutions are equal */

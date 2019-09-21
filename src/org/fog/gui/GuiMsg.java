@@ -61,7 +61,6 @@ public class GuiMsg {
 	public static final String TipTupleProb = "The probability of the outuput tuple being generated upon the execution of the input one";
 	
 	public static final String TipSettPrintAlgIter = "Defines whether the best value is printed between iterations are printed";
-	public static final String TipSettPrintAlgConst = "Defines whether the details of the constraints of each iteration are printed";
 	public static final String TipSettPrintAlgRes = "Defines whether the final result of the algorithm (i.e., the best solution) is printed";
 	public static final String TipSettPlotAlgRes = "Defines whether the iteration-value map is plotted";
 	public static final String TipSettExcel = "Defines whether the results of both the algorithm and the simulation are exported to the output excel file";
