@@ -400,6 +400,7 @@ public class Solution implements Comparable<Solution> {
 	 * 
 	 * @param d1 the first value
 	 * @param d2 the second value
+	 * @param p error percentage acting as RelTol
 	 * @return 0 if both values are equal. -1 if the first value is less than the second one. 1 otherwise
 	 */
 	private int compare(double d1, double d2, double p) {
