@@ -208,7 +208,7 @@ public abstract class Algorithm {
 		
 		init();
 		extractDevicesCharacteristics(fogDevices);
-		extractModulesCharacteristics(applications, hashSet);
+		extractModulesCharacteristics(fogDevices, applications, hashSet);
 		computeApplicationCharacteristics(applications, sensors);
 		computeConnectionMap(fogDevices);
 		extractDependenciesIndex();
@@ -295,10 +295,12 @@ public abstract class Algorithm {
 	/**
 	 * Extracts the information from the application modules list.
 	 * 
+	 * @param fogDevices the list containing all fog devices within the fog network
 	 * @param applications the list containing all applications to be deployed into the fog network
 	 * @param hashSet the list containing the names of all application modules
 	 */
-	private void extractModulesCharacteristics(final List<Application> applications, final LinkedHashSet<String> hashSet) {
+	private void extractModulesCharacteristics(final List<FogDevice> fogDevices, final List<Application> applications,
+			final LinkedHashSet<String> hashSet) {
 		for(int i  = 0; i < NR_NODES; i++) {
 			Arrays.fill(possibleDeployment[i], 1);
 		}
@@ -314,6 +316,7 @@ public abstract class Algorithm {
 					mStrg[i] = module.getSize();
 					mMigD[i] = module.getMigrationDeadline();
 					
+					// Client modules need to be processed within the corresponding client nodes
 					if(module.isClientModule()) {
 						String[] parts = module.getName().split("_");
 						int nodeId = Integer.parseInt(parts[parts.length-1]);
@@ -321,6 +324,23 @@ public abstract class Algorithm {
 						
 						for(int j  = 0; j < NR_NODES; j++) {
 							if(j == nodeIndex) continue;
+							possibleDeployment[j][i] = 0;
+						}
+					
+					// Global modules cannot be processed within client nodes
+					}else if(module.isGlobalModule()) {
+						for(int j = 0; j < NR_NODES; j++) {
+							possibleDeployment[j][i] = fIsFogDevice[j];
+						}
+					// Normal modules (not global nor client modules) are processed within the corresponding client nodes or at any fog node
+					}else {
+						String[] parts = module.getName().split("_");
+						int nodeId = Integer.parseInt(parts[parts.length-1]);
+						int nodeIndex = getNodeIndexByNodeId(nodeId);
+						
+						for(int j  = 0; j < NR_NODES; j++) {
+							if(j == nodeIndex) continue;
+							if(fIsFogDevice[j] != 0) continue;
 							possibleDeployment[j][i] = 0;
 						}
 					}

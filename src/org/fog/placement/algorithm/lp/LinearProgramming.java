@@ -139,12 +139,19 @@ public class LinearProgramming extends Algorithm {
 			
 			defineConstraints(cplex, placementVar, tupleRoutingVar, migrationRoutingVar, latency, migLatency);
 			
+			IloNumExpr[] ensureLoops = new IloNumExpr[nrNodes];
 			for(int i = 0; i < nrLoops; i++) {
-				latency[i] = cplex.diff(latency[i], getLoopsDeadline()[i]);
-				//latency[i] = cplex.prod(latency[i]);
+				ensureLoops[i] = cplex.numExpr();
+				
+				latency[i] = cplex.diff(latency[i], 2/*getLoopsDeadline()[i]*/);
+				ensureLoops[i] = cplex.max(latency[i], 0);
+				ensureLoops[i] = cplex.prod(ensureLoops[i], Integer.MAX_VALUE);
+				ensureLoops[i] = cplex.min(ensureLoops[i], 1);
+				
+				qsObjective = cplex.sum(qsObjective, ensureLoops[i]);																// Quality of Service cost
 			}
 			
-			qsObjective = cplex.sum(qsObjective, cplex.max(latency));																// Quality of Service cost
+			//qsObjective = cplex.sum(qsObjective, cplex.max(latency));																// Quality of Service cost
 			
 			IloObjective qsCost = cplex.minimize(qsObjective);
 			IloObjective pwCost = cplex.minimize(pwObjective);
@@ -204,7 +211,7 @@ public class LinearProgramming extends Algorithm {
 				solution.setDetailedCost(Config.MIGRATION_COST, cplex.getValue(mgObjective));
 				
 				for(int i = 0; i < nrLoops; i++)
-					solution.setLoopDeadline(i, cplex.getValue(latency[i]));
+					solution.setLoopDeadline(i, cplex.getValue(latency[i]) + 2);
 				
 				for(int i = 0; i < nrModules; i++)
 					solution.setMigrationDeadline(i, cplex.getValue(migLatency[i]));
