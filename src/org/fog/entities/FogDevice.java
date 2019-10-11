@@ -34,7 +34,6 @@ import org.fog.utils.NetworkMonitor;
 import org.fog.utils.ProcessorMonitor;
 import org.fog.utils.TimeKeeper;
 import org.fog.utils.Util;
-import org.fog.utils.communication.MobileBandwidthModel;
 import org.fog.utils.communication.MobilePathLossModel;
 import org.fog.utils.movement.Location;
 import org.fog.utils.movement.Movement;
@@ -751,25 +750,6 @@ public class FogDevice extends PowerDatacenter {
 				
 				if(++counter > 100)
 					FogComputingSim.err("It looks like the update movement method is running in an infinite loop");
-			}
-			
-			// Update connections bandwidth for mobile connections based on their distance
-			for(int neighborId : bandwidthMap.keySet()) {
-				FogDevice neighbor = controller.getFogDeviceById(neighborId);
-				
-				double distance = Location.computeDistance(this, neighbor);
-				double rxPower = MobilePathLossModel.computeReceivedPower(distance);
-				Map<String, Double> map = MobileBandwidthModel.computeCommunicationBandwidth(1, rxPower);
-				
-				String modulation = map.entrySet().iterator().next().getKey();
-				double bandwidth = map.entrySet().iterator().next().getValue();
-				
-				if(Config.PRINT_DETAILS) {
-					FogComputingSim.print("Communication between " + getName() + " and " + neighbor.getName() + " is using " +
-							modulation + " modulation" + " w/ bandwidth = "  + String.format("%.2f", bandwidth/1024/1024) + " MB/s" );
-				}
-				
-				bandwidthMap.put(neighborId, bandwidth);
 			}
 		}
 		

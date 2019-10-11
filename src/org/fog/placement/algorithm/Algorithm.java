@@ -30,13 +30,11 @@ import org.fog.placement.algorithm.util.routing.Edge;
 import org.fog.placement.algorithm.util.routing.Graph;
 import org.fog.placement.algorithm.util.routing.Vertex;
 import org.fog.utils.FogLinearPowerModel;
-import org.fog.utils.communication.MobileBandwidthModel;
 import org.fog.utils.communication.MobilePathLossModel;
 import org.fog.utils.distribution.DeterministicDistribution;
 import org.fog.utils.distribution.Distribution;
 import org.fog.utils.distribution.NormalDistribution;
 import org.fog.utils.distribution.UniformDistribution;
-import org.fog.utils.movement.Location;
 
 /**
  * Class which is responsible to parse and hold all the information needed to run any optimization algorithm.
@@ -584,16 +582,11 @@ public abstract class Algorithm {
 		fLatencyMap[fromIndex][mobileIndex] = Constants.INF;
 		fBandwidthMap[fromIndex][mobileIndex] = 0;
 		
-		double distance = Location.computeDistance(mobile, to);
-		double rxPower = MobilePathLossModel.computeReceivedPower(distance);
-		Map<String, Double> map = MobileBandwidthModel.computeCommunicationBandwidth(1, rxPower);
-		double bandwidth = map.entrySet().iterator().next().getValue();
+		fLatencyMap[mobileIndex][toIndex] = Config.CELLULAR_COMMUNICATION_LATENCY;
+		fBandwidthMap[mobileIndex][toIndex] = Config.CELLULAR_COMMUNICATION_BW;
 		
-		fLatencyMap[mobileIndex][toIndex] = MobilePathLossModel.LATENCY;
-		fBandwidthMap[mobileIndex][toIndex] = bandwidth;
-		
-		fLatencyMap[toIndex][mobileIndex] = MobilePathLossModel.LATENCY;
-		fBandwidthMap[toIndex][mobileIndex] = bandwidth;
+		fLatencyMap[toIndex][mobileIndex] = Config.CELLULAR_COMMUNICATION_LATENCY;
+		fBandwidthMap[toIndex][mobileIndex] = Config.CELLULAR_COMMUNICATION_BW;
 	}
 	
 	/**

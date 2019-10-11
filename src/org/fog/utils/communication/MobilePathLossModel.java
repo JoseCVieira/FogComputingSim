@@ -9,7 +9,6 @@ package org.fog.utils.communication;
  */
 public class MobilePathLossModel {
 	public final static double TX_POWER = 199.5262315E-3;	// 200 mW ~= 23 dBm
-	public final static double LATENCY = 50E-3;				// 50 ms
 	private final static double GAMMA = 3.1;
 	
 	/**

@@ -24,8 +24,6 @@ import org.fog.placement.algorithm.Algorithm;
 import org.fog.placement.algorithm.Solution;
 import org.fog.utils.FogEvents;
 import org.fog.utils.Util;
-import org.fog.utils.communication.MobileBandwidthModel;
-import org.fog.utils.communication.MobilePathLossModel;
 import org.fog.utils.movement.Location;
 import org.fog.utils.output.ExcelUtils;
 import org.fog.utils.output.SimulationResults;
@@ -412,23 +410,11 @@ public class Controller extends SimEntity {
 		if(Config.PRINT_DETAILS)
 			FogComputingSim.print("Creating connection between: " + mobile.getName() + " <-> " + to.getName());
 			
-		mobile.getLatencyMap().put(to.getId(), MobilePathLossModel.LATENCY);
-		to.getLatencyMap().put(mobile.getId(), MobilePathLossModel.LATENCY);
+		mobile.getLatencyMap().put(to.getId(), Config.CELLULAR_COMMUNICATION_LATENCY);
+		to.getLatencyMap().put(mobile.getId(), Config.CELLULAR_COMMUNICATION_LATENCY);
 		
-		double distance = Location.computeDistance(mobile, to);
-		double rxPower = MobilePathLossModel.computeReceivedPower(distance);
-		Map<String, Double> map = MobileBandwidthModel.computeCommunicationBandwidth(1, rxPower);
-		
-		String modulation = map.entrySet().iterator().next().getKey();
-		double bandwidth = map.entrySet().iterator().next().getValue();
-		
-		if(Config.PRINT_DETAILS) {
-			FogComputingSim.print("Communication between " + mobile.getName() + " and " + to.getName() + " is using " +
-					modulation + " modulation" + " w/ bandwidth = "  + String.format("%.2f", bandwidth/1024/1024) + " MB/s");
-		}
-		
-		mobile.getBandwidthMap().put(to.getId(), bandwidth);
-		to.getBandwidthMap().put(mobile.getId(), bandwidth);
+		mobile.getBandwidthMap().put(to.getId(), Config.CELLULAR_COMMUNICATION_BW);
+		to.getBandwidthMap().put(mobile.getId(), Config.CELLULAR_COMMUNICATION_BW);
 		
 		mobile.getTupleQueue().put(to.getId(), new LinkedList<Pair<Tuple, Integer>>());
 		to.getTupleQueue().put(mobile.getId(), new LinkedList<Pair<Tuple, Integer>>());

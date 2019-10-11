@@ -148,6 +148,9 @@ public class Config {
 	/** Defines the bandwidth available in cellular link */
 	public static final double CELLULAR_COMMUNICATION_BW = 9*1024*1024;	// 9 Mb/s
 	
+	/** Defines the latency available in cellular link */
+	public final static double CELLULAR_COMMUNICATION_LATENCY = 200E-6;	// 200 us
+	
 	/** Defines the time needed to perform the setup of the VM after the migration is completed */
 	public static final double SETUP_VM_TIME = 20;
 	
