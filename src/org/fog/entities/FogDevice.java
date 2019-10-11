@@ -725,9 +725,12 @@ public class FogDevice extends PowerDatacenter {
 				if(random.nextDouble() < changeVelProb) {
 					double value = random.nextDouble();
 					
-					if(value < Config.PROB_MIN_VELOCITY) {
+					if(value < Config.PROB_NUL_VELOCITY) {
+						movement.setVelocity(Config.NUL_VELOCITY);
+					}else if(value >= Config.PROB_NUL_VELOCITY && value < Config.PROB_MIN_VELOCITY + Config.PROB_NUL_VELOCITY) {
 						movement.setVelocity(Math.abs(Util.normalRand(Config.MIN_VELOCITY, 1)));
-					}else if(value >= Config.PROB_MIN_VELOCITY && value <= Config.PROB_MED_VELOCITY + Config.PROB_MIN_VELOCITY) {
+					}else if(value >= Config.PROB_MIN_VELOCITY + Config.PROB_NUL_VELOCITY && value < Config.PROB_MIN_VELOCITY
+							+ Config.PROB_NUL_VELOCITY + Config.PROB_MED_VELOCITY) {
 						movement.setVelocity(Math.abs(Util.normalRand(Config.MED_VELOCITY, 1)));
 					}else {
 						movement.setVelocity(Math.abs(Util.normalRand(Config.MAX_VELOCITY, 1)));
