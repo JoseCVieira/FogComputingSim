@@ -377,7 +377,7 @@ public class Solution implements Comparable<Solution> {
 	 */
 	@Override
 	public int compareTo(Solution solution) {
-		int value = compare(getConstraint(), solution.getConstraint());
+		int value = compare(getConstraint(), solution.getConstraint(), 0);
 		if(value != 0) return value;
 		
 		int nrAnalysed = 0;
@@ -386,7 +386,7 @@ public class Solution implements Comparable<Solution> {
 			int index = getNextHighestPriority(lastPrio);
 			lastPrio = Config.priorities[index];
 			
-			value = compare(getDetailedCost(index), solution.getDetailedCost(index));
+			value = compare(getDetailedCost(index), solution.getDetailedCost(index), Config.relTols[index]);
 			if(++nrAnalysed == Config.NR_OBJECTIVES) return value;
 			if(value != 0) return value;
 		}
@@ -402,10 +402,14 @@ public class Solution implements Comparable<Solution> {
 	 * @param d2 the second value
 	 * @return 0 if both values are equal. -1 if the first value is less than the second one. 1 otherwise
 	 */
-	private int compare(double d1, double d2) {
-		if(d1 < d2) return -1;
+	private int compare(double d1, double d2, double p) {
+		/*if(d1 < d2) return -1;
 		else if(d1 > d2) return 1;
+		return 0;*/
+		if(d1*(1+p) < d2) return -1;
+		else if(d1*(1-p) > d2) return 1;
 		return 0;
+		
 	}
 	
 	/**
