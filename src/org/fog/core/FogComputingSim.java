@@ -105,7 +105,6 @@ public class FogComputingSim {
 			// If the named file does not exist create it
 			file.createNewFile();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -117,18 +116,17 @@ public class FogComputingSim {
 	 */
 	@SuppressWarnings("resource")
 	private static int menuAlgorithm() {
-		System.out.println("————————————————————————————————————————————————————————");
-		System.out.println("|    FOG COMPUTING SIMULATOR MENU - ALGORITHM          |");
-		System.out.println("|                                                      |");
-	    System.out.println("| Options:                                             |");
-	    System.out.println("|       1. Multiobjective Linear Programming           |");
-	    System.out.println("|       2. Non Dominated Sorting Genetic Algorithm     |");
-	    System.out.println("|       3. Genetic Algorithm                           |");
-	    System.out.println("|       4. Random Algorithm                            |");
-	    System.out.println("|       5. Brute Force                                 |");
-	    System.out.println("|       0. Exit                                        |");
-	    System.out.println("|                                                      |");
-	    System.out.println("————————————————————————————————————————————————————————");
+		System.out.println("——————————————————————————————————————————————————");
+		System.out.println("|    FOG COMPUTING SIMULATOR MENU - ALGORITHM    |");
+		System.out.println("|                                                |");
+	    System.out.println("| Options:                                       |");
+	    System.out.println("|       1. Linear Programming                    |");
+	    System.out.println("|       2. Genetic Algorithm                     |");
+	    System.out.println("|       3. Random Algorithm                      |");
+	    System.out.println("|       4. Brute Force                           |");
+	    System.out.println("|       0. Exit                                  |");
+	    System.out.println("|                                                |");
+	    System.out.println("——————————————————————————————————————————————————");
 	    System.out.print("\n Algorithm: ");
 	    
 	    int option = -1;

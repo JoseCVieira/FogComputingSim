@@ -143,7 +143,7 @@ public class LinearProgramming extends Algorithm {
 			for(int i = 0; i < nrLoops; i++) {
 				ensureLoops[i] = cplex.numExpr();
 				
-				latency[i] = cplex.diff(latency[i], 2/*getLoopsDeadline()[i]*/);
+				latency[i] = cplex.diff(latency[i], getLoopsDeadline()[i]);
 				ensureLoops[i] = cplex.max(latency[i], 0);
 				ensureLoops[i] = cplex.prod(ensureLoops[i], Integer.MAX_VALUE);
 				ensureLoops[i] = cplex.min(ensureLoops[i], 1);
@@ -211,7 +211,7 @@ public class LinearProgramming extends Algorithm {
 				solution.setDetailedCost(Config.MIGRATION_COST, cplex.getValue(mgObjective));
 				
 				for(int i = 0; i < nrLoops; i++)
-					solution.setLoopDeadline(i, cplex.getValue(latency[i]) + 2);
+					solution.setLoopDeadline(i, cplex.getValue(latency[i]) + getLoopsDeadline()[i]);
 				
 				for(int i = 0; i < nrModules; i++)
 					solution.setMigrationDeadline(i, cplex.getValue(migLatency[i]));

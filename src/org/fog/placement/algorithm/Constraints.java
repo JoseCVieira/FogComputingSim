@@ -34,7 +34,6 @@ public class Constraints {
 		constraint += checkDependencies(algorithm, modulePlacementMap, tupleRoutingMap);
 		constraint += checkBandwidth(algorithm, tupleRoutingMap);
 		constraint += checkMigration(algorithm, modulePlacementMap, migrationRoutingMap);
-		constraint += checkLoopDeadlines(algorithm, solution, modulePlacementMap, tupleRoutingMap);
 		constraint += checkMigrationDeadlines(algorithm, solution, modulePlacementMap, migrationRoutingMap);
 		
 		return constraint;
@@ -263,116 +262,6 @@ public class Constraints {
 		}
 		
 		return violations;
-	}
-	
-	/**
-	 * Check whether, in the worst case scenario, all deadlines are met
-	 * 
-	 * @param algorithm object which contains all information about the topology and which algorithm was used
-	 * @param modulePlacementMap matrix which represents the next module placement
-	 * @param tupleRoutingMap matrix which contains the routing for each module pair dependency
-	 * @param migrationRoutingMap matrix which contains the routing for each module migration
-	 * @return the number of violations times a constant (zero if this constraint has been respected)
-	 */
-	private static double checkLoopDeadlines(final Algorithm algorithm, Solution solution , final int[][] modulePlacementMap,
-			final int[][] tupleRoutingMap) {
-		double violations = 0;
-		int [][] loops = algorithm.getLoops();
-		
-		for(int i = 0; i < algorithm.getNumberOfLoops(); i++) { // Loop index
-			double latency = 0;
-			
-			for(int j = 0; j < algorithm.getNumberOfModules() - 1; j++) { // Module index
-				if(loops[i][j+1] == -1) break;
-				
-				latency += computeProcessingLatency(algorithm, modulePlacementMap, loops[i][j+1]);
-				latency += computeDependencyLatency(algorithm, tupleRoutingMap, loops[i][j], loops[i][j+1]);
-				
-				if(latency <= algorithm.getLoopsDeadline()[i]) continue;
-				violations += Constants.REFERENCE_COST;
-			}
-			
-			solution.setLoopDeadline(i, latency);
-		}
-		
-		return violations;
-	}
-	
-	/**
-	 * Computes the processing latency for the worst case scenario.
-	 * 
-	 * @param algorithm object which contains all information about the topology and which algorithm was used
-	 * @param modulePlacementMap matrix which represents the next module placement
-	 * @param moduleIndex index of the module to be analyzed
-	 * @return the processing latency for the worst case scenario
-	 */
-	private static double computeProcessingLatency(final Algorithm algorithm, final int[][] modulePlacementMap, final int moduleIndex) {
-		if(algorithm.getmMips()[moduleIndex] == 0) return 0;
-
-		int nodeIndex = Solution.findModulePlacement(modulePlacementMap, moduleIndex);
-		double totalMis = 0;
-
-		for(int i = 0; i < algorithm.getNumberOfModules(); i++) {
-			if(algorithm.getmMips()[i] == 0) continue; // Sensor and actuator modules does not count
-			if(Solution.findModulePlacement(modulePlacementMap, i) != nodeIndex) continue; // Only matter the ones deployed in the same node
-
-			for(int j = 0; j < algorithm.getNumberOfModules(); j++) {
-				totalMis += algorithm.getmCPUMap()[j][i];
-			}
-		}
-		
-		return totalMis/(algorithm.getfMips()[nodeIndex]*Config.MIPS_PERCENTAGE_UTIL);
-	}
-	
-	/**
-	 * Computes the transmission tuple latency for the worst case scenario between a pair of modules.
-	 * 
-	 * @param algorithm object which contains all information about the topology and which algorithm was used
-	 * @param tupleRoutingMap matrix which contains the routing for each module pair dependency
-	 * @param moduleIndex1 index of the starting module to be analyzed
-	 * @param moduleIndex2 index of the destination module to be analyzed
-	 * @return the transmission tuple latency for the worst case scenario between a pair of modules
-	 */
-	private static double computeDependencyLatency(final Algorithm algorithm, final int[][] tupleRoutingMap, final int moduleIndex1, final int moduleIndex2) {
-		double latency = 0;
-		int depIndex = -1;
-		
-		// Find dependency index
-		for (int i = 0; i < algorithm.getNumberOfDependencies(); i++) {
-			if(algorithm.getStartModDependency(i) == moduleIndex1 && algorithm.getFinalModDependency(i) == moduleIndex2) {
-				depIndex = i;
-				break;
-			}
-		}
-		
-		if(depIndex == -1)
-			FogComputingSim.err("Should not happen (Constraints)");
-		
-		// For each Link, in the tuple routing map sum the total latency
-		for (int i = 0; i < algorithm.getNumberOfNodes() - 1; i++) {
-			int start = tupleRoutingMap[depIndex][i];
-			int end = tupleRoutingMap[depIndex][i+1];
-			
-			if(start == end) continue;
-			
-			double bw = algorithm.getfBandwidthMap()[start][end] * Config.BW_PERCENTAGE_UTIL + Constants.EPSILON; // Link bandwidth
-			double lat = algorithm.getfLatencyMap()[start][end]; // Link latency
-			double totalSize = 0;
-
-			// For each different dependency which uses the same link, sum the size of the dependency
-			for (int j = 0; j < algorithm.getNumberOfDependencies(); j++) { // Dependency index
-				for(int k = 0; k < algorithm.getNumberOfNodes() - 1; k++) {
-					if(tupleRoutingMap[j][k] == start && tupleRoutingMap[j][k+1] == end) {
-						totalSize += algorithm.getmNWMap()[algorithm.getStartModDependency(j)][algorithm.getFinalModDependency(j)];
-					}
-				}
-			}
-			
-			// In the worst case, the dependency in study is the last one to be sent
-			latency += lat + totalSize/bw;
-		}
-		
-		return latency;
 	}
 	
 	/**

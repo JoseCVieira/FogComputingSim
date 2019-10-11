@@ -134,7 +134,7 @@ public class Config {
 	public static boolean PRINT_COST_DETAILS = false;
 	
 	/** Defines whether the simulation is dynamic (i.e., mobile nodes actualy move around) */
-	public static boolean DYNAMIC_SIMULATION = true;
+	public static boolean DYNAMIC_SIMULATION = false;
 	
 	/** Defines whether the simulation is allowed to perform migrations of VMs */
 	public static boolean ALLOW_MIGRATION = true;
