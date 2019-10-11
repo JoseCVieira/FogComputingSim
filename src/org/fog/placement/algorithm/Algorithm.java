@@ -20,6 +20,7 @@ import org.fog.application.selectivity.FractionalSelectivity;
 import org.fog.core.Config;
 import org.fog.core.Constants;
 import org.fog.entities.Actuator;
+import org.fog.entities.Client;
 import org.fog.entities.FogDevice;
 import org.fog.entities.FogDeviceCharacteristics;
 import org.fog.entities.Sensor;
@@ -95,6 +96,8 @@ public abstract class Algorithm {
 	
 	/** Vector holding the power consumption while sending data to another device in each fog device */
 	private double fTxPw[];
+	
+	private int fIsFogDevice[];
 	
 	// Module -------------------------------------------------
 	
@@ -229,6 +232,7 @@ public abstract class Algorithm {
 		fBusyPw = new double[NR_NODES];
 		fIdlePw = new double[NR_NODES];
 		fTxPw = new double[NR_NODES];
+		fIsFogDevice = new int[NR_NODES];
 		
 		fMipsPrice = new double[NR_NODES];
 		fRamPrice = new double[NR_NODES];
@@ -278,6 +282,7 @@ public abstract class Algorithm {
 			fStrg[i] = fogDevice.getHost().getStorage();
 			fBusyPw[i] = ((FogLinearPowerModel) fogDevice.getHost().getPowerModel()).getBusyPower();
 			fIdlePw[i] = ((FogLinearPowerModel) fogDevice.getHost().getPowerModel()).getIdlePower();
+			fIsFogDevice[i] = fogDevice instanceof Client ? 0 : 1;
 			
 			fMipsPrice[i] = characteristics.getCostPerMips();
 			fRamPrice[i] = characteristics.getCostPerMem();
@@ -918,6 +923,10 @@ public abstract class Algorithm {
 	 */
 	public double[] getfIdlePw() {
 		return fIdlePw;
+	}
+	
+	public int[] getfIsFogDevice() {
+		return fIsFogDevice;
 	}
 	
 	/**

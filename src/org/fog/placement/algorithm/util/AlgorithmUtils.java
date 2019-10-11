@@ -142,6 +142,7 @@ public class AlgorithmUtils {
 			
 			System.out.println(Util.leftString(24, "Id: ") + fDevice.getId());
 			System.out.println(Util.leftString(24, "Name: ") + al.getfName()[i]);
+			System.out.println(Util.leftString(24, "Client: ") + (al.getfIsFogDevice()[i] == 1 ? "False" : "True"));
 			System.out.println(Util.leftString(24, "Mips [MIPS]: ") + al.getfMips()[i]);
 			System.out.println(Util.leftString(24, "Ram [Byte]: ") + al.getfRam()[i]);
 			System.out.println(Util.leftString(24, "Storage [Byte]: ") + al.getfStrg()[i]);

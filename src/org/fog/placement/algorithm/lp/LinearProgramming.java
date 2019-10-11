@@ -94,8 +94,8 @@ public class LinearProgramming extends Algorithm {
 					double pr = getmMips()[j]/(getfMips()[i]*Config.MIPS_PERCENTAGE_UTIL);
 					double pw = (getfBusyPw()[i]-getfIdlePw()[i])*pr;
 					
-					pwObjective = cplex.sum(pwObjective, cplex.prod(placementVar[i][j], pw));	// Power cost
-					prObjective = cplex.sum(prObjective, cplex.prod(placementVar[i][j], pr));	// Processing cost	
+					pwObjective = cplex.sum(pwObjective, cplex.prod(placementVar[i][j], pw*getfIsFogDevice()[i]));	// Power cost
+					prObjective = cplex.sum(prObjective, cplex.prod(placementVar[i][j], pr*getfIsFogDevice()[i]));	// Processing cost	
 				}
 			}
 			
@@ -109,8 +109,8 @@ public class LinearProgramming extends Algorithm {
 						double bw = bandwidth/(getfBandwidthMap()[j][z]*Config.BW_PERCENTAGE_UTIL + Constants.EPSILON);
 						double pw = bw*getfTxPw()[j];
 						
-						bwObjective = cplex.sum(bwObjective, cplex.prod(tupleRoutingVar[i][j][z], bw));	// Bandwidth cost
-						pwObjective = cplex.sum(pwObjective, cplex.prod(tupleRoutingVar[i][j][z], pw));	// Power cost
+						bwObjective = cplex.sum(bwObjective, cplex.prod(tupleRoutingVar[i][j][z], bw*getfIsFogDevice()[j]));	// Bandwidth cost
+						pwObjective = cplex.sum(pwObjective, cplex.prod(tupleRoutingVar[i][j][z], pw*getfIsFogDevice()[j]));	// Power cost
 					}
 				}
 			}
@@ -123,14 +123,14 @@ public class LinearProgramming extends Algorithm {
 						migrationRoutingVar[i][j][z] = cplex.intVar(0, 1);
 						
 						double linkBw = getfBandwidthMap()[j][z]*(1-Config.BW_PERCENTAGE_UTIL) + Constants.EPSILON;
-						double totalDep = 0;
+						/*double totalDep = 0;
 						for(int l = 0; l < getNumberOfModules(); l++) {
 							totalDep += getmDependencyMap()[l][i];
-						}
+						}*/
 						
-						double mg = size/linkBw*totalDep;
+						double mg = size/linkBw/**totalDep*/;
 						
-						mgObjective = cplex.sum(mgObjective, cplex.prod(migrationRoutingVar[i][j][z], mg));	// Migration cost
+						mgObjective = cplex.sum(mgObjective, cplex.prod(migrationRoutingVar[i][j][z], mg*getfIsFogDevice()[j]));	// Migration cost
 					}
 				}
 			}

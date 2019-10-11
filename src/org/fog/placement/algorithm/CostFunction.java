@@ -38,6 +38,8 @@ public class CostFunction {
 		int[][] modulePlacementMap = solution.getModulePlacementMap();
 		
 		for(int i = 0; i < algorithm.getNumberOfNodes(); i++) {
+			if(algorithm.getfIsFogDevice()[i] == 0) continue;
+			
 			for(int j = 0; j < algorithm.getNumberOfModules(); j++) {
 				cost += modulePlacementMap[i][j]*algorithm.getmMips()[j]/(algorithm.getfMips()[i]*Config.MIPS_PERCENTAGE_UTIL);
 			}
@@ -59,19 +61,22 @@ public class CostFunction {
 		double cost = 0;
 		
 		for(int i = 0; i < algorithm.getNumberOfNodes(); i++) {
+			if(algorithm.getfIsFogDevice()[i] == 0) continue;
+				
 			for(int j = 0; j < algorithm.getNumberOfModules(); j++) {
 				double pw = algorithm.getfBusyPw()[i]-algorithm.getfIdlePw()[i];
 				cost += modulePlacementMap[i][j]*algorithm.getmMips()[j]/(algorithm.getfMips()[i]*Config.MIPS_PERCENTAGE_UTIL)*pw;
 			}
 		}
 		
-		for(int i = 0; i < algorithm.getNumberOfDependencies(); i++) {
+		for(int i = 0; i < algorithm.getNumberOfDependencies(); i++) {			
 			double bandwidth = algorithm.getmBandwidthMap()[algorithm.getStartModDependency(i)][algorithm.getFinalModDependency(i)];
 			
 			for(int j = 0; j < algorithm.getNumberOfNodes()-1; j++) {
 				int start = tupleRoutingMap[i][j];
 				int end = tupleRoutingMap[i][j+1];
 				
+				if(algorithm.getfIsFogDevice()[start] == 0) continue;
 				if(start == end) continue;
 						
 				double bw = bandwidth/(algorithm.getfBandwidthMap()[start][end]*Config.BW_PERCENTAGE_UTIL + Constants.EPSILON);
@@ -93,13 +98,14 @@ public class CostFunction {
 		int[][] tupleRoutingMap = solution.getTupleRoutingMap();
 		double cost = 0;
 		
-		for(int i = 0; i < algorithm.getNumberOfDependencies(); i++) {
+		for(int i = 0; i < algorithm.getNumberOfDependencies(); i++) {			
 			double bandwidth = algorithm.getmBandwidthMap()[algorithm.getStartModDependency(i)][algorithm.getFinalModDependency(i)];
 			
 			for(int j = 0; j < algorithm.getNumberOfNodes()-1; j++) {
 				int start = tupleRoutingMap[i][j];
 				int end = tupleRoutingMap[i][j+1];
 				
+				if(algorithm.getfIsFogDevice()[start] == 0) continue;
 				if(start == end) continue;
 						
 				cost += bandwidth/(algorithm.getfBandwidthMap()[start][end]*Config.BW_PERCENTAGE_UTIL + Constants.EPSILON);
@@ -127,6 +133,7 @@ public class CostFunction {
 				int start = migrationRoutingMap[i][j];
 				int end = migrationRoutingMap[i][j+1];
 				
+				if(algorithm.getfIsFogDevice()[start] == 0) continue;
 				if(start == end) continue;
 			
 				double linkBw = algorithm.getfBandwidthMap()[start][end]*(1-Config.BW_PERCENTAGE_UTIL) + Constants.EPSILON;
