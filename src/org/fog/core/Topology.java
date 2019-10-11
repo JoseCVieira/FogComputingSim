@@ -31,7 +31,7 @@ import org.fog.policy.AppModuleAllocationPolicy;
 import org.fog.test.ApplicationsExample;
 import org.fog.utils.FogLinearPowerModel;
 import org.fog.utils.FogUtils;
-import org.fog.utils.Movement;
+import org.fog.utils.movement.Movement;
 
 /**
  * Class which defines the inputs needed to run the FogComputingSim.

@@ -1,4 +1,4 @@
-package org.fog.utils;
+package org.fog.utils.output;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -26,6 +26,8 @@ import org.fog.core.Config;
 import org.fog.entities.FogDevice;
 import org.fog.placement.Controller;
 import org.fog.placement.algorithm.Solution;
+import org.fog.utils.NetworkMonitor;
+import org.fog.utils.TimeKeeper;
 
 /**
  * Class which is responsible for exporting both the algorithm and simulation results to the output excel file.

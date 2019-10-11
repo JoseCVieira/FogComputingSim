@@ -22,7 +22,7 @@ import javax.swing.JScrollPane;
 import org.fog.gui.Gui;
 import org.fog.gui.dialog.AddFogDevice;
 import org.fog.utils.FogUtils;
-import org.fog.utils.Location;
+import org.fog.utils.movement.Location;
 
 /**
  * Panel that displays a graph.

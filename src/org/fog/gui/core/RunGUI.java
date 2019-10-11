@@ -15,7 +15,7 @@ import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.entities.Tuple;
 import org.fog.test.ApplicationsExample;
-import org.fog.utils.Movement;
+import org.fog.utils.movement.Movement;
 
 /**
  * Class which converts the topology defined in the GUI to the one to be tested within the simulator.

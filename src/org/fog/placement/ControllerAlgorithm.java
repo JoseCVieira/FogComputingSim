@@ -11,13 +11,13 @@ import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.placement.algorithm.Algorithm;
 import org.fog.placement.algorithm.util.AlgorithmUtils;
+import org.fog.utils.output.ExcelUtils;
+import org.fog.utils.output.MatlabChartUtils;
 import org.fog.placement.algorithm.Solution;
 import org.fog.placement.algorithm.bf.BruteForce;
 import org.fog.placement.algorithm.ga.GeneticAlgorithm;
 import org.fog.placement.algorithm.lp.LinearProgramming;
 import org.fog.placement.algorithm.rand.RandomAlgorithm;
-import org.fog.utils.ExcelUtils;
-import org.fog.utils.MatlabChartUtils;
 
 /**
  * Class which is responsible for choosing and running the optimization algorithm in order to

@@ -30,13 +30,13 @@ import org.fog.placement.algorithm.util.routing.Edge;
 import org.fog.placement.algorithm.util.routing.Graph;
 import org.fog.placement.algorithm.util.routing.Vertex;
 import org.fog.utils.FogLinearPowerModel;
-import org.fog.utils.Location;
-import org.fog.utils.MobileBandwidthModel;
-import org.fog.utils.MobilePathLossModel;
+import org.fog.utils.communication.MobileBandwidthModel;
+import org.fog.utils.communication.MobilePathLossModel;
 import org.fog.utils.distribution.DeterministicDistribution;
 import org.fog.utils.distribution.Distribution;
 import org.fog.utils.distribution.NormalDistribution;
 import org.fog.utils.distribution.UniformDistribution;
+import org.fog.utils.movement.Location;
 
 /**
  * Class which is responsible to parse and hold all the information needed to run any optimization algorithm.
@@ -208,7 +208,7 @@ public abstract class Algorithm {
 		
 		init();
 		extractDevicesCharacteristics(fogDevices);
-		extractModulesCharacteristics(fogDevices, applications, hashSet);
+		extractModulesCharacteristics(applications, hashSet);
 		computeApplicationCharacteristics(applications, sensors);
 		computeConnectionMap(fogDevices);
 		extractDependenciesIndex();
@@ -295,12 +295,10 @@ public abstract class Algorithm {
 	/**
 	 * Extracts the information from the application modules list.
 	 * 
-	 * @param fogDevices the list containing all fog devices within the fog network
 	 * @param applications the list containing all applications to be deployed into the fog network
 	 * @param hashSet the list containing the names of all application modules
 	 */
-	private void extractModulesCharacteristics(final List<FogDevice> fogDevices, final List<Application> applications,
-			final LinkedHashSet<String> hashSet) {
+	private void extractModulesCharacteristics(final List<Application> applications, final LinkedHashSet<String> hashSet) {
 		for(int i  = 0; i < NR_NODES; i++) {
 			Arrays.fill(possibleDeployment[i], 1);
 		}

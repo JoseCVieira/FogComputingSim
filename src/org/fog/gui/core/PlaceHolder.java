@@ -1,6 +1,6 @@
 package org.fog.gui.core;
 
-import org.fog.utils.Location;
+import org.fog.utils.movement.Location;
 
 /**
  * The model that represents the node and its GUI coordinates.

@@ -32,11 +32,11 @@ import org.fog.gui.core.Link;
 import org.fog.gui.core.Node;
 import org.fog.gui.core.SpringUtilities;
 import org.fog.test.ApplicationsExample;
-import org.fog.utils.Location;
-import org.fog.utils.Movement;
 import org.fog.utils.Util;
 import org.fog.utils.distribution.DeterministicDistribution;
 import org.fog.utils.distribution.Distribution;
+import org.fog.utils.movement.Location;
+import org.fog.utils.movement.Movement;
 
 /**
  * Class which defines a random example topology to test the simulator.

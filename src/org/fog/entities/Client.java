@@ -12,8 +12,8 @@ import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.core.SimEvent;
 import org.fog.core.Constants;
 import org.fog.utils.FogEvents;
-import org.fog.utils.Movement;
 import org.fog.utils.TimeKeeper;
+import org.fog.utils.movement.Movement;
 
 /**
  * Class representing client nodes (although it's similar to a fog device it needs to handle some extra events).

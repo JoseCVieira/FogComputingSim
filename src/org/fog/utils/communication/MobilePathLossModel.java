@@ -1,4 +1,4 @@
-package org.fog.utils;
+package org.fog.utils.communication;
 
 
 /**

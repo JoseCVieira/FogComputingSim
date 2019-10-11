@@ -2,9 +2,9 @@ package org.fog.gui.core;
 
 import java.io.Serializable;
 
-import org.fog.utils.Location;
-import org.fog.utils.Movement;
 import org.fog.utils.distribution.Distribution;
+import org.fog.utils.movement.Location;
+import org.fog.utils.movement.Movement;
 
 /**
  * The model that represents virtual machine node for the graph. Note that in the current version of the GUI it's only possible

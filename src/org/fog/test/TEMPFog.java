@@ -8,11 +8,11 @@ import org.fog.core.Topology;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
-import org.fog.utils.Location;
-import org.fog.utils.Movement;
 import org.fog.utils.Util;
 import org.fog.utils.distribution.Distribution;
 import org.fog.utils.distribution.NormalDistribution;
+import org.fog.utils.movement.Location;
+import org.fog.utils.movement.Movement;
 
 /**
  * Class which defines an example topology to test the simulator.

@@ -30,14 +30,14 @@ import org.fog.core.Constants;
 import org.fog.core.FogComputingSim;
 import org.fog.utils.FogEvents;
 import org.fog.utils.FogUtils;
-import org.fog.utils.Location;
-import org.fog.utils.MobileBandwidthModel;
-import org.fog.utils.MobilePathLossModel;
-import org.fog.utils.Movement;
 import org.fog.utils.NetworkMonitor;
 import org.fog.utils.ProcessorMonitor;
 import org.fog.utils.TimeKeeper;
 import org.fog.utils.Util;
+import org.fog.utils.communication.MobileBandwidthModel;
+import org.fog.utils.communication.MobilePathLossModel;
+import org.fog.utils.movement.Location;
+import org.fog.utils.movement.Movement;
 
 /**
  * Class representing fog devices.

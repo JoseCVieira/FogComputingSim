@@ -30,13 +30,13 @@ import org.fog.gui.GuiUtils;
 import org.fog.gui.core.Node;
 import org.fog.gui.core.Graph;
 import org.fog.gui.core.SpringUtilities;
-import org.fog.utils.Location;
-import org.fog.utils.Movement;
 import org.fog.utils.Util;
 import org.fog.utils.distribution.DeterministicDistribution;
 import org.fog.utils.distribution.Distribution;
 import org.fog.utils.distribution.NormalDistribution;
 import org.fog.utils.distribution.UniformDistribution;
+import org.fog.utils.movement.Location;
+import org.fog.utils.movement.Movement;
 
 /**
  * Class which allows to add or edit fixed or mobile fog devices (i.e., fog nodes or clients).

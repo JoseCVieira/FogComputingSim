@@ -1,4 +1,4 @@
-package org.fog.utils;
+package org.fog.utils.output;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -15,6 +15,9 @@ import org.fog.core.Config;
 import org.fog.core.Constants;
 import org.fog.entities.FogDevice;
 import org.fog.placement.Controller;
+import org.fog.utils.NetworkMonitor;
+import org.fog.utils.TimeKeeper;
+import org.fog.utils.Util;
 
 /**
  * Class which is responsible to print the simulation results.

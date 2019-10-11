@@ -22,13 +22,13 @@ import org.fog.entities.Sensor;
 import org.fog.entities.Tuple;
 import org.fog.placement.algorithm.Algorithm;
 import org.fog.placement.algorithm.Solution;
-import org.fog.utils.ExcelUtils;
 import org.fog.utils.FogEvents;
-import org.fog.utils.Location;
-import org.fog.utils.MobileBandwidthModel;
-import org.fog.utils.MobilePathLossModel;
-import org.fog.utils.SimulationResults;
 import org.fog.utils.Util;
+import org.fog.utils.communication.MobileBandwidthModel;
+import org.fog.utils.communication.MobilePathLossModel;
+import org.fog.utils.movement.Location;
+import org.fog.utils.output.ExcelUtils;
+import org.fog.utils.output.SimulationResults;
 
 /**
  * Class representing the controller of the fog network. It supervises and manages the network connections and runs the optimization algorithm.

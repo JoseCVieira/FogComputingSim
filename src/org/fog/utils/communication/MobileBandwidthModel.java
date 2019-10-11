@@ -1,4 +1,4 @@
-package org.fog.utils;
+package org.fog.utils.communication;
 
 import java.util.HashMap;
 import java.util.Map;
