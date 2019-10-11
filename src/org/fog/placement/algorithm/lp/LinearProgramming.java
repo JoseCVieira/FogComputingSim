@@ -72,6 +72,7 @@ public class LinearProgramming extends Algorithm {
 			int nrNodes = getNumberOfNodes();
 			int nrModules = getNumberOfModules();
 			int nrDependencies = getNumberOfDependencies();
+			int nrLoops = getNumberOfLoops();
 			
 			// Define variables
 			IloNumVar[][] placementVar = new IloNumVar[nrNodes][nrModules];
@@ -79,12 +80,13 @@ public class LinearProgramming extends Algorithm {
 			IloNumVar[][][] migrationRoutingVar = new IloNumVar[nrModules][nrNodes][nrNodes];
 			
 			// Define objectives
+			IloNumExpr qsObjective = cplex.numExpr();
 			IloNumExpr pwObjective = cplex.numExpr();
 			IloNumExpr prObjective = cplex.numExpr();
 			IloNumExpr bwObjective = cplex.numExpr();
 			IloNumExpr mgObjective = cplex.numExpr();
 			
-			IloNumExpr[] latency = new IloNumExpr[getNumberOfLoops()];
+			IloNumExpr[] latency = new IloNumExpr[nrLoops];
 			IloNumExpr[] migLatency = new IloNumExpr[nrModules];
 			
 			for(int i = 0; i < nrNodes; i++) {
@@ -94,8 +96,8 @@ public class LinearProgramming extends Algorithm {
 					double pr = getmMips()[j]/(getfMips()[i]*Config.MIPS_PERCENTAGE_UTIL);
 					double pw = (getfBusyPw()[i]-getfIdlePw()[i])*pr;
 					
-					pwObjective = cplex.sum(pwObjective, cplex.prod(placementVar[i][j], pw*getfIsFogDevice()[i]));	// Power cost
-					prObjective = cplex.sum(prObjective, cplex.prod(placementVar[i][j], pr*getfIsFogDevice()[i]));	// Processing cost	
+					pwObjective = cplex.sum(pwObjective, cplex.prod(placementVar[i][j], pw*getfIsFogDevice()[i]));					// Power cost
+					prObjective = cplex.sum(prObjective, cplex.prod(placementVar[i][j], pr*getfIsFogDevice()[i]));					// Processing cost	
 				}
 			}
 			
@@ -109,8 +111,8 @@ public class LinearProgramming extends Algorithm {
 						double bw = bandwidth/(getfBandwidthMap()[j][z]*Config.BW_PERCENTAGE_UTIL + Constants.EPSILON);
 						double pw = bw*getfTxPw()[j];
 						
-						bwObjective = cplex.sum(bwObjective, cplex.prod(tupleRoutingVar[i][j][z], bw*getfIsFogDevice()[j]));	// Bandwidth cost
-						pwObjective = cplex.sum(pwObjective, cplex.prod(tupleRoutingVar[i][j][z], pw*getfIsFogDevice()[j]));	// Power cost
+						bwObjective = cplex.sum(bwObjective, cplex.prod(tupleRoutingVar[i][j][z], bw*getfIsFogDevice()[j]));		// Bandwidth cost
+						pwObjective = cplex.sum(pwObjective, cplex.prod(tupleRoutingVar[i][j][z], pw*getfIsFogDevice()[j]));		// Power cost
 					}
 				}
 			}
@@ -137,12 +139,21 @@ public class LinearProgramming extends Algorithm {
 			
 			defineConstraints(cplex, placementVar, tupleRoutingVar, migrationRoutingVar, latency, migLatency);
 			
+			for(int i = 0; i < nrLoops; i++) {
+				latency[i] = cplex.diff(latency[i], getLoopsDeadline()[i]);
+				//latency[i] = cplex.prod(latency[i]);
+			}
+			
+			qsObjective = cplex.sum(qsObjective, cplex.max(latency));																// Quality of Service cost
+			
+			IloObjective qsCost = cplex.minimize(qsObjective);
 			IloObjective pwCost = cplex.minimize(pwObjective);
 			IloObjective prCost = cplex.minimize(prObjective);
 			IloObjective bwCost = cplex.minimize(bwObjective);
 			IloObjective mgCost = cplex.minimize(mgObjective);
 			
 			IloNumExpr[] objArray = new IloNumExpr[Config.NR_OBJECTIVES];
+			objArray[Config.QOS_COST] = qsCost.getExpr();
 			objArray[Config.POWER_COST] = pwCost.getExpr();
 			objArray[Config.PROCESSING_COST] = prCost.getExpr();
 			objArray[Config.BANDWIDTH_COST] = bwCost.getExpr();
@@ -186,15 +197,16 @@ public class LinearProgramming extends Algorithm {
 				}
 				
 				Solution solution = new Solution(this, modulePlacementMap, tupleRoutingMap, migrationRoutingMap);
+				solution.setDetailedCost(Config.QOS_COST, cplex.getValue(qsObjective));
 				solution.setDetailedCost(Config.POWER_COST, cplex.getValue(pwObjective));
 				solution.setDetailedCost(Config.PROCESSING_COST, cplex.getValue(prObjective));
 				solution.setDetailedCost(Config.BANDWIDTH_COST, cplex.getValue(bwObjective));
 				solution.setDetailedCost(Config.MIGRATION_COST, cplex.getValue(mgObjective));
 				
-				for(int i = 0; i < getNumberOfLoops(); i++)
+				for(int i = 0; i < nrLoops; i++)
 					solution.setLoopDeadline(i, cplex.getValue(latency[i]));
 				
-				for(int i = 0; i < getNumberOfModules(); i++)
+				for(int i = 0; i < nrModules; i++)
 					solution.setMigrationDeadline(i, cplex.getValue(migLatency[i]));
 				
 				cplex.end();
@@ -438,7 +450,7 @@ public class LinearProgramming extends Algorithm {
 					dependencyLatency(cplex, tupleRoutingVar, latency, i, startModuleIndex, finalModuleIndex);
 				}
 				
-				cplex.addLe(latency[i], getLoopsDeadline()[i]);
+				cplex.addLe(latency[i], Integer.MAX_VALUE/*getLoopsDeadline()[i]*/);
 			}
 		}catch (IloException e) {
 			e.printStackTrace();
@@ -468,7 +480,6 @@ public class LinearProgramming extends Algorithm {
 						cplex.add(cplex.ifThen(cplex.eq(cplex.sum(placementVar[i][modIndex], placementVar[i][k]), 2), cplex.eq(tmp, 1)));
 						
 						latency[loopIndex] = cplex.sum(latency[loopIndex], cplex.prod(tmp, getmCPUMap()[j][k]/(getfMips()[i]*Config.MIPS_PERCENTAGE_UTIL)));
-						
 						cplex.remove(tmp);
 					}
 				}
@@ -518,12 +529,11 @@ public class LinearProgramming extends Algorithm {
 					for (int k = 0; k < getNumberOfNodes(); k++) {
 						IloNumVar tmp = cplex.intVar(0, 1);
 						cplex.add(cplex.ifThen(cplex.le(cplex.sum(tupleRoutingVar[depIndex][j][k], tupleRoutingVar[i][j][k]), 1), cplex.eq(tmp, 0)));
-						cplex.add(cplex.ifThen(cplex.eq(cplex.sum(tupleRoutingVar[depIndex][j][k], tupleRoutingVar[i][j][k]), 2), cplex.eq(tmp, 1)));						
+						cplex.add(cplex.ifThen(cplex.eq(cplex.sum(tupleRoutingVar[depIndex][j][k], tupleRoutingVar[i][j][k]), 2), cplex.eq(tmp, 1)));
 						
 						double bw = getfBandwidthMap()[j][k]*Config.BW_PERCENTAGE_UTIL + Constants.EPSILON;
-						
 						latency[loopIndex] = cplex.sum(latency[loopIndex], cplex.prod(tmp, size/bw));
-						
+						cplex.remove(tmp);
 					}
 				}
 			}
@@ -552,7 +562,6 @@ public class LinearProgramming extends Algorithm {
 					for (int k = 0; k < getNumberOfNodes(); k++) {
 						double linkLat = getfLatencyMap()[j][k];
 						double linkBw = getfBandwidthMap()[j][k]*(1-Config.BW_PERCENTAGE_UTIL) + Constants.EPSILON;
-						
 						migLatency[i] = cplex.sum(migLatency[i], cplex.prod(migrationRoutingVar[i][j][k], linkLat + vmSize/linkBw));
 					}
 				}

@@ -429,6 +429,9 @@ public class AlgorithmUtils {
 		
 		System.out.println("\n********************* LOOP DEADLINES ***********************\n");
 		
+		System.out.println("Number of loops: " + al.getNumberOfLoops() + " | Number of ensured loops: " +
+				solution.getDetailedCost(Config.QOS_COST) + "\n");
+		
 		for(int i = 0; i < al.getNumberOfLoops(); i++) {
 			System.out.print("Loop " + i + ": [ " );
 			

@@ -22,7 +22,7 @@ public class Config {
 	public static boolean PLOT_ALGORITHM_RESULTS = false;
 	
 	/** Defines whether the output values are written to the excel file */
-	public static boolean EXPORT_RESULTS_EXCEL = false;
+	public static boolean EXPORT_RESULTS_EXCEL = true;
 	
 	/** Defines the percentage of available resources for "normal" operations, the remaining resources are allocated for control operations and migrations */
 	public static final double MIPS_PERCENTAGE_UTIL = 0.95;
@@ -31,13 +31,14 @@ public class Config {
 	public static final double BW_PERCENTAGE_UTIL = 0.8;
 	
 	/** Defines the number of defined objectives inside the multiple objective problem */
-	public static final int NR_OBJECTIVES = 4;
+	public static final int NR_OBJECTIVES = 5;
 	
 	/** The index of each objective */
-	public static final int POWER_COST = 0;
-	public static final int PROCESSING_COST = 1;
-	public static final int BANDWIDTH_COST = 2;
-	public static final int MIGRATION_COST = 3;
+	public static final int QOS_COST = 0;
+	public static final int POWER_COST = 1;
+	public static final int PROCESSING_COST = 2;
+	public static final int BANDWIDTH_COST = 3;
+	public static final int MIGRATION_COST = 4;
 	
 	/** 
 	 * Order of importance for multiple objective optimization
@@ -48,14 +49,16 @@ public class Config {
 	 * Note that for the current problem it makes no sense to sum different costs, thus their priorities must be all different.
 	 */
 	public static final int[] priorities = new int[] {
-			2,		// Power cost
+			5,		// Quality of Service cost
+			4,		// Power cost
 			3,		// Processing cost
-			4,		// Bandwidth cost
+			2,		// Bandwidth cost
 			1		// Migration cost
 	};
 	
 	/** Weights used for the weight sum in case of same priority objectives */
 	public static final double[] weights = new double[] {
+			1.0,	// Quality of Service cost
 			1.0,	// Power cost
 			1.0,	// Processing cost
 			1.0,	// Bandwidth cost
@@ -64,6 +67,7 @@ public class Config {
 
 	/** Allow a small degradation in the first objective. AbsTols represents a list of absolute tolerances */
 	public static final double[] absTols = new double[] {
+			0.0,	// Quality of Service cost
 			0.0,	// Power cost
 			0.0,	// Processing cost
 			0.0,	// Bandwidth cost
@@ -72,6 +76,7 @@ public class Config {
 
 	/** Allow a small degradation in the first objective. RelTols represents a list of relative tolerances */
 	public static final double[] relTols = new double[] {
+			0.0,	// Quality of Service cost
 			0.0,	// Power cost
 			0.0,	// Processing cost
 			0.0,	// Bandwidth cost
@@ -80,6 +85,7 @@ public class Config {
 	
 	/** The names of the objectives (used to export the results to the excel file) */
 	public static final String[] objectiveNames = new String[] {
+			"QoS",
 			"Power", 
 			"Processing",
 			"Bandwidth",
@@ -128,7 +134,7 @@ public class Config {
 	public static boolean PRINT_COST_DETAILS = false;
 	
 	/** Defines whether the simulation is dynamic (i.e., mobile nodes actualy move around) */
-	public static boolean DYNAMIC_SIMULATION = true;
+	public static boolean DYNAMIC_SIMULATION = false;
 	
 	/** Defines whether the simulation is allowed to perform migrations of VMs */
 	public static boolean ALLOW_MIGRATION = true;
@@ -152,11 +158,13 @@ public class Config {
 	public static final int SQUARE_SIDE = 10000;
 	public static final double PROB_CHANGE_DIRECTION = 0.25;
 	public static final double PROB_CHANGE_VELOCITY = 0.35;
-	public static final double PROB_MAX_VELOCITY = 0.1667;
+	public static final double PROB_MAX_VELOCITY = 0.1111;
 	public static final double PROB_MED_VELOCITY = 0.6667;
-	public static final double PROB_MIN_VELOCITY = 0.1667;
+	public static final double PROB_MIN_VELOCITY = 0.1111;
+	public static final double PROB_NUL_VELOCITY = 0.1111;
 	public static final double MAX_VELOCITY = 33.3333;	// 33.3333 m/s = 120 km/h 	-> high speed car
 	public static final double MED_VELOCITY = 13.8889;	// 13.8889 m/s = 50 km/h  	-> slow speed car
 	public static final double MIN_VELOCITY = 1.34000;	// 1.34 m/s					-> average walking speed
+	public static final double NUL_VELOCITY = 0;		// 0 m/s					-> stopped
 	
 }
