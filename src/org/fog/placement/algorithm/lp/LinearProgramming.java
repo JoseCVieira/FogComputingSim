@@ -51,7 +51,7 @@ public class LinearProgramming extends Algorithm {
 	public Solution execute() {
 		bestSolution = null;
 		getValueIterMap().clear();
-		edgesMap.clear();
+		if(edgesMap != null) edgesMap.clear();
 		
 		// Time at the beginning of the execution of the algorithm
 		start = System.currentTimeMillis();

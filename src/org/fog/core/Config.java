@@ -143,10 +143,10 @@ public class Config {
 	public static final int HANDOVER_THRESHOLD = 75;
 	
 	/** Defines the bandwidth available in fixed link */
-	public static final double FIXED_COMMUNICATION_BW = 50*1024*1024;	// 50 Mb/s
+	public static final double FIXED_COMMUNICATION_BW = 50*1024*1024/8;// 50 Mb/s
 	
 	/** Defines the bandwidth available in cellular link */
-	public static final double CELLULAR_COMMUNICATION_BW = 9*1024*1024;	// 9 Mb/s
+	public static final double CELLULAR_COMMUNICATION_BW = 9*1024*1024/8;	// 9 Mb/s
 	
 	/** Defines the latency available in cellular link */
 	public final static double CELLULAR_COMMUNICATION_LATENCY = 200E-6;	// 200 us
