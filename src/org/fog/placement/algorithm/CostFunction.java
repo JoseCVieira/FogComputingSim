@@ -248,12 +248,7 @@ public class CostFunction {
 				if(start == end) continue;
 			
 				double linkBw = algorithm.getfBandwidthMap()[start][end]*(1-Config.BW_PERCENTAGE_UTIL) + Constants.EPSILON;
-				double totalDep = 0;
-				for(int l = 0; l < algorithm.getNumberOfModules(); l++) {
-					totalDep += algorithm.getmDependencyMap()[l][i];
-				}
-				
-				cost += size/linkBw*totalDep;
+				cost += size/linkBw;
 			}
 		}
 		

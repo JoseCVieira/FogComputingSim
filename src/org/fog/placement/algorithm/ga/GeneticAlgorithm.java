@@ -128,7 +128,7 @@ public class GeneticAlgorithm extends Algorithm {
 	 * @param population the population containing only the module placement map
 	 * @return the population containing the whole solution (module placement map, and tuple and virtual machine migration routing maps)
 	 */
-	public Individual[] GARouting(Individual[] population) {		
+	public Individual[] GARouting(Individual[] population) {
 		// For each individual with a given module placement map
 		for (int i = 0; i < Config.POPULATION_SIZE_GA; i++) {
 			

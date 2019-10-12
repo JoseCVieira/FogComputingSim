@@ -1,6 +1,9 @@
 package org.fog.placement.algorithm.bf;
 
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.fog.application.Application;
 import org.fog.core.Config;
@@ -10,6 +13,7 @@ import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.placement.algorithm.Algorithm;
 import org.fog.placement.algorithm.Solution;
+import org.fog.placement.algorithm.util.routing.Vertex;
 
 /**
  * Class in which defines and executes the brute force algorithm.
@@ -29,6 +33,8 @@ public class BruteForce extends Algorithm {
 	
 	/** Time at the end of the execution of the algorithm */
 	private long finish;
+	
+	private Map<Map<Integer, Integer>, Integer> hopCountMap;
 	
 	public BruteForce(final List<FogDevice> fogDevices, final List<Application> applications,
 			final List<Sensor> sensors, final List<Actuator> actuators) {
@@ -51,6 +57,8 @@ public class BruteForce extends Algorithm {
 		
 		// Generate the Dijkstra graph
 		generateDijkstraGraph();
+		
+		createHopCountMap();
 		
 		// Solve the problem
 		solveModulePlacement(new int[getNumberOfNodes()][getNumberOfModules()], 0);
@@ -153,7 +161,11 @@ public class BruteForce extends Algorithm {
 				for(int i = 0; i < getNumberOfNodes(); i++) {
 					if(getfLatencyMap()[previousNode][i] == Constants.INF) continue;
 					if(getfLatencyMap()[previousNode][i] == 0) continue;
-					if(!isValidHop(i, migrationRoutingMap[row][getNumberOfNodes()-1], getNumberOfNodes() - col)) continue;
+					
+					Map<Integer,Integer> map = new HashMap<Integer, Integer>();
+					map.put(i, migrationRoutingMap[row][getNumberOfNodes()-1]);
+					
+					if(hopCountMap.get(map) > getNumberOfNodes() - col) continue;
 					
 					migrationRoutingMap[row][col] = i;
 				
@@ -213,7 +225,11 @@ public class BruteForce extends Algorithm {
 				for(int i = 0; i < getNumberOfNodes(); i++) {
 					if(getfLatencyMap()[previousNode][i] == Constants.INF) continue;
 					if(getfLatencyMap()[previousNode][i] == 0) continue;
-					if(!isValidHop(i, tupleRoutingMap[row][getNumberOfNodes()-1], getNumberOfNodes() - col)) continue;
+					
+					Map<Integer,Integer> map = new HashMap<Integer, Integer>();
+					map.put(i, tupleRoutingMap[row][getNumberOfNodes()-1]);
+					
+					if(hopCountMap.get(map) > getNumberOfNodes() - col) continue;
 					
 					tupleRoutingMap[row][col] = i;
 				
@@ -245,6 +261,25 @@ public class BruteForce extends Algorithm {
 		if(totalStrg > getfStrg()[node] * Config.STRG_PERCENTAGE_UTIL) return true;
 		
 		return false;
+	}
+	
+	private void createHopCountMap() {
+		hopCountMap = new HashMap<Map<Integer,Integer>, Integer>();
+		
+		for(int i = 0; i < getNumberOfNodes(); i++) {
+			for(int j = 0; j < getNumberOfNodes(); j++) {
+				Map<Integer,Integer> map = new HashMap<Integer, Integer>();
+				map.put(i, j);
+				
+				if(i != j) {
+					getDijkstra().execute(getDijkstraNodes().get(i));
+					LinkedList<Vertex> path = getDijkstra().getPath(getDijkstraNodes().get(j));
+					hopCountMap.put(map, path.size());
+				}else {
+					hopCountMap.put(map, 0);
+				}
+			}
+		}
 	}
 	
 }
