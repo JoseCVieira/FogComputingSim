@@ -34,7 +34,8 @@ public class LinearProgramming extends Algorithm {
 	/** Time at the end of the execution of the algorithm */
 	private long finish;
 	
-	Map<Map<Integer, Integer>, Map<Double, Double>> edgesMap = new LinkedHashMap<Map<Integer,Integer>, Map<Double,Double>>();
+	/** Map storing each edge (source, destination, latency and bandwidth) */
+	Map<Map<Integer, Integer>, Map<Double, Double>> edgesMap;
 	
 	public LinearProgramming(final List<FogDevice> fogDevices, final List<Application> applications,
 			final List<Sensor> sensors, final List<Actuator> actuators) {
@@ -636,7 +637,15 @@ public class LinearProgramming extends Algorithm {
 		}
 	}
 	
+	/**
+	 * Transforms both routing problem variables from A x N x N into A x E
+	 * where:
+	 * 	- A: number of dependencies or number of modules
+	 * 	- E: number of edges 
+	 */
 	private void computeEdgesMap() {
+		edgesMap = new LinkedHashMap<Map<Integer,Integer>, Map<Double,Double>>();
+		 
 		for(int i = 0; i < getNumberOfNodes(); i++) {
 			for(int j = 0; j < getNumberOfNodes(); j++) {
 				if(getfLatencyMap()[i][j] == 0 || getfLatencyMap()[i][j] == Constants.INF) continue;

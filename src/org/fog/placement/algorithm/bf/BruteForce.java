@@ -34,6 +34,7 @@ public class BruteForce extends Algorithm {
 	/** Time at the end of the execution of the algorithm */
 	private long finish;
 	
+	/** Map containing the hop count between any two nodes */
 	private Map<Map<Integer, Integer>, Integer> hopCountMap;
 	
 	public BruteForce(final List<FogDevice> fogDevices, final List<Application> applications,
@@ -58,6 +59,7 @@ public class BruteForce extends Algorithm {
 		// Generate the Dijkstra graph
 		generateDijkstraGraph();
 		
+		// Compute the hop count between any two nodes
 		createHopCountMap();
 		
 		// Solve the problem
@@ -245,6 +247,13 @@ public class BruteForce extends Algorithm {
 		}
 	}
 	
+	/**
+	 * Verifies whether resources are exceeded in a given node for a given placement matrix.
+	 * 
+	 * @param modulePlacementMap the current binary module placement map
+	 * @param node the node to verify
+	 * @return true if its resources are being exceeded. 0, otherwise
+	 */
 	private boolean checkResourcesExceeded(final int[][] modulePlacementMap, int node) {
 		double totalMips = 0;
 		double totalRam = 0;
@@ -263,6 +272,9 @@ public class BruteForce extends Algorithm {
 		return false;
 	}
 	
+	/**
+	 * Computes and stores the hop count between any two nodes.
+	 */
 	private void createHopCountMap() {
 		hopCountMap = new HashMap<Map<Integer,Integer>, Integer>();
 		
