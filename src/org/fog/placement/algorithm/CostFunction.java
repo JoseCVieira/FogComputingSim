@@ -20,7 +20,7 @@ public class CostFunction {
 	 */
 	public static void analyzeSolution(Algorithm algorithm, Solution solution) {
 		double constraint = Constraints.checkConstraints(algorithm, solution);
-		solution.setDetailedCost(Config.QOS_COST, computeQoS(algorithm, solution));
+		solution.setDetailedCost(Config.QOS_COST, algorithm.getNumberOfLoops() - computeQoS(algorithm, solution));
 		solution.setDetailedCost(Config.POWER_COST, computePowerCost(algorithm, solution));
 		solution.setDetailedCost(Config.PROCESSING_COST, computeProcessingCost(algorithm, solution));
 		solution.setDetailedCost(Config.BANDWIDTH_COST, computeBandwidthCost(algorithm, solution));
@@ -71,12 +71,11 @@ public class CostFunction {
 				
 				latency += computeProcessingLatency(algorithm, modulePlacementMap, loops[i][j+1]);
 				latency += computeDependencyLatency(algorithm, tupleRoutingMap, loops[i][j], loops[i][j+1]);
-				
-				if(latency <= algorithm.getLoopsDeadline()[i]) continue;
-				cost++;
 			}
 			
 			solution.setLoopDeadline(i, latency);
+			if(latency <= algorithm.getLoopsDeadline()[i]) continue;
+			cost++;
 		}
 		
 		return cost;

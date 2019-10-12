@@ -165,10 +165,11 @@ public class AlgorithmUtils {
 		System.out.println("*******************************************************\n");
 		
 		for(int i = 0; i < al.getNumberOfModules(); i++) {
-			System.out.println(Util.leftString(17, "Name: ") + al.getmName()[i]);
-			System.out.println(Util.leftString(17, "Mips [MIPS]: ") + al.getmMips()[i]);
-			System.out.println(Util.leftString(17, "Ram [Byte]: ") + al.getmRam()[i]);
-			System.out.println(Util.leftString(17, "Strorage [Byte]: ") + al.getmStrg()[i]);
+			System.out.println(Util.leftString(19, "Name: ") + al.getmName()[i]);
+			System.out.println(Util.leftString(19, "Mips [MIPS]: ") + al.getmMips()[i]);
+			System.out.println(Util.leftString(19, "Ram [Byte]: ") + al.getmRam()[i]);
+			System.out.println(Util.leftString(19, "Strorage [Byte]: ") + al.getmStrg()[i]);
+			System.out.println(Util.leftString(19, "Mig. Deadline [s]: ") + al.getmMigD()[i]);
 			
 			if(i < al.getNumberOfModules() -1)
 				System.out.println();
