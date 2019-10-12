@@ -217,7 +217,7 @@ public class LinearProgramming2 extends Algorithm {
 				}
 				
 				Solution solution = new Solution(this, modulePlacementMap, tupleRoutingMap, migrationRoutingMap);
-				solution.setDetailedCost(Config.QOS_COST, nrLoops - (int) Math.round(cplex.getValue(qsObjective)));
+				solution.setDetailedCost(Config.QOS_COST, (int) Math.round(cplex.getValue(qsObjective)));
 				solution.setDetailedCost(Config.POWER_COST, cplex.getValue(pwObjective));
 				solution.setDetailedCost(Config.PROCESSING_COST, cplex.getValue(prObjective));
 				solution.setDetailedCost(Config.BANDWIDTH_COST, cplex.getValue(bwObjective));

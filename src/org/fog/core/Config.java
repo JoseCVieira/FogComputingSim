@@ -22,7 +22,7 @@ public class Config {
 	public static boolean PLOT_ALGORITHM_RESULTS = false;
 	
 	/** Defines whether the output values are written to the excel file */
-	public static boolean EXPORT_RESULTS_EXCEL = true;
+	public static boolean EXPORT_RESULTS_EXCEL = false;
 	
 	/** Defines the percentage of available resources for "normal" operations, the remaining resources are allocated for control operations and migrations */
 	public static final double MIPS_PERCENTAGE_UTIL = 0.95;
@@ -134,7 +134,7 @@ public class Config {
 	public static boolean PRINT_COST_DETAILS = false;
 	
 	/** Defines whether the simulation is dynamic (i.e., mobile nodes actualy move around) */
-	public static boolean DYNAMIC_SIMULATION = true;
+	public static boolean DYNAMIC_SIMULATION = false;
 	
 	/** Defines whether the simulation is allowed to perform migrations of VMs */
 	public static boolean ALLOW_MIGRATION = true;

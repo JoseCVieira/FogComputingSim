@@ -3,6 +3,7 @@ package org.fog.placement.algorithm.bf;
 import java.util.List;
 
 import org.fog.application.Application;
+import org.fog.core.Config;
 import org.fog.core.Constants;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
@@ -80,6 +81,8 @@ public class BruteForce extends Algorithm {
 				modulePlacementMap[j][index] = j == i ? 1 : 0;
 			}
 			
+			if(checkResourcesExceeded(modulePlacementMap, i)) continue;
+			
 			// If its not the final module, solve the next one
 			if(index != getNumberOfModules() - 1) {
 				solveModulePlacement(modulePlacementMap, index + 1);
@@ -149,6 +152,7 @@ public class BruteForce extends Algorithm {
 			}else {
 				for(int i = 0; i < getNumberOfNodes(); i++) {
 					if(getfLatencyMap()[previousNode][i] == Constants.INF) continue;
+					if(getfLatencyMap()[previousNode][i] == 0) continue;
 					if(!isValidHop(i, migrationRoutingMap[row][getNumberOfNodes()-1], getNumberOfNodes() - col)) continue;
 					
 					migrationRoutingMap[row][col] = i;
@@ -208,6 +212,7 @@ public class BruteForce extends Algorithm {
 			}else {
 				for(int i = 0; i < getNumberOfNodes(); i++) {
 					if(getfLatencyMap()[previousNode][i] == Constants.INF) continue;
+					if(getfLatencyMap()[previousNode][i] == 0) continue;
 					if(!isValidHop(i, tupleRoutingMap[row][getNumberOfNodes()-1], getNumberOfNodes() - col)) continue;
 					
 					tupleRoutingMap[row][col] = i;
@@ -222,6 +227,24 @@ public class BruteForce extends Algorithm {
 				}
 			}
 		}
+	}
+	
+	private boolean checkResourcesExceeded(final int[][] modulePlacementMap, int node) {
+		double totalMips = 0;
+		double totalRam = 0;
+		double totalStrg = 0;
+		
+		for(int j = 0; j < getNumberOfModules(); j++) {
+			totalMips += modulePlacementMap[node][j] * getmMips()[j];
+			totalRam += modulePlacementMap[node][j] * getmRam()[j];
+			totalStrg += modulePlacementMap[node][j] * getmStrg()[j];
+		}
+		
+		if(totalMips > getfMips()[node] * Config.MIPS_PERCENTAGE_UTIL) return true;
+		if(totalRam > getfRam()[node] * Config.MEM_PERCENTAGE_UTIL) return true;
+		if(totalStrg > getfStrg()[node] * Config.STRG_PERCENTAGE_UTIL) return true;
+		
+		return false;
 	}
 	
 }
