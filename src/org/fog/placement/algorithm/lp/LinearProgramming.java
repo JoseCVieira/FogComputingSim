@@ -95,13 +95,14 @@ public class LinearProgramming extends Algorithm {
 			IloNumExpr prObjective = cplex.numExpr();
 			IloNumExpr bwObjective = cplex.numExpr();
 			IloNumExpr mgObjective = cplex.numExpr();
+			IloNumExpr hpObjective = cplex.numExpr();
 			
 			IloNumExpr[] latency = new IloNumExpr[nrLoops];
 			IloNumExpr[] migLatency = new IloNumExpr[nrModules];
 			
 			for(int i = 0; i < nrNodes; i++) {
 				for(int j = 0; j < nrModules; j++) {
-					placementVar[i][j] = cplex.intVar(0, 1);
+					placementVar[i][j] = cplex.boolVar();//cplex.intVar(0, 1);
 					
 					double pr = getmMips()[j]/(getfMips()[i]*Config.MIPS_PERCENTAGE_UTIL);
 					double pw = (getfBusyPw()[i]-getfIdlePw()[i])*pr;
@@ -115,7 +116,7 @@ public class LinearProgramming extends Algorithm {
 				double bandwidth = getmBandwidthMap()[getStartModDependency(i)][getFinalModDependency(i)];
 				
 				for(int j = 0; j < nrEdges; j++) {
-					tupleRoutingVar[i][j] = cplex.intVar(0, 1);
+					tupleRoutingVar[i][j] = cplex.boolVar();//cplex.intVar(0, 1);
 					Map<Integer, Integer> edge = (Map<Integer, Integer>) edgesMap.keySet().toArray()[j];
 					Map<Double, Double> communication = (Map<Double, Double>) edgesMap.get(edge);
 					int src = edge.entrySet().iterator().next().getKey();
@@ -125,6 +126,7 @@ public class LinearProgramming extends Algorithm {
 					
 					bwObjective = cplex.sum(bwObjective, cplex.prod(tupleRoutingVar[i][j], bw*getfIsFogDevice()[src]));		// Bandwidth cost
 					pwObjective = cplex.sum(pwObjective, cplex.prod(tupleRoutingVar[i][j], pw*getfIsFogDevice()[src]));		// Power cost
+					hpObjective = cplex.sum(hpObjective, tupleRoutingVar[i][j]);
 				}
 			}
 			
@@ -132,7 +134,7 @@ public class LinearProgramming extends Algorithm {
 				double size = getmStrg()[i] + getmRam()[i];
 				
 				for(int j = 0; j < nrEdges; j++) {
-					migrationRoutingVar[i][j] = cplex.intVar(0, 1);
+					migrationRoutingVar[i][j] = cplex.boolVar();//cplex.intVar(0, 1);
 					Map<Integer, Integer> edge = (Map<Integer, Integer>) edgesMap.keySet().toArray()[j];
 					Map<Double, Double> communication = (Map<Double, Double>) edgesMap.get(edge);
 					int src = edge.entrySet().iterator().next().getKey();
@@ -141,6 +143,7 @@ public class LinearProgramming extends Algorithm {
 					double mg = size/bw;
 					
 					mgObjective = cplex.sum(mgObjective, cplex.prod(migrationRoutingVar[i][j], mg*getfIsFogDevice()[src]));	// Migration cost
+					hpObjective = cplex.sum(hpObjective, migrationRoutingVar[i][j]);
 				}
 			}
 			
@@ -163,15 +166,34 @@ public class LinearProgramming extends Algorithm {
 			IloObjective prCost = cplex.minimize(prObjective);
 			IloObjective bwCost = cplex.minimize(bwObjective);
 			IloObjective mgCost = cplex.minimize(mgObjective);
+			IloObjective hpCost = cplex.minimize(hpObjective);
 			
-			IloNumExpr[] objArray = new IloNumExpr[Config.NR_OBJECTIVES];
+			IloNumExpr[] objArray = new IloNumExpr[Config.NR_OBJECTIVES+1];
 			objArray[Config.QOS_COST] = qsCost.getExpr();
 			objArray[Config.POWER_COST] = pwCost.getExpr();
 			objArray[Config.PROCESSING_COST] = prCost.getExpr();
 			objArray[Config.BANDWIDTH_COST] = bwCost.getExpr();
 			objArray[Config.MIGRATION_COST] = mgCost.getExpr();
+			objArray[Config.NR_OBJECTIVES] = hpCost.getExpr();
 			
-			cplex.add(cplex.minimize(cplex.staticLex(objArray, Config.weights, Config.priorities, Config.absTols, Config.relTols, null)));
+			double[] weights = new double[Config.weights.length+1];
+			int[] priorities = new int[Config.priorities.length+1];
+			double[] absTols = new double[Config.absTols.length+1];
+			double[] relTols = new double[Config.relTols.length+1];
+			
+			for(int i = 0; i < Config.NR_OBJECTIVES; i++) {
+				weights[i] = Config.weights[i];
+				priorities[i] = Config.priorities[i] + 1;
+				absTols[i] = Config.absTols[i];
+				relTols[i] = Config.relTols[i];
+			}
+			
+			weights[Config.NR_OBJECTIVES] = 1;
+			priorities[Config.NR_OBJECTIVES] = 1;
+			absTols[Config.NR_OBJECTIVES] = 0;
+			relTols[Config.NR_OBJECTIVES] = 0;
+			
+			cplex.add(cplex.minimize(cplex.staticLex(objArray, weights, priorities, absTols, relTols, null)));
 			
 			// Display option
 			if(Config.PRINT_DETAILS)
@@ -455,7 +477,7 @@ public class LinearProgramming extends Algorithm {
 							in = cplex.sum(in, migrationRoutingVar[i][z]);
 					}
 					
-					cplex.addEq(cplex.diff(out, in), cplex.diff(getCurrentPlacement()[j][i], placementVar[j][i]));
+					cplex.addEq(cplex.diff(out, in), cplex.sum(-getCurrentPlacement()[j][i], placementVar[j][i]));
 				}
 			}
 		}catch (IloException e) {
@@ -508,12 +530,8 @@ public class LinearProgramming extends Algorithm {
 					for(int k = 0; k < getNumberOfModules(); k++) {
 						if(getmMips()[k] == 0) continue; // Sensor and actuator modules does not count
 						
-						IloNumVar tmp = cplex.intVar(0, 1);
-						cplex.add(cplex.ifThen(cplex.le(cplex.sum(placementVar[i][modIndex], placementVar[i][k]), 1), cplex.eq(tmp, 0)));
-						cplex.add(cplex.ifThen(cplex.eq(cplex.sum(placementVar[i][modIndex], placementVar[i][k]), 2), cplex.eq(tmp, 1)));
-						
-						latency[loopIndex] = cplex.sum(latency[loopIndex], cplex.prod(tmp, getmCPUMap()[j][k]/(getfMips()[i]*Config.MIPS_PERCENTAGE_UTIL)));
-						cplex.remove(tmp);
+						double p = getmCPUMap()[j][k]/(getfMips()[i]*Config.MIPS_PERCENTAGE_UTIL);
+						latency[loopIndex] = cplex.sum(latency[loopIndex], cplex.prod(cplex.min(placementVar[i][modIndex], placementVar[i][k]), p));
 					}
 				}
 			}
@@ -564,16 +582,11 @@ public class LinearProgramming extends Algorithm {
 				double size = getmNWMap()[getStartModDependency(i)][getFinalModDependency(i)];
 				
 				for (int j = 0; j < nrEdges; j++) {
-					IloNumVar tmp = cplex.intVar(0, 1);
-					cplex.add(cplex.ifThen(cplex.le(cplex.sum(tupleRoutingVar[depIndex][j], tupleRoutingVar[i][j]), 1), cplex.eq(tmp, 0)));
-					cplex.add(cplex.ifThen(cplex.eq(cplex.sum(tupleRoutingVar[depIndex][j], tupleRoutingVar[i][j]), 2), cplex.eq(tmp, 1)));
-					
 					Map<Integer, Integer> edge = (Map<Integer, Integer>) edgesMap.keySet().toArray()[j];
 					Map<Double, Double> communication = (Map<Double, Double>) edgesMap.get(edge);
 					double bw = communication.entrySet().iterator().next().getValue()*Config.BW_PERCENTAGE_UTIL;
 					
-					latency[loopIndex] = cplex.sum(latency[loopIndex], cplex.prod(tmp, size/bw));
-					cplex.remove(tmp);
+					latency[loopIndex] = cplex.sum(latency[loopIndex], cplex.prod(cplex.min(tupleRoutingVar[depIndex][j], tupleRoutingVar[i][j]), size/bw));
 				}
 			}
 		}catch (IloException e) {
@@ -596,7 +609,6 @@ public class LinearProgramming extends Algorithm {
 		int nrEdges = edgesMap.size();		
 		
 		try {
-			//migLatency[loopIndex] = cplex.sum(migLatency[loopIndex], );
 			for(int i = 0; i < nrModules; i++) { // Loop index
 				migLatency[i] = cplex.numExpr();
 				double vmSize = getmStrg()[i] + getmRam()[i];
@@ -614,7 +626,7 @@ public class LinearProgramming extends Algorithm {
 					int prevNodeIndex = Solution.findModulePlacement(getCurrentPositionInt(), i);
 					
 					// If the virtual machine was migrated, then sum a given setup time
-					migLatency[i] = cplex.sum(migLatency[i], cplex.prod(cplex.diff(1, placementVar[prevNodeIndex][i]), Config.SETUP_VM_TIME));
+					migLatency[i] = cplex.sum(migLatency[i], cplex.prod(cplex.sum(-1, placementVar[prevNodeIndex][i]), Config.SETUP_VM_TIME));
 				}
 				
 				cplex.addLe(migLatency[i], getmMigD()[i]);
