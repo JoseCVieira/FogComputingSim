@@ -30,9 +30,9 @@ public class ControllerAlgorithm {
 	public static final int NR_ALGORITHMS = 4;
 	
 	private static final int LP = 1;
-	private static final int GA = 3;
-	private static final int RAND = 4;
-	private static final int BF = 5;
+	private static final int GA = 2;
+	private static final int RAND = 3;
+	private static final int BF = 4;
 	
 	
 	/** Object which holds all the information needed to run the optimization algorithm */
