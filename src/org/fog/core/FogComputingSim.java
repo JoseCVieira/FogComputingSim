@@ -120,11 +120,10 @@ public class FogComputingSim {
 		System.out.println("|    FOG COMPUTING SIMULATOR MENU - ALGORITHM    |");
 		System.out.println("|                                                |");
 	    System.out.println("| Options:                                       |");
-	    System.out.println("|       1. Linear Programming (NxN)              |");
-	    System.out.println("|       2. Linear Programming (Edges)            |");
-	    System.out.println("|       3. Genetic Algorithm                     |");
-	    System.out.println("|       4. Random Algorithm                      |");
-	    System.out.println("|       5. Brute Force                           |");
+	    System.out.println("|       1. Linear Programming                    |");
+	    System.out.println("|       2. Genetic Algorithm                     |");
+	    System.out.println("|       3. Random Algorithm                      |");
+	    System.out.println("|       4. Brute Force                           |");
 	    System.out.println("|       0. Exit                                  |");
 	    System.out.println("|                                                |");
 	    System.out.println("——————————————————————————————————————————————————");

@@ -1,6 +1,9 @@
 package org.fog.placement.algorithm.lp;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.fog.application.Application;
 import org.fog.core.Config;
@@ -31,6 +34,8 @@ public class LinearProgramming extends Algorithm {
 	/** Time at the end of the execution of the algorithm */
 	private long finish;
 	
+	Map<Map<Integer, Integer>, Map<Double, Double>> edgesMap = new LinkedHashMap<Map<Integer,Integer>, Map<Double,Double>>();
+	
 	public LinearProgramming(final List<FogDevice> fogDevices, final List<Application> applications,
 			final List<Sensor> sensors, final List<Actuator> actuators) {
 		super(fogDevices, applications, sensors, actuators);
@@ -45,9 +50,12 @@ public class LinearProgramming extends Algorithm {
 	public Solution execute() {
 		bestSolution = null;
 		getValueIterMap().clear();
+		edgesMap.clear();
 		
 		// Time at the beginning of the execution of the algorithm
 		start = System.currentTimeMillis();
+		
+		computeEdgesMap();
 		
 		// Solve the problem
 		bestSolution = solve();
@@ -60,6 +68,7 @@ public class LinearProgramming extends Algorithm {
 		return bestSolution;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public Solution solve() {
 		try {
 			// Define model
@@ -73,11 +82,12 @@ public class LinearProgramming extends Algorithm {
 			int nrModules = getNumberOfModules();
 			int nrDependencies = getNumberOfDependencies();
 			int nrLoops = getNumberOfLoops();
+			int nrEdges = edgesMap.size();
 			
 			// Define variables
 			IloNumVar[][] placementVar = new IloNumVar[nrNodes][nrModules];
-			IloNumVar[][][] tupleRoutingVar = new IloNumVar[nrDependencies][nrNodes][nrNodes];
-			IloNumVar[][][] migrationRoutingVar = new IloNumVar[nrModules][nrNodes][nrNodes];
+			IloNumVar[][] tupleRoutingVar = new IloNumVar[nrDependencies][nrEdges];
+			IloNumVar[][] migrationRoutingVar = new IloNumVar[nrModules][nrEdges];
 			
 			// Define objectives
 			IloNumExpr qsObjective = cplex.numExpr();
@@ -96,44 +106,41 @@ public class LinearProgramming extends Algorithm {
 					double pr = getmMips()[j]/(getfMips()[i]*Config.MIPS_PERCENTAGE_UTIL);
 					double pw = (getfBusyPw()[i]-getfIdlePw()[i])*pr;
 					
-					pwObjective = cplex.sum(pwObjective, cplex.prod(placementVar[i][j], pw*getfIsFogDevice()[i]));					// Power cost
-					prObjective = cplex.sum(prObjective, cplex.prod(placementVar[i][j], pr*getfIsFogDevice()[i]));					// Processing cost	
+					pwObjective = cplex.sum(pwObjective, cplex.prod(placementVar[i][j], pw*getfIsFogDevice()[i]));			// Power cost
+					prObjective = cplex.sum(prObjective, cplex.prod(placementVar[i][j], pr*getfIsFogDevice()[i]));			// Processing cost	
 				}
 			}
 			
 			for(int i = 0; i < nrDependencies; i++) {
 				double bandwidth = getmBandwidthMap()[getStartModDependency(i)][getFinalModDependency(i)];
 				
-				for(int j = 0; j < nrNodes; j++) {
-					for(int z = 0; z < nrNodes; z++) {
-						tupleRoutingVar[i][j][z] = cplex.intVar(0, 1);
-						
-						double bw = bandwidth/(getfBandwidthMap()[j][z]*Config.BW_PERCENTAGE_UTIL + Constants.EPSILON);
-						double pw = bw*getfTxPw()[j];
-						
-						bwObjective = cplex.sum(bwObjective, cplex.prod(tupleRoutingVar[i][j][z], bw*getfIsFogDevice()[j]));		// Bandwidth cost
-						pwObjective = cplex.sum(pwObjective, cplex.prod(tupleRoutingVar[i][j][z], pw*getfIsFogDevice()[j]));		// Power cost
-					}
+				for(int j = 0; j < nrEdges; j++) {
+					tupleRoutingVar[i][j] = cplex.intVar(0, 1);
+					Map<Integer, Integer> edge = (Map<Integer, Integer>) edgesMap.keySet().toArray()[j];
+					Map<Double, Double> communication = (Map<Double, Double>) edgesMap.get(edge);
+					int src = edge.entrySet().iterator().next().getKey();
+					
+					double bw = bandwidth/(communication.entrySet().iterator().next().getValue()*Config.BW_PERCENTAGE_UTIL);
+					double pw = bw*getfTxPw()[src];
+					
+					bwObjective = cplex.sum(bwObjective, cplex.prod(tupleRoutingVar[i][j], bw*getfIsFogDevice()[src]));		// Bandwidth cost
+					pwObjective = cplex.sum(pwObjective, cplex.prod(tupleRoutingVar[i][j], pw*getfIsFogDevice()[src]));		// Power cost
 				}
 			}
 			
 			for(int i = 0; i < nrModules; i++) {
 				double size = getmStrg()[i] + getmRam()[i];
 				
-				for(int j = 0; j < nrNodes; j++) {
-					for(int z = 0; z < nrNodes; z++) {
-						migrationRoutingVar[i][j][z] = cplex.intVar(0, 1);
-						
-						double linkBw = getfBandwidthMap()[j][z]*(1-Config.BW_PERCENTAGE_UTIL) + Constants.EPSILON;
-						/*double totalDep = 0;
-						for(int l = 0; l < getNumberOfModules(); l++) {
-							totalDep += getmDependencyMap()[l][i];
-						}*/
-						
-						double mg = size/linkBw/**totalDep*/;
-						
-						mgObjective = cplex.sum(mgObjective, cplex.prod(migrationRoutingVar[i][j][z], mg*getfIsFogDevice()[j]));	// Migration cost
-					}
+				for(int j = 0; j < nrEdges; j++) {
+					migrationRoutingVar[i][j] = cplex.intVar(0, 1);
+					Map<Integer, Integer> edge = (Map<Integer, Integer>) edgesMap.keySet().toArray()[j];
+					Map<Double, Double> communication = (Map<Double, Double>) edgesMap.get(edge);
+					int src = edge.entrySet().iterator().next().getKey();
+					
+					double bw = communication.entrySet().iterator().next().getValue()*(1-Config.BW_PERCENTAGE_UTIL);
+					double mg = size/bw;
+					
+					mgObjective = cplex.sum(mgObjective, cplex.prod(migrationRoutingVar[i][j], mg*getfIsFogDevice()[src]));	// Migration cost
 				}
 			}
 			
@@ -148,10 +155,8 @@ public class LinearProgramming extends Algorithm {
 				ensureLoops[i] = cplex.prod(ensureLoops[i], Integer.MAX_VALUE);
 				ensureLoops[i] = cplex.min(ensureLoops[i], 1);
 				
-				qsObjective = cplex.sum(qsObjective, ensureLoops[i]);																// Quality of Service cost
+				qsObjective = cplex.sum(qsObjective, ensureLoops[i]);														// Quality of Service cost
 			}
-			
-			//qsObjective = cplex.sum(qsObjective, cplex.max(latency));																// Quality of Service cost
 			
 			IloObjective qsCost = cplex.minimize(qsObjective);
 			IloObjective pwCost = cplex.minimize(pwObjective);
@@ -187,24 +192,32 @@ public class LinearProgramming extends Algorithm {
 				}
 				
 				for(int i = 0; i < nrDependencies; i++) {
-					for(int j = 0; j < nrNodes; j++) {
-						for(int z = 0; z < nrNodes; z++) {
-							tupleRoutingMap[i][j][z] = (int) Math.round(cplex.getValue(tupleRoutingVar[i][j][z]));
+					for(int j = 0; j < nrEdges; j++) {
+						if((int) Math.round(cplex.getValue(tupleRoutingVar[i][j])) == 1) {
+							Map<Integer, Integer> edge = (Map<Integer, Integer>) edgesMap.keySet().toArray()[j];
+							int src = edge.entrySet().iterator().next().getKey();
+							int dst = edge.entrySet().iterator().next().getValue();
+							
+							tupleRoutingMap[i][src][dst] = 1;
 						}
 					}
 				}
 				
 				
 				for(int i = 0; i < nrModules; i++) {
-					for(int j = 0; j < nrNodes; j++) {
-						for(int z = 0; z < nrNodes; z++) {
-							migrationRoutingMap[i][j][z] = (int) Math.round(cplex.getValue(migrationRoutingVar[i][j][z]));
+					for(int j = 0; j < nrEdges; j++) {
+						if((int) Math.round(cplex.getValue(migrationRoutingVar[i][j])) == 1) {
+							Map<Integer, Integer> edge = (Map<Integer, Integer>) edgesMap.keySet().toArray()[j];
+							int src = edge.entrySet().iterator().next().getKey();
+							int dst = edge.entrySet().iterator().next().getValue();
+							
+							migrationRoutingMap[i][src][dst] = 1;
 						}
 					}
 				}
 				
 				Solution solution = new Solution(this, modulePlacementMap, tupleRoutingMap, migrationRoutingMap);
-				solution.setDetailedCost(Config.QOS_COST, cplex.getValue(qsObjective));
+				solution.setDetailedCost(Config.QOS_COST, (int) Math.round(cplex.getValue(qsObjective)));
 				solution.setDetailedCost(Config.POWER_COST, cplex.getValue(pwObjective));
 				solution.setDetailedCost(Config.PROCESSING_COST, cplex.getValue(prObjective));
 				solution.setDetailedCost(Config.BANDWIDTH_COST, cplex.getValue(bwObjective));
@@ -239,8 +252,8 @@ public class LinearProgramming extends Algorithm {
 	 * @param migrationRoutingVar the matrix which contains the routing for each module migration (binary)
 	 * @param latency the vector which represents the worst case scenario latency for each loop
 	 */
-	private void defineConstraints(IloCplex cplex, final IloNumVar[][] placementVar, final IloNumVar[][][] tupleRoutingVar,
-			final IloNumVar[][][] migrationRoutingVar, IloNumExpr[] latency, IloNumExpr[] migLatency) {
+	private void defineConstraints(IloCplex cplex, final IloNumVar[][] placementVar, final IloNumVar[][] tupleRoutingVar,
+			final IloNumVar[][] migrationRoutingVar, IloNumExpr[] latency, IloNumExpr[] migLatency) {
 		defineResourcesExceeded(cplex, placementVar);
 		definePossiblePlacement(cplex, placementVar);
 		defineSinglePlacement(cplex, placementVar);
@@ -341,25 +354,28 @@ public class LinearProgramming extends Algorithm {
 	 * @param cplex the model
 	 * @param tupleRoutingVar the routingVar matrix which contains the routing for each module pair dependency
 	 */
-	private void defineBandwidth(IloCplex cplex, final IloNumVar[][][] tupleRoutingVar) {
-		int nrNodes = getNumberOfNodes();
+	@SuppressWarnings("unchecked")
+	private void defineBandwidth(IloCplex cplex, final IloNumVar[][] tupleRoutingVar) {
 		int nrDependencies = getNumberOfDependencies();
+		int nrEdges = edgesMap.size();
 		
 		try {
-			IloLinearNumExpr[][] bwUsage = new IloLinearNumExpr[nrNodes][nrNodes];
+			IloLinearNumExpr[] bwUsage = new IloLinearNumExpr[nrEdges];
 			
 			// Bandwidth usage in each link can not be exceeded
-			for(int i = 0; i < nrNodes; i++) {
-				for(int j = 0; j < nrNodes; j++) {
-					bwUsage[i][j] = cplex.linearNumExpr();
-					
-					for(int z = 0; z < nrDependencies; z++) {
-						double bwNeeded = getmBandwidthMap()[getStartModDependency(z)][getFinalModDependency(z)];
-						bwUsage[i][j].addTerm(tupleRoutingVar[z][i][j], bwNeeded);
-					}
-					
-					cplex.addLe(bwUsage[i][j], getfBandwidthMap()[i][j]*Config.BW_PERCENTAGE_UTIL);
+			for(int i = 0; i < nrEdges; i++) {
+				bwUsage[i] = cplex.linearNumExpr();
+				
+				for(int z = 0; z < nrDependencies; z++) {
+					double bwNeeded = getmBandwidthMap()[getStartModDependency(z)][getFinalModDependency(z)];
+					bwUsage[i].addTerm(tupleRoutingVar[z][i], bwNeeded);
 				}
+				
+				Map<Integer, Integer> edge = (Map<Integer, Integer>) edgesMap.keySet().toArray()[i];
+				Map<Double, Double> communication = (Map<Double, Double>) edgesMap.get(edge);
+				double bw = communication.entrySet().iterator().next().getValue();
+				
+				cplex.addLe(bwUsage[i],bw*Config.BW_PERCENTAGE_UTIL);
 			}
 		}catch (IloException e) {
 			e.printStackTrace();
@@ -373,25 +389,31 @@ public class LinearProgramming extends Algorithm {
 	 * @param placementVar the matrix which represents the next module placement
 	 * @param tupleRoutingVar the routingVar matrix which contains the routing for each module pair dependency
 	 */
-	private void defineDependencies(IloCplex cplex, final IloNumVar[][] placementVar, final IloNumVar[][][] tupleRoutingVar) {
-		int nrNodes = getNumberOfNodes();
+	@SuppressWarnings("unchecked")
+	private void defineDependencies(IloCplex cplex, final IloNumVar[][] placementVar, final IloNumVar[][] tupleRoutingVar) {
 		int nrDependencies = getNumberOfDependencies();
+		int nrEdges = edgesMap.size();
+		int nrNodes = getNumberOfNodes();
 		
 		try {
-			IloNumVar[][][] transposeR = new IloNumVar[nrDependencies][nrNodes][nrNodes];
 			for(int i = 0; i < nrDependencies; i++) {
 				for(int j = 0; j < nrNodes; j++) {
-					for(int z = 0; z < nrNodes; z++) {
-						transposeR[i][z][j] = tupleRoutingVar[i][j][z];
+					IloNumExpr out = cplex.numExpr();
+					IloNumExpr in = cplex.numExpr();
+					
+					for(int z = 0; z < nrEdges; z++) {
+						Map<Integer, Integer> edge = (Map<Integer, Integer>) edgesMap.keySet().toArray()[z];
+						int src = edge.entrySet().iterator().next().getKey();
+						int dst = edge.entrySet().iterator().next().getValue();
+						
+						if(src == j)
+							out = cplex.sum(out, tupleRoutingVar[i][z]);
+						
+						if(dst == j)
+							in = cplex.sum(in, tupleRoutingVar[i][z]);
 					}
-				}
-			}
-			
-			// Defining the required start and end nodes for each dependency
-			for(int i = 0; i < nrDependencies; i++) {
-				for(int j = 0; j < nrNodes; j++) {
-					cplex.addEq(cplex.diff(cplex.sum(tupleRoutingVar[i][j]), cplex.sum(transposeR[i][j])), 
-							cplex.diff(placementVar[j][getStartModDependency(i)], placementVar[j][getFinalModDependency(i)]));
+					
+					cplex.addEq(cplex.diff(out, in), cplex.diff(placementVar[j][getStartModDependency(i)], placementVar[j][getFinalModDependency(i)]));
 				}
 			}
 		}catch (IloException e) {
@@ -406,27 +428,34 @@ public class LinearProgramming extends Algorithm {
 	 * @param placementVar the matrix which represents the next module placement
 	 * @param migrationRoutingVar the matrix which contains the routing for each module migration
 	 */
-	private void defineMigration(IloCplex cplex, final IloNumVar[][] placementVar, final IloNumVar[][][] migrationRoutingVar) {
-		int nrNodes = getNumberOfNodes();
+	@SuppressWarnings("unchecked")
+	private void defineMigration(IloCplex cplex, final IloNumVar[][] placementVar, final IloNumVar[][] migrationRoutingVar) {
 		int nrModules = getNumberOfModules();
+		int nrEdges = edgesMap.size();
+		int nrNodes = getNumberOfNodes();
+		
+		// If its the first time, its not necessary to compute migration routing tables
+		if(isFirstOptimization()) return;
 		
 		try {
-			// If its the first time, its not necessary to compute migration routing tables
-			if(!isFirstOptimization()) {
-				IloNumVar[][][] transposeMigrationR = new IloNumVar[nrModules][nrNodes][nrNodes];
-				for(int i = 0; i < nrModules; i++) {
-					for(int j = 0; j < nrNodes; j++) {
-						for(int z = 0; z < nrNodes; z++) {
-							transposeMigrationR[i][z][j] = migrationRoutingVar[i][j][z];
-						}
+			for(int i = 0; i < nrModules; i++) {
+				for(int j = 0; j < nrNodes; j++) {
+					IloNumExpr out = cplex.numExpr();
+					IloNumExpr in = cplex.numExpr();
+					
+					for(int z = 0; z < nrEdges; z++) {
+						Map<Integer, Integer> edge = (Map<Integer, Integer>) edgesMap.keySet().toArray()[z];
+						int src = edge.entrySet().iterator().next().getKey();
+						int dst = edge.entrySet().iterator().next().getValue();
+						
+						if(src == j)
+							out = cplex.sum(out, migrationRoutingVar[i][z]);
+						
+						if(dst == j)
+							in = cplex.sum(in, migrationRoutingVar[i][z]);
 					}
-				}
-
-				for(int i = 0; i < nrModules; i++) {
-					for(int j = 0; j < nrNodes; j++) {
-						cplex.addEq(cplex.diff(cplex.sum(migrationRoutingVar[i][j]), cplex.sum(transposeMigrationR[i][j])), 
-								cplex.diff(getCurrentPlacement()[j][i], placementVar[j][i]));
-					}
+					
+					cplex.addEq(cplex.diff(out, in), cplex.diff(getCurrentPlacement()[j][i], placementVar[j][i]));
 				}
 			}
 		}catch (IloException e) {
@@ -442,7 +471,7 @@ public class LinearProgramming extends Algorithm {
 	 * @param tupleRoutingVar the routingVar matrix which contains the routing for each module pair dependency
 	 * @param latency the vector which represents the worst case scenario latency for each loop
 	 */
-	private void defineDeadlines(IloCplex cplex, final IloNumVar[][] placementVar, IloNumVar[][][] tupleRoutingVar, IloNumExpr[] latency) {
+	private void defineDeadlines(IloCplex cplex, final IloNumVar[][] placementVar, IloNumVar[][] tupleRoutingVar, IloNumExpr[] latency) {
 		try {
 			for(int i = 0; i < getNumberOfLoops(); i++) { // Loop index
 				latency[i] = cplex.numExpr();
@@ -455,8 +484,6 @@ public class LinearProgramming extends Algorithm {
 					processingLatency(cplex, placementVar, latency, i, startModuleIndex);
 					dependencyLatency(cplex, tupleRoutingVar, latency, i, startModuleIndex, finalModuleIndex);
 				}
-				
-				cplex.addLe(latency[i], Integer.MAX_VALUE/*getLoopsDeadline()[i]*/);
 			}
 		}catch (IloException e) {
 			e.printStackTrace();
@@ -505,12 +532,15 @@ public class LinearProgramming extends Algorithm {
 	 * @param moduleIndex1 the first module index
 	 * @param moduleIndex2 the second module index
 	 */
-	private void dependencyLatency(IloCplex cplex, final IloNumVar[][][] tupleRoutingVar, IloNumExpr[] latency, final int loopIndex,
+	@SuppressWarnings("unchecked")
+	private void dependencyLatency(IloCplex cplex, final IloNumVar[][] tupleRoutingVar, IloNumExpr[] latency, final int loopIndex,
 			final int moduleIndex1, final int moduleIndex2) {
 		int depIndex = -1;
+		int nrDependencies = getNumberOfDependencies();
+		int nrEdges = edgesMap.size();
 		
 		// Find dependency index
-		for (int i = 0; i < getNumberOfDependencies(); i++) {
+		for (int i = 0; i < nrDependencies; i++) {
 			if(getStartModDependency(i) == moduleIndex1 && getFinalModDependency(i) == moduleIndex2) {
 				depIndex = i;
 				break;
@@ -522,25 +552,28 @@ public class LinearProgramming extends Algorithm {
 		
 		try {
 			// For each Link, in the tuple routing map sum the total latency
-			for (int i = 0; i < getNumberOfNodes(); i++) {
-				for (int j = 0; j < getNumberOfNodes(); j++) {
-					latency[loopIndex] = cplex.sum(latency[loopIndex], cplex.prod(tupleRoutingVar[depIndex][i][j], getfLatencyMap()[i][j]));
-				}
+			for (int i = 0; i < nrEdges; i++) {
+				Map<Integer, Integer> edge = (Map<Integer, Integer>) edgesMap.keySet().toArray()[i];
+				Map<Double, Double> communication = (Map<Double, Double>) edgesMap.get(edge);
+				double lat = communication.entrySet().iterator().next().getKey();
+				
+				latency[loopIndex] = cplex.sum(latency[loopIndex], cplex.prod(tupleRoutingVar[depIndex][i], lat));
 			}
 			
-			for (int i = 0; i < getNumberOfDependencies(); i++) {
+			for (int i = 0; i < nrDependencies; i++) {
 				double size = getmNWMap()[getStartModDependency(i)][getFinalModDependency(i)];
 				
-				for (int j = 0; j < getNumberOfNodes(); j++) {
-					for (int k = 0; k < getNumberOfNodes(); k++) {
-						IloNumVar tmp = cplex.intVar(0, 1);
-						cplex.add(cplex.ifThen(cplex.le(cplex.sum(tupleRoutingVar[depIndex][j][k], tupleRoutingVar[i][j][k]), 1), cplex.eq(tmp, 0)));
-						cplex.add(cplex.ifThen(cplex.eq(cplex.sum(tupleRoutingVar[depIndex][j][k], tupleRoutingVar[i][j][k]), 2), cplex.eq(tmp, 1)));
-						
-						double bw = getfBandwidthMap()[j][k]*Config.BW_PERCENTAGE_UTIL + Constants.EPSILON;
-						latency[loopIndex] = cplex.sum(latency[loopIndex], cplex.prod(tmp, size/bw));
-						cplex.remove(tmp);
-					}
+				for (int j = 0; j < nrEdges; j++) {
+					IloNumVar tmp = cplex.intVar(0, 1);
+					cplex.add(cplex.ifThen(cplex.le(cplex.sum(tupleRoutingVar[depIndex][j], tupleRoutingVar[i][j]), 1), cplex.eq(tmp, 0)));
+					cplex.add(cplex.ifThen(cplex.eq(cplex.sum(tupleRoutingVar[depIndex][j], tupleRoutingVar[i][j]), 2), cplex.eq(tmp, 1)));
+					
+					Map<Integer, Integer> edge = (Map<Integer, Integer>) edgesMap.keySet().toArray()[j];
+					Map<Double, Double> communication = (Map<Double, Double>) edgesMap.get(edge);
+					double bw = communication.entrySet().iterator().next().getValue()*Config.BW_PERCENTAGE_UTIL;
+					
+					latency[loopIndex] = cplex.sum(latency[loopIndex], cplex.prod(tmp, size/bw));
+					cplex.remove(tmp);
 				}
 			}
 		}catch (IloException e) {
@@ -556,19 +589,25 @@ public class LinearProgramming extends Algorithm {
 	 * @param migrationRoutingVar the matrix which contains the routing for each module migration
 	 * @param migLatency the vector which represents the worst case scenario latency for each migration
 	 */
-	private void defineMigrationDeadlines(IloCplex cplex, final IloNumVar[][] placementVar, final IloNumVar[][][] migrationRoutingVar,
+	@SuppressWarnings("unchecked")
+	private void defineMigrationDeadlines(IloCplex cplex, final IloNumVar[][] placementVar, final IloNumVar[][] migrationRoutingVar,
 			IloNumExpr[] migLatency) {
+		int nrModules = getNumberOfModules();
+		int nrEdges = edgesMap.size();		
+		
 		try {
-			for(int i = 0; i < getNumberOfModules(); i++) {
+			//migLatency[loopIndex] = cplex.sum(migLatency[loopIndex], );
+			for(int i = 0; i < nrModules; i++) { // Loop index
 				migLatency[i] = cplex.numExpr();
 				double vmSize = getmStrg()[i] + getmRam()[i];
 				
-				for (int j = 0; j < getNumberOfNodes(); j++) {
-					for (int k = 0; k < getNumberOfNodes(); k++) {
-						double linkLat = getfLatencyMap()[j][k];
-						double linkBw = getfBandwidthMap()[j][k]*(1-Config.BW_PERCENTAGE_UTIL) + Constants.EPSILON;
-						migLatency[i] = cplex.sum(migLatency[i], cplex.prod(migrationRoutingVar[i][j][k], linkLat + vmSize/linkBw));
-					}
+				for (int j = 0; j < nrEdges; j++) {
+					Map<Integer, Integer> edge = (Map<Integer, Integer>) edgesMap.keySet().toArray()[j];
+					Map<Double, Double> communication = (Map<Double, Double>) edgesMap.get(edge);
+					double lat = communication.entrySet().iterator().next().getKey();
+					double bw = communication.entrySet().iterator().next().getValue()*(1-Config.BW_PERCENTAGE_UTIL);
+					
+					migLatency[i] = cplex.sum(migLatency[i], cplex.prod(migrationRoutingVar[i][j], lat + vmSize/bw));
 				}
 				
 				if(!isFirstOptimization()) {
@@ -582,6 +621,22 @@ public class LinearProgramming extends Algorithm {
 			}
 		}catch (IloException e) {
 			e.printStackTrace();
+		}
+	}
+	
+	private void computeEdgesMap() {
+		for(int i = 0; i < getNumberOfNodes(); i++) {
+			for(int j = 0; j < getNumberOfNodes(); j++) {
+				if(getfLatencyMap()[i][j] == 0 || getfLatencyMap()[i][j] == Constants.INF) continue;
+				
+				Map<Integer, Integer> edge = new HashMap<Integer, Integer>();
+				edge.put(i, j);
+				
+				Map<Double, Double> communication = new HashMap<Double, Double>();
+				communication.put(getfLatencyMap()[i][j], getfBandwidthMap()[i][j]);
+				
+				edgesMap.put(edge, communication);
+			}
 		}
 	}
 	

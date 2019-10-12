@@ -16,7 +16,6 @@ import org.fog.utils.output.MatlabChartUtils;
 import org.fog.placement.algorithm.Solution;
 import org.fog.placement.algorithm.bf.BruteForce;
 import org.fog.placement.algorithm.ga.GeneticAlgorithm;
-import org.fog.placement.algorithm.lp.LinearProgramming2;
 import org.fog.placement.algorithm.lp.LinearProgramming;
 import org.fog.placement.algorithm.rand.RandomAlgorithm;
 
@@ -28,10 +27,9 @@ import org.fog.placement.algorithm.rand.RandomAlgorithm;
  * @since  July, 2019
  */
 public class ControllerAlgorithm {
-	public static final int NR_ALGORITHMS = 5;
+	public static final int NR_ALGORITHMS = 4;
 	
-	private static final int LP1 = 1;
-	private static final int LP2 = 2;
+	private static final int LP = 1;
 	private static final int GA = 3;
 	private static final int RAND = 4;
 	private static final int BF = 5;
@@ -70,13 +68,9 @@ public class ControllerAlgorithm {
 		// It will be the first execution of the optimization algorithm
 		if(algorithm == null) {
 			switch (algorithmOp) {
-				case LP1:
-					algorithmName = "Linear Programming (NxN)";
+				case LP:
+					algorithmName = "Linear Programming";
 					algorithm = new LinearProgramming(fogDevices, appList, sensors, actuators);
-					break;
-				case LP2:
-					algorithmName = "Linear Programming (Edges)";
-					algorithm = new LinearProgramming2(fogDevices, appList, sensors, actuators);
 					break;
 				case GA:
 					algorithmName = "Genetic Algorithm";
