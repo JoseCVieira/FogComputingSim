@@ -831,6 +831,8 @@ public class FogDevice extends PowerDatacenter {
 				Map<AppModule, Integer> vmPosition = new HashMap<AppModule, Integer>();
 				vmPosition.put(vm, vmRoutingTable.get(vm.getName()));
 				sendNow(controller.getId(), FogEvents.UPDATE_VM_POSITION, vmPosition);
+				
+				updateEnergyConsumption();
 			}
 		}
 	}

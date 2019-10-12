@@ -17,6 +17,7 @@ import org.fog.core.Config;
 import org.fog.core.Constants;
 import org.fog.core.FogComputingSim;
 import org.fog.entities.Actuator;
+import org.fog.entities.Client;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
 import org.fog.entities.Tuple;
@@ -345,6 +346,7 @@ public class Controller extends SimEntity {
 				
 				// If f2 is a mobile node do nothing
 				if(!f2.isStaticNode()) continue;
+				if(f2 instanceof Client) continue;
 				
 				double distance = Location.computeDistance(f1, f2);
 				if(distance  + Config.HANDOVER_THRESHOLD < bestDistance) {
@@ -357,7 +359,7 @@ public class Controller extends SimEntity {
 			if(best == null)
 				FogComputingSim.err("There are some mobile devices with no possible communications");
 			
-			if(!f1.getLatencyMap().isEmpty()) {				
+			if(!f1.getLatencyMap().isEmpty()) {
 				// If its not the same node which it is already connected
 				// If already has a connection, remove it because there is a better one
 				if(bestNeighbor.getId() != best.getId()) {					
