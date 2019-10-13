@@ -55,6 +55,7 @@ public class DisplayRandom extends JDialog {
 	private JTextField jTextNrFogDev;
 	private JTextField jTextConnProb;
 	private JTextField jTextClientProb;
+	private JTextField jTextMobileProb;
 	
 	private JTextField jTextLatMean;
 	private JTextField jTextLatDev;
@@ -134,12 +135,14 @@ public class DisplayRandom extends JDialog {
 		String nrFogDevOp = Integer.toString(GuiConfig.NR_FOG_DEVICES);
 		String connectionOp = Double.toString(GuiConfig.CONNECTION_PROB);
 		String clientOp = Double.toString(GuiConfig.CLIENT_PROBABILITY);
+		String mobileOp = Double.toString(GuiConfig.MOBILE_NODE_PROBABILITY);
 		
 		jTextNrFogDev = GuiUtils.createInput(jPanel, jTextNrFogDev, "Number of fog devices: ", nrFogDevOp, GuiMsg.TipRandNrFog);
 		jTextConnProb = GuiUtils.createInput(jPanel, jTextConnProb, "Connect fog devices prob.: ", connectionOp, GuiMsg.TipRandConnect);
 		jTextClientProb = GuiUtils.createInput(jPanel, jTextClientProb, "Client prob.: ", clientOp, GuiMsg.TipRandClient);
+		jTextMobileProb = GuiUtils.createInput(jPanel, jTextMobileProb, "Mobile prob.: ", mobileOp, GuiMsg.TipRandMobile);
 		
-		SpringUtilities.makeCompactGrid(jPanel, 3, 2, 6, 6, 6, 6);
+		SpringUtilities.makeCompactGrid(jPanel, 4, 2, 6, 6, 6, 6);
 		
 		return jPanel;
 	}
@@ -309,12 +312,13 @@ public class DisplayRandom extends JDialog {
             public void actionPerformed(ActionEvent event) {
             	String error_msg = "";
             	int nrFogDev, levelDec, ramMean, ramDev, strgMean, strgDev;
-            	double connProb, clientProb, latMean, latDev, bwMean, bwDev, mipsMean, mipsDev, busyPw, idlePw, energyDev;
+            	double connProb, clientProb, mobileProb, latMean, latDev, bwMean, bwDev, mipsMean, mipsDev, busyPw, idlePw, energyDev;
             	double rateMipsMean, rateRamMean, rateStrgMean, rateBwMean, rateEnMean, rateMipsDev, rateRamDev, rateStrgDev, rateBwDev, rateEnDev;
             	
             	if (!Util.validString(jTextNrFogDev.getText()))		error_msg += GuiMsg.errMissing("Number of fog devices");
             	if (!Util.validString(jTextConnProb.getText()))		error_msg += GuiMsg.errMissing("Connect fog devices probability");
             	if (!Util.validString(jTextClientProb.getText()))	error_msg += GuiMsg.errMissing("Client probability");
+            	if (!Util.validString(jTextMobileProb.getText()))	error_msg += GuiMsg.errMissing("Mobile probability");
             	
             	if (!Util.validString(jTextLatMean.getText()))		error_msg += GuiMsg.errMissing("Link latency mean");
             	if (!Util.validString(jTextLatDev.getText()))		error_msg += GuiMsg.errMissing("Link latency deviation");
@@ -347,6 +351,7 @@ public class DisplayRandom extends JDialog {
             	if((nrFogDev = Util.stringToInt(jTextNrFogDev.getText())) < 2)				error_msg += "Number of fog devices must be higher than 1";
             	if((connProb = Util.stringToProbability(jTextConnProb.getText())) < 0)		error_msg += "\nConnection prob. should be a number between [0.0; 1.0]";
             	if((clientProb = Util.stringToProbability(jTextClientProb.getText())) < 0)	error_msg += "\nClient prob. should be a number between [0.0; 1.0]";
+            	if((mobileProb = Util.stringToProbability(jTextMobileProb.getText())) < 0)	error_msg += "\nMobile prob. should be a number between [0.0; 1.0]";
             	
             	if((latMean = Util.stringToDouble(jTextLatMean.getText())) < 0)				error_msg += GuiMsg.errFormat("Link latency mean");
             	if((latDev = Util.stringToDouble(jTextLatDev.getText())) < 0)				error_msg += GuiMsg.errFormat("Link latency deviation");
@@ -380,6 +385,7 @@ public class DisplayRandom extends JDialog {
             		GuiConfig.NR_FOG_DEVICES = nrFogDev;
             		GuiConfig.CONNECTION_PROB = connProb;
             		GuiConfig.CLIENT_PROBABILITY = clientProb;
+            		GuiConfig.MOBILE_NODE_PROBABILITY = mobileProb;
             		GuiConfig.LAT_MEAN = latMean;
             		GuiConfig.LAT_DEV = latDev;
             		GuiConfig.BW_MEAN = bwMean;

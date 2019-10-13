@@ -75,6 +75,7 @@ public class GuiMsg {
 	public static final String TipRandNrFog = "Defines number of fog devices within the random topology";
 	public static final String TipRandConnect = "Defines the probability of creating links (if a node is not connected it is a mobile node)";
 	public static final String TipRandClient = "Defines the probability of a node being a client (has one application)";
+	public static final String TipRandMobile = "Defines the probability of a node being mobile";
 	public static final String TipRandLevelDec = "Defines the level decadency factor (mean and deviation  values are multiplied by 1/((level+1)*decadency factor)";
 	
 	/**
