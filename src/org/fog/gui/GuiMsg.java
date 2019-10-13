@@ -40,8 +40,10 @@ public class GuiMsg {
 	public static final String TipDevIdlePw = "Power value while using no processing resources in the machine";
 	public static final String TipDevXCoord = "X coordinate of the machine";
 	public static final String TipDevYCoord = "Y coordinate of the machine";
-	public static final String TipDevDir = "Defines the direction which the machine is following (if it is a fixed node this value is ignored)";
-	public static final String TipDevVel = "Defines the velocity of the machine (if it is a fixed node this value is ignored)";
+	public static final String TipDevMov = "Defines type of movement of the machine";
+	public static final String TipDevxL = "Defines the x length describing the rectangle each the machine follows";
+	public static final String TipDevyL = "Defines the Y length describing the rectangle each the machine follows";
+	public static final String TipDevVel = "Defines the velocity of the machine";
 	public static final String TipDevApp = "Defines the application (if it has an applications it means that it is a client)";
 	public static final String TipDevDist = "Defines the time interval (deterministic or not) when the sensor will generate new tuples";
 	public static final String TipDevnMean = "Mean of the normal distribution";

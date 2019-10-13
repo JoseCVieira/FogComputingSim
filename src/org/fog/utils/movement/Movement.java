@@ -90,7 +90,7 @@ public abstract class Movement {
 	 * 
 	 * @return the velocity of the node
 	 */
-	protected double getVelocity() {
+	public double getVelocity() {
 		return velocity;
 	}
 	
@@ -129,7 +129,7 @@ public abstract class Movement {
 	 * 
 	 * @return the location of the node
 	 */
-	protected Location getLocation() {
+	public Location getLocation() {
 		return location;
 	}
 	

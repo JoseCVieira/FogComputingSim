@@ -19,6 +19,7 @@ import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.SpringLayout;
 import javax.swing.border.TitledBorder;
@@ -37,6 +38,9 @@ import org.fog.utils.distribution.NormalDistribution;
 import org.fog.utils.distribution.UniformDistribution;
 import org.fog.utils.movement.Location;
 import org.fog.utils.movement.Movement;
+import org.fog.utils.movement.RandomMovement;
+import org.fog.utils.movement.RectangleMovement;
+import org.fog.utils.movement.StaticMovement;
 
 /**
  * Class which allows to add or edit fixed or mobile fog devices (i.e., fog nodes or clients).
@@ -93,11 +97,17 @@ public class AddFogDevice extends JDialog {
 	/** Y coordinate of the machine */
 	private JTextField posY;
 	
-	/** List used in the drop-down containing the names of all possible directions */
-	private JComboBox<String> direction;
+	/** List used in the drop-down containing the names of all possible movements */
+	private JComboBox<String> movement;
 	
 	/** Velocity of the machine (if it is a fixed node this value is ignored) */
 	private JTextField velocity;
+	
+	/** x length of the rectangle movement */
+	private JTextField xLength;
+	
+	/** y length of the rectangle movement */
+	private JTextField yLength;
 	
 	/** Defines the position at the graphical interface (it is not used by the simulation itself) */
 	private JComboBox<String> level;
@@ -143,7 +153,7 @@ public class AddFogDevice extends JDialog {
 		
 		setTitle(fog == null ? "  Add Fog Device" : "  Edit Fog Device");
 		setModal(true);
-		setPreferredSize(new Dimension(700, 1000));
+		setPreferredSize(new Dimension(700, 800));
 		setResizable(false);
 		pack();
 		setLocationRelativeTo(frame);
@@ -185,16 +195,16 @@ public class AddFogDevice extends JDialog {
 		// Verify the introduced data and add or edit the fog device when the OK button is pressed 
 		okBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				String error_msg = "", name_ = "";
+				String error_msg = "", name_ = "", movement_ = "";
 				long storage_ = -1;
-				int ram_= -1, level_= -1, direction_ = -1;
-				double posX_ = -1, posY_ = -1, velocity_ = -1;
+				int ram_= -1, level_= -1;
+				double posX_ = -1, posY_ = -1, velocity_ = -1, xLength_ = 0, yLength_ = 0;
 				double normalMean_ = -1, normalStdDev_ = -1, uniformLow_ = -1, uniformUp_ = -1, deterministicVal_ = -1;
 				double mips_= -1, rateMips_ = 0, rateRam_ = 0, rateStorage_ = 0, rateBw_ = 0, rateEn_ = 0, idlePower_ = 0, busyPower_ = 0;
 				
 				name_ = deviceName.getText();
 				level_ = level.getSelectedIndex();
-				direction_ = direction.getSelectedIndex();
+				movement_ = (String) movement.getSelectedItem();
 				
 				// Verify all the introduced data
 				if(fog == null || (fog != null && !fog.getName().equals(name_))) {
@@ -213,7 +223,6 @@ public class AddFogDevice extends JDialog {
 				if (!Util.validString(posY.getText())) 			error_msg += GuiMsg.errMissing("Y Position");
 				if (!Util.validString(velocity.getText())) 		error_msg += GuiMsg.errMissing("Velocity");
 				if(level_ < 0) 									error_msg += GuiMsg.errMissing("Level");
-				if(direction_ < 0) 								error_msg += GuiMsg.errMissing("Direction");
 				
 				if((mips_ = Util.stringToDouble(mips.getText())) < 0) 				error_msg += GuiMsg.errFormat("Mips");
 				if((ram_ = Util.stringToInt(ram.getText())) < 0) 					error_msg += GuiMsg.errFormat("Ram");
@@ -266,8 +275,19 @@ public class AddFogDevice extends JDialog {
 					if((busyPower_ = Util.stringToDouble(busyPower.getText())) < 0) 	error_msg += GuiMsg.errFormat("Busy Power");
 				}
 				
+				if(movement_.equals("Rectangle")) {
+					if (!Util.validString(velocity.getText())) 	error_msg += GuiMsg.errMissing("Velocity");
+					if (!Util.validString(xLength.getText())) 	error_msg += GuiMsg.errMissing("X Length");
+					if (!Util.validString(yLength.getText())) 	error_msg += GuiMsg.errMissing("Y Length");
+					
+					if((velocity_ = Util.stringToDouble(velocity.getText())) < 0) 	error_msg += GuiMsg.errFormat("Velocity");
+					if((xLength_ = Util.stringToDouble(xLength.getText())) < 0) 	error_msg += GuiMsg.errFormat("X Length");
+					if((yLength_ = Util.stringToDouble(yLength.getText())) < 0) 	error_msg += GuiMsg.errFormat("Y Length");
+				}
+				
 				if(error_msg.isEmpty()) {
 					Distribution distribution = null;
+					Movement movement = null;
 					
 					// Create the sensor distribution when its a client (i.e., has an application)
 					if(!appId.isEmpty()) {
@@ -281,7 +301,13 @@ public class AddFogDevice extends JDialog {
 					}
 					
 					// Create the fog device movement
-					Movement movement = new Movement(velocity_, direction_, new Location(posX_, posY_));
+					if(movement_.equals("Static")) {
+						movement = new StaticMovement(new Location(posX_, posY_));
+					}else if(movement_.equals("Random")) {
+						movement = new RandomMovement(new Location(posX_, posY_));
+					}else {
+						movement = new RectangleMovement(new Location(posX_, posY_), velocity_, xLength_, yLength_);
+					}
 					
 					// Add a new fog device
 					if(fog != null)
@@ -320,18 +346,17 @@ public class AddFogDevice extends JDialog {
 	 * 
 	 * @return the panel containing the inputs
 	 */
-	private JPanel createInputPanelArea() {
+	private JScrollPane createInputPanelArea() {
         JPanel springPanel = new JPanel(new SpringLayout());
+        JScrollPane scrollPane = new JScrollPane(springPanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         
-        JPanel jPanelFog = createFogNodeInput();
-        JPanel jPanelApplication = createApplicationInput();
-        
-        springPanel.add(jPanelFog);
-        springPanel.add(jPanelApplication);
+        springPanel.add(createFogNodeInput());
+        springPanel.add(createMovementInput());
+        springPanel.add(createApplicationInput());
 
 		//rows, cols, initX, initY, xPad, yPad
-        SpringUtilities.makeCompactGrid(springPanel, 2, 1, 6, 6, 6, 6);
-		return springPanel;
+        SpringUtilities.makeCompactGrid(springPanel, 3, 1, 6, 6, 6, 6);
+		return scrollPane;
 	}
 	
 	/**
@@ -359,13 +384,7 @@ public class AddFogDevice extends JDialog {
 		String rateEnVal = fog == null ? Double.toString(GuiConfig.RATE_EN_MEAN) : Double.toString(fog.getRateEnergy());
 		String BusyPwVal = fog == null ? Double.toString(GuiConfig.BUSY_POWER) : Double.toString(fog.getBusyPower());
 		String IdlePwVal = fog == null ? Double.toString(GuiConfig.IDLE_POWER) : Double.toString(fog.getIdlePower());
-		String xPosVal = fog == null ? "0.0" : Double.toString(fog.getMovement().getLocation().getX());
-		String yPosVal = fog == null ? "0.0" : Double.toString(fog.getMovement().getLocation().getY());
-		String dirVal = fog == null ? "" : Movement.S_DIRECTIONS[fog.getMovement().getDirection()];
-		String velVal = fog == null ? "0.0" : Double.toString(fog.getMovement().getVelocity());
-		
 		ComboBoxModel<String> levelModel = new DefaultComboBoxModel(levels.toArray());
-		ComboBoxModel<String> directionModel = new DefaultComboBoxModel(Movement.S_DIRECTIONS);
 		
 		deviceName = GuiUtils.createInput(jPanel, deviceName, "Name: ", nameVal, GuiMsg.TipDevName);
 		level = GuiUtils.createDropDown(jPanel, level, "Level: ", levelModel, levelVal, GuiMsg.TipDevLevel);
@@ -379,12 +398,57 @@ public class AddFogDevice extends JDialog {
 		rateEn = GuiUtils.createInput(jPanel, rateEn, "Energy price [€]: ", rateEnVal, GuiMsg.TipDevEnPrice);
 		busyPower = GuiUtils.createInput(jPanel, busyPower, "Busy power [W]: ", BusyPwVal, GuiMsg.TipDevBusyPw);
 		idlePower = GuiUtils.createInput(jPanel, idlePower, "Idle power [W]: ", IdlePwVal, GuiMsg.TipDevIdlePw);
+		
+		SpringUtilities.makeCompactGrid(jPanel, 12, 2, 6, 6, 6, 6);
+		
+		return jPanel;
+	}
+	
+	private JPanel createMovementInput() {
+		JPanel jPanel = new JPanel(new SpringLayout());
+		jPanel.setBorder(new TitledBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY), "Movement"));
+		
+		ArrayList<String> movements = new ArrayList<String>();
+		movements.add("Static");
+		movements.add("Random");
+		movements.add("Rectangle");
+		ComboBoxModel<String> movementModel = new DefaultComboBoxModel(movements.toArray());
+		
+		String movementVal = "Static";
+		if(fog != null) {
+			if(fog.getMovement() instanceof RandomMovement) movementVal = "Random";
+			if(fog.getMovement() instanceof RectangleMovement) movementVal = "Rectangle";
+		}		
+		String xPosVal = fog == null ? "0.0" : Double.toString(fog.getMovement().getLocation().getX());
+		String yPosVal = fog == null ? "0.0" : Double.toString(fog.getMovement().getLocation().getY());
+		String velVal = fog == null ? "0.0" : Double.toString(fog.getMovement().getVelocity());
+		
+		String xLengthVal = "250";
+		String yLengthVal = "250";
+		if(fog != null && fog.getMovement() instanceof RectangleMovement) {
+			xLengthVal = Double.toString(((RectangleMovement) fog.getMovement()).getxLength());
+			yLengthVal = Double.toString(((RectangleMovement) fog.getMovement()).getyLength());
+		}
+		
+		movement = GuiUtils.createDropDown(jPanel, movement, "Movement: ", movementModel, movementVal, GuiMsg.TipDevMov);
 		posX = GuiUtils.createInput(jPanel, posX, "X Coordinate [m]: ", xPosVal, GuiMsg.TipDevXCoord);
 		posY = GuiUtils.createInput(jPanel, posY, "Y Coordinate [m]: ", yPosVal, GuiMsg.TipDevYCoord);
-		direction = GuiUtils.createDropDown(jPanel, direction, "Direction: ", directionModel, dirVal, GuiMsg.TipDevDir);
 		velocity = GuiUtils.createInput(jPanel, velocity, "Velocity [m/s]: ", velVal, GuiMsg.TipDevVel);
+		xLength = GuiUtils.createInput(jPanel, xLength, "X length [m]: ", xLengthVal, GuiMsg.TipDevxL);
+		yLength = GuiUtils.createInput(jPanel, yLength, "Y length [m]: ", yLengthVal, GuiMsg.TipDevyL);
 		
-		SpringUtilities.makeCompactGrid(jPanel, 16, 2, 6, 6, 6, 6);
+		SpringUtilities.makeCompactGrid(jPanel, 6, 2, 6, 6, 6, 6);
+		
+		updateMovementPanel(movementVal);
+		movement.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				
+				JComboBox ctype = (JComboBox)e.getSource();
+				String item = (String)ctype.getSelectedItem();
+				updateMovementPanel(item);
+			}
+		});
 		
 		return jPanel;
 	}
@@ -543,6 +607,24 @@ public class AddFogDevice extends JDialog {
 				break;
 		}
 	}
+    
+    private void updateMovementPanel(String item) {
+    	switch(item){
+		case "Static":
+		case "Random":
+			velocity.setVisible(false);
+			xLength.setVisible(false);
+			yLength.setVisible(false);
+			break;
+		case "Rectangle":
+			velocity.setVisible(true);
+			xLength.setVisible(true);
+			yLength.setVisible(true);
+			break;
+		default:
+			break;
+	}
+    }
 	
     /**
      * Updates the inputs visibility based on a given boolean variable (which defines the type of node).

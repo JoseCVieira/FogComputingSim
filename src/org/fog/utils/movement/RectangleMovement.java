@@ -9,16 +9,22 @@ package org.fog.utils.movement;
 public class RectangleMovement extends Movement {
 	
 	/** The x maximum of the rectangle */
-	double xUpper;
+	private double xUpper;
 	
 	/** The x minimum of the rectangle */
-	double xLower;
+	private double xLower;
 	
 	/** The y maximum of the rectangle */
-	double yUpper;
+	private double yUpper;
 	
 	/** The y minimum of the rectangle */
-	double yLower;
+	private double yLower;
+	
+	/** The x length */
+	private double xLength;
+	
+	/** The y length */
+	private double yLength;
 	
 	/**
 	 * Defines a new random movement.
@@ -35,6 +41,8 @@ public class RectangleMovement extends Movement {
 		this.xLower = location.getX() - xLength/2;
 		this.yUpper = location.getY() + yLength/2;
 		this.yLower = location.getY() - yLength/2;
+		this.xLength = xLength;
+		this.yLength = yLength;
 	}
 	
 	/**
@@ -96,6 +104,24 @@ public class RectangleMovement extends Movement {
 		}
 		
 		setLocation(new Location(x, y));
+	}
+	
+	/**
+	 * Gets the x length.
+	 * 
+	 * @return the x length
+	 */
+	public double getxLength() {
+		return xLength;
+	}
+	
+	/**
+	 * Gets the y length.
+	 * 
+	 * @return the y length
+	 */
+	public double getyLength() {
+		return yLength;
 	}
 	
 }

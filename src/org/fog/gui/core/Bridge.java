@@ -24,6 +24,9 @@ import org.fog.utils.distribution.NormalDistribution;
 import org.fog.utils.distribution.UniformDistribution;
 import org.fog.utils.movement.Location;
 import org.fog.utils.movement.Movement;
+import org.fog.utils.movement.RandomMovement;
+import org.fog.utils.movement.RectangleMovement;
+import org.fog.utils.movement.StaticMovement;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -67,10 +70,21 @@ public class Bridge {
 				double busyPower = (Double) node.get("busyPower");
 				double posX = (Double) node.get("posx");
 				double posY = (Double) node.get("posy");
-				int direction = new BigDecimal((Long)node.get("direction")).intValue();
-				double velocity = (Double) node.get("velocity");
+				String movementType = (String) node.get("movementType");
 				
-				Movement movement = new Movement(velocity, direction, new Location(posX, posY));
+				Movement movement;
+				if(movementType.equals("rectangle")) {
+					double velocity = (Double) node.get("velocity");
+					double xLength = (Double) node.get("xLength");
+					double yLength = (Double) node.get("yLength");
+					
+					movement = new RectangleMovement(new Location(posX, posY), velocity, xLength, yLength);
+				}else if(movementType.equals("random")) {
+					movement = new RandomMovement(new Location(posX, posY));
+				}else {
+					movement = new StaticMovement(new Location(posX, posY));
+				}
+				
 				Distribution distribution = null;
 				
 				try {
@@ -255,10 +269,21 @@ public class Bridge {
 			jobj.put("ratePerEn", fogDevice.getRateEnergy());
 			jobj.put("idlePower", fogDevice.getIdlePower());
 			jobj.put("busyPower", fogDevice.getBusyPower());
+			
+			String movement = "static";
+			if(fogDevice.getMovement() instanceof RandomMovement) movement = "random";
+			if(fogDevice.getMovement() instanceof RectangleMovement) movement = "rectangle";
+			
+			jobj.put("movementType", movement);
 			jobj.put("posx", fogDevice.getMovement().getLocation().getX());
 			jobj.put("posy", fogDevice.getMovement().getLocation().getY());
-			jobj.put("direction", fogDevice.getMovement().getDirection());
-			jobj.put("velocity", fogDevice.getMovement().getVelocity());
+			
+			if(movement.equals("rectangle")) {
+				jobj.put("velocity", fogDevice.getMovement().getVelocity());
+				jobj.put("xLength", ((RectangleMovement)fogDevice.getMovement()).getxLength());
+				jobj.put("yLength", ((RectangleMovement)fogDevice.getMovement()).getyLength());
+			}
+			
 			jobj.put("application", fogDevice.getApplication());
 			
 			try {
