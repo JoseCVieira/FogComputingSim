@@ -82,6 +82,8 @@ public class GraphView extends JPanel {
 				int minLevel = FogUtils.MAX;
 				
 				for (Node node : graph.getDevicesList().keySet()) {
+					if(node == null) continue;
+					
 					int level = node.getLevel();
 					
 					if(!levelMap.containsKey(level))
@@ -136,9 +138,12 @@ public class GraphView extends JPanel {
 				// Draw links
 				for (Entry<Node, List<Link>> entry : graph.getDevicesList().entrySet()) {
 					Location startNode = coordFogNodes.get(entry.getKey());
+					if(startNode == null) continue;
 
 					for (Link edge : entry.getValue()) {
 						Location targetNode = coordFogNodes.get(edge.getNode());
+						if(startNode == null) continue;
+						
 						g.setColor(Color.RED);
 						drawArrow(g, (int)startNode.getX(), (int)startNode.getY(), (int)targetNode.getX(), (int)targetNode.getY());
 

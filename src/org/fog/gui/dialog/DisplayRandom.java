@@ -7,7 +7,6 @@ import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
@@ -23,7 +22,6 @@ import javax.swing.JTextField;
 import javax.swing.SpringLayout;
 import javax.swing.border.TitledBorder;
 
-import org.fog.core.Config;
 import org.fog.gui.GuiConfig;
 import org.fog.gui.GuiMsg;
 import org.fog.gui.GuiUtils;
@@ -37,6 +35,8 @@ import org.fog.utils.distribution.DeterministicDistribution;
 import org.fog.utils.distribution.Distribution;
 import org.fog.utils.movement.Location;
 import org.fog.utils.movement.Movement;
+import org.fog.utils.movement.RandomMovement;
+import org.fog.utils.movement.StaticMovement;
 
 /**
  * Class which defines a random example topology to test the simulator.
@@ -519,12 +519,16 @@ public class DisplayRandom extends JDialog {
 			iPw = Util.normalRand(decadencyFactor(GuiConfig.IDLE_POWER, level), decadencyFactor(GuiConfig.ENERGY_DEV, level));
 		}
 		
-		double posx = Util.rand(0, Config.SQUARE_SIDE);
-		double posy = Util.rand(0, Config.SQUARE_SIDE);
+		double posx = Util.rand(-Movement.SQUARE_SIDE, Movement.SQUARE_SIDE);
+		double posy = Util.rand(-Movement.SQUARE_SIDE, Movement.SQUARE_SIDE);
 		
-		// Generate its movement
-		Movement movement = new Movement(0.0, Movement.EAST, new Location(posx, posy));
+		Movement movement;
+		if(new Random().nextDouble() <= GuiConfig.MOBILE_NODE_PROBABILITY)
+			movement = new RandomMovement(new Location(posx, posy));
+		else
+			movement = new StaticMovement(new Location(posx, posy));
 		
+		// Generate its movement		
 		return new Node(name, level, mips, ram, strg, rateMips, rateRam, rateStrg, rateBw, rateEn, iPw, bPw, movement, appName, distribution);
 	}
 	
@@ -547,7 +551,11 @@ public class DisplayRandom extends JDialog {
 	 * are created and managed during the simulation.
 	 */
 	private void connectDevices() {
-		ArrayList<Node> notConnctedDevices = getListFromSet(physicalGraph.getDevicesList().keySet());
+		ArrayList<Node> notConnctedDevices = getStaticFogNodesList(physicalGraph.getDevicesList().keySet());
+		ArrayList<Node> staticFogNodes = new ArrayList<Node>();
+		staticFogNodes.addAll(notConnctedDevices);
+		ArrayList<Node> staticClients = getStaticClientsList(physicalGraph.getDevicesList().keySet());
+		
 		Node cloud = getFromList(notConnctedDevices, "Cloud");
 		notConnctedDevices.remove(cloud);
 		Node f = notConnctedDevices.get(new Random().nextInt(notConnctedDevices.size()));
@@ -556,16 +564,7 @@ public class DisplayRandom extends JDialog {
 		double bw = Util.rand(GuiConfig.BW_MEAN, GuiConfig.BW_MEAN);
 		physicalGraph.addEdge(cloud, new Link(f, lat, bw));
 		
-		// Defines each are the mobile nodes
-		List<Node> toRemove = new ArrayList<Node>();
-		for(Node f1 : notConnctedDevices) {
-			if(f1.getName().equals(f.getName())) continue;
-			if(new Random().nextFloat() < GuiConfig.CONNECTION_PROB) continue;
-			toRemove.add(f1);
-		}
-		notConnctedDevices.removeAll(toRemove);
-		
-		// The fixed nodes must have be all connected
+		// Fixed fog nodes must be all interconnected
 		while(notConnctedDevices.size() > 1) {
 			String lastNodeName = notConnctedDevices.get(notConnctedDevices.size()-1).getName();
 			Node f1 = notConnctedDevices.get(0);
@@ -591,6 +590,14 @@ public class DisplayRandom extends JDialog {
 				break;
 			}
 		}
+		
+		// Connect each static client to a random static fog node
+		for(Node client : staticClients) {
+			int fogNodeIndex = new Random().nextInt(staticFogNodes.size());
+			lat = Util.rand(GuiConfig.LAT_MEAN, GuiConfig.LAT_DEV);
+			bw = Util.rand(GuiConfig.BW_MEAN, GuiConfig.BW_MEAN);
+			physicalGraph.addEdge(client, new Link(staticFogNodes.get(fogNodeIndex), lat, bw));
+		}
 	}
 	
 	/**
@@ -609,16 +616,35 @@ public class DisplayRandom extends JDialog {
 	}
 	
 	/**
-	 * Creates a list of nodes based on a set of nodes.
+	 * Creates a list of static fog nodes based on a set of nodes.
 	 * 
 	 * @param nodes the set of nodes
-	 * @return the list of nodes
+	 * @return the list of static fog nodes
 	 */
-	private ArrayList<Node> getListFromSet(Set<Node> nodes) {
+	private ArrayList<Node> getStaticFogNodesList(Set<Node> nodes) {
+		
 		ArrayList<Node> returnList = new ArrayList<Node>();
 		
 		for(Node f : nodes) {
-			returnList.add(f);
+			if(f.getMovement() instanceof StaticMovement && f.getApplication().isEmpty())
+				returnList.add(f);
+		}
+		
+		return returnList;
+	}
+	
+	/**
+	 * Creates a list of static clients based on a set of nodes.
+	 * 
+	 * @param nodes the set of nodes
+	 * @return the list of static clients
+	 */
+	private ArrayList<Node> getStaticClientsList(Set<Node> nodes) {
+		ArrayList<Node> returnList = new ArrayList<Node>();
+		
+		for(Node f : nodes) {
+			if(f.getMovement() instanceof StaticMovement && !f.getApplication().isEmpty())
+				returnList.add(f);
 		}
 		
 		return returnList;

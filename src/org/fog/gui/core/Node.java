@@ -68,6 +68,25 @@ public class Node implements Serializable {
 	/** GUI coordinates */
 	private Location coord;
 	
+	/*public Node(Node node) {
+		this.setName(node.getName());
+		this.setLevel(node.getLevel());
+		this.setMips(node.getMips());
+		this.setRam(node.getRam());
+		this.setStorage(node.getStorage());
+		this.setBw(node.getBw());
+		this.setRateMips(node.getRateMips());
+		this.setRateRam(node.getRateRam());
+		this.setRateStorage(node.getRateStorage());
+		this.setRateBw(node.getRateBw());
+		this.setRateEnergy(node.getRateEnergy());
+		this.setIdlePower(node.getIdlePower());
+		this.setBusyPower(node.getBusyPower());
+		this.setMovement(node.getMovement());
+		this.setApplication(node.getApplication());
+		this.setDistribution(node.getDistribution());
+	}*/
+	
 	/**
 	 * Creates a new virtual machine node for the graph.
 	 * 

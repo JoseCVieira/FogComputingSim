@@ -347,12 +347,17 @@ public class Gui extends JFrame {
     public static void verifyRun() {
     	btnRun.setEnabled(false);
     	
+    	System.out.println("\n\n AQUI");
+    	
     	// Its required more than one node in the physical topology
     	if(physicalGraph.getDevicesList().size() <= 1) return;
     	
     	boolean application = false;
     	boolean fixedTopology = false;
     	for(Node node : physicalGraph.getDevicesList().keySet()) {
+    		
+    		if(node == null) continue;
+    		
     		if(!node.getApplication().isEmpty()) {
     			application = true;
     		}

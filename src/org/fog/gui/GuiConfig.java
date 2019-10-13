@@ -1,5 +1,7 @@
 package org.fog.gui;
 
+import org.fog.core.Config;
+
 /**
  * Class which holds all configuration values used within the GUI.
  * 
@@ -19,6 +21,9 @@ public class GuiConfig {
 	/** Probability of being a client (i.e., to have an application to be deployed) */
 	public static double CLIENT_PROBABILITY = 0.4;
 	
+	/** Probability of being a client (i.e., to have an application to be deployed) */
+	public static double MOBILE_NODE_PROBABILITY = 0.3;
+	
 	// Network ------------------------------------------------
 	
 	/** Mean of the latency normal distribution */
@@ -28,10 +33,10 @@ public class GuiConfig {
 	public static double LAT_DEV = 1;
 	
 	/** Mean of the bandwidth normal distribution */
-	public static double BW_MEAN = 50*1024*1024;
+	public static double BW_MEAN = Config.FIXED_COMMUNICATION_BW;
 	
 	/** Deviation of the bandwidth normal distribution */
-	public static double BW_DEV = 1*1024*1024;
+	public static double BW_DEV = 1*1024*1024/8;
 	
 	// Device capacity ----------------------------------------
 	
@@ -54,7 +59,7 @@ public class GuiConfig {
 	public static int STRG_DEV = 128*1024*1024;
 	
 	/** Level decadency factor (mean and deviation resource values are multiplied by 1/(level*LEVEL_DECADENCY)) */
-	public static int LEVEL_DECADENCY = 5;
+	public static int LEVEL_DECADENCY = 50;
 	
 	// Device price -------------------------------------------
 	
