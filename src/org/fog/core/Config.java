@@ -51,9 +51,9 @@ public class Config {
 	 */
 	public static final int[] priorities = new int[] {
 			5,		// Quality of Service cost
-			4,		// Power cost
-			3,		// Processing cost
-			2,		// Bandwidth cost
+			3,		// Power cost
+			2,		// Processing cost
+			4,		// Bandwidth cost
 			1		// Migration cost
 	};
 	
@@ -140,7 +140,7 @@ public class Config {
 	public static boolean DYNAMIC_SIMULATION = true;
 	
 	/** Defines whether the simulation is allowed to perform migrations of VMs */
-	public static boolean ALLOW_MIGRATION = false;
+	public static boolean ALLOW_MIGRATION = true;
 	
 	/** Defines the threshold used to define if its necessary to perform an handover */
 	public static final int HANDOVER_THRESHOLD = 75;

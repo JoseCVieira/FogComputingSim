@@ -478,7 +478,7 @@ public class LinearProgramming extends Algorithm {
 							in = cplex.sum(in, migrationRoutingVar[i][z]);
 					}
 					
-					cplex.addEq(cplex.diff(out, in), cplex.sum(-getCurrentPlacement()[j][i], placementVar[j][i]));
+					cplex.addEq(cplex.diff(out, in), cplex.diff(getCurrentPlacement()[j][i], placementVar[j][i]));
 				}
 			}
 		}catch (IloException e) {
@@ -627,7 +627,7 @@ public class LinearProgramming extends Algorithm {
 					int prevNodeIndex = Solution.findModulePlacement(getCurrentPositionInt(), i);
 					
 					// If the virtual machine was migrated, then sum a given setup time
-					migLatency[i] = cplex.sum(migLatency[i], cplex.prod(cplex.sum(-1, placementVar[prevNodeIndex][i]), Config.SETUP_VM_TIME));
+					migLatency[i] = cplex.sum(migLatency[i], cplex.prod(cplex.diff(1, placementVar[prevNodeIndex][i]), Config.SETUP_VM_TIME));
 				}
 				
 				cplex.addLe(migLatency[i], getmMigD()[i]);
