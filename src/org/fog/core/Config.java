@@ -10,6 +10,7 @@ package org.fog.core;
 public class Config {
 	// --------------------------------------- Configuration parameters for the optimization problem ---------------------------------------
 	
+	
 	// General ------------------------------------------------
 	
 	/** Defines whether the best value is printed between iterations are printed */
@@ -95,6 +96,7 @@ public class Config {
 	/** Absolute error value in which is considered that two solutions are equal */
 	public static final double CONVERGENCE_ERROR = 0.00001;
 	
+	
 	// Genetic algorithm --------------------------------------
 	
 	/** Number of individuals running in the Genetic Algorithm */
@@ -112,6 +114,7 @@ public class Config {
 	/** Maximum number of equal cost solutions of tuple routing through genetic algorithm to stop it */
 	public static final int MAX_ITER_ROUTING_CONVERGENCE_GA = 20;
 	
+	
 	// Random algorithm ---------------------------------------
 	
 	/** Maximum number of iterations to solve the problem through random algorithm */
@@ -120,7 +123,7 @@ public class Config {
 	/** Maximum number of equal cost solutions of the problem through random algorithm to stop it */
 	public static final int MAX_ITER_CONVERGENCE_RANDOM = 20;
 	
-	// ------------------------------------------------------------ Simulation -------------------------------------------------------------
+	
 	
 	// Simulation ---------------------------------------------
 	
@@ -134,10 +137,10 @@ public class Config {
 	public static boolean PRINT_COST_DETAILS = false;
 	
 	/** Defines whether the simulation is dynamic (i.e., mobile nodes actualy move around) */
-	public static boolean DYNAMIC_SIMULATION = false;
+	public static boolean DYNAMIC_SIMULATION = true;
 	
 	/** Defines whether the simulation is allowed to perform migrations of VMs */
-	public static boolean ALLOW_MIGRATION = true;
+	public static boolean ALLOW_MIGRATION = false;
 	
 	/** Defines the threshold used to define if its necessary to perform an handover */
 	public static final int HANDOVER_THRESHOLD = 75;
@@ -160,17 +163,6 @@ public class Config {
 	/** Defines the periodicity that the controller will check whether it's necessary to run the optimization algorithm again */
 	public static final int RECONFIG_PERIOD = 1;
 	
-	// ------------------------------------------- Movement of the mobile nodes for test purposes ------------------------------------------
-	public static final int SQUARE_SIDE = 10000;
-	public static final double PROB_CHANGE_DIRECTION = 0.25;
-	public static final double PROB_CHANGE_VELOCITY = 0.35;
-	public static final double PROB_MAX_VELOCITY = 0.1111;
-	public static final double PROB_MED_VELOCITY = 0.6667;
-	public static final double PROB_MIN_VELOCITY = 0.1111;
-	public static final double PROB_NUL_VELOCITY = 0.1111;
-	public static final double MAX_VELOCITY = 33.3333;	// 33.3333 m/s = 120 km/h 	-> high speed car
-	public static final double MED_VELOCITY = 13.8889;	// 13.8889 m/s = 50 km/h  	-> slow speed car
-	public static final double MIN_VELOCITY = 1.34000;	// 1.34 m/s					-> average walking speed
-	public static final double NUL_VELOCITY = 0;		// 0 m/s					-> stopped
+	public static final double PERIODIC_MOVEMENT_UPDATE = 1;
 	
 }

@@ -9,11 +9,12 @@ import org.fog.core.Topology;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
-import org.fog.utils.Util;
 import org.fog.utils.distribution.DeterministicDistribution;
 import org.fog.utils.distribution.Distribution;
 import org.fog.utils.movement.Location;
 import org.fog.utils.movement.Movement;
+import org.fog.utils.movement.RandomMovement;
+import org.fog.utils.movement.StaticMovement;
 
 /**
  * Class which defines an example topology to test the simulator.
@@ -46,8 +47,7 @@ public class VRGameFog extends Topology {
 	@Override
 	protected void createFogDevices() {
 		// Create the movement for the cloud
-		// Does not matter what direction because velocity is 0
-		Movement movement = new Movement(0.0, Movement.EAST, new Location(0, 0));
+		Movement movement = new StaticMovement(new Location(0, 0));
 		
 		// Create the cloud device (cloud is seen as a single node)
 		FogDevice cloud = createFogDevice("cloud", 44800, 40000, 1000000, 10000, 16*103, 16*83.25, 0.01, 0.05, 0.001, 0.05, 0.05, movement);
@@ -56,7 +56,7 @@ public class VRGameFog extends Topology {
 		fogDevices.add(cloud);
 		
 		// Create the movement for the proxy
-		movement = new Movement(0.0, Movement.EAST, new Location(250, 250));
+		movement = new StaticMovement(new Location(0, 250));
 		
 		// Create the proxy device
 		FogDevice proxy = createFogDevice("proxy-server", 2800, 4000, 1000000, 10000, 107.339, 83.4333, 1E-5, 1E-5, 1E-5, 1E-5, 1E-5, movement);
@@ -68,18 +68,18 @@ public class VRGameFog extends Topology {
 		connectFogDevices(cloud, proxy, 2, 2, Config.FIXED_COMMUNICATION_BW, Config.FIXED_COMMUNICATION_BW);
 		
 		// Repeat the process for the next nodes
-		for(int i = 0; i < numOfDepts; i++) {			
-			movement = new Movement(0.0, Movement.EAST, new Location(1000/(i+1), 1000/(i+1)));
+		for(int i = 0; i < numOfDepts; i++) {
+			movement = new StaticMovement(new Location(1000/(i+1), 1000/(i+1)));
+			
 			FogDevice dept = createFogDevice("d-"+i, 2800, 4000, 1000000, 10000, 107.339, 83.4333, 0.01, 0.05, 0.001, 0.05, 0.05, movement);
 			
 			fogDevices.add(dept);
 			
 			connectFogDevices(proxy, dept, 0.5, 0.5, Config.FIXED_COMMUNICATION_BW, Config.FIXED_COMMUNICATION_BW);
 			
-			for(int j = 0; j < numOfMobilesPerDept; j++){
-				int direction = Util.rand(Movement.EAST, Movement.SOUTHEAST);
+			for(int j = 0; j < numOfMobilesPerDept; j++) {
+				movement = new RandomMovement(new Location(1000/(i+1), 1000/(i+1)));
 				
-				movement = new Movement(1.0, direction, new Location(1000/(i+1), 1000/(i+1)));
 				FogDevice mobile = createClientDevice("m-"+i+"-"+j, 1000, 1000, 1000000, 10000, movement);
 				
 				fogDevices.add(mobile);

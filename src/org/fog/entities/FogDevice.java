@@ -6,7 +6,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.Random;
 
 import org.apache.commons.math3.util.Pair;
 import org.cloudbus.cloudsim.Cloudlet;
@@ -33,10 +32,9 @@ import org.fog.utils.FogUtils;
 import org.fog.utils.NetworkMonitor;
 import org.fog.utils.ProcessorMonitor;
 import org.fog.utils.TimeKeeper;
-import org.fog.utils.Util;
 import org.fog.utils.communication.MobilePathLossModel;
-import org.fog.utils.movement.Location;
 import org.fog.utils.movement.Movement;
+import org.fog.utils.movement.StaticMovement;
 
 /**
  * Class representing fog devices.
@@ -702,58 +700,11 @@ public class FogDevice extends PowerDatacenter {
 	}
 	
 	/**
-	 * Updates position and randomly change movement characteristics except for static nodes.
-	 * Note that, currently, it is used a square to define the region where nodes can move in (this, of course, can be removed).
-	 * If this method is running in an infinite loop, maybe the nodes were created outside the square region.
+	 * Updates its position following its defined movement.
 	 */
 	private void updatePeriodicMovement() {
 		movement.updateLocation();
-		
-		// Define next direction and velocity
-		// Only updates for mobile nodes. Having fixed connections means that this node is a fixed one
-		if(!isStaticNode()) {
-			int counter = 0;
-			Random random = new Random();
-			
-			double changeDirProb = Config.PROB_CHANGE_DIRECTION;
-			double changeVelProb = Config.PROB_CHANGE_VELOCITY;
-			while(true) {
-				if(random.nextDouble() < changeDirProb)
-					movement.setDirection(random.nextInt(Movement.SOUTHEAST + 1));
-				
-				if(random.nextDouble() < changeVelProb) {
-					double value = random.nextDouble();
-					
-					if(value < Config.PROB_NUL_VELOCITY) {
-						movement.setVelocity(Config.NUL_VELOCITY);
-					}else if(value >= Config.PROB_NUL_VELOCITY && value < Config.PROB_MIN_VELOCITY + Config.PROB_NUL_VELOCITY) {
-						movement.setVelocity(Math.abs(Util.normalRand(Config.MIN_VELOCITY, 1)));
-					}else if(value >= Config.PROB_MIN_VELOCITY + Config.PROB_NUL_VELOCITY && value < Config.PROB_MIN_VELOCITY
-							+ Config.PROB_NUL_VELOCITY + Config.PROB_MED_VELOCITY) {
-						movement.setVelocity(Math.abs(Util.normalRand(Config.MED_VELOCITY, 1)));
-					}else {
-						movement.setVelocity(Math.abs(Util.normalRand(Config.MAX_VELOCITY, 1)));
-					}
-				}
-				
-				// Change the direction or velocity just to ensure devices are within the defined square for test purposes (it can be removed)
-				// The movement model which is defined in the current method can also be modified
-				// Compute next position (but does not update; just to check if it will end up within the defined square)
-				Location newLocation = movement.computeNextLocation();
-				
-				if(newLocation.getX() > 0 && newLocation.getX() < Config.SQUARE_SIDE && newLocation.getY() > 0 && newLocation.getY() < Config.SQUARE_SIDE)
-					break;
-				else {
-					changeDirProb = 1;
-					changeVelProb = 1;
-				}
-				
-				if(++counter > 100)
-					FogComputingSim.err("It looks like the update movement method is running in an infinite loop");
-			}
-		}
-		
-		send(getId(), 1, FogEvents.UPDATE_PERIODIC_MOVEMENT);
+		send(getId(), Config.PERIODIC_MOVEMENT_UPDATE, FogEvents.UPDATE_PERIODIC_MOVEMENT);
 	}
 	
 	/**
@@ -1023,6 +974,9 @@ public class FogDevice extends PowerDatacenter {
 		for(int neighborId : latencyMap.keySet()) {
 			getFixedNeighborsIds().add(neighborId);
 		}
+		
+		if(isStaticNode() && !(movement instanceof StaticMovement))
+			FogComputingSim.err("Node cannot have wired connections and have a dynamic movement - use static movement instead");
 		
 		if(Config.DYNAMIC_SIMULATION)
 			updatePeriodicMovement();

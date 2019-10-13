@@ -126,7 +126,7 @@ public class Util {
 	}
 	
 	/**
-	 * Gets a random number in the range of the normal distribution.
+	 * Gets a random positive number in the range of the normal distribution.
 	 * 
 	 * @param mean the normal mean
 	 * @param dev the normal deviation

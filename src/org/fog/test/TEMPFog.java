@@ -13,6 +13,7 @@ import org.fog.utils.distribution.Distribution;
 import org.fog.utils.distribution.NormalDistribution;
 import org.fog.utils.movement.Location;
 import org.fog.utils.movement.Movement;
+import org.fog.utils.movement.StaticMovement;
 
 /**
  * Class which defines an example topology to test the simulator.
@@ -47,8 +48,7 @@ public class TEMPFog extends Topology {
 	@Override
 	protected void createFogDevices() {
 		// Create the movement for the cloud
-		// Does not matter what direction because velocity is 0
-		Movement movement = new Movement(0.0, Movement.EAST, new Location(0, 0));
+		Movement movement = new StaticMovement(new Location(0, 0));
 		
 		// Create the cloud device (cloud is seen as a single node)
 		FogDevice cloud = createFogDevice("cloud", 100000, 10240, 1000000, 1000, 16*103, 16*83.25, 10, 0.05, 0.001, 0.0, 0.05, movement);
@@ -61,7 +61,7 @@ public class TEMPFog extends Topology {
 			double posy = Util.rand(250, 500);
 			
 			// Create the movement for the router
-			movement = new Movement(0.0, Movement.EAST, new Location(posx, posy));
+			movement = new StaticMovement(new Location(posx, posy));
 			
 			// Create the router device
 			FogDevice dept = createFogDevice("d-"+i, 1000, 1024, 1000000, 1000, 107.339, 83.4333, 0.0, 0.05, 0.001, 0.0, 0.05, movement);
@@ -76,9 +76,8 @@ public class TEMPFog extends Topology {
 			for(int j = 0; j < numOfMobilesPerRouter; j++){
 				posx = Util.rand(-500, 500);
 				posy = Util.rand(400, 600);
-				int direction = Util.rand(Movement.EAST, Movement.SOUTHEAST);
+				movement = new StaticMovement(new Location(posx, posy));
 				
-				movement = new Movement(1.0, direction, new Location(posx, posy));
 				FogDevice mobile = createClientDevice("m-"+i+"-"+j, 1000, 1024, 1000000, 1000, movement);
 				
 				fogDevices.add(mobile);
