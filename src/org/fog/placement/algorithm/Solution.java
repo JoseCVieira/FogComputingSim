@@ -246,6 +246,7 @@ public class Solution implements Comparable<Solution> {
 				
 				for(int z = 0; z < nrFogNodes; z++) {					
 					if(algorithm.getfLatencyMap()[routingMap[i][j-1]][z] == Constants.INF) continue;
+					if(algorithm.getfLatencyMap()[routingMap[i][j-1]][z] == 0) continue;
 					if(!algorithm.isValidHop(z, routingMap[i][nrFogNodes-1], nrFogNodes - j)) continue;
 					validValues.add(z);
 				}
@@ -289,6 +290,7 @@ public class Solution implements Comparable<Solution> {
 				
 				for(int z = 0; z < nrFogNodes; z++) { // Node index
 					if(algorithm.getfLatencyMap()[routingMap[i][j-1]][z] == Constants.INF) continue;
+					if(algorithm.getfLatencyMap()[routingMap[i][j-1]][z] == 0) continue;
 					if(!algorithm.isValidHop(z, routingMap[i][nrFogNodes-1], nrFogNodes - j)) continue;
 					validValues.add(z);
 				}

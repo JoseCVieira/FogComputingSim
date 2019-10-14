@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.Random;
 import java.util.Scanner;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.fog.core.FogComputingSim;
 
 /**
@@ -99,6 +100,17 @@ public class Util {
 			v = -1;
 		
 	    return v;
+	}
+	
+	/**
+	 * Verifies whether a given array contains a given integer number.
+	 * 
+	 * @param array the array
+	 * @param key the value
+	 * @return true if the array contains the value; 0, otherwise
+	 */
+	public static boolean contains(final int[] array, final int key) {     
+	    return ArrayUtils.contains(array, key);
 	}
 	
 	/**

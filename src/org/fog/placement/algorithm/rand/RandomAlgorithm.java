@@ -43,22 +43,20 @@ public class RandomAlgorithm extends Algorithm {
 		generateDijkstraGraph();
 		
 		int convergenceIter = 0;
-		boolean hasConverged = false;
 		while (iteration <= Config.MAX_ITER_RANDOM) {
 			Solution solution = Solution.generateRandomSolution(this);
 			
 			// Check the convergence error
-			if(Solution.checkConvergence(solution, bestSolution)) {
-    			// If it found the same (or similar) solution a given number of times in a row break the loop
-				if(++convergenceIter == Config.MAX_ITER_CONVERGENCE_RANDOM)
-					hasConverged = true;
-			}else
+			if(Solution.checkConvergence(solution, bestSolution))
+				convergenceIter++;
+			else
     			convergenceIter = 0;
 			
     		// Check whether the new individual is the new best solution
     		bestSolution = Solution.checkBestSolution(this, solution, bestSolution, iteration);
 			
-			if(hasConverged) break;
+    		// If it found the same (or similar) solution a given number of times in a row break the loop
+    		if(++convergenceIter == Config.MAX_ITER_CONVERGENCE_RANDOM) break;
 			
 			iteration++;
 		}
