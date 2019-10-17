@@ -50,7 +50,7 @@ public class VRGameFog extends Topology {
 		Movement movement = new StaticMovement(new Location(0, 0));
 		
 		// Create the cloud device (cloud is seen as a single node)
-		FogDevice cloud = createFogDevice("cloud", 44800, 40000, 1000000, 10000, 16*103, 16*83.25, 0.01, 0.05, 0.001, 0.05, 0.05, movement);
+		FogDevice cloud = createFogDevice("cloud", 44800, 40000, 1000000, 16*103, 16*83.25, 0.01, 0.05, 0.001, 0.05, 0.05, movement);
 		
 		// Add the cloud to the physical topology
 		fogDevices.add(cloud);
@@ -59,7 +59,7 @@ public class VRGameFog extends Topology {
 		movement = new StaticMovement(new Location(0, 250));
 		
 		// Create the proxy device
-		FogDevice proxy = createFogDevice("proxy-server", 2800, 4000, 1000000, 10000, 107.339, 83.4333, 1E-5, 1E-5, 1E-5, 1E-5, 1E-5, movement);
+		FogDevice proxy = createFogDevice("proxy-server", 2800, 4000, 1000000, 107.339, 83.4333, 1E-5, 1E-5, 1E-5, 1E-5, 1E-5, movement);
 		
 		// Add the proxy to the physical topology
 		fogDevices.add(proxy);
@@ -71,7 +71,7 @@ public class VRGameFog extends Topology {
 		for(int i = 0; i < numOfDepts; i++) {
 			movement = new StaticMovement(new Location(1000/(i+1), 1000/(i+1)));
 			
-			FogDevice dept = createFogDevice("d-"+i, 2800, 4000, 1000000, 10000, 107.339, 83.4333, 0.01, 0.05, 0.001, 0.05, 0.05, movement);
+			FogDevice dept = createFogDevice("d-"+i, 2800, 4000, 1000000, 107.339, 83.4333, 0.01, 0.05, 0.001, 0.05, 0.05, movement);
 			
 			fogDevices.add(dept);
 			
@@ -80,7 +80,7 @@ public class VRGameFog extends Topology {
 			for(int j = 0; j < numOfMobilesPerDept; j++) {
 				movement = new RandomMovement(new Location(1000/(i+1), 1000/(i+1)));
 				
-				FogDevice mobile = createClientDevice("m-"+i+"-"+j, 1000, 1000, 1000000, 10000, movement);
+				FogDevice mobile = createClientDevice("m-"+i+"-"+j, 1000, 1000, 1000000, movement);
 				
 				fogDevices.add(mobile);
 			}

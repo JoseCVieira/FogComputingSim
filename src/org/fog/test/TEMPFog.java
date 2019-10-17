@@ -51,7 +51,7 @@ public class TEMPFog extends Topology {
 		Movement movement = new StaticMovement(new Location(0, 0));
 		
 		// Create the cloud device (cloud is seen as a single node)
-		FogDevice cloud = createFogDevice("cloud", 100000, 10240, 1000000, 1000, 16*103, 16*83.25, 10, 0.05, 0.001, 0.0, 0.05, movement);
+		FogDevice cloud = createFogDevice("cloud", 100000, 10240, 1000000, 16*103, 16*83.25, 10, 0.05, 0.001, 0.0, 0.05, movement);
 		
 		// Add the cloud to the physical topology
 		fogDevices.add(cloud);
@@ -64,7 +64,7 @@ public class TEMPFog extends Topology {
 			movement = new StaticMovement(new Location(posx, posy));
 			
 			// Create the router device
-			FogDevice dept = createFogDevice("d-"+i, 1000, 1024, 1000000, 1000, 107.339, 83.4333, 0.0, 0.05, 0.001, 0.0, 0.05, movement);
+			FogDevice dept = createFogDevice("d-"+i, 1000, 1024, 1000000, 107.339, 83.4333, 0.0, 0.05, 0.001, 0.0, 0.05, movement);
 			
 			// Add the router to the physical topology
 			fogDevices.add(dept);
@@ -78,7 +78,7 @@ public class TEMPFog extends Topology {
 				posy = Util.rand(400, 600);
 				movement = new StaticMovement(new Location(posx, posy));
 				
-				FogDevice mobile = createClientDevice("m-"+i+"-"+j, 1000, 1024, 1000000, 1000, movement);
+				FogDevice mobile = createClientDevice("m-"+i+"-"+j, 1000, 1024, 1000000, movement);
 				
 				fogDevices.add(mobile);
 				

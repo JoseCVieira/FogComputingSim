@@ -85,7 +85,6 @@ public abstract class Topology {
 	 * @param mips the processing resource units available at the node
 	 * @param ram the memory resource units available at the node
 	 * @param strg the storage resource units available at the node
-	 * @param bw the network resource units available at the node
 	 * @param bPw the busy power value (power consumption while using the full processing capacity of the node)
 	 * @param iPw the idle power value (power consumption while using no processing resources at the node)
 	 * @param costPerMips the monetary cost [€] of processing resources usage
@@ -96,7 +95,7 @@ public abstract class Topology {
 	 * @param movement the movement of the node
 	 * @return the fog device
 	 */
-	protected static FogDevice createFogDevice(String name, double mips, int ram, long strg, long bw, double bPw, double iPw, double costPerMips,
+	protected static FogDevice createFogDevice(String name, double mips, int ram, long strg, double bPw, double iPw, double costPerMips,
 			double costPerMem, double costPerStorage, double costPerBw, double costPerEnergy, Movement movement) {
 		List<Pe> processingElementsList = new ArrayList<Pe>();
 		processingElementsList.add(new Pe(0, new PeProvisioner(mips)));
@@ -104,7 +103,7 @@ public abstract class Topology {
 		PowerHost host = new PowerHost(
 				FogUtils.generateEntityId(),
 				new RamProvisioner(ram),
-				new BwProvisioner(bw),
+				new BwProvisioner(Long.MAX_VALUE),
 				strg,
 				processingElementsList,
 				new VmSchedulerTimeSharedOverbookingEnergy(processingElementsList),
@@ -138,14 +137,14 @@ public abstract class Topology {
 	 * @param movement the movement of the node
 	 * @return the client device
 	 */
-	protected static FogDevice createClientDevice(String name, double mips, int ram, long strg, long bw, Movement movement) {
+	protected static FogDevice createClientDevice(String name, double mips, int ram, long strg, Movement movement) {
 		List<Pe> processingElementsList = new ArrayList<Pe>();
 		processingElementsList.add(new Pe(0, new PeProvisioner(mips)));
 
 		PowerHost host = new PowerHost(
 				FogUtils.generateEntityId(),
 				new RamProvisioner(ram),
-				new BwProvisioner(bw),
+				new BwProvisioner(Long.MAX_VALUE),
 				strg,
 				processingElementsList,
 				new VmSchedulerTimeSharedOverbookingEnergy(processingElementsList),

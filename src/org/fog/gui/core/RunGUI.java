@@ -84,7 +84,6 @@ public class RunGUI extends Topology {
 		double mips = fog.getMips();
 		int ram = fog.getRam();
 		long strg = fog.getStorage();
-		long bw = (long) fog.getBw();
 		double bPw = fog.getBusyPower();
 		double iPw = fog.getIdlePower();
 		double costPerMips = fog.getRateMips();
@@ -96,10 +95,10 @@ public class RunGUI extends Topology {
 		boolean client = fog.getApplication().equals("") ? false : true;
 		
 		if(!client)
-			return createFogDevice(name, mips, ram, strg, bw, bPw, iPw, costPerMips,
+			return createFogDevice(name, mips, ram, strg, bPw, iPw, costPerMips,
 					costPerMem,costPerStorage, costPerBw, costPerEnergy, movement);
 		else
-			return createClientDevice(name, mips, ram, strg, bw, movement);
+			return createClientDevice(name, mips, ram, strg, movement);
 	}
 	
 	/**
