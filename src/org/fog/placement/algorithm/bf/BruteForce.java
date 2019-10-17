@@ -14,6 +14,7 @@ import org.fog.entities.Sensor;
 import org.fog.placement.algorithm.Algorithm;
 import org.fog.placement.algorithm.Solution;
 import org.fog.placement.algorithm.util.routing.Vertex;
+import org.fog.utils.Util;
 
 /**
  * Class in which defines and executes the brute force algorithm.
@@ -91,8 +92,6 @@ public class BruteForce extends Algorithm {
 				modulePlacementMap[j][index] = j == i ? 1 : 0;
 			}
 			
-			if(checkResourcesExceeded(modulePlacementMap, i)) continue;
-			
 			// If its not the final module, solve the next one
 			if(index != getNumberOfModules() - 1) {
 				solveModulePlacement(modulePlacementMap, index + 1);
@@ -100,6 +99,8 @@ public class BruteForce extends Algorithm {
 			
 			// Tries the current module placement map
 			else {
+				if(checkResourcesExceeded(modulePlacementMap)) continue;
+				
 				int[][] tupleRoutingMap = new int[getNumberOfDependencies()][getNumberOfNodes()];
 				
 				int tmp = 0;
@@ -161,8 +162,10 @@ public class BruteForce extends Algorithm {
 			// Otherwise, keep filling the VM routing matrix
 			}else {
 				for(int i = 0; i < getNumberOfNodes(); i++) {
+					if(i == previousNode) continue;
 					if(getfLatencyMap()[previousNode][i] == Constants.INF) continue;
 					if(getfLatencyMap()[previousNode][i] == 0) continue;
+					if(Util.contains(migrationRoutingMap[row], col, i)) continue;
 					
 					Map<Integer,Integer> map = new HashMap<Integer, Integer>();
 					map.put(i, migrationRoutingMap[row][getNumberOfNodes()-1]);
@@ -225,8 +228,9 @@ public class BruteForce extends Algorithm {
 				// Otherwise, keep filling the tuple routing matrix
 			}else {
 				for(int i = 0; i < getNumberOfNodes(); i++) {
+					if(i == previousNode) continue;
 					if(getfLatencyMap()[previousNode][i] == Constants.INF) continue;
-					if(getfLatencyMap()[previousNode][i] == 0) continue;
+					if(Util.contains(tupleRoutingMap[row], col, i)) continue;
 					
 					Map<Integer,Integer> map = new HashMap<Integer, Integer>();
 					map.put(i, tupleRoutingMap[row][getNumberOfNodes()-1]);
@@ -254,20 +258,22 @@ public class BruteForce extends Algorithm {
 	 * @param node the node to verify
 	 * @return true if its resources are being exceeded. 0, otherwise
 	 */
-	private boolean checkResourcesExceeded(final int[][] modulePlacementMap, int node) {
-		double totalMips = 0;
-		double totalRam = 0;
-		double totalStrg = 0;
-		
-		for(int j = 0; j < getNumberOfModules(); j++) {
-			totalMips += modulePlacementMap[node][j] * getmMips()[j];
-			totalRam += modulePlacementMap[node][j] * getmRam()[j];
-			totalStrg += modulePlacementMap[node][j] * getmStrg()[j];
+	private boolean checkResourcesExceeded(final int[][] modulePlacementMap) {
+		for(int i = 0; i < getNumberOfNodes(); i++) {
+			double totalMips = 0;
+			double totalRam = 0;
+			double totalStrg = 0;
+			
+			for(int j = 0; j < getNumberOfModules(); j++) {
+				totalMips += modulePlacementMap[i][j] * getmMips()[j];
+				totalRam += modulePlacementMap[i][j] * getmRam()[j];
+				totalStrg += modulePlacementMap[i][j] * getmStrg()[j];
+			}
+			
+			if(totalMips > getfMips()[i] * Config.MIPS_PERCENTAGE_UTIL) return true;
+			if(totalRam > getfRam()[i] * Config.MEM_PERCENTAGE_UTIL) return true;
+			if(totalStrg > getfStrg()[i] * Config.STRG_PERCENTAGE_UTIL) return true;
 		}
-		
-		if(totalMips > getfMips()[node] * Config.MIPS_PERCENTAGE_UTIL) return true;
-		if(totalRam > getfRam()[node] * Config.MEM_PERCENTAGE_UTIL) return true;
-		if(totalStrg > getfStrg()[node] * Config.STRG_PERCENTAGE_UTIL) return true;
 		
 		return false;
 	}

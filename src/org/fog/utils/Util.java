@@ -1,6 +1,7 @@
 package org.fog.utils;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -100,6 +101,25 @@ public class Util {
 			v = -1;
 		
 	    return v;
+	}
+	
+	/**
+	 * Verifies whether a given array contains a given integer number from index 0 until a given index (exclusive).
+	 * 
+	 * @param array the array
+	 * @param index the index
+	 * @param key the value
+	 * @return true if the array contains the value; 0, otherwise
+	 */
+	public static boolean contains(final int[] array, final int index, final int key) {
+		ArrayList<Integer> p = new ArrayList<Integer>();
+		
+		for(int i = 0; i < index; i++) {
+			p.add(array[i]);
+			
+		}
+		
+		return p.contains(key);
 	}
 	
 	/**
