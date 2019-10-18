@@ -31,6 +31,7 @@ import org.fog.policy.AppModuleAllocationPolicy;
 import org.fog.test.ApplicationsExample;
 import org.fog.utils.FogLinearPowerModel;
 import org.fog.utils.FogUtils;
+import org.fog.utils.NetworkMonitor;
 import org.fog.utils.movement.Movement;
 
 /**
@@ -189,6 +190,9 @@ public abstract class Topology {
 		
 		fog1.getTupleLinkBusy().put(fog2.getId(), false);
 		fog2.getTupleLinkBusy().put(fog1.getId(), false);
+		
+		NetworkMonitor.addConnection(fog1.getId(), fog2.getId(), bwUp);
+		NetworkMonitor.addConnection(fog2.getId(), fog1.getId(), bwDown);
 	}
 	
 	/**

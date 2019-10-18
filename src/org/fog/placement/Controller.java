@@ -24,6 +24,7 @@ import org.fog.entities.Tuple;
 import org.fog.placement.algorithm.Algorithm;
 import org.fog.placement.algorithm.Solution;
 import org.fog.utils.FogEvents;
+import org.fog.utils.NetworkMonitor;
 import org.fog.utils.Util;
 import org.fog.utils.movement.Location;
 import org.fog.utils.output.ExcelUtils;
@@ -423,6 +424,9 @@ public class Controller extends SimEntity {
 		
 		mobile.getTupleLinkBusy().put(to.getId(), false);
 		to.getTupleLinkBusy().put(mobile.getId(), false);
+		
+		NetworkMonitor.addConnection(mobile.getId(), to.getId(), Config.CELLULAR_COMMUNICATION_BW);
+		NetworkMonitor.addConnection(to.getId(), mobile.getId(), Config.CELLULAR_COMMUNICATION_BW);
 	}
 	
 	/**

@@ -622,7 +622,7 @@ public class FogDevice extends PowerDatacenter {
 		send(destId, networkDelay + latency, FogEvents.TUPLE_ARRIVAL, tuple);
 		
 		updateEnergyConsumption();
-		NetworkMonitor.sendingTuple(bandwidth, tuple);
+		NetworkMonitor.sendingTuple(tuple, getId(), destId);
 		TimeKeeper.getInstance().startedTransmissionOfTuple(tuple, latency, bandwidth);
 	}
 	
@@ -731,6 +731,8 @@ public class FogDevice extends PowerDatacenter {
 		}
 		
 		tupleRoutingTable = newTable;
+		
+		NetworkMonitor.removeConnection(getId(), id);
 	}
 	
 	/**
