@@ -27,7 +27,7 @@ public class TimeKeeper {
 	/**
 	 * Creates a new time keeper.
 	 */
-	private TimeKeeper(){
+	private TimeKeeper() {
 		count = 1;
 		setTupleTypeToAverageCpuTime(new HashMap<String, Double>());
 		tupleTypeToExecutedTupleCount = new HashMap<String, Integer>();

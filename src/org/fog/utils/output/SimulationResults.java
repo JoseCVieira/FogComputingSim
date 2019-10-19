@@ -11,6 +11,7 @@ import org.fog.application.AppLoop;
 import org.fog.application.AppModule;
 import org.fog.application.Application;
 import org.fog.core.Config;
+import org.fog.core.Constants;
 import org.fog.core.FogComputingSim;
 import org.fog.entities.Client;
 import org.fog.entities.FogDevice;
@@ -26,7 +27,7 @@ import org.fog.utils.Util;
  * @since  July, 2019
  */
 public class SimulationResults {
-	private static final int MAX_COLUMN_SIZE = 85;
+	private static final int MAX_COLUMN_SIZE = 100;
 	
 	/** Object which holds the information needed to display the simulation results */
 	private Controller controller;
@@ -63,19 +64,23 @@ public class SimulationResults {
 	 * Prints the loops timing details obtained in the simulation execution.
 	 */
 	private void printLoopDetails() {
+		int totalViolated = 0;
+		
 		int col1 = MAX_COLUMN_SIZE-2;
-		int col2 = MAX_COLUMN_SIZE/3;
+		int col2 = MAX_COLUMN_SIZE/5;
 		String content = "";
 		
 		Map<String, Integer> subtitles = new LinkedHashMap<String, Integer>();
 		subtitles.put("LOOP", col1);
 		subtitles.put("CPU [s]", col2);
 		subtitles.put("NW [s]", col2);
-		subtitles.put("TOTAL [s]", col2+1);
-		
+		subtitles.put("TOTAL [s]", col2);
+		subtitles.put("DEADLINE [s]", col2);
+		subtitles.put("VIOLATED", col2-2);
 		
 		for(String appName : controller.getApplications().keySet()) {
 			Application application = controller.getApplications().get(appName);
+			boolean v = false;
 			
 			for(AppLoop loop : application.getLoops()) {
 				int loopId = loop.getLoopId();
@@ -106,12 +111,29 @@ public class SimulationResults {
 				String nwStr = Util.doubleToString(19, 15, nw);
 				String totalStr = Util.doubleToString(19, 15, nw + cpu);
 				
+				String deadline = "inf";
+				if(loop.getDeadline() != Constants.INF)
+					deadline = Util.doubleToString(19, 15, loop.getDeadline());
+				
+				String violated = "false";
+				if(loop.getDeadline() < nw + cpu) {
+					violated = "true";
+					v = true;
+				}
+				
 				content += "|" + Util.centerString(col1, name);
 				content += "|" + Util.centerString(col2, cpuStr);
 				content += "|" + Util.centerString(col2, nwStr);
-				content += "|" + Util.centerString(col2+1, totalStr) + "|\n";
+				content += "|" + Util.centerString(col2, totalStr);
+				content += "|" + Util.centerString(col2, deadline);
+				content += "|" + Util.centerString(col2-2, violated) + "|\n";
 			}
+			
+			if(v) totalViolated++;
 		}
+		
+		content += newDetailsField('-', true);
+		content += "|" + Util.centerString(MAX_COLUMN_SIZE*2+1, "# APPLICATIONS VIOLATED = " + Integer.toString(totalViolated)) + "|\n";
 		
 		table("APPLICATION LOOP DELAYS", content, subtitles);
 	}
@@ -159,16 +181,17 @@ public class SimulationResults {
 	 * Prints the application module migration timing details obtained in the simulation execution.
 	 */
 	private void printMigrationDetails() {
-		int col1 = MAX_COLUMN_SIZE-2;
-		int col2 = MAX_COLUMN_SIZE/4;
+		int col = 2*MAX_COLUMN_SIZE/7;
 		String content = "";
 		
 		Map<String, Integer> subtitles = new LinkedHashMap<String, Integer>();
-		subtitles.put("NAME", col1);
-		subtitles.put("NW [s]", col2);
-		subtitles.put("BOOT [s]", col2);
-		subtitles.put("TOTAL [s]", col2);
-		subtitles.put("# MIG", col2);
+		subtitles.put("NAME", col);
+		subtitles.put("NW [s]", col);
+		subtitles.put("BOOT [s]", col);
+		subtitles.put("TOTAL [s]", col);
+		subtitles.put("DEADLINE [s]", col);
+		subtitles.put("VIOLATED", col);
+		subtitles.put("# MIG", col-1);
 		
 		for(String appName : controller.getApplications().keySet()) {
 			Application application = controller.getApplications().get(appName);
@@ -190,11 +213,22 @@ public class SimulationResults {
 				String totalStr = Util.doubleToString(19, 15, nw + boot);
 				String cntStr = Integer.toString(cnt);
 				
-				content += "|" + Util.centerString(col1, name);
-				content += "|" + Util.centerString(col2, nwStr);
-				content += "|" + Util.centerString(col2, bootStr);
-				content += "|" + Util.centerString(col2, totalStr);
-				content += "|" + Util.centerString(col2, cntStr) + "|\n";
+				String deadline = "inf";
+				if(appModule.getMigrationDeadline() != Constants.INF)
+					deadline = Util.doubleToString(19, 15, appModule.getMigrationDeadline());
+				
+				String violated = "false";
+				if(appModule.getMigrationDeadline() < nw + boot) {
+					violated = "true";
+				}
+				
+				content += "|" + Util.centerString(col, name);
+				content += "|" + Util.centerString(col, nwStr);
+				content += "|" + Util.centerString(col, bootStr);
+				content += "|" + Util.centerString(col, totalStr);
+				content += "|" + Util.centerString(col, deadline);
+				content += "|" + Util.centerString(col, violated);
+				content += "|" + Util.centerString(col-1, cntStr) + "|\n";
 			}
 		}
 		
@@ -230,9 +264,9 @@ public class SimulationResults {
 		String totalStr = Util.doubleToString(30, 15, total);
 		
 		content += newDetailsField('-', true);
-		content += "|" + Util.centerString(MAX_COLUMN_SIZE*2+1, "TOTAL = " + totalStr) + "|\n";
+		content += "|" + Util.centerString(MAX_COLUMN_SIZE*2+1, "TOTAL [J] = " + totalStr) + "|\n";
 		
-		table("ENERGY CONSUMED", content, subtitles);
+		table("ENERGY", content, subtitles);
 	}
 	
 	/**
@@ -389,7 +423,7 @@ public class SimulationResults {
 		content += newDetailsField('-', true);
 		content += "|" + Util.centerString(MAX_COLUMN_SIZE*2+1, "JFI (FOG/CLOUD DEVICES) [ wcs = " + wcs + " ; bcs = 1.0 ] = " + jfi) + "|\n";
 		
-		table("NETWORK USAGE", content, subtitles);
+		table("NETWORK", content, subtitles);
 	}
 	
 	/**
@@ -421,9 +455,9 @@ public class SimulationResults {
 		String costStr = Util.doubleToString(30, 15, total);
 		
 		content += newDetailsField('-', true);
-		content += "|" + Util.centerString(MAX_COLUMN_SIZE*2+1, "TOTAL = " + costStr) + "|\n";
+		content += "|" + Util.centerString(MAX_COLUMN_SIZE*2+1, "TOTAL [€] = " + costStr) + "|\n";
 		
-		table("COST OF EXECUTION", content, subtitles);
+		table("COST", content, subtitles);
 	}
 	
 	/**
