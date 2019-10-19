@@ -91,7 +91,7 @@ public class ApplicationsExample {
 		exampleApplications.add(application);
 		
 		application = new Application("TEMP");
-		application.addAppModule("client", 100, 25, false, false);
+		application.addAppModule("client", 100, 25, true, false);
 		application.addAppModule("classifier", 100, 30, false, false);
 		application.addAppModule("tuner", 100, 30, false, false);
 	
