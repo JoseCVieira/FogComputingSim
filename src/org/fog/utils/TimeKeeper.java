@@ -1,6 +1,7 @@
 package org.fog.utils;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.cloudbus.cloudsim.core.CloudSim;
@@ -17,25 +18,35 @@ public class TimeKeeper {
 	private long simulationStartTime;
 	private int count;
 	
-	private Map<Integer, Double> tupleIdToCpuStartTime;
-	private Map<String, Double> tupleTypeToAverageCpuTime;
-	private Map<String, Integer> tupleTypeToExecutedTupleCount;
-	
 	private Map<Map<Integer, String>, Double> tupleNw;
-	private Map<String, Map<Double, Integer>> loopIdToCurrentNwAverage;
+	private Map<String, Map<Double, Integer>> tupleTotalNw;
+	
+	private Map<Integer, Double> tupleCpu;
+	private Map<String, Map<Double, Integer>> tupleTotalCpu;
+	
+	private Map<List<String>, Double> minLoop;
+	private Map<List<String>, Map<Double, Integer>> totalLoop;
+	private Map<List<String>, Double> maxLoop;
+	private Map<List<String>, Integer> violatedLoop;
 	
 	/**
 	 * Creates a new time keeper.
 	 */
 	private TimeKeeper() {
 		count = 1;
-		setTupleTypeToAverageCpuTime(new HashMap<String, Double>());
-		tupleTypeToExecutedTupleCount = new HashMap<String, Integer>();
-		setTupleIdToCpuStartTime(new HashMap<Integer, Double>());
-		setLoopIdToCurrentNwAverage(new HashMap<String, Map<Double,Integer>>());
-		setTupleNw(new HashMap<Map<Integer, String>, Double>());
+		
+		tupleCpu = new HashMap<Integer, Double>();
+		tupleTotalCpu = new HashMap<String, Map<Double,Integer>>();
+		
+		tupleNw = new HashMap<Map<Integer, String>, Double>();
+		tupleTotalNw = new HashMap<String, Map<Double,Integer>>();
+		
+		minLoop = new HashMap<List<String>, Double>();
+		totalLoop = new HashMap<List<String>, Map<Double,Integer>>();
+		maxLoop = new HashMap<List<String>, Double>();
+		violatedLoop = new HashMap<List<String>, Integer>();
 	}
-	
+
 	/**
 	 * Gets the current instance.
 	 * 
@@ -62,7 +73,7 @@ public class TimeKeeper {
 	 * @param tuple the tuple which began to be executed
 	 */
 	public void tupleStartedExecution(Tuple tuple){
-		tupleIdToCpuStartTime.put(tuple.getCloudletId(), CloudSim.clock());
+		tupleCpu.put(tuple.getCloudletId(), CloudSim.clock());
 	}
 	
 	/**
@@ -71,18 +82,25 @@ public class TimeKeeper {
 	 * @param tuple the processed tuple
 	 */
 	public void tupleEndedExecution(Tuple tuple){
-		if(!tupleIdToCpuStartTime.containsKey(tuple.getCloudletId()))
+		if(!tupleCpu.containsKey(tuple.getCloudletId()))
 			return;
-		double executionTime = CloudSim.clock() - tupleIdToCpuStartTime.get(tuple.getCloudletId());
-		if(!tupleTypeToAverageCpuTime.containsKey(tuple.getTupleType())){
-			tupleTypeToAverageCpuTime.put(tuple.getTupleType(), executionTime);
-			tupleTypeToExecutedTupleCount.put(tuple.getTupleType(), 1);
-		} else{
-			double currentAverage = tupleTypeToAverageCpuTime.get(tuple.getTupleType());
-			int currentCount = tupleTypeToExecutedTupleCount.get(tuple.getTupleType());
-			tupleTypeToAverageCpuTime.put(tuple.getTupleType(), 
-					(currentAverage*currentCount+executionTime)/(currentCount+1));
+		
+		double executionTime = CloudSim.clock() - tupleCpu.get(tuple.getCloudletId());
+		
+		Map<Double, Integer> newMap;
+		if(!tupleTotalCpu.containsKey(tuple.getTupleType())) {
+			newMap = new HashMap<Double, Integer>();
+			newMap.put(executionTime, 1);
+		}else {
+			newMap = tupleTotalCpu.get(tuple.getTupleType());
+			int counter = newMap.entrySet().iterator().next().getValue();
+			double totalTime = newMap.entrySet().iterator().next().getKey();
+			
+			newMap = new HashMap<Double, Integer>();
+			newMap.put(totalTime + executionTime, counter + 1);
 		}
+		
+		tupleTotalCpu.put(tuple.getTupleType(), newMap);
 	}
 	
 	/**
@@ -115,19 +133,20 @@ public class TimeKeeper {
 		
 		tupleNw.remove(map);
 		
-		if(!loopIdToCurrentNwAverage.containsKey(tuple.getTupleType())) {
-			Map<Double, Integer> newMap = new HashMap<Double, Integer>();
-			newMap.put(prevTime, 1);
-			loopIdToCurrentNwAverage.put(tupleType, newMap);			
+		Map<Double, Integer> newMap;
+		if(!tupleTotalNw.containsKey(tuple.getTupleType())) {
+			newMap = new HashMap<Double, Integer>();
+			newMap.put(prevTime, 1);		
 		}else {
-			Map<Double, Integer> newMap = loopIdToCurrentNwAverage.get(tupleType);
+			newMap = tupleTotalNw.get(tupleType);
 			int counter = newMap.entrySet().iterator().next().getValue();
 			double totalTime = newMap.entrySet().iterator().next().getKey();
+			
 			newMap = new HashMap<Double, Integer>();
 			newMap.put(totalTime + prevTime, counter + 1);
-			loopIdToCurrentNwAverage.put(tupleType, newMap);
 		}
 		
+		tupleTotalNw.put(tupleType, newMap);
 	}
 	
 	/**
@@ -142,24 +161,44 @@ public class TimeKeeper {
 		if(!tupleNw.containsKey(map)) return;
 		tupleNw.remove(map);
 	}
-
-	public Map<String, Double> getTupleTypeToAverageCpuTime() {
-		return tupleTypeToAverageCpuTime;
+	
+	/**
+	 * Updates the loop statistics.
+	 * 
+	 * @param path the loop path
+	 * @param delay the measured delay
+	 * @param deadline the loop deadline
+	 */
+	public void finishedLoop(final List<String> path, final double delay, final double deadline) {
+		Map<Double, Integer> avgMap = new HashMap<Double, Integer>();
+		
+		if(!totalLoop.containsKey(path)) {
+			minLoop.put(path, delay);
+			maxLoop.put(path, delay);
+			violatedLoop.put(path, delay <= deadline ? 0 : 1);
+			
+			avgMap.put(delay, 1);
+			totalLoop.put(path, avgMap);
+		}else {
+			double min = minLoop.get(path);
+			double max = maxLoop.get(path);
+			double avg = totalLoop.get(path).entrySet().iterator().next().getKey();
+			int cnt = totalLoop.get(path).entrySet().iterator().next().getValue();
+			int nrViolated = violatedLoop.get(path);
+			
+			if(min > delay)
+				minLoop.put(path, delay);
+			
+			if(max < delay)
+				maxLoop.put(path, delay);
+			
+			violatedLoop.put(path, nrViolated + (delay <= deadline ? 0 : 1));
+			
+			avgMap.put(avg+delay, cnt + 1);
+			totalLoop.put(path, avgMap);
+		}		
 	}
-
-	public void setTupleTypeToAverageCpuTime(
-			Map<String, Double> tupleTypeToAverageCpuTime) {
-		this.tupleTypeToAverageCpuTime = tupleTypeToAverageCpuTime;
-	}
-
-	public Map<Integer, Double> getTupleIdToCpuStartTime() {
-		return tupleIdToCpuStartTime;
-	}
-
-	public void setTupleIdToCpuStartTime(Map<Integer, Double> tupleIdToCpuStartTime) {
-		this.tupleIdToCpuStartTime = tupleIdToCpuStartTime;
-	}
-
+	
 	public long getSimulationStartTime() {
 		return simulationStartTime;
 	}
@@ -167,21 +206,29 @@ public class TimeKeeper {
 	public void setSimulationStartTime(long simulationStartTime) {
 		this.simulationStartTime = simulationStartTime;
 	}
-	
-	public Map<Map<Integer, String>, Double> getTupleNw() {
-		return tupleNw;
-	}
 
-	public void setTupleNw(Map<Map<Integer, String>, Double> tupleNw) {
-		this.tupleNw = tupleNw;
+	public Map<String, Map<Double, Integer>> getTupleTotalCpu() {
+		return tupleTotalCpu;
 	}
 	
-	public Map<String, Map<Double, Integer>> getLoopIdToCurrentNwAverage() {
-		return loopIdToCurrentNwAverage;
+	public Map<String, Map<Double, Integer>> getTupleTotalNw() {
+		return tupleTotalNw;
+	}
+	
+	public Map<List<String>, Double> getMinLoop() {
+		return minLoop;
 	}
 
-	public void setLoopIdToCurrentNwAverage(Map<String, Map<Double, Integer>> loopIdToCurrentNwAverage) {
-		this.loopIdToCurrentNwAverage = loopIdToCurrentNwAverage;
+	public Map<List<String>, Map<Double, Integer>> getTotalLoop() {
+		return totalLoop;
+	}
+
+	public Map<List<String>, Double> getMaxLoop() {
+		return maxLoop;
+	}
+	
+	public Map<List<String>, Integer> getViolatedLoop() {
+		return violatedLoop;
 	}
 	
 }
