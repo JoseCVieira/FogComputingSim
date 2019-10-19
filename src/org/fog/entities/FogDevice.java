@@ -303,10 +303,8 @@ public class FogDevice extends PowerDatacenter {
 									resTuple.getPathMap().put(newPath, initalTime);
 									
 									// If it is the last module in the loop
-									double deadline = application.finalLoop(newPath);
-									
-									if(deadline != -1) {
-										TimeKeeper.getInstance().finishedLoop(newPath, CloudSim.clock() - initalTime, deadline);
+									if(application.finalLoop(newPath) != -1) {
+										TimeKeeper.getInstance().finishedLoop(newPath, CloudSim.clock() - initalTime);
 									}
 								}
 							}
@@ -330,10 +328,9 @@ public class FogDevice extends PowerDatacenter {
 								newPath.add(tuple.getDestModuleName());
 								
 								double initalTime = tuple.getPathMap().get(path);
-								double deadline = application.finalLoop(newPath);
 								
-								if(deadline != -1) {
-									TimeKeeper.getInstance().finishedLoop(newPath, CloudSim.clock() - initalTime, deadline);
+								if(application.finalLoop(newPath) != -1) {
+									TimeKeeper.getInstance().finishedLoop(newPath, CloudSim.clock() - initalTime);
 								}
 							}
 						}

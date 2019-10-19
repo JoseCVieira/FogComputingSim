@@ -27,7 +27,7 @@ import org.fog.utils.Util;
  * @since  July, 2019
  */
 public class SimulationResults {
-	private static final int MAX_COLUMN_SIZE = 100;
+	private static final int MAX_COLUMN_SIZE = 120;
 	
 	/** Object which holds the information needed to display the simulation results */
 	private Controller controller;
@@ -41,8 +41,9 @@ public class SimulationResults {
 		this.controller = controller;
 		
 		printTimeDetails();
-		printLoopDetails();
+		printLoopDetailsAverage();
 		printTupleDetails();
+		printLoopDetails();
 		printMigrationDetails();
 		printEnergyDetails();
 		printCPUDetails();
@@ -61,11 +62,9 @@ public class SimulationResults {
 	}
 	
 	/**
-	 * Prints the loops timing details obtained in the simulation execution.
+	 * Prints the loops average timing details obtained in the simulation execution.
 	 */
-	private void printLoopDetails() {
-		int totalViolated = 0;
-		
+	private void printLoopDetailsAverage() {		
 		int col1 = MAX_COLUMN_SIZE-2;
 		int col2 = MAX_COLUMN_SIZE/5;
 		String content = "";
@@ -80,7 +79,6 @@ public class SimulationResults {
 		
 		for(String appName : controller.getApplications().keySet()) {
 			Application application = controller.getApplications().get(appName);
-			boolean v = false;
 			
 			for(AppLoop loop : application.getLoops()) {
 				int loopId = loop.getLoopId();
@@ -94,12 +92,15 @@ public class SimulationResults {
 					String destModule = modules.get(i+1);
 					
 					for(String tupleType : getTupleTypeForDependency(controller, startModule, destModule)) {
-						if(TimeKeeper.getInstance().getTupleTypeToAverageCpuTime().containsKey(tupleType)) {
-							cpu += TimeKeeper.getInstance().getTupleTypeToAverageCpuTime().get(tupleType);
+						if(TimeKeeper.getInstance().getTupleTotalCpu().containsKey(tupleType)) {
+							Map<Double, Integer> map = TimeKeeper.getInstance().getTupleTotalCpu().get(tupleType);
+							int counter = map.entrySet().iterator().next().getValue();
+							double totalTime = map.entrySet().iterator().next().getKey();
+							cpu += totalTime/counter;
 						}
 						
-						if(TimeKeeper.getInstance().getLoopIdToCurrentNwAverage().containsKey(tupleType)) {
-							Map<Double, Integer> map = TimeKeeper.getInstance().getLoopIdToCurrentNwAverage().get(tupleType);
+						if(TimeKeeper.getInstance().getTupleTotalNw().containsKey(tupleType)) {
+							Map<Double, Integer> map = TimeKeeper.getInstance().getTupleTotalNw().get(tupleType);
 							int counter = map.entrySet().iterator().next().getValue();
 							double totalTime = map.entrySet().iterator().next().getKey();
 							nw += totalTime/counter;
@@ -118,7 +119,6 @@ public class SimulationResults {
 				String violated = "false";
 				if(loop.getDeadline() < nw + cpu) {
 					violated = "true";
-					v = true;
 				}
 				
 				content += "|" + Util.centerString(col1, name);
@@ -128,18 +128,13 @@ public class SimulationResults {
 				content += "|" + Util.centerString(col2, deadline);
 				content += "|" + Util.centerString(col2-2, violated) + "|\n";
 			}
-			
-			if(v) totalViolated++;
 		}
 		
-		content += newDetailsField('-', true);
-		content += "|" + Util.centerString(MAX_COLUMN_SIZE*2+1, "# APPLICATIONS VIOLATED = " + Integer.toString(totalViolated)) + "|\n";
-		
-		table("APPLICATION LOOP DELAYS", content, subtitles);
+		table("APPLICATION LOOP DELAYS (AVERAGE VALUES)", content, subtitles);
 	}
 	
 	/**
-	 * Prints the tuple timing details obtained in the simulation execution.
+	 * Prints the tuple average timing details obtained in the simulation execution.
 	 */
 	private void printTupleDetails() {
 		int col1 = MAX_COLUMN_SIZE-2;
@@ -150,15 +145,19 @@ public class SimulationResults {
 		subtitles.put("TUPLE", col1);
 		subtitles.put("CPU [s]", col2);
 		subtitles.put("NW [s]", col2);
-		subtitles.put("TOTAL [s]", col2+1);
+		subtitles.put("TOTAL [s]", col2);
 		
-		for(String tupleType : TimeKeeper.getInstance().getTupleTypeToAverageCpuTime().keySet()) {
+		for(String tupleType : TimeKeeper.getInstance().getTupleTotalCpu().keySet()) {
 			double cpu = 0, nw = 0;
 			
-			cpu = TimeKeeper.getInstance().getTupleTypeToAverageCpuTime().get(tupleType);
+			if(TimeKeeper.getInstance().getTupleTotalCpu().containsKey(tupleType)) {
+				Map<Double, Integer> map = TimeKeeper.getInstance().getTupleTotalCpu().get(tupleType);			
+				int counter = map.entrySet().iterator().next().getValue();
+				cpu = map.entrySet().iterator().next().getKey()/counter;
+			}
 			
-			if(TimeKeeper.getInstance().getLoopIdToCurrentNwAverage().containsKey(tupleType)) {
-				Map<Double, Integer> map = TimeKeeper.getInstance().getLoopIdToCurrentNwAverage().get(tupleType);			
+			if(TimeKeeper.getInstance().getTupleTotalNw().containsKey(tupleType)) {
+				Map<Double, Integer> map = TimeKeeper.getInstance().getTupleTotalNw().get(tupleType);			
 				int counter = map.entrySet().iterator().next().getValue();
 				nw = map.entrySet().iterator().next().getKey()/counter;
 			}
@@ -170,11 +169,88 @@ public class SimulationResults {
 			content += "|" + Util.centerString(col1, tupleType);
 			content += "|" + Util.centerString(col2, cpuStr);
 			content += "|" + Util.centerString(col2, nwStr);
-			content += "|" + Util.centerString(col2+1, totalStr) + "|\n";
+			content += "|" + Util.centerString(col2, totalStr) + "|\n";
 		}
 			
 		
-		table("APPLICATION TUPLE DELAYS [s]", content, subtitles);
+		table("APPLICATION TUPLE DELAYS (AVERAGE VALUES)", content, subtitles);
+	}
+	
+	/**
+	 * Prints the loops timing details obtained in the simulation execution.
+	 */
+	private void printLoopDetails() {
+		int col1 = MAX_COLUMN_SIZE-2;
+		int col2 = MAX_COLUMN_SIZE/6;
+		String content = "";
+		
+		Map<String, Integer> subtitles = new LinkedHashMap<String, Integer>();
+		subtitles.put("LOOP", col1);
+		subtitles.put("MIN [s]", col2);
+		subtitles.put("AVG [s]", col2);
+		subtitles.put("MAX [s]", col2);
+		subtitles.put("MAX [s]", col2);
+		subtitles.put("S.D. [s]", col2);
+		subtitles.put("# LOOPS", col2);
+		subtitles.put("# VIOLATED", col2-3);
+		
+
+		Map<List<String>, List<Double>> loopValues = TimeKeeper.getInstance().getLoopValues();
+		
+		for(List<String> path : loopValues.keySet()) {
+			List<Double> values = loopValues.get(path);
+			int nrLoops = values.size();
+			int nrViolated = 0;
+			double deadline = -1;
+			double max = values.get(0);
+			double min = values.get(0);
+			double avg = 0;
+			double s = 0;
+			
+			for(String appName : controller.getApplications().keySet()) {
+				Application application = controller.getApplications().get(appName);
+				
+				for(AppLoop appLoop : application.getLoops()) {
+					if(appLoop.getModules().equals(path)) {
+						deadline = appLoop.getDeadline();
+						break;
+					}
+				}
+			}
+			
+			if(deadline == -1) FogComputingSim.err("SimulationResults Err: Should not happen");
+			
+			for(double v : values) {
+				avg += v;
+				if(v > deadline)
+					nrViolated++;
+				
+				if(max < v)
+					max = v;
+				
+				if(min > v)
+					min = v;
+			}
+			
+			avg /= nrLoops;
+			
+			for(double v : values) {
+				s += Math.pow(avg-v, 2);
+			}
+			
+			s /= nrLoops;
+			s = Math.sqrt(s);
+			
+			content += "|" + Util.centerString(col1, path.toString());
+			content += "|" + Util.centerString(col2, Util.doubleToString(19, 15, min));
+			content += "|" + Util.centerString(col2, Util.doubleToString(19, 15, avg));
+			content += "|" + Util.centerString(col2, Util.doubleToString(19, 15, max));
+			content += "|" + Util.centerString(col2, Util.doubleToString(19, 15, s));
+			content += "|" + Util.centerString(col2, Integer.toString(nrLoops));
+			content += "|" + Util.centerString(col2-3, Integer.toString(nrViolated)) + "|\n";
+		}
+		
+		table("APPLICATION LOOP DELAYS", content, subtitles);
 	}
 	
 	/**
@@ -191,7 +267,7 @@ public class SimulationResults {
 		subtitles.put("TOTAL [s]", col);
 		subtitles.put("DEADLINE [s]", col);
 		subtitles.put("VIOLATED", col);
-		subtitles.put("# MIG", col-1);
+		subtitles.put("# MIG", col-3);
 		
 		for(String appName : controller.getApplications().keySet()) {
 			Application application = controller.getApplications().get(appName);
@@ -200,8 +276,8 @@ public class SimulationResults {
 				double nw = 0, boot = 0;
 				int cnt = 0;
 				
-				if(TimeKeeper.getInstance().getLoopIdToCurrentNwAverage().containsKey(name)) {
-					Map<Double, Integer> map = TimeKeeper.getInstance().getLoopIdToCurrentNwAverage().get(name);			
+				if(TimeKeeper.getInstance().getTupleTotalNw().containsKey(name)) {
+					Map<Double, Integer> map = TimeKeeper.getInstance().getTupleTotalNw().get(name);			
 					cnt = map.entrySet().iterator().next().getValue();
 					nw = map.entrySet().iterator().next().getKey()/cnt;
 				}
@@ -228,7 +304,7 @@ public class SimulationResults {
 				content += "|" + Util.centerString(col, totalStr);
 				content += "|" + Util.centerString(col, deadline);
 				content += "|" + Util.centerString(col, violated);
-				content += "|" + Util.centerString(col-1, cntStr) + "|\n";
+				content += "|" + Util.centerString(col-3, cntStr) + "|\n";
 			}
 		}
 		
@@ -284,7 +360,7 @@ public class SimulationResults {
 		int col2 = MAX_COLUMN_SIZE - col1;
 		int col3 = MAX_COLUMN_SIZE/3;
 		int col4 = MAX_COLUMN_SIZE/3;
-		int col5 = MAX_COLUMN_SIZE/3-2;
+		int col5 = MAX_COLUMN_SIZE/3-3;
 		String content = "";
 		
 		Map<String, Integer> subtitles = new LinkedHashMap<String, Integer>();
@@ -358,7 +434,7 @@ public class SimulationResults {
 		int col1 = MAX_COLUMN_SIZE;
 		int col2 = MAX_COLUMN_SIZE/3;
 		int col3 = MAX_COLUMN_SIZE/3;
-		int col4 = MAX_COLUMN_SIZE/3-1;
+		int col4 = MAX_COLUMN_SIZE/3-2;
 		String content = "";
 		
 		Map<String, Integer> subtitles = new LinkedHashMap<String, Integer>();

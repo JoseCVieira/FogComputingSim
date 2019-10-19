@@ -1,5 +1,6 @@
 package org.fog.utils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,10 +25,7 @@ public class TimeKeeper {
 	private Map<Integer, Double> tupleCpu;
 	private Map<String, Map<Double, Integer>> tupleTotalCpu;
 	
-	private Map<List<String>, Double> minLoop;
-	private Map<List<String>, Map<Double, Integer>> totalLoop;
-	private Map<List<String>, Double> maxLoop;
-	private Map<List<String>, Integer> violatedLoop;
+	private Map<List<String>, List<Double>> loopValues;
 	
 	/**
 	 * Creates a new time keeper.
@@ -41,10 +39,7 @@ public class TimeKeeper {
 		tupleNw = new HashMap<Map<Integer, String>, Double>();
 		tupleTotalNw = new HashMap<String, Map<Double,Integer>>();
 		
-		minLoop = new HashMap<List<String>, Double>();
-		totalLoop = new HashMap<List<String>, Map<Double,Integer>>();
-		maxLoop = new HashMap<List<String>, Double>();
-		violatedLoop = new HashMap<List<String>, Integer>();
+		loopValues = new HashMap<List<String>, List<Double>>();
 	}
 
 	/**
@@ -167,36 +162,18 @@ public class TimeKeeper {
 	 * 
 	 * @param path the loop path
 	 * @param delay the measured delay
-	 * @param deadline the loop deadline
 	 */
-	public void finishedLoop(final List<String> path, final double delay, final double deadline) {
-		Map<Double, Integer> avgMap = new HashMap<Double, Integer>();
-		
-		if(!totalLoop.containsKey(path)) {
-			minLoop.put(path, delay);
-			maxLoop.put(path, delay);
-			violatedLoop.put(path, delay <= deadline ? 0 : 1);
-			
-			avgMap.put(delay, 1);
-			totalLoop.put(path, avgMap);
+	public void finishedLoop(final List<String> path, final double delay) {
+		List<Double> values;
+		if(!loopValues.containsKey(path)) {
+			values = new ArrayList<Double>();
+			values.add(delay);
 		}else {
-			double min = minLoop.get(path);
-			double max = maxLoop.get(path);
-			double avg = totalLoop.get(path).entrySet().iterator().next().getKey();
-			int cnt = totalLoop.get(path).entrySet().iterator().next().getValue();
-			int nrViolated = violatedLoop.get(path);
-			
-			if(min > delay)
-				minLoop.put(path, delay);
-			
-			if(max < delay)
-				maxLoop.put(path, delay);
-			
-			violatedLoop.put(path, nrViolated + (delay <= deadline ? 0 : 1));
-			
-			avgMap.put(avg+delay, cnt + 1);
-			totalLoop.put(path, avgMap);
-		}		
+			values = loopValues.get(path);
+			values.add(delay);
+		}
+		
+		loopValues.put(path, values);
 	}
 	
 	public long getSimulationStartTime() {
@@ -215,20 +192,8 @@ public class TimeKeeper {
 		return tupleTotalNw;
 	}
 	
-	public Map<List<String>, Double> getMinLoop() {
-		return minLoop;
-	}
-
-	public Map<List<String>, Map<Double, Integer>> getTotalLoop() {
-		return totalLoop;
-	}
-
-	public Map<List<String>, Double> getMaxLoop() {
-		return maxLoop;
-	}
-	
-	public Map<List<String>, Integer> getViolatedLoop() {
-		return violatedLoop;
+	public Map<List<String>, List<Double>> getLoopValues() {
+		return loopValues;
 	}
 	
 }

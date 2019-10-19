@@ -92,10 +92,8 @@ public class Actuator extends SimEntity{
 			newPath.addAll(path);
 			newPath.add(actuatorType);
 			
-			double deadline = app.finalLoop(newPath);
-			
-			if(deadline != -1) {
-				TimeKeeper.getInstance().finishedLoop(newPath,  CloudSim.clock() - tuple.getPathMap().get(path), deadline);
+			if(app.finalLoop(newPath) != -1) {
+				TimeKeeper.getInstance().finishedLoop(newPath,  CloudSim.clock() - tuple.getPathMap().get(path));
 			}
 		}
 	}
