@@ -23,7 +23,7 @@ public class NetworkMonitor {
 	private static int packetSuccess;
 	
 	/** Map holding the size of data transmitted between entities */
-	private static Map<Map<Integer, Integer>, Double> networkUsageMap = new HashMap<Map<Integer,Integer>, Double>();
+	private static Map<Map<Integer, Integer>, Long> networkUsageMap = new HashMap<Map<Integer,Integer>, Long>();
 	
 	/** Map holding the last creation time of each link and time total time each link was available */
 	private static Map<Map<Integer, Integer>, Map<Double, Double>> connectionsMap = new HashMap<Map<Integer,Integer>, Map<Double,Double>>();
@@ -39,7 +39,7 @@ public class NetworkMonitor {
 	 * @param to the id of the destination node
 	 */
 	public static void sendingTuple(final Tuple tuple, final int from, final int to) {
-		double size = tuple.getCloudletFileSize();
+		long size = tuple.getCloudletFileSize();
 		
 		Map<Integer, Integer> map = new HashMap<Integer, Integer>();
 		map.put(from, to);
@@ -68,7 +68,7 @@ public class NetworkMonitor {
 		}else {
 			time.put(CloudSim.clock(), 0.0);
 			connectionsVelocityMap.put(connection, velocity);
-			networkUsageMap.put(connection, 0.0);
+			networkUsageMap.put(connection, (long) 0);
 		}
 		
 		connectionsMap.put(connection, time);
@@ -151,7 +151,7 @@ public class NetworkMonitor {
 	 * @param to the id of the destination node
 	 * @return the total size transmitted within a given link; -1 if the connection had never existed
 	 */
-	public static double getNetworkUsageMap(final int from, final int to) {
+	public static long getNetworkUsageMap(final int from, final int to) {
 		Map<Integer, Integer> connection = new HashMap<Integer, Integer>();
 		connection.put(from, to);
 		
