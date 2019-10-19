@@ -1,6 +1,7 @@
 package org.fog.utils;
 
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
@@ -211,6 +212,38 @@ public class Util {
 			output[i] = input[i];
 				
 		return output;
+	}
+	
+	/**
+	 * Converts and formats a given double number to string.
+	 * 
+	 * @param size total string size
+	 * @param dc number or decimal places
+	 * @param value the value to be converted
+	 * @return the string
+	 */
+	public static String doubleToString(final int size, final int dc, final double value) {
+		String decimal = String.format("%" + dc + "c", ' ').replaceAll("\\ ", "\\" + '0');
+		
+		DecimalFormat df = new DecimalFormat("0." + decimal);
+		String result = df.format(value);
+		return String.format("%" + size + "s", result);
+	}
+	
+	/**
+	 * Converts and formats a given long number to string.
+	 * 
+	 * @param size total string size
+	 * @param dc number or decimal places
+	 * @param value the value to be converted
+	 * @return the string
+	 */
+	public static String longToString(final int size, final int dc, final long value) {
+		String decimal = String.format("%" + dc + "c", ' ').replaceAll("\\ ", "\\" + '#');
+		
+		DecimalFormat df = new DecimalFormat("0." + decimal + "E0");
+		String result = df.format(value);
+		return String.format("%" + size + "s", result);
 	}
 	
 	/**

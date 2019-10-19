@@ -13,6 +13,8 @@ import org.fog.application.AppModule;
 import org.fog.application.Application;
 import org.fog.core.Config;
 import org.fog.core.Constants;
+import org.fog.core.FogComputingSim;
+import org.fog.entities.Client;
 import org.fog.entities.FogDevice;
 import org.fog.placement.Controller;
 import org.fog.utils.NetworkMonitor;
@@ -45,8 +47,8 @@ public class SimulationResults {
 		printMigrationDetails();
 		printEnergyDetails();
 		printCPUDetails();
-		printCostDetails();
 		printNetworkUsageDetails();
+		printCostDetails();
 		printNetworkDetails();
 	}
 	
@@ -271,49 +273,157 @@ public class SimulationResults {
 	 * Prints both counters for the ordered and processed MIs.
 	 */
 	private void printCPUDetails() {
-		long totalOdered = 0;
+		long totalCapacity = 0;
 		long totalProcessed = 0;
+		double totalOccupation = 0;
+		double jfiNum = 0;
+		double jfiDen = 0;
+		int nrFogDevices = 0;
+		
 		int col1 = MAX_COLUMN_SIZE/5-1;
-		int col2 = MAX_COLUMN_SIZE;
-		int col3 = MAX_COLUMN_SIZE/4;
-		int col4 = MAX_COLUMN_SIZE/4;
-		int col5 = MAX_COLUMN_SIZE/3-4;
+		int col2 = MAX_COLUMN_SIZE - col1;
+		int col3 = MAX_COLUMN_SIZE/3;
+		int col4 = MAX_COLUMN_SIZE/3;
+		int col5 = MAX_COLUMN_SIZE/3-2;
 		String content = "";
 		
 		Map<String, Integer> subtitles = new LinkedHashMap<String, Integer>();
 		subtitles.put("ID", col1);
 		subtitles.put("NAME", col2);
-		subtitles.put("ORDERED", col3);
-		subtitles.put("PROCESSED", col4);
-		subtitles.put("ORDERED >= PROCESSED", col5);
+		subtitles.put("CAPACITY [MI]", col3);
+		subtitles.put("PROCESSED [MI]", col4);
+		subtitles.put("OCCUPATION [%]", col5);
 		
 		for(FogDevice fogDevice : controller.getFogDevices()) {
+			long c = fogDevice.getHost().getTotalMips();
+			long p = fogDevice.getProcessorMonitor().getProcessedMI();
+			double o = (double) 100*p/(c*Config.MAX_SIMULATION_TIME);
+			
 			String id = Integer.toString(fogDevice.getId());
 			String name = fogDevice.getName();
-			String odered = Long.toString(fogDevice.getProcessorMonitor().getOrderedMI());
-			String processed = Long.toString(fogDevice.getProcessorMonitor().getProcessedMI());
-			String flag = Boolean.toString(fogDevice.getProcessorMonitor().getOrderedMI() >= fogDevice.getProcessorMonitor().getProcessedMI());
+			String capacity = Util.longToString(11, 6, c*Config.MAX_SIMULATION_TIME);
+			String processed = Util.longToString(11, 6, p);
+			String occ = Util.doubleToString(19, 15, o);
+			
+			if(fogDevice.getProcessorMonitor().getOrderedMI() < p)
+				FogComputingSim.err("SimulationResults Err: Should not happen");
 			
 			content += "|" + Util.centerString(col1, id);
 			content += "|" + Util.centerString(col2, name);
-			content += "|" + Util.centerString(col3, odered);
+			content += "|" + Util.centerString(col3, capacity);
 			content += "|" + Util.centerString(col4, processed);
-			content += "|" + Util.centerString(col5, flag) + "|\n";
+			content += "|" + Util.centerString(col5, occ) + "|\n";
 			
-			totalOdered += fogDevice.getProcessorMonitor().getOrderedMI();
-			totalProcessed += fogDevice.getProcessorMonitor().getProcessedMI();
-		}		
-		String oderedStr = Long.toString(totalOdered);
-		String processedStr = Long.toString(totalProcessed);
-		String flagStr = Boolean.toString(totalOdered >= totalProcessed);
+			int isFogDevice = fogDevice instanceof Client ? 0 : 1;
+			
+			totalCapacity += c*Config.MAX_SIMULATION_TIME*isFogDevice;
+			totalProcessed += p*isFogDevice;
+			
+			jfiNum += o*isFogDevice;
+			jfiDen += Math.pow(o*isFogDevice, 2);
+			nrFogDevices += isFogDevice;
+		}
+		
+		jfiNum = Math.pow(jfiNum, 2);
+		jfiDen *= nrFogDevices;
+		
+		String wcs = Util.doubleToString(7, 5, (double)1/nrFogDevices);
+		String jfi = Util.doubleToString(7, 5, (double)jfiNum/jfiDen);
+		
+		totalOccupation = (double) 100*totalProcessed/totalCapacity;
 		
 		content += newDetailsField('-', true);
-		content += "|" + Util.centerString(col1+col2+1, "TOTAL");
-		content += "|" + Util.centerString(col3, oderedStr);
-		content += "|" + Util.centerString(col4, processedStr);
-		content += "|" + Util.centerString(col5, flagStr) + "|\n";
+		content += "|" + Util.centerString(col1+col2+1, "TOTAL (FOG/CLOUD DEVICES)");
+		content += "|" + Util.centerString(col3, Util.longToString(11, 6, totalCapacity));
+		content += "|" + Util.centerString(col4, Util.longToString(11, 6, totalProcessed));
+		content += "|" + Util.centerString(col5, Util.doubleToString(19, 15, totalOccupation)) + "|\n";
 		
-		table("PROCESSOR [MI]", content, subtitles);
+		content += newDetailsField('-', true);
+		content += "|" + Util.centerString(MAX_COLUMN_SIZE*2+1, "JFI (FOG/CLOUD DEVICES) [ wcs = " + wcs + " ; bcs = 1.0 ] = " + jfi) + "|\n";
+		
+		table("PROCESSOR", content, subtitles);
+	}
+	
+	/**
+	 * Prints the network usage details obtained in the simulation execution.
+	 */
+	private void printNetworkUsageDetails() {
+		long totalCapacity = 0;
+		long totalUsed = 0;
+		double totalOccupation = 0;
+		double jfiNum = 0;
+		double jfiDen = 0;
+		int nrConnections= 0;
+		
+		int col1 = MAX_COLUMN_SIZE;
+		int col2 = MAX_COLUMN_SIZE/3;
+		int col3 = MAX_COLUMN_SIZE/3;
+		int col4 = MAX_COLUMN_SIZE/3-1;
+		String content = "";
+		
+		Map<String, Integer> subtitles = new LinkedHashMap<String, Integer>();
+		subtitles.put("FROM -> TO", col1);
+		subtitles.put("CAPACITY [B]", col2);
+		subtitles.put("TRANSFERRED [B]", col3);
+		subtitles.put("OCCUPATION [%]", col4);
+		
+		for(FogDevice f1 : controller.getFogDevices()) {
+			double totalTime = 0;
+			
+			int isFogDevice = f1 instanceof Client ? 0 : 1;
+			
+			for(FogDevice f2 : controller.getFogDevices()) {
+				double time = NetworkMonitor.getTotalConnectionTime(f1.getId(), f2.getId());
+				double bw = NetworkMonitor.getConnectionVelocity(f1.getId(), f2.getId());
+				long size = NetworkMonitor.getNetworkUsageMap(f1.getId(), f2.getId());
+				if(time == -1) continue;
+				
+				double o = 100*size/(time*bw);
+				String max = Util.longToString(11, 6, (long) (time*bw));
+				String occ = Util.doubleToString(19, 15, o);
+				String s = Util.longToString(11, 6, size);
+				
+				totalCapacity += time*bw*isFogDevice*isFogDevice;
+				totalUsed += size*isFogDevice*isFogDevice;
+				
+				content += "|" + Util.centerString(col1, f1.getName() + " -> " + f2.getName());
+				content += "|" + Util.centerString(col2, max);
+				content += "|" + Util.centerString(col3, s);
+				content += "|" + Util.centerString(col4, occ) + "|\n";
+				
+				totalTime += time;
+				
+				jfiNum += o*isFogDevice;
+				jfiDen += Math.pow(o*isFogDevice, 2);
+				nrConnections += isFogDevice;
+			}
+			
+			/**
+			 * Each dynamic node should have always one an only one connection during the whole simulation.
+			 * Note that it can be connected to several static nodes during the simulation.
+			 */
+			if(!f1.isStaticNode() && totalTime != Config.MAX_SIMULATION_TIME)
+				FogComputingSim.err("SimulationResults Err: Should not happen");
+		}
+		
+		totalOccupation = (double) 100*totalUsed/totalCapacity;
+		
+		content += newDetailsField('-', true);
+		content += "|" + Util.centerString(col1, "TOTAL (FOG/CLOUD DEVICES)");
+		content += "|" + Util.centerString(col2, Util.longToString(11, 6, totalCapacity));
+		content += "|" + Util.centerString(col3, Util.longToString(11, 6, totalUsed));
+		content += "|" + Util.centerString(col4, Util.doubleToString(19, 15, totalOccupation)) + "|\n";
+		
+		jfiNum = Math.pow(jfiNum, 2);
+		jfiDen *= nrConnections;
+		
+		String wcs = Util.doubleToString(7, 5, (double)1/nrConnections);
+		String jfi = Util.doubleToString(7, 5, (double)jfiNum/jfiDen);
+		
+		content += newDetailsField('-', true);
+		content += "|" + Util.centerString(MAX_COLUMN_SIZE*2+1, "JFI (FOG/CLOUD DEVICES) [ wcs = " + wcs + " ; bcs = 1.0 ] = " + jfi) + "|\n";
+		
+		table("NETWORK USAGE", content, subtitles);
 	}
 	
 	/**
@@ -348,15 +458,6 @@ public class SimulationResults {
 		content += "|" + Util.centerString(MAX_COLUMN_SIZE*2+1, "TOTAL = " + costStr) + "|\n";
 		
 		table("COST OF EXECUTION [€]", content, subtitles);
-	}
-	
-	/**
-	 * Prints the network usage details obtained in the simulation execution.
-	 */
-	private void printNetworkUsageDetails() {
-		String valueStr = doubleToString(NetworkMonitor.getNetworkUsage(), true);
-		String content = "|" + Util.centerString((MAX_COLUMN_SIZE*2+1), valueStr) + "|\n";
-		table("NETWORK USAGE [s]", content, null);
 	}
 	
 	/**
