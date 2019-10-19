@@ -234,14 +234,14 @@ public class Application {
 		List<Tuple> tuples = new ArrayList<Tuple>();
 		AppModule module = getModuleByName(moduleName);
 		
-		for(AppEdge edge : getEdges()){
-			if(edge.getSource().equals(moduleName)){
+		for(AppEdge edge : getEdges()) {
+			if(edge.getSource().equals(moduleName)) {
 				Pair<String, String> pair = new Pair<String, String>(inputTuple.getTupleType(), edge.getTupleType());
 				
 				if(module.getSelectivityMap().get(pair)==null) continue;
 				
 				SelectivityModel selectivityModel = module.getSelectivityMap().get(pair);
-				if(selectivityModel.canSelect()){
+				if(selectivityModel.canSelect()) {
 					Tuple tuple = new Tuple(appId, FogUtils.generateTupleId(), (long) (edge.getTupleCpuLength()),
 							inputTuple.getNumberOfPes(), (long) (edge.getTupleNwLength()), inputTuple.getCloudletOutputSize(),
 							inputTuple.getUtilizationModelCpu(), inputTuple.getUtilizationModelRam(), inputTuple.getUtilizationModelBw());
@@ -261,6 +261,64 @@ public class Application {
 			}
 		}
 		return tuples;
+	}
+	
+	/**
+	 * Verifies if a given path of application modules followed by a given module belongs to a given application loop.
+	 * 
+	 * @param path the module path
+	 * @param dstModule the destination module
+	 * @return true if the path plus the next module represents a (or part of) loop; false, otherwise
+	 */
+	public boolean isLoop(final List<String> path, final String dstModule) {
+		for(AppLoop loop : getLoops()) {
+			List<String> modules = loop.getModules();
+			boolean isPath = true;
+			
+			int i = 0;
+			if(path.size() < modules.size()) {
+				for(i = 0; i < path.size(); i++) {
+					if(!modules.get(i).equals(path.get(i)))
+						isPath = false;
+				}
+				
+				if(!modules.get(i).equals(dstModule))
+					isPath = false;
+			}else
+				isPath = false;
+			
+			if(isPath) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * Verifies if a given path of application modules represents an application loop.
+	 * 
+	 * @param path the path of application modules
+	 * @return true if it represents the application loop; false, otherwise
+	 */
+	public double finalLoop(List<String> path) {		
+		for(AppLoop loop : getLoops()) {
+			List<String> modules = loop.getModules();
+			boolean isFinalPath = true;
+			
+			if(path.size() == modules.size()) {
+				for(int i = 0; i < path.size(); i++) {
+					if(!modules.get(i).equals(path.get(i)))
+						isFinalPath = false;
+				}
+				
+				if(isFinalPath) {
+					return loop.getDeadline();
+				}
+			}
+		}
+		
+		return -1;
 	}
 	
 	/**

@@ -1,6 +1,10 @@
 package org.fog.entities;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.cloudbus.cloudsim.UtilizationModelFull;
+import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.core.SimEntity;
 import org.cloudbus.cloudsim.core.SimEvent;
 import org.fog.application.AppEdge;
@@ -114,7 +118,14 @@ public class Sensor extends SimEntity{
 		tuple.setSrcModuleName(getSensorName());
 		
 		if(Config.PRINT_DETAILS)
-			FogComputingSim.print("[" + getName() + "] sending tuple w/ with tupleId: " + tuple.getCloudletId());
+			FogComputingSim.print("[" + getName() + "] sending tuple w/ tupleId: " + tuple.getCloudletId());
+		
+		List<String> path = new ArrayList<String>();
+		path.add(getSensorName());
+		
+		// If the sensor is the source a given application loop
+		if(app.isLoop(path, _edge.getDestination()))
+			tuple.getPathMap().put(path, CloudSim.clock());
 		
 		send(gatewayDeviceId, getLatency(), FogEvents.TUPLE_ARRIVAL, tuple);
 		TimeKeeper.getInstance().tupleStartedTransmission(tuple);

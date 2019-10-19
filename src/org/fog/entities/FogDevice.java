@@ -205,7 +205,7 @@ public class FogDevice extends PowerDatacenter {
 	 * 
 	 * @param ev SimEvent instance containing the edge to send tuple on
 	 */
-	private void sendPeriodicTuple(SimEvent ev) {
+	protected void sendPeriodicTuple(SimEvent ev) {
 		AppEdge edge = (AppEdge)ev.getData();
 		String srcModuleName = edge.getSource();
 		String dstModuleName = edge.getDestination();
@@ -226,6 +226,15 @@ public class FogDevice extends PowerDatacenter {
 		}
 		
 		Tuple tuple = controller.getApplications().get(srcModule.getAppId()).createTuple(edge, dstModule.getUserId());
+		
+		// If it is the source a given application loop
+		List<String> path = new ArrayList<String>();
+		path.add(edge.getSource());
+		
+		if(controller.getApplications().get(srcModule.getAppId()).isLoop(path, edge.getDestination())) {
+			tuple.getPathMap().put(path, CloudSim.clock());
+		}
+		
 		sendToSelf(tuple);
 		TimeKeeper.getInstance().tupleStartedTransmission(tuple);
 		
@@ -273,7 +282,7 @@ public class FogDevice extends PowerDatacenter {
 						Tuple tuple = (Tuple) cl;
 						
 						if(Config.PRINT_DETAILS)
-							FogComputingSim.print("[" + getName() + "] Completed execution of tuple: " + tuple.getCloudletId() + " on " + tuple.getDestModuleName());
+							FogComputingSim.print("[" + getName() + "] Completed execution of tuple w/ tupleId: " + tuple.getCloudletId() + " on " + tuple.getDestModuleName());
 						
 						TimeKeeper.getInstance().tupleEndedExecution(tuple);
 						Application application = controller.getApplications().get(tuple.getAppId());
@@ -281,9 +290,54 @@ public class FogDevice extends PowerDatacenter {
 						for(Tuple resTuple : resultantTuples) {
 							resTuple.setModuleCopyMap(new HashMap<String, Integer>(tuple.getModuleCopyMap()));
 							resTuple.getModuleCopyMap().put(((AppModule)vm).getName(), vm.getId());
+							
+							for(List<String> path : tuple.getPathMap().keySet()) {								
+								// The application module which has processed the tuple belongs to the loop path
+								if(application.isLoop(path, tuple.getDestModuleName())) {
+									double initalTime = tuple.getPathMap().get(path);
+									
+									List<String> newPath = new ArrayList<String>();
+									newPath.addAll(path);
+									newPath.add(tuple.getDestModuleName());
+									
+									resTuple.getPathMap().put(newPath, initalTime);
+									
+									// If it is the last module in the loop
+									double deadline = application.finalLoop(newPath);
+									
+									if(deadline != -1) {
+										TimeKeeper.getInstance().finishedLoop(newPath, CloudSim.clock() - initalTime, deadline);
+									}
+								}
+							}
+							
+							List<String> path = new ArrayList<String>();
+							path.add(tuple.getDestModuleName());
+							
+							// If it is the source a given application loop
+							if(application.isLoop(path, resTuple.getDestModuleName())) {
+								resTuple.getPathMap().put(path, CloudSim.clock());
+							}
+							
 							sendToSelf(resTuple);
 							TimeKeeper.getInstance().tupleStartedTransmission(resTuple);
 						}
+						
+						if(resultantTuples == null || resultantTuples.isEmpty()) {
+							for(List<String> path : tuple.getPathMap().keySet()) {
+								List<String> newPath = new ArrayList<String>();
+								newPath.addAll(path);
+								newPath.add(tuple.getDestModuleName());
+								
+								double initalTime = tuple.getPathMap().get(path);
+								double deadline = application.finalLoop(newPath);
+								
+								if(deadline != -1) {
+									TimeKeeper.getInstance().finishedLoop(newPath, CloudSim.clock() - initalTime, deadline);
+								}
+							}
+						}
+						
 						sendNow(cl.getUserId(), CloudSimTags.CLOUDLET_RETURN, cl);
 					}
 				}
@@ -478,7 +532,7 @@ public class FogDevice extends PowerDatacenter {
 			
 			if(Config.PRINT_DETAILS)
 				FogComputingSim.print("[" + getName() + "] Is forwarding tuple w/ destiny module: " + tuple.getDestModuleName() +
-						" to: " + controller.getFogDeviceById(nexHopId).getName());
+						" to: " + controller.getFogDeviceById(nexHopId).getName() + " w/ tupleId: " + tuple.getCloudletId());
 			
 			sendTo(tuple, nexHopId);
 		}
@@ -617,7 +671,7 @@ public class FogDevice extends PowerDatacenter {
 			}
 			
 			if(Config.PRINT_DETAILS)
-				FogComputingSim.print("[" + getName() + "] Started execution of tuple: " + tuple.getCloudletId() + " on " + tuple.getDestModuleName() + " size: " + tuple.getCloudletLength());
+				FogComputingSim.print("[" + getName() + "] Started execution of tuple w/ tupleId: " + tuple.getCloudletId() + " on " + tuple.getDestModuleName() + " size: " + tuple.getCloudletLength());
 			
 			processorMonitor.addOrderedMI(((Cloudlet)ev.getData()).getCloudletLength());
 			
@@ -790,11 +844,11 @@ public class FogDevice extends PowerDatacenter {
 	 * @param moduleName the name of the application module
 	 * @return the application module; can be null
 	 */
-	private AppModule getModuleByName(String moduleName){
+	protected AppModule getModuleByName(String moduleName) {
 		AppModule module = null;
 		for(FogDevice fogDevice : controller.getFogDevices()) {
 			for(Vm vm : fogDevice.getHost().getVmList()){
-				if(((AppModule)vm).getName().equals(moduleName)){
+				if(((AppModule)vm).getName().equals(moduleName)) {
 					module = (AppModule)vm;
 					break;
 				}

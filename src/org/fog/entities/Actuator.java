@@ -1,5 +1,9 @@
 package org.fog.entities;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.core.SimEntity;
 import org.cloudbus.cloudsim.core.SimEvent;
 import org.fog.application.Application;
@@ -79,9 +83,21 @@ public class Actuator extends SimEntity{
 		Tuple tuple = (Tuple)ev.getData();
 		
 		if(Config.PRINT_DETAILS)
-			FogComputingSim.print("[" + getName() + "] received tuple w/ with tupleId: " + tuple.getCloudletId());
+			FogComputingSim.print("[" + getName() + "] received tuple w/ tupleId: " + tuple.getCloudletId());
 		
 		TimeKeeper.getInstance().receivedTuple(tuple);
+		
+		for(List<String> path : tuple.getPathMap().keySet()) {
+			List<String> newPath = new ArrayList<String>();
+			newPath.addAll(path);
+			newPath.add(actuatorType);
+			
+			double deadline = app.finalLoop(newPath);
+			
+			if(deadline != -1) {
+				TimeKeeper.getInstance().finishedLoop(newPath,  CloudSim.clock() - tuple.getPathMap().get(path), deadline);
+			}
+		}
 	}
 	
 	@Override

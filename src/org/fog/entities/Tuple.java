@@ -1,6 +1,7 @@
 package org.fog.entities;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.cloudbus.cloudsim.Cloudlet;
@@ -38,6 +39,12 @@ public class Tuple extends Cloudlet{
 	private int direction;
 	
 	/**
+	 * Map containing the module paths followed and the corresponding time in which the initial
+	 * tuple was created (used to compute the loop E2E latency).
+	 */
+	private Map<List<String>, Double> pathMap;
+
+	/**
 	 * Map to keep track of which module instances has a tuple traversed.
 	 * Map from moduleName to vmId of a module instance
 	 */
@@ -66,6 +73,7 @@ public class Tuple extends Cloudlet{
 		setAppId(appId);
 		setDirection(NOT_ACTUATOR);
 		setModuleCopyMap(new HashMap<String, Integer>());
+		setPathMap(new HashMap<List<String>, Double>());
 	}
 	
 	/**
@@ -192,6 +200,28 @@ public class Tuple extends Cloudlet{
 	 */
 	public void setModuleCopyMap(Map<String, Integer> moduleCopyMap) {
 		this.moduleCopyMap = moduleCopyMap;
+	}
+	
+	/**
+	 * Gets the map containing the module paths followed and the corresponding time
+	 * in which the initial tuple was created.
+	 * 
+	 * @return the map containing the module paths followed and the corresponding time
+	 * in which the initial tuple was created
+	 */
+	public Map<List<String>, Double> getPathMap() {
+		return pathMap;
+	}
+	
+	/**
+	 * Sets the map containing the module paths followed and the corresponding time
+	 * in which the initial tuple was created.
+	 * 
+	 * @param pathMap the map containing the module paths followed and the corresponding time
+	 * in which the initial tuple was created
+	 */
+	public void setPathMap(Map<List<String>, Double> pathMap) {
+		this.pathMap = pathMap;
 	}
 	
 	@Override
