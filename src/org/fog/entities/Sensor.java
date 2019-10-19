@@ -1,18 +1,14 @@
 package org.fog.entities;
 
-import java.util.ArrayList;
-
 import org.cloudbus.cloudsim.UtilizationModelFull;
-import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.core.SimEntity;
 import org.cloudbus.cloudsim.core.SimEvent;
 import org.fog.application.AppEdge;
-import org.fog.application.AppLoop;
 import org.fog.application.Application;
-import org.fog.core.Constants;
+import org.fog.core.Config;
+import org.fog.core.FogComputingSim;
 import org.fog.utils.FogEvents;
 import org.fog.utils.FogUtils;
-import org.fog.utils.Logger;
 import org.fog.utils.TimeKeeper;
 import org.fog.utils.distribution.Distribution;
 
@@ -116,37 +112,12 @@ public class Sensor extends SimEntity{
 		tuple.setTupleType(getTupleType());
 		tuple.setDestModuleName(_edge.getDestination());
 		tuple.setSrcModuleName(getSensorName());
-		tuple.setActualTupleId(updateTimings(getSensorName(), tuple.getDestModuleName()));
 		
-		TimeKeeper.getInstance().startedTransmissionOfTuple(tuple, getLatency(), Constants.INF);
-		TimeKeeper.getInstance().tryingTransmissionOfTuple(tuple);
+		if(Config.PRINT_DETAILS)
+			FogComputingSim.print("[" + getName() + "] sending tuple w/ with tupleId: " + tuple.getCloudletId());
 		
-		Logger.debug(getName(), "Sending tuple with tupleId = " + tuple.getCloudletId());
 		send(gatewayDeviceId, getLatency(), FogEvents.TUPLE_ARRIVAL, tuple);
-	}
-	
-	/**
-	 * Update timings on that application edge.
-	 * 
-	 * @param src source module of the application edge
-	 * @param dest destination module of the application edge
-	 * @return >= 0 if it has found the edge, otherwise -1
-	 */
-	private int updateTimings(String src, String dest) {
-		Application application = getApp();
-		for(AppLoop loop : application.getLoops()){
-			if(loop.hasEdge(src, dest)){
-				int tupleId = TimeKeeper.getInstance().getUniqueId();
-				
-				if(!TimeKeeper.getInstance().getLoopIdToTupleIds().containsKey(loop.getLoopId()))
-					TimeKeeper.getInstance().getLoopIdToTupleIds().put(loop.getLoopId(), new ArrayList<Integer>());
-				TimeKeeper.getInstance().getLoopIdToTupleIds().get(loop.getLoopId()).add(tupleId);
-				TimeKeeper.getInstance().getEmitTimes().put(tupleId, CloudSim.clock());
-				return tupleId;
-			}
-		}
-		
-		return -1;
+		TimeKeeper.getInstance().tupleStartedTransmission(tuple);
 	}
 
 	@Override

@@ -10,7 +10,6 @@ import org.cloudbus.cloudsim.Storage;
 import org.cloudbus.cloudsim.VmAllocationPolicy;
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.core.SimEvent;
-import org.fog.core.Constants;
 import org.fog.utils.FogEvents;
 import org.fog.utils.TimeKeeper;
 import org.fog.utils.movement.Movement;
@@ -98,8 +97,7 @@ public class Client extends FogDevice {
 			
 			if(tuple.getDestModuleName().equals(actuatorType)){
 				send(actuatorId, delay, FogEvents.TUPLE_ARRIVAL, tuple);
-				TimeKeeper.getInstance().startedTransmissionOfTuple(tuple, delay, Constants.INF);
-				TimeKeeper.getInstance().tryingTransmissionOfTuple(tuple);
+				TimeKeeper.getInstance().tupleStartedTransmission(tuple);
 				return;
 			}
 		}

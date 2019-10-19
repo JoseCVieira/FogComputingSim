@@ -1,12 +1,11 @@
 package org.fog.entities;
 
-import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.core.SimEntity;
 import org.cloudbus.cloudsim.core.SimEvent;
-import org.fog.application.AppLoop;
 import org.fog.application.Application;
+import org.fog.core.Config;
+import org.fog.core.FogComputingSim;
 import org.fog.utils.FogEvents;
-import org.fog.utils.Logger;
 import org.fog.utils.TimeKeeper;
 
 /**
@@ -78,32 +77,11 @@ public class Actuator extends SimEntity{
 	 */
 	private void processTupleArrival(SimEvent ev) {
 		Tuple tuple = (Tuple)ev.getData();
-		Logger.debug(getName(), "Received tuple " + tuple.getCloudletId() + " on " + tuple.getDestModuleName());
-		String srcModule = tuple.getSrcModuleName();
-		String destModule = tuple.getDestModuleName();
-		TimeKeeper.getInstance().receivedTuple(tuple);
 		
-		for(AppLoop loop : app.getLoops()){
-			if(loop.hasEdge(srcModule, destModule) && loop.isEndModule(destModule)){
-				Double startTime = TimeKeeper.getInstance().getEmitTimes().get(tuple.getActualTupleId());
-				if(startTime == null)
-					break;
-				
-				if(!TimeKeeper.getInstance().getLoopIdToCurrentAverage().containsKey(loop.getLoopId())){
-					TimeKeeper.getInstance().getLoopIdToCurrentAverage().put(loop.getLoopId(), 0.0);
-					TimeKeeper.getInstance().getLoopIdToCurrentNum().put(loop.getLoopId(), 0);
-				}
-				
-				double currentAverage = TimeKeeper.getInstance().getLoopIdToCurrentAverage().get(loop.getLoopId());
-				int currentCount = TimeKeeper.getInstance().getLoopIdToCurrentNum().get(loop.getLoopId());
-				double delay = CloudSim.clock()- TimeKeeper.getInstance().getEmitTimes().get(tuple.getActualTupleId());
-				TimeKeeper.getInstance().getEmitTimes().remove(tuple.getActualTupleId());
-				double newAverage = (currentAverage*currentCount + delay)/(currentCount+1);
-				TimeKeeper.getInstance().getLoopIdToCurrentAverage().put(loop.getLoopId(), newAverage);
-				TimeKeeper.getInstance().getLoopIdToCurrentNum().put(loop.getLoopId(), currentCount+1);
-				break;
-			}
-		}
+		if(Config.PRINT_DETAILS)
+			FogComputingSim.print("[" + getName() + "] received tuple w/ with tupleId: " + tuple.getCloudletId());
+		
+		TimeKeeper.getInstance().receivedTuple(tuple);
 	}
 	
 	@Override

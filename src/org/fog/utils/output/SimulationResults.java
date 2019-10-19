@@ -1,6 +1,5 @@
 package org.fog.utils.output;
 
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedHashMap;
@@ -12,7 +11,6 @@ import org.fog.application.AppLoop;
 import org.fog.application.AppModule;
 import org.fog.application.Application;
 import org.fog.core.Config;
-import org.fog.core.Constants;
 import org.fog.core.FogComputingSim;
 import org.fog.entities.Client;
 import org.fog.entities.FogDevice;
@@ -65,112 +63,92 @@ public class SimulationResults {
 	 * Prints the loops timing details obtained in the simulation execution.
 	 */
 	private void printLoopDetails() {
-		int col1 = MAX_COLUMN_SIZE-4;
-		int col2 = MAX_COLUMN_SIZE/5;
+		int col1 = MAX_COLUMN_SIZE-2;
+		int col2 = MAX_COLUMN_SIZE/3;
 		String content = "";
 		
 		Map<String, Integer> subtitles = new LinkedHashMap<String, Integer>();
 		subtitles.put("LOOP", col1);
-		subtitles.put("CPU", col2);
-		subtitles.put("LATENCY", col2);
-		subtitles.put("BANDWIDTH", col2);
-		subtitles.put("QUEUE", col2);
-		subtitles.put("TOTAL", col2);
+		subtitles.put("CPU [s]", col2);
+		subtitles.put("NW [s]", col2);
+		subtitles.put("TOTAL [s]", col2+1);
 		
 		
-		for(Integer loopId : TimeKeeper.getInstance().getLoopIdToTupleIds().keySet()) {
-			List<String> modules = getListForLoopId(controller, loopId);
-			String name = modules.toString();
-			double cpu = 0, lat = 0, bw = 0, nw = 0;
+		for(String appName : controller.getApplications().keySet()) {
+			Application application = controller.getApplications().get(appName);
 			
-			for(int i = 0; i < modules.size()-1; i++) {
-				String startModule = modules.get(i);
-				String destModule = modules.get(i+1);
+			for(AppLoop loop : application.getLoops()) {
+				int loopId = loop.getLoopId();
 				
-				for(String tupleType : getTupleTypeForDependency(controller, startModule, destModule)) {
-					if(TimeKeeper.getInstance().getTupleTypeToAverageCpuTime().containsKey(tupleType)) {
-						cpu += TimeKeeper.getInstance().getTupleTypeToAverageCpuTime().get(tupleType);
-					}
+				List<String> modules = getListForLoopId(controller, loopId);
+				String name = modules.toString();
+				double cpu = 0, nw = 0;
+				
+				for(int i = 0; i < modules.size()-1; i++) {
+					String startModule = modules.get(i);
+					String destModule = modules.get(i+1);
 					
-					if(TimeKeeper.getInstance().getLoopIdToCurrentNwLatAverage().containsKey(tupleType)) {
-						Map<Double, Integer> map = TimeKeeper.getInstance().getLoopIdToCurrentNwLatAverage().get(tupleType);
-						double totalLat = map.entrySet().iterator().next().getKey();
-						int counter = map.entrySet().iterator().next().getValue();
-						lat += totalLat/counter;
+					for(String tupleType : getTupleTypeForDependency(controller, startModule, destModule)) {
+						if(TimeKeeper.getInstance().getTupleTypeToAverageCpuTime().containsKey(tupleType)) {
+							cpu += TimeKeeper.getInstance().getTupleTypeToAverageCpuTime().get(tupleType);
+						}
 						
-						map = TimeKeeper.getInstance().getLoopIdToCurrentNwBwAverage().get(tupleType);
-						double totalBw = map.entrySet().iterator().next().getKey();
-						bw += totalBw/counter;
-						
-						map = TimeKeeper.getInstance().getLoopIdToCurrentNwAverage().get(tupleType);
-						double totalTime = map.entrySet().iterator().next().getKey();
-						nw += totalTime/counter;
+						if(TimeKeeper.getInstance().getLoopIdToCurrentNwAverage().containsKey(tupleType)) {
+							Map<Double, Integer> map = TimeKeeper.getInstance().getLoopIdToCurrentNwAverage().get(tupleType);
+							int counter = map.entrySet().iterator().next().getValue();
+							double totalTime = map.entrySet().iterator().next().getKey();
+							nw += totalTime/counter;
+						}
 					}
 				}
+				
+				String cpuStr = Util.doubleToString(19, 15, cpu);
+				String nwStr = Util.doubleToString(19, 15, nw);
+				String totalStr = Util.doubleToString(19, 15, nw + cpu);
+				
+				content += "|" + Util.centerString(col1, name);
+				content += "|" + Util.centerString(col2, cpuStr);
+				content += "|" + Util.centerString(col2, nwStr);
+				content += "|" + Util.centerString(col2+1, totalStr) + "|\n";
 			}
-			
-			String cpuStr = doubleToString(cpu, false);
-			String latStr = doubleToString(lat, false);
-			String bwStr = doubleToString(bw, true);
-			String queueStr = doubleToString(nw-lat-bw, true);
-			String totalStr = doubleToString(TimeKeeper.getInstance().getLoopIdToCurrentAverage().get(loopId), false);
-			
-			content += "|" + Util.centerString(col1, name);
-			content += "|" + Util.centerString(col2, cpuStr);
-			content += "|" + Util.centerString(col2, latStr);
-			content += "|" + Util.centerString(col2, bwStr);
-			content += "|" + Util.centerString(col2, queueStr);
-			content += "|" + Util.centerString(col2, totalStr) + "|\n";
 		}
 		
-		table("APPLICATION LOOP DELAYS [s]", content, subtitles);
+		table("APPLICATION LOOP DELAYS", content, subtitles);
 	}
 	
 	/**
 	 * Prints the tuple timing details obtained in the simulation execution.
 	 */
 	private void printTupleDetails() {
-		int col1 = MAX_COLUMN_SIZE-4;
-		int col2 = MAX_COLUMN_SIZE/5;
+		int col1 = MAX_COLUMN_SIZE-2;
+		int col2 = MAX_COLUMN_SIZE/3;
 		String content = "";
 		
 		Map<String, Integer> subtitles = new LinkedHashMap<String, Integer>();
 		subtitles.put("TUPLE", col1);
-		subtitles.put("CPU", col2);
-		subtitles.put("LATENCY", col2);
-		subtitles.put("BANDWIDTH", col2);
-		subtitles.put("QUEUE", col2);
-		subtitles.put("TOTAL", col2);
+		subtitles.put("CPU [s]", col2);
+		subtitles.put("NW [s]", col2);
+		subtitles.put("TOTAL [s]", col2+1);
 		
 		for(String tupleType : TimeKeeper.getInstance().getTupleTypeToAverageCpuTime().keySet()) {
-			double cpu = 0, lat = 0, bw = 0, nw = 0;
+			double cpu = 0, nw = 0;
 			
 			cpu = TimeKeeper.getInstance().getTupleTypeToAverageCpuTime().get(tupleType);
 			
-			if(TimeKeeper.getInstance().getLoopIdToCurrentNwLatAverage().containsKey(tupleType)) {
-				Map<Double, Integer> map = TimeKeeper.getInstance().getLoopIdToCurrentNwLatAverage().get(tupleType);			
-				int counter = map.entrySet().iterator().next().getValue();	
-				lat = map.entrySet().iterator().next().getKey()/counter;
-				
-				map = TimeKeeper.getInstance().getLoopIdToCurrentNwBwAverage().get(tupleType);
-				bw = map.entrySet().iterator().next().getKey();
-				
-				map = TimeKeeper.getInstance().getLoopIdToCurrentNwAverage().get(tupleType);
+			if(TimeKeeper.getInstance().getLoopIdToCurrentNwAverage().containsKey(tupleType)) {
+				Map<Double, Integer> map = TimeKeeper.getInstance().getLoopIdToCurrentNwAverage().get(tupleType);			
+				int counter = map.entrySet().iterator().next().getValue();
 				nw = map.entrySet().iterator().next().getKey()/counter;
 			}
 			
-			String cpuStr = doubleToString(cpu, false);
-			String latStr = doubleToString(lat, false);
-			String bwStr = doubleToString(bw, true);
-			String queueStr = doubleToString(nw-lat-bw, true);
-			String totalStr = doubleToString(cpu + nw, false);
+			String cpuStr = Util.doubleToString(19, 15, cpu);
+			String nwStr = Util.doubleToString(19, 15, nw);
+			String totalStr = Util.doubleToString(19, 15, nw + cpu);
 			
 			content += "|" + Util.centerString(col1, tupleType);
 			content += "|" + Util.centerString(col2, cpuStr);
-			content += "|" + Util.centerString(col2, latStr);
-			content += "|" + Util.centerString(col2, bwStr);
-			content += "|" + Util.centerString(col2, queueStr);
-			content += "|" + Util.centerString(col2, totalStr) + "|\n";
+			content += "|" + Util.centerString(col2, nwStr);
+			content += "|" + Util.centerString(col2+1, totalStr) + "|\n";
 		}
 			
 		
@@ -181,58 +159,46 @@ public class SimulationResults {
 	 * Prints the application module migration timing details obtained in the simulation execution.
 	 */
 	private void printMigrationDetails() {
-		int col1 = MAX_COLUMN_SIZE-4;
-		int col2 = MAX_COLUMN_SIZE/6;
+		int col1 = MAX_COLUMN_SIZE-2;
+		int col2 = MAX_COLUMN_SIZE/4;
 		String content = "";
 		
 		Map<String, Integer> subtitles = new LinkedHashMap<String, Integer>();
 		subtitles.put("NAME", col1);
-		subtitles.put("LATENCY", col2);
-		subtitles.put("BANDWIDTH", col2);
-		subtitles.put("QUEUE", col2);
-		subtitles.put("BOOT", col2);
-		subtitles.put("TOTAL", col2);
+		subtitles.put("NW [s]", col2);
+		subtitles.put("BOOT [s]", col2);
+		subtitles.put("TOTAL [s]", col2);
 		subtitles.put("# MIG", col2);
 		
 		for(String appName : controller.getApplications().keySet()) {
 			Application application = controller.getApplications().get(appName);
 			for(AppModule appModule : application.getModules()) {
 				String name = appModule.getName();
-				double lat = 0, bw = 0, nw = 0, boot = 0;
+				double nw = 0, boot = 0;
 				int cnt = 0;
 				
-				if(TimeKeeper.getInstance().getLoopIdToCurrentNwLatAverage().containsKey(name)) {
-					Map<Double, Integer> map = TimeKeeper.getInstance().getLoopIdToCurrentNwLatAverage().get(name);			
-					cnt = map.entrySet().iterator().next().getValue();	
-					lat = map.entrySet().iterator().next().getKey()/cnt;
-					
-					map = TimeKeeper.getInstance().getLoopIdToCurrentNwBwAverage().get(name);
-					bw = map.entrySet().iterator().next().getKey()/cnt;
-					
-					map = TimeKeeper.getInstance().getLoopIdToCurrentNwAverage().get(name);
+				if(TimeKeeper.getInstance().getLoopIdToCurrentNwAverage().containsKey(name)) {
+					Map<Double, Integer> map = TimeKeeper.getInstance().getLoopIdToCurrentNwAverage().get(name);			
+					cnt = map.entrySet().iterator().next().getValue();
 					nw = map.entrySet().iterator().next().getKey()/cnt;
 				}
 				
 				if(cnt != 0) boot = Config.SETUP_VM_TIME;
 				
-				String latStr = doubleToString(lat, false);
-				String bwStr = doubleToString(bw, true);
-				String queueStr = doubleToString(nw-lat-bw, true);
-				String bootStr = doubleToString(boot, false);
-				String totalStr = doubleToString(nw + boot, false);
+				String nwStr = Util.doubleToString(19, 15, nw);
+				String bootStr = Util.doubleToString(19, 15, boot);
+				String totalStr = Util.doubleToString(19, 15, nw + boot);
 				String cntStr = Integer.toString(cnt);
 				
 				content += "|" + Util.centerString(col1, name);
-				content += "|" + Util.centerString(col2, latStr);
-				content += "|" + Util.centerString(col2, bwStr);
-				content += "|" + Util.centerString(col2, queueStr);
+				content += "|" + Util.centerString(col2, nwStr);
 				content += "|" + Util.centerString(col2, bootStr);
 				content += "|" + Util.centerString(col2, totalStr);
 				content += "|" + Util.centerString(col2, cntStr) + "|\n";
 			}
 		}
 		
-		table("APPLICATION MODULE MIGRATION DELAYS [s]", content, subtitles);
+		table("APPLICATION MODULE MIGRATION DELAYS", content, subtitles);
 	}
 	
 	/**
@@ -248,12 +214,12 @@ public class SimulationResults {
 		Map<String, Integer> subtitles = new LinkedHashMap<String, Integer>();
 		subtitles.put("ID", col1);
 		subtitles.put("NAME", col2);
-		subtitles.put("VALUE", col3);
+		subtitles.put("VALUE [J]", col3);
 		
 		for(FogDevice fogDevice : controller.getFogDevices()) {
 			String id = Integer.toString(fogDevice.getId());
 			String name = fogDevice.getName();
-			String energy = doubleToString(fogDevice.getEnergyConsumption(), false);
+			String energy = Util.doubleToString(30, 15, fogDevice.getEnergyConsumption());
 			
 			content += "|" + Util.centerString(col1, id);
 			content += "|" + Util.centerString(col2, name);
@@ -261,12 +227,12 @@ public class SimulationResults {
 			
 			total += fogDevice.getEnergyConsumption();
 		}
-		String totalStr = doubleToString(total, false);
+		String totalStr = Util.doubleToString(30, 15, total);
 		
 		content += newDetailsField('-', true);
 		content += "|" + Util.centerString(MAX_COLUMN_SIZE*2+1, "TOTAL = " + totalStr) + "|\n";
 		
-		table("ENERGY CONSUMED [W]", content, subtitles);
+		table("ENERGY CONSUMED", content, subtitles);
 	}
 	
 	/**
@@ -439,12 +405,12 @@ public class SimulationResults {
 		Map<String, Integer> subtitles = new LinkedHashMap<String, Integer>();
 		subtitles.put("ID", col1);
 		subtitles.put("NAME", col2);
-		subtitles.put("VALUE", col3);
+		subtitles.put("VALUE [€]", col3);
 		
 		for(FogDevice fogDevice : controller.getFogDevices()) {
 			String id = Integer.toString(fogDevice.getId());
 			String name = fogDevice.getName();
-			String cost = doubleToString(fogDevice.getTotalCost(), false);
+			String cost = Util.doubleToString(30, 15, fogDevice.getTotalCost());
 			
 			content += "|" + Util.centerString(col1, id);
 			content += "|" + Util.centerString(col2, name);
@@ -452,12 +418,12 @@ public class SimulationResults {
 			
 			total += fogDevice.getTotalCost();
 		}
-		String costStr = doubleToString(total, false);
+		String costStr = Util.doubleToString(30, 15, total);
 		
 		content += newDetailsField('-', true);
 		content += "|" + Util.centerString(MAX_COLUMN_SIZE*2+1, "TOTAL = " + costStr) + "|\n";
 		
-		table("COST OF EXECUTION [€]", content, subtitles);
+		table("COST OF EXECUTION", content, subtitles);
 	}
 	
 	/**
@@ -506,25 +472,6 @@ public class SimulationResults {
 		System.out.print(content);
 		
 		newDetailsField('=', false);
-	}
-	
-	/**
-	 * Converts and formats a given double number to string.
-	 * 
-	 * @param value the value to be converted
-	 * @param exp the flag which defines if the format is given in the exponential form
-	 * @return the string
-	 */
-	private String doubleToString(double value, boolean exp) {
-		DecimalFormat df = new DecimalFormat("0.00000");
-		if(exp) df = new DecimalFormat("0.#####E0");
-		
-		String str = df.format(0);
-		if(value > Constants.EPSILON) {
-			str = df.format(value);
-		}
-		
-		return str;
 	}
 	
 	/**

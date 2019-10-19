@@ -20,7 +20,6 @@ import org.cloudbus.cloudsim.core.SimEvent;
 import org.cloudbus.cloudsim.power.PowerDatacenter;
 import org.cloudbus.cloudsim.power.PowerHost;
 import org.fog.application.AppEdge;
-import org.fog.application.AppLoop;
 import org.fog.application.AppModule;
 import org.fog.application.Application;
 import org.fog.placement.Controller;
@@ -227,10 +226,8 @@ public class FogDevice extends PowerDatacenter {
 		}
 		
 		Tuple tuple = controller.getApplications().get(srcModule.getAppId()).createTuple(edge, dstModule.getUserId());
-		updateTimingsOnSending(tuple);
 		sendToSelf(tuple);
-		TimeKeeper.getInstance().startedTransmissionOfTuple(tuple, 0, Constants.INF);
-		TimeKeeper.getInstance().tryingTransmissionOfTuple(tuple);
+		TimeKeeper.getInstance().tupleStartedTransmission(tuple);
 		
 		send(getId(), edge.getPeriodicity(), FogEvents.SEND_PERIODIC_TUPLE, edge);
 	}
@@ -284,8 +281,8 @@ public class FogDevice extends PowerDatacenter {
 						for(Tuple resTuple : resultantTuples) {
 							resTuple.setModuleCopyMap(new HashMap<String, Integer>(tuple.getModuleCopyMap()));
 							resTuple.getModuleCopyMap().put(((AppModule)vm).getName(), vm.getId());
-							updateTimingsOnSending(resTuple);
 							sendToSelf(resTuple);
+							TimeKeeper.getInstance().tupleStartedTransmission(resTuple);
 						}
 						sendNow(cl.getUserId(), CloudSimTags.CLOUDLET_RETURN, cl);
 					}
@@ -296,29 +293,6 @@ public class FogDevice extends PowerDatacenter {
 		if(cloudletCompleted) {
 			updateAllocatedMips(null);
 			updateCPUTupleQueue(null);
-		}
-	}
-	
-	/**
-	 * Updates the timings on sending.
-	 * 
-	 * @param resTuple the received tuple
-	 */
-	private void updateTimingsOnSending(Tuple resTuple) {
-		String srcModule = resTuple.getSrcModuleName();
-		String destModule = resTuple.getDestModuleName();
-		
-		for(AppLoop loop : controller.getApplications().get(resTuple.getAppId()).getLoops()) {
-			if(loop.hasEdge(srcModule, destModule) && loop.isStartModule(srcModule)) {
-				int tupleId = TimeKeeper.getInstance().getUniqueId();
-				resTuple.setActualTupleId(tupleId);
-				
-				if(!TimeKeeper.getInstance().getLoopIdToTupleIds().containsKey(loop.getLoopId()))
-					TimeKeeper.getInstance().getLoopIdToTupleIds().put(loop.getLoopId(), new ArrayList<Integer>());
-				
-				TimeKeeper.getInstance().getLoopIdToTupleIds().get(loop.getLoopId()).add(tupleId);
-				TimeKeeper.getInstance().getEmitTimes().put(tupleId, CloudSim.clock());
-			}
 		}
 	}
 	
@@ -493,7 +467,6 @@ public class FogDevice extends PowerDatacenter {
 				return;
 			
 			tuple.setVmId(vmId);
-			updateTimingsOnReceipt(tuple);
 			updateCPUTupleQueue(ev);
 			NetworkMonitor.incrementPacketSuccess();
 			TimeKeeper.getInstance().receivedTuple(tuple);
@@ -508,42 +481,6 @@ public class FogDevice extends PowerDatacenter {
 						" to: " + controller.getFogDeviceById(nexHopId).getName());
 			
 			sendTo(tuple, nexHopId);
-		}
-	}
-	
-	/**
-	 * Updates the timings on receipt.
-	 * 
-	 * @param tuple the received tuple
-	 */
-	private void updateTimingsOnReceipt(Tuple tuple) {
-		Application app = controller.getApplications().get(tuple.getAppId());
-		String srcModule = tuple.getSrcModuleName();
-		String destModule = tuple.getDestModuleName();
-		
-		List<AppLoop> loops = app.getLoops();
-		
-		for(AppLoop loop : loops){
-			if(loop.hasEdge(srcModule, destModule) && loop.isEndModule(destModule)){
-				Double startTime = TimeKeeper.getInstance().getEmitTimes().get(tuple.getActualTupleId());
-				
-				if(startTime == null)
-					break;
-				
-				if(!TimeKeeper.getInstance().getLoopIdToCurrentAverage().containsKey(loop.getLoopId())){
-					TimeKeeper.getInstance().getLoopIdToCurrentAverage().put(loop.getLoopId(), 0.0);
-					TimeKeeper.getInstance().getLoopIdToCurrentNum().put(loop.getLoopId(), 0);
-				}
-				
-				double currentAverage = TimeKeeper.getInstance().getLoopIdToCurrentAverage().get(loop.getLoopId());
-				int currentCount = TimeKeeper.getInstance().getLoopIdToCurrentNum().get(loop.getLoopId());
-				double delay = CloudSim.clock()- TimeKeeper.getInstance().getEmitTimes().get(tuple.getActualTupleId());
-				TimeKeeper.getInstance().getEmitTimes().remove(tuple.getActualTupleId());
-				double newAverage = (currentAverage*currentCount + delay)/(currentCount+1);
-				TimeKeeper.getInstance().getLoopIdToCurrentAverage().put(loop.getLoopId(), newAverage);
-				TimeKeeper.getInstance().getLoopIdToCurrentNum().put(loop.getLoopId(), currentCount+1);
-				break;
-			}
 		}
 	}
 	
@@ -623,7 +560,6 @@ public class FogDevice extends PowerDatacenter {
 		
 		updateEnergyConsumption();
 		NetworkMonitor.sendingTuple(tuple, getId(), destId);
-		TimeKeeper.getInstance().startedTransmissionOfTuple(tuple, latency, bandwidth);
 	}
 	
 	/**
@@ -633,8 +569,6 @@ public class FogDevice extends PowerDatacenter {
 	 * @param destId the link destination id
 	 */
 	protected void sendTo(Tuple tuple, int id) {
-		TimeKeeper.getInstance().tryingTransmissionOfTuple(tuple);
-		
 		if(!getTupleLinkBusy().get(id))
 			sendFreeLink(tuple, id);
 		else
@@ -777,6 +711,7 @@ public class FogDevice extends PowerDatacenter {
 				tuple.setTupleType(vm.getName());
 				
 				sendTo(tuple, vmRoutingTable.get(vm.getName()));
+				TimeKeeper.getInstance().tupleStartedTransmission(tuple);
 				
 				if(Config.PRINT_DETAILS)
 					FogComputingSim.print("[" + getName() + "] started the migration of the vm: " + vm.getName() + " toward the machine: " + to.getName());
