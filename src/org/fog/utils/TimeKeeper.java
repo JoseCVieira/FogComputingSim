@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.fog.entities.Tuple;
+import org.fog.entities.TupleVM;
 
 /**
  * Class which is responsible for the simulation time analysis (e.g., CPU execution time, tuple transmission latency, etc).
@@ -26,6 +27,7 @@ public class TimeKeeper {
 	private Map<String, Map<Double, Integer>> tupleTotalCpu;
 	
 	private Map<List<String>, List<Double>> loopValues;
+	private Map<String, List<Double>> migrationValues;
 	
 	/**
 	 * Creates a new time keeper.
@@ -40,6 +42,7 @@ public class TimeKeeper {
 		tupleTotalNw = new HashMap<String, Map<Double,Integer>>();
 		
 		loopValues = new HashMap<List<String>, List<Double>>();
+		migrationValues = new HashMap<String, List<Double>>();
 	}
 
 	/**
@@ -141,6 +144,23 @@ public class TimeKeeper {
 			newMap.put(totalTime + prevTime, counter + 1);
 		}
 		
+		if(tuple instanceof TupleVM) {
+			List<String> tmp = new ArrayList<String>();
+			tmp.add(tuple.getTupleType());
+			double time = CloudSim.clock() - tuple.getPathMap().get(tmp);
+			
+			List<Double> values;
+			if(!migrationValues.containsKey(tuple.getTupleType())) {
+				values = new ArrayList<Double>();
+				values.add(time);
+			}else {
+				values = migrationValues.get(tuple.getTupleType());
+				values.add(time);
+			}
+			
+			migrationValues.put(tuple.getTupleType(), values);
+		}
+		
 		tupleTotalNw.put(tupleType, newMap);
 	}
 	
@@ -194,6 +214,10 @@ public class TimeKeeper {
 	
 	public Map<List<String>, List<Double>> getLoopValues() {
 		return loopValues;
+	}
+	
+	public Map<String, List<Double>> getMigrationValues() {
+		return migrationValues;
 	}
 	
 }

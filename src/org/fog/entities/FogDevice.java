@@ -2,7 +2,7 @@ package org.fog.entities;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -98,8 +98,8 @@ public class FogDevice extends PowerDatacenter {
 	private ProcessorMonitor processorMonitor;
 	
 	/** Queue (FIFO) which holds all VMs to be migrated */
-	private Queue<SimEvent> scheduleMigrationList;
-
+	private Map<SimEvent, Double> scheduleMigrationMap;
+	
 	/**
 	 * Creates a new fog device.
 	 * 
@@ -125,7 +125,7 @@ public class FogDevice extends PowerDatacenter {
 		setTupleQueue(new HashMap<Integer, Queue<Pair<Tuple,Integer>>>());
 		setTupleLinkBusy(new HashMap<Integer, Boolean>());
 		setProcessorMonitor(new ProcessorMonitor());
-		scheduleMigrationList = new LinkedList<SimEvent>();
+		scheduleMigrationMap = new LinkedHashMap<SimEvent, Double>();
 		
 		setVmAllocationPolicy(vmAllocationPolicy);
 		setSchedulingInterval(schedulingInterval);
@@ -726,7 +726,7 @@ public class FogDevice extends PowerDatacenter {
 	 * @param ev the event which contains the migration information
 	 */
 	private void scheduleMigration(SimEvent ev) {
-		scheduleMigrationList.add(ev);
+		scheduleMigrationMap.put(ev, CloudSim.clock());
 		if(processorMonitor.isCPUBusy()) return;
 		performScheduledMigrations();
 	}
@@ -736,8 +736,9 @@ public class FogDevice extends PowerDatacenter {
 	 */
 	@SuppressWarnings("unchecked")
 	private void performScheduledMigrations() {
-		while(!scheduleMigrationList.isEmpty()) {
-			Map<FogDevice, Map<Application, AppModule>> map = (Map<FogDevice, Map<Application, AppModule>>)scheduleMigrationList.poll().getData();
+		for(SimEvent ev : scheduleMigrationMap.keySet()) {
+			Map<FogDevice, Map<Application, AppModule>> map = (Map<FogDevice, Map<Application, AppModule>>) ev.getData();
+			
 			Map<Application, AppModule> appMap = map.entrySet().iterator().next().getValue();
 			Application application = appMap.entrySet().iterator().next().getKey();
 			AppModule vm = appMap.entrySet().iterator().next().getValue();
@@ -761,6 +762,12 @@ public class FogDevice extends PowerDatacenter {
 				tuple.setActualTupleId(TimeKeeper.getInstance().getUniqueId());
 				tuple.setTupleType(vm.getName());
 				
+				Map<List<String>, Double> tmp = new HashMap<List<String>, Double>();
+				List<String> tmp1 = new ArrayList<String>();
+				tmp1.add(vm.getName());
+				tmp.put(tmp1, CloudSim.clock());
+				tuple.setPathMap(tmp);
+				
 				sendTo(tuple, vmRoutingTable.get(vm.getName()));
 				TimeKeeper.getInstance().tupleStartedTransmission(tuple);
 				
@@ -774,6 +781,7 @@ public class FogDevice extends PowerDatacenter {
 				updateEnergyConsumption();
 			}
 		}
+		scheduleMigrationMap.clear();
 	}
 	
 	/**

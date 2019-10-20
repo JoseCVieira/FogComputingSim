@@ -44,6 +44,7 @@ public class SimulationResults {
 		printLoopDetailsAverage();
 		printTupleDetails();
 		printLoopDetails();
+		printMigrationDetailsAverage();
 		printMigrationDetails();
 		printEnergyDetails();
 		printCPUDetails();
@@ -194,7 +195,6 @@ public class SimulationResults {
 		subtitles.put("# LOOPS", col2);
 		subtitles.put("# VIOLATED", col2-3);
 		
-
 		Map<List<String>, List<Double>> loopValues = TimeKeeper.getInstance().getLoopValues();
 		
 		for(List<String> path : loopValues.keySet()) {
@@ -254,9 +254,9 @@ public class SimulationResults {
 	}
 	
 	/**
-	 * Prints the application module migration timing details obtained in the simulation execution.
+	 * Prints the application module migration average timing details obtained in the simulation execution.
 	 */
-	private void printMigrationDetails() {
+	private void printMigrationDetailsAverage() {
 		int col = 2*MAX_COLUMN_SIZE/7;
 		String content = "";
 		
@@ -306,6 +306,83 @@ public class SimulationResults {
 				content += "|" + Util.centerString(col, violated);
 				content += "|" + Util.centerString(col-3, cntStr) + "|\n";
 			}
+		}
+		
+		table("APPLICATION MODULE MIGRATION DELAYS (AVERAGE VALUES)", content, subtitles);
+	}
+	
+	/**
+	 * Prints the application module migration timing details obtained in the simulation execution.
+	 */
+	private void printMigrationDetails() {
+		int col1 = MAX_COLUMN_SIZE-2;
+		int col2 = MAX_COLUMN_SIZE/6;
+		String content = "";
+		
+		Map<String, Integer> subtitles = new LinkedHashMap<String, Integer>();
+		subtitles.put("NAME", col1);
+		subtitles.put("MIN [s]", col2);
+		subtitles.put("AVG [s]", col2);
+		subtitles.put("MAX [s]", col2);
+		subtitles.put("MAX [s]", col2);
+		subtitles.put("S.D. [s]", col2);
+		subtitles.put("# MIG", col2);
+		subtitles.put("# VIOLATED", col2-3);
+		
+		
+		Map<String, List<Double>> migValues = TimeKeeper.getInstance().getMigrationValues();
+		
+		for(String moduleName : migValues.keySet()) {
+			List<Double> values = migValues.get(moduleName);
+			int nrLoops = values.size();
+			int nrViolated = 0;
+			double deadline = -1;
+			double max = values.get(0);
+			double min = values.get(0);
+			double avg = 0;
+			double s = 0;
+			
+			for(String appName : controller.getApplications().keySet()) {
+				Application application = controller.getApplications().get(appName);
+				
+				for(AppModule appModule : application.getModules()) {
+					if(appModule.getName().equals(moduleName)) {
+						deadline = appModule.getMigrationDeadline();
+						break;
+					}
+				}
+			}
+			
+			if(deadline == -1) FogComputingSim.err("SimulationResults Err: Should not happen");
+			
+			for(double v : values) {
+				avg += v;
+				if(v > deadline)
+					nrViolated++;
+				
+				if(max < v)
+					max = v;
+				
+				if(min > v)
+					min = v;
+			}
+			
+			avg /= nrLoops;
+			
+			for(double v : values) {
+				s += Math.pow(avg-v, 2);
+			}
+			
+			s /= nrLoops;
+			s = Math.sqrt(s);
+			
+			content += "|" + Util.centerString(col1, moduleName);
+			content += "|" + Util.centerString(col2, Util.doubleToString(19, 15, min));
+			content += "|" + Util.centerString(col2, Util.doubleToString(19, 15, avg));
+			content += "|" + Util.centerString(col2, Util.doubleToString(19, 15, max));
+			content += "|" + Util.centerString(col2, Util.doubleToString(19, 15, s));
+			content += "|" + Util.centerString(col2, Integer.toString(nrLoops));
+			content += "|" + Util.centerString(col2-3, Integer.toString(nrViolated)) + "|\n";
 		}
 		
 		table("APPLICATION MODULE MIGRATION DELAYS", content, subtitles);
