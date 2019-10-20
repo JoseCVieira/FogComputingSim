@@ -58,15 +58,20 @@ public class CostFunction {
 	 * @return the computed cost
 	 */
 	private static double computeQoS(Algorithm algorithm, Solution solution) {
-		int [][] loops = algorithm.getLoops();
-		int[][] modulePlacementMap = solution.getModulePlacementMap();
-		int[][] tupleRoutingMap = solution.getTupleRoutingMap();
+		int nrApplications = algorithm.getNumberOfApplications();
+		int nrLoops = algorithm.getNumberOfLoops();
+		int nrModules = algorithm.getNumberOfModules();
 		double cost = 0;
 		
-		for(int i = 0; i < algorithm.getNumberOfLoops(); i++) { // Loop index
+		int[][] loops = algorithm.getLoops();
+		int[][] modulePlacementMap = solution.getModulePlacementMap();
+		int[][] tupleRoutingMap = solution.getTupleRoutingMap();
+		int[] loopViolation = new int[nrLoops];
+		
+		for(int i = 0; i < nrLoops; i++) { // Loop index
 			double latency = 0;
 			
-			for(int j = 0; j < algorithm.getNumberOfModules() - 1; j++) { // Module index
+			for(int j = 0; j < nrModules - 1; j++) { // Module index
 				if(loops[i][j+1] == -1) break;
 				
 				latency += computeProcessingLatency(algorithm, modulePlacementMap, loops[i][j+1]);
@@ -75,7 +80,18 @@ public class CostFunction {
 			
 			solution.setLoopDeadline(i, latency);
 			if(latency <= algorithm.getLoopsDeadline()[i]) continue;
-			cost++;
+			loopViolation[i] = 1;
+		}
+		
+		for(int i = 0; i < nrApplications; i++) {
+			for(int j = 0; j < nrLoops; j++) {
+				if(algorithm.getLoopsApplication()[j] == i) {
+					if(loopViolation[j] == 1) {
+						cost++;
+						break;
+					}
+				}
+			}
 		}
 		
 		return cost;
