@@ -164,14 +164,12 @@ public class LinearProgramming extends Algorithm {
 			}
 			
 			IloNumExpr[] ensureApps = new IloNumExpr[nrApplications];
-			int nrLoopsApp[] = new int[nrApplications];
 			for(int i = 0; i < nrApplications; i++) {
 				ensureApps[i] = cplex.numExpr();
 				
 				for(int j = 0; j < nrLoops; j++) {
 					if(getLoopsApplication()[j] == i) {
 						ensureApps[i] = cplex.sum(ensureApps[i], ensureLoops[j]);
-						nrLoopsApp[i]++;
 					}
 				}
 				
