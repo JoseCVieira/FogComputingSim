@@ -52,6 +52,9 @@ public abstract class Algorithm {
 	/** Number of application modules within the fog network */
 	private final int NR_MODULES;
 	
+	/** Number of applications within the fog network */
+	private final int NR_APPLICATIONS;
+	
 	// Node Prices --------------------------------------------
 	
 	/** Vector holding the price of using processing resources in each fog device */
@@ -95,6 +98,7 @@ public abstract class Algorithm {
 	/** Vector holding the power consumption while sending data to another device in each fog device */
 	private double fTxPw[];
 	
+	/** Vector holding weather each fog devices if a client or not */
 	private int fIsFogDevice[];
 	
 	// Module -------------------------------------------------
@@ -159,6 +163,9 @@ public abstract class Algorithm {
 	/** Vector holding the deadline of each loop */
 	private double[] loopsDeadline;
 	
+	/** Vector holding the application of each loop */
+	private int[] loopsApplication;
+	
 	/** List with the nodes for the execution of the Dijkstra Algorithm */
 	private List<Vertex> dijkstraNodes;
 	
@@ -203,6 +210,23 @@ public abstract class Algorithm {
 		
 		NR_NODES = fogDevices.size();
 		NR_MODULES = hashSet.size();
+		
+		int tmp = 0;
+		for(Application application : applications) {
+			int lastId = -1;
+			
+			for(AppLoop loop : application.getLoops()) {				
+				String[] parts = loop.getModules().get(0).split("_");
+				int nodeId = Integer.parseInt(parts[parts.length-1]);
+				
+				if(lastId != nodeId) {
+					tmp++;
+					lastId = nodeId;
+				}
+			}
+		}
+		
+		NR_APPLICATIONS = tmp;
 		
 		init();
 		extractDevicesCharacteristics(fogDevices);
@@ -544,19 +568,33 @@ public abstract class Algorithm {
 		
 		loops = new int[tmp][NR_MODULES];
 		loopsDeadline = new double[tmp];
+		loopsApplication = new int[tmp];
 		
 		for(int i = 0; i < tmp; i++) {
 			Arrays.fill(loops[i],-1);
-		}
+		}		
 		
 		tmp = 0;
+		int appIndex = -1;
 		for(Application application : applications) {
+			int lastId = -1;
+			
 			for(AppLoop loop : application.getLoops()) {
 				int tmp2 = 0;
 				for(String moduleName : loop.getModules()) {
 					int modIndex = getModuleIndexByModuleName(moduleName);
 					loops[tmp][tmp2++] = modIndex;
 				}
+				
+				String[] parts = loop.getModules().get(0).split("_");
+				int nodeId = Integer.parseInt(parts[parts.length-1]);
+				
+				if(lastId != nodeId) {
+					appIndex++;
+					lastId = nodeId;
+				}
+				
+				loopsApplication[tmp] = appIndex;
 				loopsDeadline[tmp++] = loop.getDeadline();
 			}
 		}
@@ -786,6 +824,15 @@ public abstract class Algorithm {
 	}
 	
 	/**
+	 * Gets the number of applications within the fog network.
+	 * 
+	 * @return the number of applications within the fog network
+	 */
+	public int getNumberOfApplications() {
+		return NR_APPLICATIONS;
+	}
+	
+	/**
 	 * Gets the number of pair of nodes with dependencies.
 	 * 
 	 * @return the number of pair of nodes with dependencies
@@ -936,6 +983,11 @@ public abstract class Algorithm {
 		return fIdlePw;
 	}
 	
+	/**
+	 * Gets the vector holding weather each fog devices if a client or not.
+	 * 
+	 * @return the vector holding weather each fog devices if a client or not
+	 */
 	public int[] getfIsFogDevice() {
 		return fIsFogDevice;
 	}
@@ -1145,6 +1197,15 @@ public abstract class Algorithm {
 	 */
 	public double[] getLoopsDeadline() {
 		return loopsDeadline;
+	}
+	
+	/**
+	 * Gets the vector holding the application of each loop.
+	 * 
+	 * @return the vector holding the application of each loop
+	 */
+	public int[] getLoopsApplication() {
+		return loopsApplication;
 	}
 	
 	/**

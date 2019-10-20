@@ -80,6 +80,7 @@ public class LinearProgramming extends Algorithm {
 			cplex.setParam(IloCplex.Param.TimeLimit, 5);*/
 			
 			int nrNodes = getNumberOfNodes();
+			int nrApplications = getNumberOfApplications();
 			int nrModules = getNumberOfModules();
 			int nrDependencies = getNumberOfDependencies();
 			int nrLoops = getNumberOfLoops();
@@ -159,7 +160,23 @@ public class LinearProgramming extends Algorithm {
 				ensureLoops[i] = cplex.prod(ensureLoops[i], Integer.MAX_VALUE);
 				ensureLoops[i] = cplex.min(ensureLoops[i], 1);
 				
-				qsObjective = cplex.sum(qsObjective, ensureLoops[i]);														// Quality of Service cost
+				//qsObjective = cplex.sum(qsObjective, ensureLoops[i]);														// Quality of Service cost
+			}
+			
+			IloNumExpr[] ensureApps = new IloNumExpr[nrApplications];
+			int nrLoopsApp[] = new int[nrApplications];
+			for(int i = 0; i < nrApplications; i++) {
+				ensureApps[i] = cplex.numExpr();
+				
+				for(int j = 0; j < nrLoops; j++) {
+					if(getLoopsApplication()[j] == i) {
+						ensureApps[i] = cplex.sum(ensureApps[i], ensureLoops[j]);
+						nrLoopsApp[i]++;
+					}
+				}
+				
+				ensureApps[i] = cplex.min(ensureApps[i], 1);
+				qsObjective = cplex.sum(qsObjective, ensureApps[i]);
 			}
 			
 			IloObjective qsCost = cplex.minimize(qsObjective);
