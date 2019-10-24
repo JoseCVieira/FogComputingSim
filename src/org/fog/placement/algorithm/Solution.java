@@ -310,7 +310,7 @@ public class Solution implements Comparable<Solution> {
 	 * @return true if they are close enough, otherwise false
 	 */
 	public static boolean checkConvergence(Solution newSolution, Solution bestSolution) {
-		if(!newSolution.isValid() || bestSolution == null || !bestSolution.isValid()) return false;
+		if(bestSolution == null || newSolution == null || !newSolution.isValid() || !bestSolution.isValid()) return false;
 		
 		for(int i = 0; i < Config.NR_OBJECTIVES; i++) {
 			double oldV = bestSolution.getDetailedCost(i);

@@ -20,7 +20,8 @@ import org.fog.placement.algorithm.Solution;
  */
 public class GeneticAlgorithm extends Algorithm {
 	/** 10% of the population */
-	private static final int FITTEST = (int)(Config.POPULATION_SIZE_GA*0.1);
+	private static final int FITTEST_PLACEMENT = (int)(Config.POPULATION_SIZE_GA_PLACEMENT*0.1);
+	private static final int FITTEST_ROUTING = (int)(Config.POPULATION_SIZE_GA_ROUTING*0.1);
 	
 	/** Best solution found by the algorithm */
 	private Solution bestSolution;
@@ -68,11 +69,12 @@ public class GeneticAlgorithm extends Algorithm {
 	private void solveModulePlacement() {
 		int convergenceIter = 0;
 		int generation = 0;
-		Individual[] population = new Individual[Config.POPULATION_SIZE_GA];
+		Individual[] population = new Individual[Config.POPULATION_SIZE_GA_PLACEMENT];
 		
 		// Generate an initial population with random module placements
-	    for (int i = 0; i < Config.POPULATION_SIZE_GA; i++)
+	    for(int i = 0; i < Config.POPULATION_SIZE_GA_PLACEMENT; i++){
 	    	population[i] = new Individual(this, new Solution(this, Solution.generateRandomPlacement(this, getNumberOfNodes(), getNumberOfModules())));
+	    }
 	    
 	    while (generation <= Config.MAX_ITER_PLACEMENT_GA) {
 	    	// Solve both tuple and virtual machine migration routing tables
@@ -80,44 +82,45 @@ public class GeneticAlgorithm extends Algorithm {
 	    	
 	    	// Sort the array based on its value (ascending order)
 	    	Arrays.sort(population);
+	    	
+	    	Solution prevBestSolution = null;
+			if(bestSolution != null) prevBestSolution = new Solution(this, bestSolution);
+			
+			// Check whether the new individual is the new best solution
+    		bestSolution = Solution.checkBestSolution(this, population[0].getChromosome(), bestSolution, iteration);
 			
 	    	// Check the convergence error
-    		if(Solution.checkConvergence(population[0].getChromosome(), bestSolution)) {
+    		if(Solution.checkConvergence(prevBestSolution, bestSolution)) {
+    			convergenceIter++;
+    			
     			// If it found the same (or similar) solution a given number of times in a row break the loop
-				if(++convergenceIter == Config.MAX_ITER_PLACEMENT_CONVERGENCE_GA)
-					generation = Config.MAX_ITER_PLACEMENT_GA + 1;
+				if(convergenceIter == Config.MAX_ITER_PLACEMENT_CONVERGENCE_GA) break;
 			}else
     			convergenceIter = 0;
-    		
-    		// Check whether the new individual is the new best solution
-    		bestSolution = Solution.checkBestSolution(this, population[0].getChromosome(), bestSolution, iteration);
-    		
-    		// If the generation counter is above the defined maximum break the loop
-    		if(generation > Config.MAX_ITER_PLACEMENT_GA) break;
 	  
 	        // Otherwise generate new offsprings for new generation
-	        Individual[] newGeneration = new Individual[Config.POPULATION_SIZE_GA];
+	        Individual[] newGeneration = new Individual[Config.POPULATION_SIZE_GA_PLACEMENT];
 	        
 	        // Copy 10% of the fittest individuals to the next generation
-	        for(int i = 0; i < FITTEST; i++) {
+	        for(int i = 0; i < FITTEST_PLACEMENT; i++) {
 	        	newGeneration[i] = new Individual(this, new Solution(this, population[i].getChromosome().getModulePlacementMap()));
 	        }
 	        
 	        // From 50% of fittest population, individuals will mate to produce offspring
-	        for(int i = FITTEST; i < Config.POPULATION_SIZE_GA; i++) {
-	        	int r1 = new Random().nextInt((int) (Config.POPULATION_SIZE_GA*0.5));
-	        	int r2 = new Random().nextInt((int) (Config.POPULATION_SIZE_GA*0.5));
+	        for(int i = FITTEST_PLACEMENT; i < Config.POPULATION_SIZE_GA_PLACEMENT; i++) {
+	        	int r1 = new Random().nextInt((int) (Config.POPULATION_SIZE_GA_PLACEMENT*0.5));
+	        	int r2 = new Random().nextInt((int) (Config.POPULATION_SIZE_GA_PLACEMENT*0.5));
 	        	
 	        	// Create the new individual
 	        	newGeneration[i] = new Individual(this, new Solution(this, population[r1].matePlacement(population[r2])));
 	        }
 	        
 	        // Set the current generation's population
-	        for(int i = 0; i < Config.POPULATION_SIZE_GA; i++) {
+	        for(int i = 0; i < Config.POPULATION_SIZE_GA_PLACEMENT; i++) {
 	        	population[i] = newGeneration[i];
 	        }
 	        
-	     // Increments the generation for the module placement map
+	        // Increments the generation for the module placement map
 	        generation++;
 	    }
 	}
@@ -130,16 +133,24 @@ public class GeneticAlgorithm extends Algorithm {
 	 */
 	public Individual[] GARouting(Individual[] population) {
 		// For each individual with a given module placement map
-		for (int i = 0; i < Config.POPULATION_SIZE_GA; i++) {
+		for (int i = 0; i < Config.POPULATION_SIZE_GA_PLACEMENT; i++) {
 			
 			// Get it's module placement map
 			int[][] modulePlacementMap = population[i].getChromosome().getModulePlacementMap();
 			
+			if(checkResourcesExceeded(modulePlacementMap)) {
+				int[][]tupleRouting = new int[getNumberOfDependencies()][getNumberOfNodes()];
+				int[][]migrationRouting = new int[getNumberOfModules()][getNumberOfNodes()];
+						
+				population[i] = new Individual(this, new Solution(this, modulePlacementMap, tupleRouting, migrationRouting));
+				continue;
+			}
+			
 			// Create a new population
-			Individual[] populationR = new Individual[Config.POPULATION_SIZE_GA];
+			Individual[] populationR = new Individual[Config.POPULATION_SIZE_GA_ROUTING];
 			
 			// Generate the new population with that module placement map and random tuple and virtual machine routing maps
-			for (int j = 0; j < Config.POPULATION_SIZE_GA; j++) {
+			for (int j = 0; j < Config.POPULATION_SIZE_GA_ROUTING; j++) {
 				int[][] tupleRoutingMap = Solution.generateRandomTupleRouting(this, modulePlacementMap, getNumberOfNodes(), getNumberOfDependencies());
 				int[][] migrationRoutingMap = Solution.generateRandomMigrationRouting(this, modulePlacementMap, getNumberOfNodes(), getNumberOfModules());
 				populationR[j] = new Individual(this, new Solution(this, modulePlacementMap, tupleRoutingMap, migrationRoutingMap));
@@ -148,36 +159,40 @@ public class GeneticAlgorithm extends Algorithm {
 			int convergenceIter = 0;
 			int generation = 0;
 			Solution bestSolutionR = null;
-			
+		
 			while (generation <= Config.MAX_ITER_ROUTING_GA) {
 				// Sort the array based on its value (ascending order)
 	    		Arrays.sort(populationR);
-    			
-		    	// Check the convergence error
-	    		if(Solution.checkConvergence(populationR[0].getChromosome(), bestSolutionR)) {
-	    			// If it found the same (or similar) solution a given number of times in a row break the loop
-    				if(++convergenceIter == Config.MAX_ITER_ROUTING_CONVERGENCE_GA)
-    					generation = Config.MAX_ITER_PLACEMENT_GA + 1;
-    			}else
-	    			convergenceIter = 0;
 	    		
-	    		// Save the best value for that module placement
+	    		Solution prevBestSolution = null;
+				if(bestSolutionR != null) prevBestSolution = new Solution(this, bestSolutionR);
+				
+				// Save the best value for that module placement
 	    		bestSolutionR = Solution.checkBestSolution(this, populationR[0].getChromosome(), bestSolutionR, -1);
+	    		
+	    		// Check the convergence error
+	    		if(Solution.checkConvergence(prevBestSolution, bestSolutionR)) {
+	    			convergenceIter++;
+	    			
+	    			// If it found the same (or similar) solution a given number of times in a row break the loop
+					if(convergenceIter == Config.MAX_ITER_ROUTING_CONVERGENCE_GA) break;
+				}else
+	    			convergenceIter = 0;
 	    		
 	    		// If the generation counter is above the defined maximum break the loop
 	    		if(generation > Config.MAX_ITER_PLACEMENT_GA) break;
 	    		
 	    		// Otherwise generate new offsprings for new generation
-		        Individual[] newGeneration = new Individual[Config.POPULATION_SIZE_GA];
+		        Individual[] newGeneration = new Individual[Config.POPULATION_SIZE_GA_ROUTING];
 		        
 		        // Copy 10% of the fittest individuals to the next generation
-		        for(int z = 0; z < FITTEST; z++)
+		        for(int z = 0; z < FITTEST_ROUTING; z++)
 		        	newGeneration[z] = populationR[z];
 		        
 		        // From 50% of fittest population, individuals will mate to produce offspring
-		        for(int z = FITTEST; z < Config.POPULATION_SIZE_GA; z++) {
-		        	int r1 = new Random().nextInt((int) (Config.POPULATION_SIZE_GA*0.5));
-		        	int r2 = new Random().nextInt((int) (Config.POPULATION_SIZE_GA*0.5));
+		        for(int z = FITTEST_ROUTING; z < Config.POPULATION_SIZE_GA_ROUTING; z++) {
+		        	int r1 = new Random().nextInt((int) (Config.POPULATION_SIZE_GA_ROUTING*0.5));
+		        	int r2 = new Random().nextInt((int) (Config.POPULATION_SIZE_GA_ROUTING*0.5));
 		        	
 		        	int[][] childTupleRoutingMap = populationR[r1].mateTupleRouting(populationR[r2]);
 		        	int[][] childMigrationRoutingMap = populationR[r1].mateMigrationRouting(populationR[r2]);
@@ -187,7 +202,7 @@ public class GeneticAlgorithm extends Algorithm {
 		        }
 		        
 		        // Set the current generation's population
-		        for(int z = 0; z < Config.POPULATION_SIZE_GA; z++)
+		        for(int z = 0; z < Config.POPULATION_SIZE_GA_ROUTING; z++)
 		        	populationR[z] = newGeneration[z];
 		        
 		        // Increments the number of iterations for the whole genetic algorithm
@@ -203,6 +218,33 @@ public class GeneticAlgorithm extends Algorithm {
 		}
 		
 		return population;
+	}
+	
+	/**
+	 * Verifies whether resources are exceeded in a given node for a given placement matrix.
+	 * 
+	 * @param modulePlacementMap the current binary module placement map
+	 * @param node the node to verify
+	 * @return true if its resources are being exceeded. 0, otherwise
+	 */
+	private boolean checkResourcesExceeded(final int[][] modulePlacementMap) {
+		for(int i = 0; i < getNumberOfNodes(); i++) {
+			double totalMips = 0;
+			double totalRam = 0;
+			double totalStrg = 0;
+			
+			for(int j = 0; j < getNumberOfModules(); j++) {
+				totalMips += modulePlacementMap[i][j] * getmMips()[j];
+				totalRam += modulePlacementMap[i][j] * getmRam()[j];
+				totalStrg += modulePlacementMap[i][j] * getmStrg()[j];
+			}
+			
+			if(totalMips > getfMips()[i] * Config.MIPS_PERCENTAGE_UTIL) return true;
+			if(totalRam > getfRam()[i] * Config.MEM_PERCENTAGE_UTIL) return true;
+			if(totalStrg > getfStrg()[i] * Config.STRG_PERCENTAGE_UTIL) return true;
+		}
+		
+		return false;
 	}
 	
 }

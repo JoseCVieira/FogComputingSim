@@ -46,17 +46,19 @@ public class RandomAlgorithm extends Algorithm {
 		while (iteration <= Config.MAX_ITER_RANDOM) {
 			Solution solution = Solution.generateRandomSolution(this);
 			
+			Solution prevBestSolution = null;
+			if(bestSolution != null) prevBestSolution = new Solution(this, bestSolution);
+			
+			// Check whether the new solution is the new best solution
+			bestSolution = Solution.checkBestSolution(this, solution, bestSolution, iteration);
+			
 			// Check the convergence error
-			if(Solution.checkConvergence(solution, bestSolution))
+			if(Solution.checkConvergence(prevBestSolution, bestSolution)) {
 				convergenceIter++;
-			else
+				// If it found the same (or similar) solution a given number of times in a row break the loop
+	    		if(convergenceIter == Config.MAX_ITER_CONVERGENCE_RANDOM) break;
+			}else
     			convergenceIter = 0;
-			
-    		// Check whether the new individual is the new best solution
-    		bestSolution = Solution.checkBestSolution(this, solution, bestSolution, iteration);
-			
-    		// If it found the same (or similar) solution a given number of times in a row break the loop
-    		if(++convergenceIter == Config.MAX_ITER_CONVERGENCE_RANDOM) break;
 			
 			iteration++;
 		}
