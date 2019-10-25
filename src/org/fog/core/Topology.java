@@ -70,9 +70,7 @@ public abstract class Topology {
 	 * @param toPrint
 	 */
 	public Topology(String toPrint) {
-		if(Config.PRINT_DETAILS)
-			System.out.println(toPrint);
-		
+		System.out.println(toPrint);
 		ApplicationsExample.createExampleApplications();
 		createFogDevices();
 		createClients();
