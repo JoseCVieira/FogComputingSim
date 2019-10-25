@@ -227,7 +227,7 @@ public class AlgorithmUtils {
 			System.out.format(Util.centerString(20, al.getmName()[i]));
 			for (int j = 0; j < al.getNumberOfModules(); j++)
 				if(al.getmCPUMap()[i][j] != 0.0)
-					System.out.format(Util.centerString(20, String.format("%.2f", al.getmCPUMap()[i][j])));
+					System.out.format(Util.centerString(20, String.format("%.4f", al.getmCPUMap()[i][j])));
 				else
 					System.out.format(Util.centerString(20, "-"));
 			System.out.println();
@@ -288,7 +288,7 @@ public class AlgorithmUtils {
 				else if(al.getfBandwidthMap()[i][j] == 0)
 					System.out.format(Util.centerString(20, "-"));
 				else
-					System.out.format(Util.centerString(20, String.format("%.2f", al.getfBandwidthMap()[i][j]/1024/1024)));
+					System.out.format(Util.centerString(20, String.format("%.4f", al.getfBandwidthMap()[i][j]/1024/1024)));
 			}
 			System.out.println();
 		}		
@@ -310,7 +310,7 @@ public class AlgorithmUtils {
 				else if(al.getfLatencyMap()[i][j] == 0)
 					System.out.format(Util.centerString(20, "-"));
 				else
-					System.out.format(Util.centerString(20, String.format("%.2f", al.getfLatencyMap()[i][j])));
+					System.out.format(Util.centerString(20, String.format("%.4f", al.getfLatencyMap()[i][j])));
 			}
 			System.out.println();
 		}

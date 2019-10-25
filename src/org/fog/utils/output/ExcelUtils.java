@@ -6,14 +6,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -23,10 +20,8 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.fog.core.Config;
-import org.fog.entities.FogDevice;
 import org.fog.placement.Controller;
 import org.fog.placement.algorithm.Solution;
-import org.fog.utils.NetworkMonitor;
 import org.fog.utils.TimeKeeper;
 
 /**
@@ -75,7 +70,7 @@ public class ExcelUtils {
 		    
 		    createTitleCell(sheet, row, cellIndex++, 65, "Simul. Id");
 		    createTitleCell(sheet, row, cellIndex++, 240, "Name");
-		    createTitleCell(sheet, row, cellIndex++, 200, "Execution time [ms]");
+		    createTitleCell(sheet, row, cellIndex++, 160, "Execution time [ms]");
 		    
 		    for(int i = 0; i < Config.NR_OBJECTIVES; i++) {
 		    	createTitleCell(sheet, row, cellIndex++, 100, Config.objectiveNames[i] + " prio.");
@@ -145,29 +140,13 @@ public class ExcelUtils {
 	    	Row row = sheet.createRow(rowIndex++);
 	    	
 	    	createTitleCell(sheet, row, cellIndex++, 65, "Simul. Id");
-	    	createTitleCell(sheet, row, cellIndex++, 125, "Execution time [s]");
-		    createTitleCell(sheet, row, cellIndex++, 140, "Loops CPU delay [s]");
-		    createTitleCell(sheet, row, cellIndex++, 140, "Loops Lat delay [s]");
-		    createTitleCell(sheet, row, cellIndex++, 140, "Loops Bw delay [s]");
-		    createTitleCell(sheet, row, cellIndex++, 140, "Loops Total delay [s]");
-		    createTitleCell(sheet, row, cellIndex++, 125, "Energy [W]");
-		    createTitleCell(sheet, row, cellIndex++, 125, "Ordered MI [MI]");
-		    createTitleCell(sheet, row, cellIndex++, 125, "Processed MI [MI]");
-		    createTitleCell(sheet, row, cellIndex++, 125, "Cost [€]");
-		    createTitleCell(sheet, row, cellIndex++, 125, "Network usage [s]");
-		    createTitleCell(sheet, row, cellIndex++, 90, "# pkt success");
-		    createTitleCell(sheet, row, cellIndex++, 90, "# pkt drop");
-		    createTitleCell(sheet, row, cellIndex++, 90, "# handover");
-		    createTitleCell(sheet, row, cellIndex++, 90, "# migration");
+	    	createTitleCell(sheet, row, cellIndex++, 125, "Execution time [ms]");
 		    
 		// Create a separator
 	    }else {
 	    	Row row = sheet.createRow(rowIndex++);
-	    	CellStyle cellStyle = row.getSheet().getWorkbook().createCellStyle();
-		    cellStyle.setAlignment(HorizontalAlignment.CENTER);
-		    Cell cell = row.createCell(1);
+	    	Cell cell = row.createCell(1);
 		    cell.setCellValue("-");
-		    cell.setCellStyle(cellStyle);
 	    }
     	    
 	    writeResult(sheet, rowIndex, controller);
@@ -189,29 +168,25 @@ public class ExcelUtils {
 	 * @param solution the solution to be written
 	 * @param algName the algorithm name used
 	 */
-	private static void writeSolution(Sheet sheet, int rowIndex, Solution solution, String algName, long time) {
-		DecimalFormat df = new DecimalFormat("0.00000");
-		
+	private static void writeSolution(Sheet sheet, int rowIndex, Solution solution, String algName, long time) {		
 		Row row = sheet.createRow(rowIndex);
-		CellStyle cellStyle = row.getSheet().getWorkbook().createCellStyle();
-	    cellStyle.setAlignment(HorizontalAlignment.CENTER);
 	    
 	    int cellIndex = START;
 	    
-	    createCell(sheet, row, cellIndex++, Integer.toString(SIMULATION_ID), HorizontalAlignment.CENTER);
-	    createCell(sheet, row, cellIndex++, algName, HorizontalAlignment.CENTER);
-	    createCell(sheet, row, cellIndex++, Long.toString(time), HorizontalAlignment.RIGHT);
+	    createCell(sheet, row, cellIndex++, Integer.toString(SIMULATION_ID));
+	    createCell(sheet, row, cellIndex++, algName);
+	    createCell(sheet, row, cellIndex++, Long.toString(time));
 	    
 	    for(int i = 0; i < Config.NR_OBJECTIVES; i++) {
-	    	 createCell(sheet, row, cellIndex++, Integer.toString(Config.priorities[i]), HorizontalAlignment.CENTER);
+	    	 createCell(sheet, row, cellIndex++, Integer.toString(Config.priorities[i]));
 	    }
 	    
 	    for(int i = 0; i < Config.NR_OBJECTIVES; i++) {
-	    	createCell(sheet, row, cellIndex++, df.format(solution.getDetailedCost(i)), HorizontalAlignment.RIGHT);
+	    	createCell(sheet, row, cellIndex++, Double.toString(solution.getDetailedCost(i)));
 	    }
 	    
 	    String timeStamp = new SimpleDateFormat("HH:mm:ss @ dd.MM.yyyy", Locale.US).format(new Date());
-	    createCell(sheet, row, cellIndex++, timeStamp, HorizontalAlignment.CENTER);
+	    createCell(sheet, row, cellIndex++, timeStamp);
 	}
 	
 	/**
@@ -223,96 +198,15 @@ public class ExcelUtils {
 	 */
 	private static void writeResult(Sheet sheet, int rowIndex, Controller controller) {
 		Row row = sheet.createRow(rowIndex);
-		CellStyle cellStyle = row.getSheet().getWorkbook().createCellStyle();
-	    cellStyle.setAlignment(HorizontalAlignment.CENTER);
-	    DecimalFormat df = new DecimalFormat("0.000");
 	    
 		int cellIndex = START;
 		
 		// ID
-		createCell(sheet, row, cellIndex++, Integer.toString(SIMULATION_ID), HorizontalAlignment.CENTER);
+		createCell(sheet, row, cellIndex++, Integer.toString(SIMULATION_ID));
 		
 		// Elapsed time
 		String value = Long.toString(Calendar.getInstance().getTimeInMillis() - TimeKeeper.getInstance().getSimulationStartTime());
-		createCell(sheet, row, cellIndex++, value, HorizontalAlignment.CENTER);
-	    
-		// Loops delays
-		double cpu = 0;
-		double lat = 0;
-		double bw = 0;
-		double total = 0;
-		for(Integer loopId : TimeKeeper.getInstance().getLoopIdToTupleIds().keySet()) {
-			List<String> modules = SimulationResults.getListForLoopId(controller, loopId);
-			
-			for(int i = 0; i < modules.size()-1; i++) {
-				String startModule = modules.get(i);
-				String destModule = modules.get(i+1);
-				
-				for(String tupleType : SimulationResults.getTupleTypeForDependency(controller, startModule, destModule)) {
-					if(TimeKeeper.getInstance().getTupleTypeToAverageCpuTime().containsKey(tupleType))
-						cpu += TimeKeeper.getInstance().getTupleTypeToAverageCpuTime().get(tupleType);
-					
-					if(TimeKeeper.getInstance().getLoopIdToCurrentNwLatAverage().containsKey(tupleType)) {
-						Map<Double, Integer> map = TimeKeeper.getInstance().getLoopIdToCurrentNwLatAverage().get(tupleType);
-						double totalLat = map.entrySet().iterator().next().getKey();
-						int counter = map.entrySet().iterator().next().getValue();
-						lat += totalLat/counter;
-						
-						map = TimeKeeper.getInstance().getLoopIdToCurrentNwBwAverage().get(tupleType);
-						double totalBw = map.entrySet().iterator().next().getKey();
-						bw += totalBw/counter;
-					}
-				}
-			}
-			
-			total += TimeKeeper.getInstance().getLoopIdToCurrentAverage().get(loopId);
-		}
-		
-		df = new DecimalFormat("0.########E0");
-		String bwf = df.format(bw);
-		df = new DecimalFormat("0.000000");
-		String latf = df.format(lat);
-		df = new DecimalFormat("0.000");
-		
-		createCell(sheet, row, cellIndex++, df.format(cpu), HorizontalAlignment.RIGHT);
-		createCell(sheet, row, cellIndex++, latf, HorizontalAlignment.RIGHT);
-		createCell(sheet, row, cellIndex++, bwf, HorizontalAlignment.RIGHT);
-		createCell(sheet, row, cellIndex++, df.format(total), HorizontalAlignment.RIGHT);
-	    
-	    // Energy
-	    total = 0;
-	    for(FogDevice fogDevice : controller.getFogDevices()) {
-	    	total += fogDevice.getEnergyConsumption();
-		}
-	    createCell(sheet, row, cellIndex++, df.format(total), HorizontalAlignment.RIGHT);
-	    
-	    // Ordered MIs
-	    total = 0;
-	    for(FogDevice fogDevice : controller.getFogDevices()) {
-	    	total += fogDevice.getProcessorMonitor().getOrderedMI();
-		}
-	    createCell(sheet, row, cellIndex++, df.format(total), HorizontalAlignment.RIGHT);
-	    
-	    // Processed MIs
-	    total = 0;
-	    for(FogDevice fogDevice : controller.getFogDevices()) {
-	    	total += fogDevice.getProcessorMonitor().getProcessedMI();
-		}
-	    createCell(sheet, row, cellIndex++, df.format(total), HorizontalAlignment.RIGHT);
-	    
-	    // Cost
-	    total = 0;
-	    for(FogDevice fogDevice : controller.getFogDevices()) {
-	    	total += fogDevice.getTotalCost();
-		}
-	    createCell(sheet, row, cellIndex++, df.format(total), HorizontalAlignment.RIGHT);
-	    
-	    // Network details
-	    createCell(sheet, row, cellIndex++, df.format(NetworkMonitor.getNetworkUsage()), HorizontalAlignment.RIGHT);
-	    createCell(sheet, row, cellIndex++, Integer.toString(NetworkMonitor.getPacketSuccess()), HorizontalAlignment.RIGHT);
-	    createCell(sheet, row, cellIndex++, Integer.toString(NetworkMonitor.getPacketDrop()), HorizontalAlignment.RIGHT);
-	    createCell(sheet, row, cellIndex++, Integer.toString(controller.getNrHandovers()), HorizontalAlignment.RIGHT);
-	    createCell(sheet, row, cellIndex++, Integer.toString(controller.getNrMigrations()), HorizontalAlignment.RIGHT);
+		createCell(sheet, row, cellIndex++, value);
 	}
 	
 	
@@ -326,13 +220,9 @@ public class ExcelUtils {
 	 * @param value the text to be written inside the cell
 	 */
 	private static void createTitleCell(Sheet sheet, Row row, int index, int size, String value) {
-		CellStyle cellStyle = row.getSheet().getWorkbook().createCellStyle();
-	    cellStyle.setAlignment(HorizontalAlignment.CENTER);
-	    
 	    Cell cell = row.createCell(index);
 	    cell.setCellValue(value);
 	    sheet.setColumnWidth(index, size*DEFAULT_LENGTH);
-	    cell.setCellStyle(cellStyle);
 	}
 	
 	/**
@@ -343,13 +233,9 @@ public class ExcelUtils {
 	 * @param index the cell index
 	 * @param value the text to be written inside the cell
 	 */
-	private static void createCell(Sheet sheet, Row row, int index, String value, HorizontalAlignment h) {
-		CellStyle cellStyle = row.getSheet().getWorkbook().createCellStyle();
-	    cellStyle.setAlignment(h);
-	    
+	private static void createCell(Sheet sheet, Row row, int index, String value) {	    
 	    Cell cell = row.createCell(index);
 	    cell.setCellValue(value);
-	    cell.setCellStyle(cellStyle);
 	}
 	
 	/**
