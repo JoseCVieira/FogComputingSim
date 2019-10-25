@@ -387,7 +387,7 @@ public class FogDevice extends PowerDatacenter {
 			
 			double allocatedMipsForVm = getHost().getTotalAllocatedMipsForVm(vm);
 			
-			if(Config.PRINT_DETAILS)
+			if(Config.DEBUG_MODE)
 				FogComputingSim.print("[" + getName() + "] number of allocated mips for vm: " + operator.getName() + " is " + allocatedMipsForVm);
 			
 			totalMipsAllocated += allocatedMipsForVm;
@@ -488,7 +488,7 @@ public class FogDevice extends PowerDatacenter {
 		}
 		
 		if(Config.PRINT_DETAILS)
-			FogComputingSim.print("[" + getName() + "] received tuple w/ destiny module: " + tuple.getDestModuleName());
+			FogComputingSim.print("[" + getName() + "] received tuple w/ destiny module: " + tuple.getDestModuleName() + " w/ tupleId: " + tuple.getCloudletId());
 		
 		Map<String, String> communication = new HashMap<String, String>();
 		communication.put(tuple.getSrcModuleName(), tuple.getDestModuleName());
