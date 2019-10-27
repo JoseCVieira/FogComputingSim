@@ -10,8 +10,6 @@ import org.cloudbus.cloudsim.Storage;
 import org.cloudbus.cloudsim.VmAllocationPolicy;
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.core.SimEvent;
-import org.fog.application.AppEdge;
-import org.fog.application.AppModule;
 import org.fog.utils.FogEvents;
 import org.fog.utils.TimeKeeper;
 import org.fog.utils.movement.Movement;
@@ -84,35 +82,6 @@ public class Client extends FogDevice {
 		}
 		
 		super.processTupleArrival(ev);
-	}
-	
-	@Override
-	protected void sendPeriodicTuple(SimEvent ev) {
-		AppEdge edge = (AppEdge)ev.getData();
-		
-		if(this instanceof Client && edge.getEdgeType() == Tuple.ACTUATOR) {			
-			String srcModuleName = edge.getSource();
-			AppModule srcModule = getModuleByName(srcModuleName);
-			
-			Tuple tuple = getController().getApplications().get(srcModule.getAppId()).createTuple(edge, getId());
-			
-			// If it is the source a given application loop
-			List<String> path = new ArrayList<String>();
-			path.add(edge.getSource());
-			
-			if(getController().getApplications().get(srcModule.getAppId()).isLoop(path, edge.getDestination())) {
-				tuple.getPathMap().put(path, CloudSim.clock());
-			}
-			
-			((Client) this).sendTupleToActuator(tuple);
-			TimeKeeper.getInstance().tupleStartedTransmission(tuple);
-			
-			send(getId(), edge.getPeriodicity(), FogEvents.SEND_PERIODIC_TUPLE, edge);
-			
-			return;
-		}
-		
-		super.sendPeriodicTuple(ev);
 	}
 	
 	/**

@@ -19,7 +19,7 @@ public abstract class Movement {
 	protected static final int SOUTH = 6;
 	protected static final int SOUTHEAST = 7;
 	
-	public static final int SQUARE_SIDE = 10000;
+	public static final int SQUARE_SIDE = 1000;
 	
 	protected static final double MAX_VELOCITY = 33.3333;	// 33.3333 m/s = 120 km/h 	-> high speed car
 	protected static final double MED_VELOCITY = 13.8889;	// 13.8889 m/s = 50 km/h  	-> slow speed car

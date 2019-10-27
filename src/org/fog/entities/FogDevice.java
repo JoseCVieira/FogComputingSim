@@ -212,20 +212,27 @@ public class FogDevice extends PowerDatacenter {
 		AppModule srcModule = getModuleByName(srcModuleName);
 		AppModule dstModule = getModuleByName(dstModuleName);
 		
-		if(srcModule == null || dstModule == null) return;
+		if(srcModule == null) return;
 		
-		boolean found = false;
-		for(Map<String, String> map : tupleRoutingTable.keySet()) {
-			if(map.containsValue(edge.getDestination()) || map.containsValue(edge.getSource())) {
-				found = true;
+		Tuple tuple;
+		if(edge.getEdgeType() == Tuple.ACTUATOR) {
+			tuple = controller.getApplications().get(srcModule.getAppId()).createTuple(edge, srcModule.getUserId());
+		}else {
+			if(dstModule == null) return;
+			
+			boolean found = false;
+			for(Map<String, String> map : tupleRoutingTable.keySet()) {
+				if(map.containsValue(edge.getDestination()) || map.containsValue(edge.getSource())) {
+					found = true;
+				}
 			}
+			
+			if(!deployedModules.contains(dstModuleName) && !found) {
+				return;
+			}
+			
+			tuple = controller.getApplications().get(srcModule.getAppId()).createTuple(edge, dstModule.getUserId());
 		}
-		
-		if(!deployedModules.contains(dstModuleName) && !found) {
-			return;
-		}
-		
-		Tuple tuple = controller.getApplications().get(srcModule.getAppId()).createTuple(edge, dstModule.getUserId());
 		
 		// If it is the source a given application loop
 		List<String> path = new ArrayList<String>();

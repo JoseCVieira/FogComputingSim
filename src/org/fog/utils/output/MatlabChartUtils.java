@@ -1,7 +1,6 @@
 package org.fog.utils.output;
 
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -25,7 +24,6 @@ import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
-import org.jfree.chart.title.TextTitle;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
@@ -52,7 +50,7 @@ public class MatlabChartUtils extends JFrame implements ChartMouseListener {
         chartPanel = new ChartPanel(chart);
         chartPanel.addChartMouseListener(this);
         
-        chartPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        chartPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
         chartPanel.setBackground(Color.white);
         add(chartPanel);
         
@@ -86,7 +84,8 @@ public class MatlabChartUtils extends JFrame implements ChartMouseListener {
     private JFreeChart createChart(XYDataset dataset) {
     	
         JFreeChart chart = ChartFactory.createXYLineChart(
-                "Best value per iteration", 
+                //"Best value per iteration", 
+        		"",
                 "Iteration", 
                 "Value", 
                 dataset, 
@@ -99,21 +98,11 @@ public class MatlabChartUtils extends JFrame implements ChartMouseListener {
         XYPlot plot = chart.getXYPlot();
         
         XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
-        /*renderer.setSeriesPaint(0, Color.RED);
-        renderer.setSeriesStroke(0, new BasicStroke(1.0f));*/
         
         plot.setRenderer(renderer);
         plot.setBackgroundPaint(Color.white);
         
-        plot.setRangeGridlinesVisible(true);
-        plot.setRangeGridlinePaint(Color.BLACK);
-        
-        plot.setDomainGridlinesVisible(true);
-        plot.setDomainGridlinePaint(Color.BLACK);
-        
         chart.getLegend().setFrame(BlockBorder.NONE);
-        
-        chart.setTitle(new TextTitle("Best value per iteration", new Font("Serif", java.awt.Font.BOLD, 18)));
         
         return chart;
     }
