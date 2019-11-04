@@ -16,6 +16,8 @@ import org.fog.core.FogComputingSim;
 import org.fog.entities.Client;
 import org.fog.entities.FogDevice;
 import org.fog.placement.Controller;
+import org.fog.placement.algorithm.Algorithm;
+import org.fog.placement.algorithm.Solution;
 import org.fog.utils.NetworkMonitor;
 import org.fog.utils.TimeKeeper;
 import org.fog.utils.Util;
@@ -32,6 +34,13 @@ public class SimulationResults {
 	/** Object which holds the information needed to display the simulation results */
 	private Controller controller;
 	
+	/** The algorithm object */
+	private Algorithm al;
+	
+	/** The final solution */
+	private Solution solution;
+	
+	
 	/**
 	 * Prints the results obtained in the simulation execution.
 	 * 
@@ -39,6 +48,8 @@ public class SimulationResults {
 	 */
 	public SimulationResults(Controller controller) {
 		this.controller = controller;
+		this.al = controller.getControllerAlgorithm().getAlgorithm();
+		this.solution = controller.getControllerAlgorithm().getSolution();
 		
 		printTimeDetails();
 		printLoopDetailsAverage();
@@ -184,6 +195,9 @@ public class SimulationResults {
 		int col1 = MAX_COLUMN_SIZE-2;
 		int col2 = MAX_COLUMN_SIZE/6;
 		String content = "";
+		double totalLoopCount = 0;
+		double totalLoopDiff = 0;
+		double loopAverageDev = 0;
 		
 		Map<String, Integer> subtitles = new LinkedHashMap<String, Integer>();
 		subtitles.put("LOOP", col1);
@@ -220,6 +234,26 @@ public class SimulationResults {
 			
 			if(deadline == -1) FogComputingSim.err("SimulationResults Err: Should not happen");
 			
+			double wcs = -1;
+			for(int i = 0; i < al.getNumberOfLoops(); i++) {
+				ArrayList<String> loopModules = new ArrayList<String>();
+				
+				for(int j = 0; j < al.getNumberOfModules(); j++) {
+					if(j == al.getNumberOfModules() - 1 || al.getLoops()[i][j+1] == -1) {
+						loopModules.add(al.getmName()[al.getLoops()[i][j]]);
+						break;
+					}
+					loopModules.add(al.getmName()[al.getLoops()[i][j]]);
+				}
+				
+				if(loopModules.equals(path)) {
+					wcs = solution.getLoopDeadline(i);
+					break;
+				}
+			}
+			
+			if(wcs == -1) FogComputingSim.err("SimulationResults Err: Should not happen");
+			
 			for(double v : values) {
 				avg += v;
 				if(v > deadline)
@@ -230,7 +264,12 @@ public class SimulationResults {
 				
 				if(min > v)
 					min = v;
+				
+				if(v > wcs && wcs <= deadline)
+					totalLoopDiff += v - wcs;
 			}
+			
+			if(wcs <= deadline) totalLoopCount += values.size();
 			
 			avg /= nrLoops;
 			
@@ -250,7 +289,15 @@ public class SimulationResults {
 			content += "|" + Util.centerString(col2-3, Integer.toString(nrViolated)) + "|\n";
 		}
 		
+		if(totalLoopCount != 0)
+			loopAverageDev = totalLoopDiff/totalLoopCount;
+		
+		content += newDetailsField('-', true);
+		content += "|" + Util.centerString(MAX_COLUMN_SIZE*2+1, "Loop average deviation [s] = " + loopAverageDev) + "|\n";
+		
 		table("APPLICATION LOOP DELAYS", content, subtitles);
+		
+		
 	}
 	
 	/**
@@ -471,6 +518,7 @@ public class SimulationResults {
 			
 			totalCapacity += c*Config.MAX_SIMULATION_TIME*isFogDevice;
 			totalProcessed += p*isFogDevice;
+			totalOccupation += o*isFogDevice;
 			
 			jfiNum += o*isFogDevice;
 			jfiDen += Math.pow(o*isFogDevice, 2);
@@ -482,8 +530,6 @@ public class SimulationResults {
 		
 		String wcs = Util.doubleToString(7, 5, (double)1/nrFogDevices);
 		String jfi = Util.doubleToString(7, 5, (double)jfiNum/jfiDen);
-		
-		totalOccupation = (double) 100*totalProcessed/totalCapacity;
 		
 		content += newDetailsField('-', true);
 		content += "|" + Util.centerString(col1+col2+1, "TOTAL (FOG/CLOUD DEVICES)");
@@ -538,6 +584,7 @@ public class SimulationResults {
 				
 				totalCapacity += time*bw*isFogDevice*isFogDevice;
 				totalUsed += size*isFogDevice*isFogDevice;
+				totalOccupation += o*isFogDevice;
 				
 				content += "|" + Util.centerString(col1, f1.getName() + " -> " + f2.getName());
 				content += "|" + Util.centerString(col2, max);
@@ -558,8 +605,6 @@ public class SimulationResults {
 			if(!f1.isStaticNode() && totalTime != Config.MAX_SIMULATION_TIME)
 				FogComputingSim.err("SimulationResults Err: Should not happen");
 		}
-		
-		totalOccupation = (double) 100*totalUsed/totalCapacity;
 		
 		content += newDetailsField('-', true);
 		content += "|" + Util.centerString(col1, "TOTAL (FOG/CLOUD DEVICES)");
