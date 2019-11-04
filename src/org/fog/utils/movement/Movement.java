@@ -1,6 +1,5 @@
 package org.fog.utils.movement;
 
-import org.fog.core.Config;
 import org.fog.core.FogComputingSim;
 
 /**
@@ -46,32 +45,32 @@ public abstract class Movement {
 		
 		switch (direction) {
 		case EAST:
-			nextX = location.getX() + velocity*Config.PERIODIC_MOVEMENT_UPDATE;
+			nextX = location.getX() + velocity;
 			break;
 		case WEST:
-			nextX = location.getX() - velocity*Config.PERIODIC_MOVEMENT_UPDATE;
+			nextX = location.getX() - velocity;
 			break;
 		case SOUTH:
-			nextY = location.getY() - velocity*Config.PERIODIC_MOVEMENT_UPDATE;
+			nextY = location.getY() - velocity;
 			break;
 		case NORTH:
-			nextY = location.getY() + velocity*Config.PERIODIC_MOVEMENT_UPDATE;
+			nextY = location.getY() + velocity;
 			break;
 		case SOUTHEAST:
-			nextX = location.getX() + velocity*Math.cos(45)*Config.PERIODIC_MOVEMENT_UPDATE;
-			nextY = location.getY() - velocity*Math.sin(45)*Config.PERIODIC_MOVEMENT_UPDATE;
+			nextX = location.getX() + velocity*Math.cos(45);
+			nextY = location.getY() - velocity*Math.sin(45);
 			break;
 		case NORTHWEST:
-			nextX = location.getX() - velocity*Math.cos(45)*Config.PERIODIC_MOVEMENT_UPDATE;
-			nextY = location.getY() + velocity*Math.sin(45)*Config.PERIODIC_MOVEMENT_UPDATE;
+			nextX = location.getX() - velocity*Math.cos(45);
+			nextY = location.getY() + velocity*Math.sin(45);
 			break;
 		case SOUTHWEST:
-			nextX = location.getX() - velocity*Math.cos(45)*Config.PERIODIC_MOVEMENT_UPDATE;
-			nextY = location.getY() - velocity*Math.sin(45)*Config.PERIODIC_MOVEMENT_UPDATE;
+			nextX = location.getX() - velocity*Math.cos(45);
+			nextY = location.getY() - velocity*Math.sin(45);
 			break;
 		case NORTHEAST:
-			nextX = location.getX() + velocity*Math.cos(45)*Config.PERIODIC_MOVEMENT_UPDATE;
-			nextY = location.getY() + velocity*Math.sin(45)*Config.PERIODIC_MOVEMENT_UPDATE;
+			nextX = location.getX() + velocity*Math.cos(45);
+			nextY = location.getY() + velocity*Math.sin(45);
 			break;
 		default:
 			break;
