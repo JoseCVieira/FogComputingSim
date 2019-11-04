@@ -430,7 +430,7 @@ public class AlgorithmUtils {
 		
 		System.out.println("\n********************* LOOP DEADLINES ***********************\n");
 		
-		System.out.println("Number of loops: " + al.getNumberOfLoops() + " | Number of violated deadlines: " +
+		System.out.println("Number of applications: " + al.getNumberOfApplications() + " | Number of violated applications: " +
 				(int)solution.getDetailedCost(Config.QOS_COST) + "\n");
 		
 		for(int i = 0; i < al.getNumberOfLoops(); i++) {
