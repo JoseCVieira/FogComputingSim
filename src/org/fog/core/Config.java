@@ -14,7 +14,7 @@ public class Config {
 	// General ------------------------------------------------
 	
 	/** Defines whether the best value is printed between iterations are printed */
-	public static boolean PRINT_ALGORITHM_BEST_ITER = true;
+	public static boolean PRINT_ALGORITHM_BEST_ITER = false;
 	
 	/** Defines whether the final result of the algorithm (i.e., the best solution) is printed */
 	public static boolean PRINT_ALGORITHM_RESULTS = true;
@@ -51,9 +51,9 @@ public class Config {
 	 */
 	public static final int[] priorities = new int[] {
 			5,		// Quality of Service cost
-			3,		// Power cost
-			2,		// Processing cost
-			4,		// Bandwidth cost
+			4,		// Power cost
+			3,		// Processing cost
+			2,		// Bandwidth cost
 			1		// Migration cost
 	};
 	
@@ -99,31 +99,32 @@ public class Config {
 	
 	// Genetic algorithm --------------------------------------
 	
-	/** Number of individuals running in the Genetic Algorithm */
-	public static final int POPULATION_SIZE_GA = 15;
-	
+	/** Number of individuals running in the Genetic Algorithm placement */
+	public static final int POPULATION_SIZE_GA_PLACEMENT = 12;
+
+	/** Number of individuals running in the Genetic Algorithm routing */
+	public static final int POPULATION_SIZE_GA_ROUTING = 5;
+
 	/** Maximum number of iterations to solve the module placement through genetic algorithm */
 	public static final int MAX_ITER_PLACEMENT_GA = 100000;
-	
+
 	/** Maximum number of iterations to solve the tuple routing through genetic algorithm */
-	public static final int MAX_ITER_ROUTING_GA = 500;
-	
+	public static final int MAX_ITER_ROUTING_GA = 50;
+
 	/** Maximum number of equal cost solutions of module placement through genetic algorithm to stop it */
-	public static final int MAX_ITER_PLACEMENT_CONVERGENCE_GA = 20;
-	
+	public static final int MAX_ITER_PLACEMENT_CONVERGENCE_GA = 25;
+
 	/** Maximum number of equal cost solutions of tuple routing through genetic algorithm to stop it */
-	public static final int MAX_ITER_ROUTING_CONVERGENCE_GA = 20;
+	public static final int MAX_ITER_ROUTING_CONVERGENCE_GA = 7;
 	
 	
 	// Random algorithm ---------------------------------------
 	
 	/** Maximum number of iterations to solve the problem through random algorithm */
-	public static final int MAX_ITER_RANDOM = 100000;
-	
+	public static final int MAX_ITER_RANDOM = 1000000;
+
 	/** Maximum number of equal cost solutions of the problem through random algorithm to stop it */
-	public static final int MAX_ITER_CONVERGENCE_RANDOM = 20;
-	
-	
+	public static final int MAX_ITER_CONVERGENCE_RANDOM = 13000;
 	
 	// Simulation ---------------------------------------------
 	
@@ -131,13 +132,13 @@ public class Config {
 	public static boolean DEBUG_MODE = false;
 	
 	/** Defines whether the simulation should print logs about the simulation (e.g., tuple transmission, migrations, processing, etc.) */
-	public static boolean PRINT_DETAILS = true;
+	public static boolean PRINT_DETAILS = false;
 	
 	/** Defines whether the simulation should print logs about the costs and resource usage */
 	public static boolean PRINT_COST_DETAILS = false;
 	
 	/** Defines whether the simulation is dynamic (i.e., mobile nodes actualy move around) */
-	public static boolean DYNAMIC_SIMULATION = true;
+	public static boolean DYNAMIC_SIMULATION = false;
 	
 	/** Defines whether the simulation is allowed to perform migrations of VMs */
 	public static boolean ALLOW_MIGRATION = true;
@@ -146,23 +147,23 @@ public class Config {
 	public static final int HANDOVER_THRESHOLD = 75;
 	
 	/** Defines the bandwidth available in fixed link */
-	public static final double FIXED_COMMUNICATION_BW = 50*1024*1024/8;// 50 Mb/s
+	public static final double FIXED_COMMUNICATION_BW = (400*1024*1024/8)/1000;	// 400 Mb/s
 	
 	/** Defines the bandwidth available in cellular link */
-	public static final double CELLULAR_COMMUNICATION_BW = 9*1024*1024/8;	// 9 Mb/s
+	public static final double CELLULAR_COMMUNICATION_BW = (400*1024*1024/8)/1000;	// 400 Mb/s
 	
 	/** Defines the latency available in cellular link */
-	public final static double CELLULAR_COMMUNICATION_LATENCY = 200E-6;	// 200 us
+	public final static double CELLULAR_COMMUNICATION_LATENCY = 0;
 	
 	/** Defines the time needed to perform the setup of the VM after the migration is completed */
-	public static final double SETUP_VM_TIME = 20;
+	public static final double SETUP_VM_TIME = 10000; 			// 10 s
 	
 	/** Defines the maximum time of simulation which is performed */
-	public static final int MAX_SIMULATION_TIME = 10000;
+	public static final int MAX_SIMULATION_TIME = 10000; 		// 10 s
 	
 	/** Defines the periodicity that the controller will check whether it's necessary to run the optimization algorithm again */
-	public static final int RECONFIG_PERIOD = 1;
+	public static final int RECONFIG_PERIOD = 1;				// 1 ms
 	
-	public static final double PERIODIC_MOVEMENT_UPDATE = 1;
+	public static final double PERIODIC_MOVEMENT_UPDATE = 1000; // 1s
 	
 }
