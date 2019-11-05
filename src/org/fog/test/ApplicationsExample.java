@@ -113,6 +113,73 @@ public class ApplicationsExample {
 		loops = new ArrayList<AppLoop>(){{add(loop5);add(loop6);}};
 		application.setLoops(loops);
 		exampleApplications.add(application);
+				
+		application = new Application("VRGame_TEST");
+		application.addAppModule("client", 100, 25, true, false);
+		application.addAppModule("calculator", 100, 30, false, false);
+		application.addAppModule("connector", 100, 30, false, false);
+		
+		application.addAppEdge("EEG", "client", 300, 500, "EEG", AppEdge.SENSOR);
+		application.addAppEdge("client", "calculator", 350, 500, "_SENSOR", AppEdge.MODULE);
+		application.addAppEdge("calculator", "connector", 100, 100, 1000, "PLAYER_GAME_STATE", AppEdge.MODULE);
+		application.addAppEdge("calculator", "client", 1.4, 500, "CONCENTRATION", AppEdge.MODULE);
+		application.addAppEdge("connector", "client", 100, 2.8, 1000, "GLOBAL_GAME_STATE", AppEdge.MODULE);
+		application.addAppEdge("client", "DISPLAY", 0, 500, "SELF_STATE_UPDATE", AppEdge.ACTUATOR);
+		application.addAppEdge("client", "DISPLAY", 0, 500, "GLOBAL_STATE_UPDATE", AppEdge.ACTUATOR);
+		
+		application.addTupleMapping("client", "EEG", "_SENSOR", new FractionalSelectivity(1.0));
+		application.addTupleMapping("client", "CONCENTRATION", "SELF_STATE_UPDATE", new FractionalSelectivity(1.0));
+		application.addTupleMapping("calculator", "_SENSOR", "CONCENTRATION", new FractionalSelectivity(1.0));
+		application.addTupleMapping("client", "GLOBAL_GAME_STATE", "GLOBAL_STATE_UPDATE", new FractionalSelectivity(1.0));
+		
+		final AppLoop loop7 = new AppLoop(new ArrayList<String>(){{add("EEG");add("client");add("calculator");add("client");add("DISPLAY");}}, 25);
+		loops = new ArrayList<AppLoop>(){{add(loop7);}};
+		application.setLoops(loops);
+		exampleApplications.add(application);
+		
+		application = new Application("DCNS_TEST");
+		application.addAppModule("object_detector", 100, 30, false, false);
+		application.addAppModule("motion_detector", 100, 30, false, false);
+		application.addAppModule("object_tracker", 100, 30, false, false);
+		application.addAppModule("user_interface", 100, 25, true, false);
+		
+		application.addAppEdge("CAMERA", "motion_detector", 100, 20000, "CAMERA", AppEdge.SENSOR);
+		application.addAppEdge("motion_detector", "object_detector", 200, 2000, "MOTION_VIDEO_STREAM", AppEdge.MODULE);
+		application.addAppEdge("object_detector", "user_interface", 50, 2000, "DETECTED_OBJECT", AppEdge.MODULE);
+		application.addAppEdge("object_detector", "object_tracker", 100, 100, "OBJECT_LOCATION", AppEdge.MODULE);
+		application.addAppEdge("object_tracker", "PTZ_CONTROL", 100, 0, 100, "PTZ_PARAMS", AppEdge.ACTUATOR);
+		
+		application.addTupleMapping("motion_detector", "CAMERA", "MOTION_VIDEO_STREAM", new FractionalSelectivity(1.0));
+		application.addTupleMapping("object_detector", "MOTION_VIDEO_STREAM", "OBJECT_LOCATION", new FractionalSelectivity(1.0));
+		application.addTupleMapping("object_detector", "MOTION_VIDEO_STREAM", "DETECTED_OBJECT", new FractionalSelectivity(0.05));
+		
+		final AppLoop loop8 = new AppLoop(new ArrayList<String>(){{add("motion_detector");add("object_detector");add("object_tracker");}}, 12);
+		final AppLoop loop9 = new AppLoop(new ArrayList<String>(){{add("object_tracker");add("PTZ_CONTROL");}}, 10);
+		loops = new ArrayList<AppLoop>(){{add(loop8);add(loop9);}};
+		application.setLoops(loops);
+		exampleApplications.add(application);
+		
+		application = new Application("DCNS_TEST_DYNAMIC");
+		application.addAppModule("object_detector", 10, 360000, false, false); //56MB
+		application.addAppModule("motion_detector", 10, 360000, false, false);
+		application.addAppModule("object_tracker", 10, 360000, false, false);
+		application.addAppModule("user_interface", 10, 360000, true, false);
+		
+		application.addAppEdge("CAMERA", "motion_detector", 100, 20000, "CAMERA", AppEdge.SENSOR);
+		application.addAppEdge("motion_detector", "object_detector", 200, 2000, "MOTION_VIDEO_STREAM", AppEdge.MODULE);
+		application.addAppEdge("object_detector", "user_interface", 50, 2000, "DETECTED_OBJECT", AppEdge.MODULE);
+		application.addAppEdge("object_detector", "object_tracker", 100, 100, "OBJECT_LOCATION", AppEdge.MODULE);
+		application.addAppEdge("object_tracker", "PTZ_CONTROL", 100, 0, 100, "PTZ_PARAMS", AppEdge.ACTUATOR);
+		
+		application.addTupleMapping("motion_detector", "CAMERA", "MOTION_VIDEO_STREAM", new FractionalSelectivity(1.0));
+		application.addTupleMapping("object_detector", "MOTION_VIDEO_STREAM", "OBJECT_LOCATION", new FractionalSelectivity(1.0));
+		application.addTupleMapping("object_detector", "MOTION_VIDEO_STREAM", "DETECTED_OBJECT", new FractionalSelectivity(0.05));
+		
+		final AppLoop loop10 = new AppLoop(new ArrayList<String>(){{add("motion_detector");add("object_detector");add("object_tracker");}}, 15);
+		final AppLoop loop11 = new AppLoop(new ArrayList<String>(){{add("object_tracker");add("PTZ_CONTROL");}}, 10);
+		loops = new ArrayList<AppLoop>(){{add(loop10);add(loop11);}};
+		application.setLoops(loops);
+		exampleApplications.add(application);
 	}
 	
 	/**
