@@ -8,7 +8,7 @@ import org.fog.core.FogComputingSim;
 import org.fog.entities.Tuple;
 
 /**
- * Class which computes the network usage (given in seconds) in transmit both tuples and virtual machines
+ * Class which computes the network usage in transmit both tuples and virtual machines
  * between nodes. It is also responsible for counting both the number of packages dropped and successfully
  * delivered during the whole simulation.
  * 
