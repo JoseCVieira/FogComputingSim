@@ -35,7 +35,7 @@ public class AppModule extends PowerVm {
 	 */
 	private boolean globalModule;
 	
-	/** Maximum allowed time to spend in each migration */
+	/** Maximum allowed time [ms] to spend in each migration */
 	private double migrationDeadline;
 	
 	/** Map of the selectivity models governing the relation between the incoming and outgoing edges */
@@ -52,7 +52,7 @@ public class AppModule extends PowerVm {
 	 * @param ram the memory resource units [Byte] necessary to the application module
 	 * @param bw the network resource units necessary to the application module
 	 * @param size the storage resource units necessary to the application module
-	 * @param migrationDeadline the maximum allowed time to spend in each migration
+	 * @param migrationDeadline the maximum allowed time [ms] to spend in each migration
 	 * @param vmm the virtual machine monitor
 	 * @param cloudletScheduler the cloudletScheduler policy for cloudlets
 	 * @param selectivityMap the map of the selectivity models governing the relation between the incoming and outgoing edges
@@ -97,7 +97,7 @@ public class AppModule extends PowerVm {
 	 * 
 	 * @param name the application module name
 	 * @param ram the memory resource units necessary to the application module
-	 * @param migrationDeadline the maximum allowed time to spend in each migration
+	 * @param migrationDeadline the maximum allowed time [ms] to spend in each migration
 	 * @param clientModule if the application module is a global module
 	 * @param glogbalModule if the application global is a global module
 	 */

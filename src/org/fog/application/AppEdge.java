@@ -30,7 +30,7 @@ public class AppEdge {
 	/** Origin or the destination of the edge */
 	private int edgeType;
 	
-	/** Periodicity of the application edge (in case it is periodic) */
+	/** Periodicity [ms] of the application edge (in case it is periodic) */
 	private double periodicity;
 	
 	/** Denotes if the application edge is a periodic edge */
@@ -62,7 +62,7 @@ public class AppEdge {
 	 * 
 	 * @param source the name of source application module
 	 * @param destination the name of destination application module
-	 * @param periodicity the periodicity of the application edge
+	 * @param periodicity the periodicity [ms] of the application edge
 	 * @param tupleCpuLength the CPU length (in MIPS) of tuples carried by the application edge
 	 * @param tupleNwLength the network length [Byte] of tuples carried by the application edge
 	 * @param tupleType the type of tuples carried by the application edge
@@ -106,7 +106,7 @@ public class AppEdge {
 	 * 
 	 * @param source the name of source application module
 	 * @param destination the name of destination application module
-	 * @param periodicity the periodicity of the application edge
+	 * @param periodicity the periodicity [ms] of the application edge
 	 * @param tupleCpuLength the CPU length (in MIPS) of tuples carried by the application edge
 	 * @param tupleNwLength the network length [Byte] of tuples carried by the application edge
 	 * @param tupleType the type of tuples carried by the application edge

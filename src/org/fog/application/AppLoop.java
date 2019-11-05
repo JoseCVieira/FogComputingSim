@@ -17,7 +17,7 @@ public class AppLoop {
 	/** List of modules composing the loop to analyze */
 	private List<String> modules;
 	
-	/** Deadline of the loop (given in seconds) */
+	/** Deadline of the loop [ms] */
 	private double deadline;
 	
 	/**
@@ -32,7 +32,7 @@ public class AppLoop {
 	}
 	
 	/**
-	 * Creates an application loop to monitor for delay with deadline.
+	 * Creates an application loop to monitor for delay with deadline [ms].
 	 * 
 	 * @param modules the list of modules composing the loop to analyze
 	 */
@@ -136,7 +136,7 @@ public class AppLoop {
 	}
 	
 	/**
-	 * Gets the deadline of the loop (given in seconds).
+	 * Gets the deadline of the loop [ms].
 	 * 
 	 * @return the deadline of the loop
 	 */
@@ -145,7 +145,7 @@ public class AppLoop {
 	}
 
 	/**
-	 * Sets the deadline of the loop (given in seconds).
+	 * Sets the deadline of the loop [ms].
 	 * 
 	 * @param deadline the deadline of the loop
 	 */

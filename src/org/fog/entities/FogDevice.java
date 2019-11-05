@@ -434,12 +434,12 @@ public class FogDevice extends PowerDatacenter {
 		FogDeviceCharacteristics characteristics = (FogDeviceCharacteristics) getCharacteristics();
 		
 		double newcost = getTotalCost();
-		newcost += timeDif*lastMipsUtilization*getHost().getTotalMips()*characteristics.getCostPerMips();
-		newcost += timeDif*lastRamUtilization*getHost().getRam()*characteristics.getCostPerMem();
-		newcost += timeDif*lastStorageUtilization*getHost().getStorage()*characteristics.getCostPerStorage();
-		newcost += timeDif*lastBwUtilization*totalBwAvailable*characteristics.getCostPerBw();
-		newcost += energyConsumption*characteristics.getCostPerPower();
-		newcost += timeDif*characteristics.getCostPerSecond();
+		newcost += timeDif*lastMipsUtilization*getHost().getTotalMips()*characteristics.getCostPerMips()*1E-3;
+		newcost += timeDif*lastRamUtilization*getHost().getRam()*characteristics.getCostPerMem()*1E-3;
+		newcost += timeDif*lastStorageUtilization*getHost().getStorage()*characteristics.getCostPerStorage()*1E-3;
+		newcost += timeDif*lastBwUtilization*totalBwAvailable*characteristics.getCostPerBw()*1E-3;
+		newcost += energyConsumption*characteristics.getCostPerPower()*1E-3;
+		newcost += timeDif*characteristics.getCostPerSecond()*1E-3;
 		setTotalCost(newcost);
 		
 		lastRamUtilization = totalRamAllocated/getHost().getRam();

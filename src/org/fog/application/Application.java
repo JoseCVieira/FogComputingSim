@@ -51,13 +51,13 @@ public class Application {
 	 * 
 	 * @param moduleName the module name
 	 * @param ram ram the ram size [Byte] needed to run this module
-	 * @param migrationDeadline the maximum allowed time to spend in each migration
+	 * @param migrationDeadline the maximum allowed time [ms] to spend in each migration
 	 * @param clientModule if the application module is a global module
 	 * @param glogbalModule if the application global is a global module
 	 */
 	public void addAppModule(String moduleName, int ram, double migrationDeadline, boolean clientModule, boolean glogbalModule) {
 		int mips = 0;
-		long size = 10000;
+		long size = 10000; //5242880; //5MB 
 		long bw = 0;
 		String vmm = "Xen";
 		
@@ -146,7 +146,7 @@ public class Application {
 	 * 
 	 * @param source the name of source application module
 	 * @param destination the name of destination application module
-	 * @param periodicity the periodicity of the application edge
+	 * @param periodicity the periodicity [ms] of the application edge
 	 * @param tupleCpuLength the CPU length (in MIPS) of tuples carried by the application edge
 	 * @param tupleNwLength the network length [Byte] of tuples carried by the application edge
 	 * @param tupleType the type of tuples carried by the application edge
