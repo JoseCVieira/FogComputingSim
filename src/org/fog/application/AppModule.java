@@ -96,13 +96,15 @@ public class AppModule extends PowerVm {
 	 * Modifies the values of the application module.
 	 * 
 	 * @param name the application module name
-	 * @param ram the memory resource units necessary to the application module
+	 * @param storage the storage resource units [Bytes] necessary to the application module
+	 * @param ram the memory resource units [Bytes] necessary to the application module
 	 * @param migrationDeadline the maximum allowed time [ms] to spend in each migration
 	 * @param clientModule if the application module is a global module
 	 * @param glogbalModule if the application global is a global module
 	 */
-	public void setValues(String name, int ram, double migrationDeadline, boolean clientModule, boolean glogbalModule) {
+	public void setValues(String name, long storage, int ram, double migrationDeadline, boolean clientModule, boolean glogbalModule) {
 		setName(name);
+		setSize(storage);
 		setRam(ram);
 		setClientModule(clientModule);
 		setGlobalModule(glogbalModule);

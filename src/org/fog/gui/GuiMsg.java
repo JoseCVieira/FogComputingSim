@@ -21,6 +21,7 @@ public class GuiMsg {
 	public static final String TipLoopDeadline = "The time acceptable by the user for the loop execution in the worst case scenario";
 	
 	public static final String TipModName = "Name of the application module";
+	public static final String TipModStrg = "Storage needed to support this module";
 	public static final String TipModRam = "Ram needed to support this module";
 	public static final String TipModMig = "Maximum allowed time to spend in each migration";
 	public static final String TipModClient = "Defines whether this module should specifically run inside the client node (e.g., GUI)";

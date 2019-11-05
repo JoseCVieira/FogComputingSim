@@ -107,6 +107,9 @@ public class GuiConfig {
 	// Module -------------------------------------------------
 	
 	/** Mean of the memory of the modules normal distribution */
+	public static int MODULE_STORAGE = 100*1024*1024;
+	
+	/** Mean of the memory of the modules normal distribution */
 	public static int MODULE_RAM = 2*1024*1024;
 	
 	/** Maximum allowed time to spend in each migration */

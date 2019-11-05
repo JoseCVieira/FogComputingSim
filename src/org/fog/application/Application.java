@@ -50,14 +50,14 @@ public class Application {
 	 * Adds an application module to the application.
 	 * 
 	 * @param moduleName the module name
+	 * @param size the module size [Byte]
 	 * @param ram ram the ram size [Byte] needed to run this module
 	 * @param migrationDeadline the maximum allowed time [ms] to spend in each migration
 	 * @param clientModule if the application module is a global module
 	 * @param glogbalModule if the application global is a global module
 	 */
-	public void addAppModule(String moduleName, int ram, double migrationDeadline, boolean clientModule, boolean glogbalModule) {
+	public void addAppModule(String moduleName, long size, int ram, double migrationDeadline, boolean clientModule, boolean glogbalModule) {
 		int mips = 0;
-		long size = 10000; //5242880; //5MB 
 		long bw = 0;
 		String vmm = "Xen";
 		

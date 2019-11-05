@@ -143,13 +143,14 @@ public class Bridge {
 				String appId = (String) model.get("appId");
 				String name = (String) model.get("name");
 				int ram = ((Long) model.get("ram")).intValue();
+				long storage = ((Long) model.get("strg"));
 				double migrationDealine = (Double) model.get("migDeadline");
 				boolean clientModule = (Boolean) model.get("clientModule");
 				boolean globalModule = (Boolean) model.get("globalModule");
 				
 				for(Application app : graph.getAppList()) {
 					if(app.getAppId().equals(appId)) {
-						app.addAppModule(name, ram, migrationDealine, clientModule, globalModule);
+						app.addAppModule(name, storage, ram, migrationDealine, clientModule, globalModule);
 						break;
 					}
 				}
@@ -347,6 +348,7 @@ public class Bridge {
 				jobj = new JSONObject();
 				jobj.put("appId", appModule.getAppId());
 				jobj.put("name", appModule.getName());
+				jobj.put("strg", appModule.getSize());
 				jobj.put("ram", appModule.getRam());
 				jobj.put("migDeadline", appModule.getMigrationDeadline());
 				jobj.put("clientModule", appModule.isClientModule());
