@@ -22,7 +22,7 @@ import org.fog.utils.movement.StaticMovement;
  * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
  * @since  July, 2019
  */
-public class TestDynamic extends Topology {
+public class DynamicDeterministicTest extends Topology {
 	/** Number of fog node gateways which are responsible to connect the clients to the fog network */
 	private static final int numOfDepts = 2;
 	
@@ -35,7 +35,7 @@ public class TestDynamic extends Topology {
 	/**
 	 * Creates a new topology.
 	 */
-	public TestDynamic() {
+	public DynamicDeterministicTest() {
 		super("Generating Test Static topology...");
 	}
 	

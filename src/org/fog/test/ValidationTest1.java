@@ -20,21 +20,21 @@ import org.fog.utils.movement.StaticMovement;
  * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
  * @since  July, 2019
  */
-public class Test2 extends Topology {	
+public class ValidationTest1 extends Topology {	
 	/** Parameter which defines the time interval between tuples sent by the sensors */
 	private static final double EEG_TRANSMISSION_TIME = 5;
 	
 	/**
 	 * Creates a new topology.
 	 */
-	public Test2() {
-		super("Generating Test2 topology...");
+	public ValidationTest1() {
+		super("Generating Test1 topology...");
 	}
 	
 	/**
 	 * Creates the fog nodes which compose the physical topology. Note that the connections at this point
 	 * should only be created between fixed nodes once, mobile connections are updated during the simulation.
-	 */	
+	 */
 	@Override
 	protected void createFogDevices() {
 		// Create the movement for the cloud
@@ -66,12 +66,8 @@ public class Test2 extends Topology {
 		connectFogDevices(proxy, f2, 1, 1, 10000, 10000);
 		connectFogDevices(f1, f2, 6, 6, 10000, 10000);
 		
-		FogDevice c = createClientDevice("m-1", 64, 1000, 1000000, movement);
+		FogDevice c = createClientDevice("m", 64, 1000, 1000000, movement);
 		connectFogDevices(f1, c, 6, 6, 10000, 10000);
-		fogDevices.add(c);
-		
-		c = createClientDevice("m-2", 1, 100000, 1000000, movement);
-		connectFogDevices(f2, c, 3, 3, 10000, 10000);
 		fogDevices.add(c);
 	}
 	
@@ -80,25 +76,16 @@ public class Test2 extends Topology {
 	 * Note that each user application requires a pair of sensor and actuator.
 	 */
 	@Override
-	protected void createClients() {		
+	protected void createClients() {
+		Application app = ApplicationsExample.getAppExampleByName("VRGame_TEST");
+		String sensorName = "EEG:";
+		String actuatorName = "DISPLAY:";
+		
 		// For each fog node
 		for(FogDevice fogDevice : fogDevices) {
 			
 			// Which, in this example, needs to start with the character "m"
 			if(fogDevice.getName().startsWith("m")) {
-				
-				Application app;
-				String sensorName;
-				String actuatorName;
-				if(fogDevice.getName().startsWith("m-1")) {
-					app = ApplicationsExample.getAppExampleByName("VRGame_TEST");
-					sensorName = "EEG:";
-					actuatorName = "DISPLAY:";
-				}else {
-					app = ApplicationsExample.getAppExampleByName("DCNS_TEST");
-					sensorName = "CAMERA:";
-					actuatorName = "PTZ_CONTROL:";
-				}
 				
 				// Create a deterministic distribution for its sensor
 				Distribution distribution =  new DeterministicDistribution(EEG_TRANSMISSION_TIME);

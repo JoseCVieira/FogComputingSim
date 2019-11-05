@@ -4,10 +4,12 @@ import java.util.LinkedHashSet;
 
 import org.fog.application.AppEdge;
 import org.fog.application.Application;
+import org.fog.core.Config;
 import org.fog.core.Topology;
 import org.fog.entities.Actuator;
 import org.fog.entities.FogDevice;
 import org.fog.entities.Sensor;
+import org.fog.utils.Util;
 import org.fog.utils.distribution.DeterministicDistribution;
 import org.fog.utils.distribution.Distribution;
 import org.fog.utils.movement.Location;
@@ -20,66 +22,80 @@ import org.fog.utils.movement.StaticMovement;
  * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
  * @since  July, 2019
  */
-public class Test3 extends Topology {	
+public class StaticRandomTest extends Topology {
+	/** Number of fog node gateways which are responsible to connect the clients to the fog network */
+	private static final int numOfDepts = 4;
+	
+	/** Number of mobile users connected to each fog node gateway */
+	private static final int numOfMobilesPerDept = 4;
+	
 	/** Parameter which defines the time interval between tuples sent by the sensors */
 	private static final double EEG_TRANSMISSION_TIME = 5;
 	
 	/**
 	 * Creates a new topology.
 	 */
-	public Test3() {
-		super("Generating Test3 topology...");
+	public StaticRandomTest() {
+		super("Generating Test Static topology...");
 	}
 	
 	/**
 	 * Creates the fog nodes which compose the physical topology. Note that the connections at this point
 	 * should only be created between fixed nodes once, mobile connections are updated during the simulation.
-	 */	
+	 */
 	@Override
 	protected void createFogDevices() {
 		// Create the movement for the cloud
-		Movement movement = new StaticMovement(new Location(0, 0));
+		Location l = new Location(Util.rand(-Movement.SQUARE_SIDE, Movement.SQUARE_SIDE), Util.rand(-Movement.SQUARE_SIDE, Movement.SQUARE_SIDE));
+		Movement movement = new StaticMovement(l);
 		
 		// Create the cloud device (cloud is seen as a single node)
-		FogDevice cloud = createFogDevice("cloud", 44800, 40000, 1000000, 1.648, 1.332, 0.01, 0.05, 0.001, 0.05, 0.05, movement);
+		FogDevice cloud = createFogDevice("cloud", 44800, 40000, 1000000, 16*103, 16*83.25, 0.01, 0.05, 0.001, 0.05, 0.05, movement);
 		
 		// Add the cloud to the physical topology
 		fogDevices.add(cloud);
 		
+		// Create the movement for the proxy
+		l = new Location(Util.rand(-Movement.SQUARE_SIDE, Movement.SQUARE_SIDE), Util.rand(-Movement.SQUARE_SIDE, Movement.SQUARE_SIDE));
+		movement = new StaticMovement(l);
+		
 		// Create the proxy device
-		FogDevice proxy = createFogDevice("proxy-server", 1000, 40000, 1000000, 0.107339, 0.0834333, 1E-5, 1E-5, 1E-5, 1E-5, 1E-5, movement);
+		FogDevice proxy = createFogDevice("proxy-server", 4800, 4000, 1000000, 107.339, 83.4333, 1E-5, 1E-5, 1E-5, 1E-5, 1E-5, movement);
 		
 		// Add the proxy to the physical topology
 		fogDevices.add(proxy);
 		
 		// Create a connection (link) between the cloud and the proxy and vice versa
-		connectFogDevices(cloud, proxy, 100, 100, 10000, 10000);
+		connectFogDevices(cloud, proxy, 100, 100, Config.FIXED_COMMUNICATION_BW, Config.FIXED_COMMUNICATION_BW);
 		
+		// Repeat the process for the next nodes
+		for(int i = 0; i < numOfDepts; i++) {
+			l = new Location(Util.rand(-Movement.SQUARE_SIDE, Movement.SQUARE_SIDE), Util.rand(-Movement.SQUARE_SIDE, Movement.SQUARE_SIDE));
+			movement = new StaticMovement(l);
+			
+			FogDevice f;
+			if(i == 0) {
+				f = createFogDevice("d-"+i, 75, 4000, 1000000, 0, 0, 0.01, 0.05, 0.001, 0.05, 0.05, movement);
+			}else if(i != numOfDepts-1) {
+				f = createFogDevice("d-"+i, 75, 4000, 1000000, 107.339, 83.4333, 0.01, 0.05, 0.001, 0.05, 0.05, movement);
+			}else {
+				f = createFogDevice("d-"+i, 1000, 4000, 1000000, 107.339, 83.4333, 0.01, 0.05, 0.001, 0.05, 0.05, movement);
+			}
+			
+			if(i != numOfDepts-1)
+				connectFogDevices(proxy, f, 10, 10, 10000, 10000);
+			
+			
+			fogDevices.add(f);
+		}
 		
-		FogDevice f1 = createFogDevice("f-1", 75, 28000, 1000000, 0.05, 0.038, 0.01, 0.05, 0.001, 0.05, 0.05, movement);
-		FogDevice f2 = createFogDevice("f-2", 75, 28000, 1000000, 0, 0, 0.01, 0.05, 0.001, 0.05, 0.05, movement);
-		FogDevice f3 = createFogDevice("f-3", 1000, 40000, 1000000, 0.107339, 0.0834333, 1E-5, 1E-5, 1E-5, 1E-5, 1E-5, movement);
+		for(int j = 0; j < numOfMobilesPerDept; j++) {
+			l = new Location(Util.rand(-Movement.SQUARE_SIDE, Movement.SQUARE_SIDE), Util.rand(-Movement.SQUARE_SIDE, Movement.SQUARE_SIDE));
+			movement = new StaticMovement(l);
+			FogDevice mobile = createClientDevice("m-"+j, 65, 1000, 1000000, movement);
+			fogDevices.add(mobile);
+		}
 		
-		fogDevices.add(f1);
-		fogDevices.add(f2);
-		fogDevices.add(f3);
-		
-		connectFogDevices(proxy, f1, 1, 1, 10000, 10000);
-		connectFogDevices(proxy, f2, 1, 1, 10000, 10000);
-		connectFogDevices(f1, f2, 6, 6, 10000, 10000);
-		connectFogDevices(f1, f3, 500, 500, 10000, 10000);
-		
-		FogDevice c = createClientDevice("m-1", 64, 1000, 1000000, movement);
-		connectFogDevices(f1, c, 6, 6, 10000, 10000);
-		fogDevices.add(c);
-		
-		c = createClientDevice("m-2", 1, 100000, 1000000, movement);
-		connectFogDevices(f2, c, 3, 3, 10000, 10000);
-		fogDevices.add(c);
-		
-		c = createClientDevice("m-3", 1, 100000, 1000000, movement);
-		connectFogDevices(f3, c, 3, 3, 10000, 10000);
-		fogDevices.add(c);
 	}
 	
 	/**
@@ -87,25 +103,16 @@ public class Test3 extends Topology {
 	 * Note that each user application requires a pair of sensor and actuator.
 	 */
 	@Override
-	protected void createClients() {		
+	protected void createClients() {
+		Application app = ApplicationsExample.getAppExampleByName("DCNS_TEST");
+		String sensorName = "EEG:";
+		String actuatorName = "DISPLAY:";
+		
 		// For each fog node
 		for(FogDevice fogDevice : fogDevices) {
 			
 			// Which, in this example, needs to start with the character "m"
 			if(fogDevice.getName().startsWith("m")) {
-				
-				Application app;
-				String sensorName;
-				String actuatorName;
-				if(fogDevice.getName().startsWith("m-1")) {
-					app = ApplicationsExample.getAppExampleByName("VRGame_TEST");
-					sensorName = "EEG:";
-					actuatorName = "DISPLAY:";
-				}else {
-					app = ApplicationsExample.getAppExampleByName("DCNS_TEST");
-					sensorName = "CAMERA:";
-					actuatorName = "PTZ_CONTROL:";
-				}
 				
 				// Create a deterministic distribution for its sensor
 				Distribution distribution =  new DeterministicDistribution(EEG_TRANSMISSION_TIME);

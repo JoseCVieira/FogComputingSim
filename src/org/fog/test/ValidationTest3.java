@@ -20,21 +20,21 @@ import org.fog.utils.movement.StaticMovement;
  * @author José Carlos Ribeiro Vieira @ Instituto Superior Técnico (IST), Lisbon-Portugal
  * @since  July, 2019
  */
-public class Test1 extends Topology {	
+public class ValidationTest3 extends Topology {	
 	/** Parameter which defines the time interval between tuples sent by the sensors */
 	private static final double EEG_TRANSMISSION_TIME = 5;
 	
 	/**
 	 * Creates a new topology.
 	 */
-	public Test1() {
-		super("Generating Test1 topology...");
+	public ValidationTest3() {
+		super("Generating Test3 topology...");
 	}
 	
 	/**
 	 * Creates the fog nodes which compose the physical topology. Note that the connections at this point
 	 * should only be created between fixed nodes once, mobile connections are updated during the simulation.
-	 */
+	 */	
 	@Override
 	protected void createFogDevices() {
 		// Create the movement for the cloud
@@ -58,16 +58,27 @@ public class Test1 extends Topology {
 		
 		FogDevice f1 = createFogDevice("f-1", 75, 28000, 1000000, 0.05, 0.038, 0.01, 0.05, 0.001, 0.05, 0.05, movement);
 		FogDevice f2 = createFogDevice("f-2", 75, 28000, 1000000, 0, 0, 0.01, 0.05, 0.001, 0.05, 0.05, movement);
+		FogDevice f3 = createFogDevice("f-3", 1000, 40000, 1000000, 0.107339, 0.0834333, 1E-5, 1E-5, 1E-5, 1E-5, 1E-5, movement);
 		
 		fogDevices.add(f1);
 		fogDevices.add(f2);
+		fogDevices.add(f3);
 		
 		connectFogDevices(proxy, f1, 1, 1, 10000, 10000);
 		connectFogDevices(proxy, f2, 1, 1, 10000, 10000);
 		connectFogDevices(f1, f2, 6, 6, 10000, 10000);
+		connectFogDevices(f1, f3, 500, 500, 10000, 10000);
 		
-		FogDevice c = createClientDevice("m", 64, 1000, 1000000, movement);
+		FogDevice c = createClientDevice("m-1", 64, 1000, 1000000, movement);
 		connectFogDevices(f1, c, 6, 6, 10000, 10000);
+		fogDevices.add(c);
+		
+		c = createClientDevice("m-2", 1, 100000, 1000000, movement);
+		connectFogDevices(f2, c, 3, 3, 10000, 10000);
+		fogDevices.add(c);
+		
+		c = createClientDevice("m-3", 1, 100000, 1000000, movement);
+		connectFogDevices(f3, c, 3, 3, 10000, 10000);
 		fogDevices.add(c);
 	}
 	
@@ -76,16 +87,25 @@ public class Test1 extends Topology {
 	 * Note that each user application requires a pair of sensor and actuator.
 	 */
 	@Override
-	protected void createClients() {
-		Application app = ApplicationsExample.getAppExampleByName("VRGame_TEST");
-		String sensorName = "EEG:";
-		String actuatorName = "DISPLAY:";
-		
+	protected void createClients() {		
 		// For each fog node
 		for(FogDevice fogDevice : fogDevices) {
 			
 			// Which, in this example, needs to start with the character "m"
 			if(fogDevice.getName().startsWith("m")) {
+				
+				Application app;
+				String sensorName;
+				String actuatorName;
+				if(fogDevice.getName().startsWith("m-1")) {
+					app = ApplicationsExample.getAppExampleByName("VRGame_TEST");
+					sensorName = "EEG:";
+					actuatorName = "DISPLAY:";
+				}else {
+					app = ApplicationsExample.getAppExampleByName("DCNS_TEST");
+					sensorName = "CAMERA:";
+					actuatorName = "PTZ_CONTROL:";
+				}
 				
 				// Create a deterministic distribution for its sensor
 				Distribution distribution =  new DeterministicDistribution(EEG_TRANSMISSION_TIME);
