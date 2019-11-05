@@ -686,4 +686,13 @@ public class Controller extends SimEntity {
 		return nrHandovers;
 	}
 	
+	/**
+	 * Gets the controller algorithm.
+	 * 
+	 * @return the controller algorithm
+	 */
+	public ControllerAlgorithm getControllerAlgorithm() {
+		return controllerAlgorithm;
+	}
+	
 }
