@@ -23,6 +23,11 @@ import org.fog.placement.Controller;
 import org.fog.placement.ControllerAlgorithm;
 import org.fog.test.DCNSFog;
 import org.fog.test.TEMPFog;
+import org.fog.test.ValidationTest1;
+import org.fog.test.ValidationTest2;
+import org.fog.test.ValidationTest3;
+import org.fog.test.DynamicDeterministicTest;
+import org.fog.test.StaticRandomTest;
 import org.fog.test.VRGameFog;
 import org.fog.utils.Logger;
 import org.fog.utils.TimeKeeper;
@@ -40,7 +45,12 @@ public class FogComputingSim {
 	private static final int VRGAME = 2;
 	private static final int DCNS = 3;
 	private static final int TEMP = 4;
-	private static final int FILE = 5;
+	private static final int VTEST1 = 5;
+	private static final int VTEST2 = 6;
+	private static final int VTEST3 = 7;
+	private static final int STATIC_CRANDOM = 8;
+	private static final int DYNAMIC = 9;
+	private static final int FILE = 10;
 	
 	private static List<Application> applications;
 	private static List<FogDevice> fogDevices;
@@ -62,6 +72,7 @@ public class FogComputingSim {
 		
 		// Create the topology to be tested and select the algorithm to be used
 		int option = -1;
+		
 		while(option == -1 || applications == null) {
 			option = menuAlgorithm();
 			menuTopology();
@@ -164,12 +175,17 @@ public class FogComputingSim {
 		System.out.println("|       FOG COMPUTING SIMULATOR MENU - TOPOLOGY        |");
 		System.out.println("|                                                      |");
 	    System.out.println("| Options:                                             |");
-	    System.out.println("|       1. GUI                                         |");
-	    System.out.println("|       2. VRGameFog - iFogSim Example                 |");
-	    System.out.println("|       3. DCNSFog   - iFogSim Example                 |");
-	    System.out.println("|       4. TEMPFog   - iFogSim Example                 |");
-	    System.out.println("|       5. Read JSON file (/topologies/<file_name>)    |");
-	    System.out.println("|       0. Back                                        |");
+	    System.out.println("|       01. GUI                                        |");
+	    System.out.println("|       02. VRGameFog - iFogSim Example                |");
+	    System.out.println("|       03. DCNSFog   - iFogSim Example                |");
+	    System.out.println("|       04. TEMPFog   - iFogSim Example                |");
+	    System.out.println("|       05. Validation Test 1                          |");
+	    System.out.println("|       06. Validation Test 2                          |");
+	    System.out.println("|       07. Validation Test 3                          |");
+	    System.out.println("|       08. Static Random Test                         |");
+	    System.out.println("|       09. Dynamic Deterministic Test                 |");
+	    System.out.println("|       10. Read JSON file (/topologies/<file_name>)   |");
+	    System.out.println("|       00. Back                                       |");
 	    System.out.println("|                                                      |");
 	    System.out.println("————————————————————————————————————————————————————————");
 	    System.out.print("\n Topology: ");
@@ -195,7 +211,6 @@ public class FogComputingSim {
 						Util.promptEnterKey("Press \"ENTER\" to continue...");
 						topology = gui.getRunGUI();
 					}
-					
 					break;
 				case VRGAME:
 					topology = new VRGameFog();
@@ -205,6 +220,21 @@ public class FogComputingSim {
 					break;
 				case TEMP:
 					topology = new TEMPFog();
+					break;
+				case VTEST1:
+					topology = new ValidationTest1();
+					break;
+				case VTEST2:
+					topology = new ValidationTest2();
+					break;
+				case VTEST3:
+					topology = new ValidationTest3();
+					break;
+				case STATIC_CRANDOM:
+					topology = new StaticRandomTest();
+					break;
+				case DYNAMIC:
+					topology = new DynamicDeterministicTest();
 					break;
 				case FILE:
 					String filePath = menuFile();
@@ -315,7 +345,7 @@ public class FogComputingSim {
 	 * @param str the message to be printed
 	 */
 	public static void print(final String str) {
-		DecimalFormat df = new DecimalFormat("0.0000");
+		DecimalFormat df = new DecimalFormat("0.00000000000");
 		String clock = Util.centerString(13, df.format(CloudSim.clock()));
 		System.out.println("Clock=" + clock + "-> " + str);
 	}
